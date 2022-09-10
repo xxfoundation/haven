@@ -1,0 +1,39 @@
+.root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  backdrop-filter: blur(1px);
+  height: 100%;
+  -webkit-backdrop-filter: blur(1px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background-color: var(--dark-1);
+  padding: 0 72px;
+  min-height: 50px;
+
+  min-width: 680px;
+  max-width: 680px;
+}
+
+.modal:focus {
+  outline: none;
+}
+
+.close {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  z-index: 10;
+}

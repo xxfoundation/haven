@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  height: 100vh;
+
+  .leftSideBar {
+    width: 20%;
+    min-width: 184px;
+  }
+
+  main {
+    flex-grow: 1;
+  }
+}

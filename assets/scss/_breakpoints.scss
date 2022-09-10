@@ -1,0 +1,37 @@
+@mixin break-min($media) {
+  @if (type-of($media) == "number") {
+    @if (unit($media) == "px" or unit($media) == "em") {
+      @media screen and (min-width: #{$media}) {
+        @content;
+      }
+    } @else {
+      @media screen and (min-width: #{$media}em) {
+        @content;
+      }
+    }
+  } @else {
+    @media screen and (#{$media}) {
+      @content;
+    }
+  }
+}
+
+@mixin break-max($media) {
+  @if (type-of($media) == "number") {
+    @if (unit($media) == "px" or unit($media) == "em") {
+      // -1 px
+      @media screen and (max-width: #{$media - 0.063}) {
+        @content;
+      }
+    } @else {
+      // -1 px
+      @media screen and (max-width: #{$media - 0.063}em) {
+        @content;
+      }
+    }
+  } @else {
+    @media screen and (#{$media}) {
+      @content;
+    }
+  }
+}

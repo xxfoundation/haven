@@ -1,0 +1,86 @@
+.headline {
+  color: var(--text-primary);
+  font-family: $font-primary;
+  font-weight: 700;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: $base-letter-spacing;
+  &--xl {
+    font-size: 40px;
+    font-weight: 700;
+  }
+
+  &--lg {
+    font-size: 25px;
+    font-weight: 700;
+  }
+
+  &--md {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  &--sm {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  &--xs {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &--text {
+    font-weight: 700;
+    font-size: 12px;
+  }
+}
+
+h1,
+.h1 {
+  @extend .headline, .headline--xl;
+}
+
+h2,
+.h2 {
+  @extend .headline, .headline--lg;
+}
+
+h3,
+.h3 {
+  @extend .headline, .headline--md;
+}
+
+h4,
+.h4 {
+  @extend .headline, .headline--sm;
+}
+
+h5,
+.h5 {
+  @extend .headline, .headline--xs;
+}
+
+.text {
+  font-family: $font-primary;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.3;
+
+  &--md {
+    font-size: 13px;
+  }
+
+  &--sm {
+    font-size: 12px;
+  }
+
+  &--xs {
+    font-size: 11px;
+    line-height: 13px;
+  }
+}

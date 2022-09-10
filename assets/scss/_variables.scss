@@ -1,0 +1,33 @@
+// Colors
+$primary: var(--primary);
+$secondary: var(--secondary);
+
+$text-primary: var(--text-primary);
+$text-secondary: var(--text-secondary);
+
+// Fonts
+$font-primary: var(--font-montserrat);
+
+// Browser Context Sizing for unit/measurement
+$browser-context: 10px;
+$base-line-height: 1.5;
+$base-letter-spacing: 0.25px;
+
+// Breakpoints
+$breakpoints: (
+  xs: 425px,
+  sm: 640px,
+  md: 768px,
+  smdtp: 960px,
+  lg: 1024px,
+  xl: 1280px,
+  2xl: 1536px
+);
+
+$mobile: map-get($breakpoints, xs);
+$mobile-wide: map-get($breakpoints, sm);
+$tablet: map-get($breakpoints, md);
+$tablet-wide: map-get($breakpoints, lg);
+$small-desktop: map-get($breakpoints, smdtp);
+$desktop: map-get($breakpoints, xl);
+$desktop-wide: map-get($breakpoints, 2xl);

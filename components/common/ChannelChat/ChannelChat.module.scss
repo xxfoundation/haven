@@ -1,0 +1,69 @@
+.root {
+  width: 100%;
+  height: 100%;
+  background-color: var(--dark-2);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+
+  .channelHeader {
+    padding: 12px 16px;
+    box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.25);
+    div {
+      color: var(--text-primary);
+      span {
+        font-weight: 500;
+      }
+    }
+
+    p {
+      color: var(--text-secondary);
+    }
+  }
+  .messagesContainer {
+    flex: 1;
+  }
+  .textArea {
+    margin: 15px 9px;
+    border-radius: 5px;
+    overflow: hidden;
+    flex-direction: column;
+    align-items: stretch;
+
+    textarea {
+      border: none;
+      outline: none;
+      background-color: var(--dark-5);
+      border: 1px solid var(--dark-2);
+      border-width: 1px 1px 0 1px;
+      resize: none;
+
+      padding: 10px 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+      width: 100%;
+      height: 64px;
+      display: flex;
+      border-radius: 5px 5px 0 0;
+    }
+    ::placeholder {
+      color: #73767c;
+    }
+
+    .buttonsWrapper {
+      display: flex;
+      flex-direction: row-reverse;
+      background-color: var(--dark-5);
+      border-radius: 0 0 5px 5px;
+      border: 1px solid var(--dark-2);
+      border-width: 0px 1px 1px 1px;
+    }
+
+    .button {
+      margin-right: 10px;
+      margin-bottom: 10px;
+      margin-top: 4px;
+    }
+  }
+}
