@@ -23,6 +23,7 @@
   }
   .messagesContainer {
     flex: 1;
+    overflow: auto;
   }
   .textArea {
     margin: 15px 9px;
@@ -30,6 +31,24 @@
     overflow: hidden;
     flex-direction: column;
     align-items: stretch;
+
+    .replyContainer {
+      background-color: var(--dark-5);
+      border-radius: 5px;
+      padding: 10px 8px;
+      display: flex;
+      span {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--orange);
+      }
+      p {
+        font-size: 14px;
+      }
+      svg path {
+        fill: var(--orange);
+      }
+    }
 
     textarea {
       border: none;
@@ -65,5 +84,34 @@
       margin-bottom: 10px;
       margin-top: 4px;
     }
+  }
+}
+
+.dayMessagesWrapper {
+  position: relative;
+
+  .separator {
+    position: absolute;
+    top: 15px;
+    height: 1px;
+    width: 100%;
+    background-color: var(--secondary);
+  }
+
+  .currentDay {
+    display: inline-block;
+    height: 31px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 30px;
+    border: 1px solid var(--secondary);
+    position: sticky;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--dark-5);
+    color: var(--cyan);
+    z-index: 2;
   }
 }

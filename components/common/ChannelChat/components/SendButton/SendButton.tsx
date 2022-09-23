@@ -3,9 +3,12 @@ import s from "./SendButton.module.scss";
 import { Elixxir } from "@components/icons";
 import cn from "classnames";
 
-const SendButton: FC<{ cssClass?: string }> = ({ cssClass }) => {
+const SendButton: FC<{ cssClass?: string; onClick: () => void }> = ({
+  cssClass,
+  onClick
+}) => {
   return (
-    <div className={cn(s.root, cssClass)}>
+    <div className={cn(s.root, cssClass)} onClick={onClick}>
       <span className="mr-1">Send</span>
       <Elixxir />
     </div>
