@@ -10,10 +10,13 @@ import { randomStringGenerator } from "@utils";
 import { useInterval } from "@utils/hooks/useIntervals";
 import moment from "moment";
 import _ from "lodash";
+import { useNetworkClient } from "contexts/network-client-context";
 
 const fakeHoursFlag = true;
 
 const ChannelChat: FC<{}> = ({}) => {
+  const { currentChannel, channels, setCurrentChannel } = useNetworkClient();
+
   const [channelMessages, setChannelMessages] = useState<IMessage[]>([]);
   const [messageBody, setMessageBody] = useState<string>("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -131,94 +134,101 @@ const ChannelChat: FC<{}> = ({}) => {
     );
   };
 
+  // if (!currentChannel) {
+  //   return null;
+  // }
   return (
     <div className={s.root}>
-      <div className={s.channelHeader}>
-        <div className={"headline--sm"}>
-          Channel 3 <span className={"headline--xs"}>(id: 2585Th)</span>
-        </div>
-        <p className={"text"}>
-          Description goes here ipsum dolor sit amet, consectetur adipiscing
-          elit. Maecenas posuere cursus posuere. Nunc dolor elit, malesuada sed
-          dui vitae, euismod dictum elit. Morbi faucibus id nibh eu
-        </p>
-      </div>
-      <div
-        id={"messagesContainer"}
-        className={s.messagesContainer}
-        ref={messagesContainerRef}
-        onScroll={() => {
-          if (checkBottom()) {
-            setAutoScrollToEnd(true);
-          } else {
-            setAutoScrollToEnd(false);
-          }
-        }}
-      >
-        {Object.entries(groupedMessagesPerDay).map(([key, value]) => {
-          return (
-            <div className={cn(s.dayMessagesWrapper)}>
-              <div className={s.separator}></div>
-              <span className={cn(s.currentDay)}>
-                {moment(key).format("dddd MMMM Do, YYYY")}
-              </span>
-              <div>
-                {value.map(m => {
-                  return (
-                    <ChatMessage
-                      key={m.id}
-                      message={m}
-                      onReactToMessage={(reaction: IEmojiReaction) => {
-                        handleReactToMessage(reaction, m);
-                      }}
-                      onReplyClicked={() => {
-                        setReplyToMessage(m);
-                      }}
-                    />
-                  );
-                })}
+      {currentChannel ? (
+        <>
+          {" "}
+          <div className={s.channelHeader}>
+            <div className={"headline--sm"}>
+              {currentChannel?.name}{" "}
+              <span className={"headline--xs"}>id: {currentChannel?.id}</span>
+            </div>
+            <p className={"text"}>{currentChannel?.description}</p>
+          </div>
+          <div
+            id={"messagesContainer"}
+            className={s.messagesContainer}
+            ref={messagesContainerRef}
+            onScroll={() => {
+              if (checkBottom()) {
+                setAutoScrollToEnd(true);
+              } else {
+                setAutoScrollToEnd(false);
+              }
+            }}
+          >
+            {Object.entries(groupedMessagesPerDay).map(([key, value]) => {
+              return (
+                <div className={cn(s.dayMessagesWrapper)}>
+                  <div className={s.separator}></div>
+                  <span className={cn(s.currentDay)}>
+                    {moment(key).format("dddd MMMM Do, YYYY")}
+                  </span>
+                  <div>
+                    {value.map(m => {
+                      return (
+                        <ChatMessage
+                          key={m.id}
+                          message={m}
+                          onReactToMessage={(reaction: IEmojiReaction) => {
+                            handleReactToMessage(reaction, m);
+                          }}
+                          onReplyClicked={() => {
+                            setReplyToMessage(m);
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className={s.textArea}>
+            {replyToMessage && (
+              <div className={cn(s.replyContainer)}>
+                <div className="flex flex-col flex-1">
+                  <span>Reply to {replyToMessage.userName}</span>
+                  <p>{replyToMessage.body}</p>
+                </div>
+                <Close
+                  width={14}
+                  height={14}
+                  fill={"var(--orange)"}
+                  onClick={() => {
+                    setReplyToMessage(null);
+                  }}
+                />
               </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className={s.textArea}>
-        {replyToMessage && (
-          <div className={cn(s.replyContainer)}>
-            <div className="flex flex-col flex-1">
-              <span>Reply to {replyToMessage.userName}</span>
-              <p>{replyToMessage.body}</p>
-            </div>
-            <Close
-              width={14}
-              height={14}
-              fill={"var(--orange)"}
-              onClick={() => {
-                setReplyToMessage(null);
+            )}
+
+            <textarea
+              name=""
+              placeholder="Type your message here..."
+              value={messageBody}
+              onChange={e => {
+                setMessageBody(e.target.value);
+              }}
+              onKeyDown={e => {
+                if (e.keyCode === 13 && !e.shiftKey) {
+                  e.preventDefault();
+                  addNewMessage();
+                }
               }}
             />
+
+            <div className={s.buttonsWrapper}>
+              <SendButton cssClass={s.button} onClick={() => addNewMessage()} />
+            </div>
           </div>
-        )}
-
-        <textarea
-          name=""
-          placeholder="Type your message here..."
-          value={messageBody}
-          onChange={e => {
-            setMessageBody(e.target.value);
-          }}
-          onKeyDown={e => {
-            if (e.keyCode === 13 && !e.shiftKey) {
-              e.preventDefault();
-              addNewMessage();
-            }
-          }}
-        />
-
-        <div className={s.buttonsWrapper}>
-          <SendButton cssClass={s.button} onClick={() => addNewMessage()} />
-        </div>
-      </div>
+        </>
+      ) : (
+        <div></div>
+      )}
     </div>
   );
 };

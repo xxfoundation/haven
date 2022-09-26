@@ -1,0 +1,40 @@
+.bubble {
+  display: block;
+  cursor: pointer;
+
+  &__connected:after {
+    background-color: greenyellow;
+  }
+  &__connecting:after {
+    background-color: var(--orange);
+  }
+  &__failed:after {
+    background-color: var(--red);
+  }
+  &__disconnected:after {
+    background-color: var(--dark-6);
+  }
+}
+
+.bubble {
+  &__connected:hover:after {
+    background-color: greenyellow;
+  }
+  &__connecting:hover:after {
+    background-color: var(--orange);
+  }
+  &__failed:hover:after {
+    background-color: var(--red);
+  }
+  &__disconnected:hover:after {
+    background-color: var(--dark-6);
+  }
+}
+
+.bubble:after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+}
