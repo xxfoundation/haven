@@ -8,3 +8,9 @@ export const randomStringGenerator = (length: number) => {
   }
   return result;
 };
+
+// Encodes Uint8Array to a string.
+export const enc = new TextEncoder();
+
+// Decodes a string to a Uint8Array.
+export const dec = new TextDecoder();

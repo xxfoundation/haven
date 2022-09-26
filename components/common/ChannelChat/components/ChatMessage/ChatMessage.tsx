@@ -73,7 +73,6 @@ const ActionsWrapper: FC<{
         <div ref={pickerIconRef}>
           <EmojisPickerIcon
             onClick={() => {
-              console.log("test yyyyy");
               setPickerVisible(!pickerVisible);
             }}
           />

@@ -25,7 +25,8 @@
       "@contexts/*": ["contexts/*"],
       "@types": ["types/"],
       "@utils": ["utils/index"],
-      "@utils/hooks/*": ["utils/hooks/*"]
+      "@utils/hooks/*": ["utils/hooks/*"],
+      "@sdk/*": ["sdk-utils/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
