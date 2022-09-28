@@ -15,7 +15,12 @@ import { useNetworkClient } from "contexts/network-client-context";
 const fakeHoursFlag = true;
 
 const ChannelChat: FC<{}> = ({}) => {
-  const { currentChannel, channels, setCurrentChannel } = useNetworkClient();
+  const {
+    currentChannel,
+    channels,
+    setCurrentChannel,
+    sendMessage
+  } = useNetworkClient();
 
   const [channelMessages, setChannelMessages] = useState<IMessage[]>([]);
   const [messageBody, setMessageBody] = useState<string>("");
@@ -134,9 +139,6 @@ const ChannelChat: FC<{}> = ({}) => {
     );
   };
 
-  // if (!currentChannel) {
-  //   return null;
-  // }
   return (
     <div className={s.root}>
       {currentChannel ? (
@@ -163,7 +165,7 @@ const ChannelChat: FC<{}> = ({}) => {
           >
             {Object.entries(groupedMessagesPerDay).map(([key, value]) => {
               return (
-                <div className={cn(s.dayMessagesWrapper)}>
+                <div className={cn(s.dayMessagesWrapper)} key={key}>
                   <div className={s.separator}></div>
                   <span className={cn(s.currentDay)}>
                     {moment(key).format("dddd MMMM Do, YYYY")}
@@ -222,7 +224,13 @@ const ChannelChat: FC<{}> = ({}) => {
             />
 
             <div className={s.buttonsWrapper}>
-              <SendButton cssClass={s.button} onClick={() => addNewMessage()} />
+              <SendButton
+                cssClass={s.button}
+                onClick={async () => {
+                  sendMessage(messageBody);
+                  addNewMessage();
+                }}
+              />
             </div>
           </div>
         </>

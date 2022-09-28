@@ -15,7 +15,8 @@ import {
   JoinChannelView,
   ShareChannelView,
   LoginView,
-  RegisterView
+  RegisterView,
+  LeaveChannelConfirmationView
 } from "@components/common/Modal/ModalViews";
 
 interface Props {
@@ -104,6 +105,9 @@ const DefaultLayout: FC<Props> = ({
         {modalView === "SHARE_CHANNEL" && <ShareChannelView />}
         {modalView === "CREATE_CHANNEL" && <CreateChannelView />}
         {modalView === "JOIN_CHANNEL" && <JoinChannelView />}
+        {modalView === "LEAVE_CHANNEL_CONFIRMATION" && (
+          <LeaveChannelConfirmationView />
+        )}
       </Modal>
     );
   };

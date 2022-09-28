@@ -62,6 +62,7 @@ const LeftSideBar: FC<{
             setModalView("JOIN_CHANNEL");
             openModal();
           }}
+          disabled={networkStatus !== NetworkStatus.CONNECTED}
         >
           Join Channel
         </Button>
@@ -71,6 +72,7 @@ const LeftSideBar: FC<{
             setModalView("CREATE_CHANNEL");
             openModal();
           }}
+          disabled={networkStatus !== NetworkStatus.CONNECTED}
         >
           Create Channel
         </Button>

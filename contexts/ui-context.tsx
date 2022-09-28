@@ -29,7 +29,8 @@ type MODAL_VIEWS =
   | "LOGIN_VIEW"
   | "SHARE_CHANNEL"
   | "CREATE_CHANNEL"
-  | "JOIN_CHANNEL";
+  | "JOIN_CHANNEL"
+  | "LEAVE_CHANNEL_CONFIRMATION";
 
 export const UIContext = React.createContext<State | any>(initialState);
 

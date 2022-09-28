@@ -1,4 +1,11 @@
-import React, { FC, useCallback, useMemo, useState, useEffect } from "react";
+import React, {
+  FC,
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef
+} from "react";
 import { dec } from "@utils";
 
 export enum NetworkStatus {
@@ -23,6 +30,7 @@ interface IHelperMethods {
   GetChannelInfo: Function;
   NewChannelsManagerDummyNameService: Function;
   NewChannelsManagerWithIndexedDbDummyNameService: Function;
+  Base64ToUint8Array: Function;
 }
 
 interface IChannelManager {
@@ -49,6 +57,9 @@ interface IUser {
   userName: string;
 }
 
+// const userName = "Mostafa" + Math.ceil(Math.random() * 100);
+const userName = "Mostafa";
+
 export const NetworkClientContext = React.createContext<{
   network?: INetwork;
   networkStatus: NetworkStatus;
@@ -62,6 +73,8 @@ export const NetworkClientContext = React.createContext<{
   joinChannel: Function;
   createChannel: Function;
   shareChannel: Function;
+  sendMessage: Function;
+  leaveChannel: Function;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -74,14 +87,15 @@ export const NetworkClientContext = React.createContext<{
   setCurrentUser: () => {},
   joinChannel: () => {},
   createChannel: () => {},
-  shareChannel: () => {}
+  shareChannel: () => {},
+  sendMessage: () => {},
+  leaveChannel: () => {}
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
 
 export const NetworkProvider: FC<any> = props => {
   const [utils, setUtils] = useState<IHelperMethods | undefined>();
-
   const [network, setNetwork] = useState<INetwork | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
@@ -90,20 +104,6 @@ export const NetworkProvider: FC<any> = props => {
   const [currentChannel, setCurrentChannel] = useState<IChannel | undefined>();
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
-
-  // The eventModel is used only without the database
-  let eventModel = {
-    JoinChannel: function() {
-      console.log("Test Join channel");
-    },
-    LeaveChannel: function() {},
-    ReceiveMessage: function() {
-      console.log("Test ReceiveMessag:");
-    },
-    ReceiveReply: function() {},
-    ReceiveReaction: function() {},
-    UpdateSentStatus: function() {}
-  };
 
   useEffect(() => {
     setUtils({
@@ -115,30 +115,47 @@ export const NetworkProvider: FC<any> = props => {
       NewChannelsManagerDummyNameService: ((window as any) || {})
         .NewChannelsManagerDummyNameService,
       NewChannelsManagerWithIndexedDbDummyNameService: ((window as any) || {})
-        .NewChannelsManagerWithIndexedDbDummyNameService
+        .NewChannelsManagerWithIndexedDbDummyNameService,
+      Base64ToUint8Array: ((window as any) || {}).Base64ToUint8Array
     });
   }, [networkStatus]);
 
+  const createChannelManager = async () => {
+    if (network && utils) {
+      utils
+        .NewChannelsManagerWithIndexedDbDummyNameService(
+          network.GetID(),
+          // "Mostafa" + Math.ceil(Math.random() * 100)
+          "Mostafa"
+        )
+        .then((res: IChannelManager) => {
+          setChanManager(res);
+        });
+    }
+  };
+
   useEffect(() => {
     if (network && utils) {
-      setChanManager(
-        utils.NewChannelsManagerDummyNameService(
-          network.GetID(),
-          "Mostafa",
-          eventModel
-        )
-      );
+      createChannelManager();
     }
   }, [utils]);
+
+  useEffect(() => {
+    if (!currentChannel && channels.length) {
+      setCurrentChannel(channels[0]);
+    }
+  }, [currentChannel]);
 
   const joinChannel = (
     prettyPrint: string,
     appendToCurrent: boolean = true
   ) => {
     if (prettyPrint && chanManager && chanManager.JoinChannel) {
+      console.log("Test 200 pretty print:");
       const chanInfo = JSON.parse(
         dec.decode(chanManager.JoinChannel(prettyPrint))
       );
+      console.log("Test 200 chanInfo:", chanInfo);
       if (appendToCurrent) {
         let temp = {
           id: chanInfo?.ChannelID,
@@ -186,6 +203,42 @@ export const NetworkProvider: FC<any> = props => {
     return {};
   };
 
+  const leaveChannel = async () => {
+    if (currentChannel && chanManager && chanManager.LeaveChannel && utils) {
+      try {
+        await chanManager.LeaveChannel(
+          utils.Base64ToUint8Array(currentChannel.id)
+        );
+        const temp = currentChannel;
+        setCurrentChannel(undefined);
+        setChannels(
+          channels.filter((c: IChannel) => {
+            return c.id != temp.id;
+          })
+        );
+      } catch (error) {
+        console.error("Failed to leave Channel.");
+      }
+    }
+  };
+
+  const sendMessage = async (message: string) => {
+    if (
+      message.length &&
+      chanManager &&
+      utils &&
+      utils.Base64ToUint8Array &&
+      currentChannel
+    ) {
+      await chanManager.SendMessage(
+        utils.Base64ToUint8Array(currentChannel.id),
+        message,
+        30000,
+        new Uint8Array(null)
+      );
+    }
+  };
+
   return (
     <NetworkClientContext.Provider
       value={{
@@ -200,7 +253,9 @@ export const NetworkProvider: FC<any> = props => {
         shareChannel,
         channels,
         currentChannel,
-        setCurrentChannel
+        setCurrentChannel,
+        sendMessage,
+        leaveChannel
       }}
       {...props}
     />

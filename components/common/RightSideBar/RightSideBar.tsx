@@ -5,6 +5,7 @@ import { Button, Collapse } from "@components/common";
 import { DoubleLeftArrows, DoubleRightArrows } from "@components/icons";
 import { useSpring, a } from "@react-spring/web";
 import { useUI } from "contexts/ui-context";
+import { useNetworkClient } from "contexts/network-client-context";
 
 interface IContributor {
   id: number;
@@ -12,6 +13,8 @@ interface IContributor {
 }
 
 const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
+  const { currentChannel } = useNetworkClient();
+
   const { openModal, setModalView } = useUI();
   const [isActive, setIsActive] = useState<boolean>(false);
   const [contributors, setContributors] = useState<IContributor[]>([
@@ -66,9 +69,12 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
         <div>
           <Button
             cssClasses={cn("block mx-auto mb-4")}
+            disabled={!currentChannel}
             onClick={() => {
-              setModalView("SHARE_CHANNEL");
-              openModal();
+              if (currentChannel) {
+                setModalView("SHARE_CHANNEL");
+                openModal();
+              }
             }}
           >
             Share
@@ -94,6 +100,13 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
         <Button
           cssClasses={"block mx-auto"}
           style={{ borderColor: "var(--red)" }}
+          disabled={!currentChannel}
+          onClick={() => {
+            if (currentChannel) {
+              setModalView("LEAVE_CHANNEL_CONFIRMATION");
+              openModal();
+            }
+          }}
         >
           Leave
         </Button>
