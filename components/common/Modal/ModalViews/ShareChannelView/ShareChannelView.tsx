@@ -2,8 +2,10 @@ import { FC } from "react";
 import s from "./ShareChannelView.module.scss";
 import cn from "classnames";
 import { ModalCtaButton } from "@components/common";
+import { useNetworkClient } from "contexts/network-client-context";
 
 const ShareChannelView: FC<{}> = ({}) => {
+  const { currentChannel } = useNetworkClient();
   return (
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
@@ -11,23 +13,31 @@ const ShareChannelView: FC<{}> = ({}) => {
       <h2 className="mt-9 mb-6">Share channel</h2>
       <div>
         <div className={cn("mb-4")}>
-          <h4>Channel 1</h4>
+          <h4>{currentChannel?.name || ""}</h4>
           <p className={cn("mt-1 text text--xs")}>
-            Description goes here ipsum dolor sit amet, consectetur adipiscing
-            elit. Maecenas posuere cursus posuere. Nunc dolor elit, malesuada
-            sed dui vitae, euismod dictum elit. Morbi faucibus id nibh eu{" "}
+            {currentChannel?.description || ""}
           </p>
         </div>
         <div className={cn("text text--sm mb-2")}>
           <span className="font-bold mr-1">Channel id:</span>
-          <span>fdagfiusd435He</span>
+          <span>{currentChannel?.id || ""}</span>
         </div>
         <div className={cn("text text--sm")}>
           <span className="font-bold">Channel key:</span>
-          <textarea name="" placeholder="Enter channel key"></textarea>
+          <textarea
+            name=""
+            value={currentChannel?.prettyPrint || ""}
+            disabled
+          ></textarea>
         </div>
       </div>
-      <ModalCtaButton buttonCopy="Copy" cssClass="my-7" />
+      <ModalCtaButton
+        buttonCopy="Copy"
+        cssClass="my-7"
+        onClick={() => {
+          navigator.clipboard.writeText(currentChannel?.prettyPrint);
+        }}
+      />
       <p
         className="mb-8 text text--xs"
         style={{ color: "var(--cyan)", lineHeight: "13px" }}
