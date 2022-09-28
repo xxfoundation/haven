@@ -7,6 +7,7 @@ import React, {
   useRef
 } from "react";
 import { dec } from "@utils";
+import { useAuthentication } from "contexts/authentication-context";
 
 export enum NetworkStatus {
   CONNECTED = "connected",
@@ -53,23 +54,15 @@ export interface IChannel {
   id: string;
   description: string;
 }
-interface IUser {
-  userName: string;
-}
-
-// const userName = "Mostafa" + Math.ceil(Math.random() * 100);
-const userName = "Mostafa";
 
 export const NetworkClientContext = React.createContext<{
   network?: INetwork;
   networkStatus: NetworkStatus;
   setNetworkStatus: Function;
   setNetwork: Function;
-  currentUser?: IUser;
   currentChannel?: IChannel;
   channels: IChannel[];
   setCurrentChannel: Function;
-  setCurrentUser: Function;
   joinChannel: Function;
   createChannel: Function;
   shareChannel: Function;
@@ -80,11 +73,9 @@ export const NetworkClientContext = React.createContext<{
   networkStatus: NetworkStatus.DISCONNECTED,
   setNetworkStatus: () => {},
   setNetwork: () => {},
-  currentUser: undefined,
   currentChannel: undefined,
   channels: [],
   setCurrentChannel: () => {},
-  setCurrentUser: () => {},
   joinChannel: () => {},
   createChannel: () => {},
   shareChannel: () => {},
@@ -95,12 +86,12 @@ export const NetworkClientContext = React.createContext<{
 NetworkClientContext.displayName = "NetworkClientContext";
 
 export const NetworkProvider: FC<any> = props => {
+  const { currentUser } = useAuthentication();
   const [utils, setUtils] = useState<IHelperMethods | undefined>();
   const [network, setNetwork] = useState<INetwork | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
   );
-  const [currentUser, setCurrentUser] = useState<IUser | undefined>();
   const [currentChannel, setCurrentChannel] = useState<IChannel | undefined>();
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
@@ -121,12 +112,11 @@ export const NetworkProvider: FC<any> = props => {
   }, [networkStatus]);
 
   const createChannelManager = async () => {
-    if (network && utils) {
+    if (network && utils && currentUser) {
       utils
         .NewChannelsManagerWithIndexedDbDummyNameService(
           network.GetID(),
-          // "Mostafa" + Math.ceil(Math.random() * 100)
-          "Mostafa"
+          currentUser.userName
         )
         .then((res: IChannelManager) => {
           setChanManager(res);
@@ -151,11 +141,9 @@ export const NetworkProvider: FC<any> = props => {
     appendToCurrent: boolean = true
   ) => {
     if (prettyPrint && chanManager && chanManager.JoinChannel) {
-      console.log("Test 200 pretty print:");
       const chanInfo = JSON.parse(
         dec.decode(chanManager.JoinChannel(prettyPrint))
       );
-      console.log("Test 200 chanInfo:", chanInfo);
       if (appendToCurrent) {
         let temp = {
           id: chanInfo?.ChannelID,
@@ -189,7 +177,6 @@ export const NetworkProvider: FC<any> = props => {
         description: channelInfo?.Description,
         prettyPrint: channel?.Channel
       };
-      console.log("Test 200 generated channel:", temp);
       setCurrentChannel(temp);
       setChannels([...channels, temp]);
     }
@@ -246,8 +233,6 @@ export const NetworkProvider: FC<any> = props => {
         setNetwork,
         networkStatus,
         setNetworkStatus,
-        setCurrentUser,
-        currentUser,
         joinChannel,
         createChannel,
         shareChannel,

@@ -9,6 +9,7 @@ import {
 
 import s from "./DefaultLayout.module.scss";
 import { ndf } from "@sdk/ndf";
+import { useAuthentication } from "contexts/authentication-context";
 
 import {
   CreateChannelView,
@@ -27,71 +28,73 @@ const DefaultLayout: FC<Props> = ({
   children,
   pageProps: { ...pageProps }
 }) => {
-  const { setNetworkStatus, setNetwork } = useNetworkClient();
+  const { currentUser } = useAuthentication();
+  const { setNetworkStatus, setNetwork, networkStatus } = useNetworkClient();
   useEffect(() => {
-    const go = new (window as any).Go();
-    const binPath = "/integrations/assets/xxdk.wasm";
+    if (currentUser && networkStatus !== NetworkStatus.CONNECTED) {
+      const go = new (window as any).Go();
+      const binPath = "/integrations/assets/xxdk.wasm";
+      setNetworkStatus(NetworkStatus.CONNECTING);
+      WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
+        async (result: any) => {
+          go?.run(result?.instance);
+          // Client specific parameters
+          const statePath = "channelPath";
+          const statePass = "password";
 
-    setNetworkStatus(NetworkStatus.CONNECTING);
-    WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
-      async (result: any) => {
-        go?.run(result?.instance);
-        // Client specific parameters
-        const statePath = "channelPath";
-        const statePass = "password";
+          // Encodes Uint8Array to a string.
+          let enc = new TextEncoder();
 
-        // Encodes Uint8Array to a string.
-        let enc = new TextEncoder();
+          // Decodes a string to a Uint8Array.
+          let dec = new TextDecoder();
 
-        // Decodes a string to a Uint8Array.
-        let dec = new TextDecoder();
+          const {
+            NewCmix,
+            LoadCmix,
+            GetDefaultCMixParams,
+            GenerateChannel,
+            NewChannelsManagerDummyNameService
+          } = (window as any) || {};
 
-        const {
-          NewCmix,
-          LoadCmix,
-          GetDefaultCMixParams,
-          GenerateChannel,
-          NewChannelsManagerDummyNameService
-        } = (window as any) || {};
-
-        const statePassEncoded = enc.encode(statePass);
-        // Check if state exists
-        if (localStorage.getItem(statePath) === null) {
-          // Initialize the state
-          NewCmix(ndf, statePath, statePassEncoded, "");
-        } else {
-          console.log("State found at " + statePath);
-        }
-
-        let net;
-        try {
-          net = await LoadCmix(
-            statePath,
-            statePassEncoded,
-            GetDefaultCMixParams()
-          );
-          setNetwork(net);
-        } catch (e) {
-          console.error("Failed to load Cmix: " + e);
-          return;
-        }
-
-        //Set networkFollowerTimeout to a value of your choice (seconds)
-        net?.StartNetworkFollower(5000);
-
-        await net.WaitForNetwork(25000).then(
-          () => {
-            setNetworkStatus(NetworkStatus.CONNECTED);
-          },
-          () => {
-            console.error("Timed out. Network is not healthy.");
-            setNetworkStatus(NetworkStatus.FAILED);
-            throw new Error("Timed out. Network is not healthy.");
+          const statePassEncoded = enc.encode(statePass);
+          // Check if state exists
+          if (localStorage.getItem(statePath) === null) {
+            // Initialize the state
+            NewCmix(ndf, statePath, statePassEncoded, "");
+          } else {
+            console.log("State found at " + statePath);
           }
-        );
-      }
-    );
-  }, []);
+
+          let net;
+          try {
+            net = await LoadCmix(
+              statePath,
+              statePassEncoded,
+              GetDefaultCMixParams()
+            );
+            setNetwork(net);
+          } catch (e) {
+            console.error("Failed to load Cmix: " + e);
+            return;
+          }
+
+          //Set networkFollowerTimeout to a value of your choice (seconds)
+          net?.StartNetworkFollower(5000);
+
+          await net.WaitForNetwork(25000).then(
+            () => {
+              setNetworkStatus(NetworkStatus.CONNECTED);
+            },
+            () => {
+              console.error("Timed out. Network is not healthy.");
+              setNetworkStatus(NetworkStatus.FAILED);
+              throw new Error("Timed out. Network is not healthy.");
+            }
+          );
+        }
+      );
+    }
+  }, [currentUser]);
   const ModalView: FC<{ modalView: string; closeModal(): any }> = ({
     modalView,
     closeModal
@@ -118,12 +121,28 @@ const DefaultLayout: FC<Props> = ({
       <ModalView modalView={modalView} closeModal={closeModal} />
     ) : null;
   };
+
+  const AuthenticationUI: FC = () => {
+    const { authenticationView } = useUI();
+
+    if (authenticationView === "REGISTERATION") {
+      return <RegisterView />;
+    } else {
+      return <LoginView />;
+    }
+  };
   return (
     <div className={cn(s.root)}>
-      <LeftSideBar cssClasses={s.leftSideBar} />
-      <main className="">{children}</main>
-      <RightSideBar cssClasses={s.rightSideBar} />
-      <ModalUI />
+      {currentUser ? (
+        <>
+          <LeftSideBar cssClasses={s.leftSideBar} />
+          <main className="">{children}</main>
+          <RightSideBar cssClasses={s.rightSideBar} />
+          <ModalUI />
+        </>
+      ) : (
+        <AuthenticationUI />
+      )}
     </div>
   );
 };
