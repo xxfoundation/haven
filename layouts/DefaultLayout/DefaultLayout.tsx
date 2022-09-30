@@ -1,100 +1,93 @@
 import cn from "classnames";
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { LeftSideBar, RightSideBar, Modal } from "@components/common";
 import { useUI } from "contexts/ui-context";
-import {
-  useNetworkClient,
-  NetworkStatus
-} from "contexts/network-client-context";
+import { useNetworkClient } from "contexts/network-client-context";
 
 import s from "./DefaultLayout.module.scss";
 import { ndf } from "@sdk/ndf";
 import { useAuthentication } from "contexts/authentication-context";
+import { useUtils } from "contexts/utils-context";
+import { Loading } from "@components/common";
+import { enc, dec } from "@utils";
+import { STATE_PATH } from "../../constants";
 
 import {
   CreateChannelView,
   JoinChannelView,
   ShareChannelView,
-  LoginView,
-  RegisterView,
   LeaveChannelConfirmationView
 } from "@components/common/Modal/ModalViews";
+
+import Register from "components/common/Register";
+import LoginView from "components/common/LoginView";
 
 interface Props {
   pageProps: {};
 }
 
+const AuthenticationUI: FC = () => {
+  const {
+    isStatePathExisted,
+
+    getStorageTag
+  } = useAuthentication();
+
+  if (!isStatePathExisted() || !getStorageTag()) {
+    return <Register />;
+  } else {
+    return <LoginView />;
+  }
+};
+
 const DefaultLayout: FC<Props> = ({
   children,
   pageProps: { ...pageProps }
 }) => {
-  const { currentUser } = useAuthentication();
-  const { setNetworkStatus, setNetwork, networkStatus } = useNetworkClient();
+  const { isAuthenticated, getStorageTag } = useAuthentication();
+  const { setUtils, utilsLoaded, setUtilsLoaded } = useUtils();
+  const { network } = useNetworkClient();
+
   useEffect(() => {
-    if (currentUser && networkStatus !== NetworkStatus.CONNECTED) {
+    if (!utilsLoaded) {
       const go = new (window as any).Go();
       const binPath = "/integrations/assets/xxdk.wasm";
-      setNetworkStatus(NetworkStatus.CONNECTING);
       WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
         async (result: any) => {
           go?.run(result?.instance);
-          // Client specific parameters
-          const statePath = "channelPath";
-          const statePass = "password";
-
-          // Encodes Uint8Array to a string.
-          let enc = new TextEncoder();
-
-          // Decodes a string to a Uint8Array.
-          let dec = new TextDecoder();
-
           const {
             NewCmix,
-            LoadCmix,
-            GetDefaultCMixParams,
             GenerateChannel,
-            NewChannelsManagerDummyNameService
+            LoadCmix,
+            GetChannelInfo,
+            GenerateChannelIdentity,
+            GetDefaultCMixParams,
+            NewChannelsManagerWithIndexedDb,
+            Base64ToUint8Array,
+            LoadChannelsManagerWithIndexedDb,
+            GetPublicChannelIdentityFromPrivate
           } = (window as any) || {};
 
-          const statePassEncoded = enc.encode(statePass);
-          // Check if state exists
-          if (localStorage.getItem(statePath) === null) {
-            // Initialize the state
-            NewCmix(ndf, statePath, statePassEncoded, "");
-          } else {
-            console.log("State found at " + statePath);
-          }
+          setUtils({
+            NewCmix,
+            GenerateChannel,
+            LoadCmix,
+            GetChannelInfo,
+            GenerateChannelIdentity,
+            GetDefaultCMixParams,
+            NewChannelsManagerWithIndexedDb,
+            Base64ToUint8Array,
+            LoadChannelsManagerWithIndexedDb,
+            GetPublicChannelIdentityFromPrivate
+          });
 
-          let net;
-          try {
-            net = await LoadCmix(
-              statePath,
-              statePassEncoded,
-              GetDefaultCMixParams()
-            );
-            setNetwork(net);
-          } catch (e) {
-            console.error("Failed to load Cmix: " + e);
-            return;
-          }
-
-          //Set networkFollowerTimeout to a value of your choice (seconds)
-          net?.StartNetworkFollower(5000);
-
-          await net.WaitForNetwork(25000).then(
-            () => {
-              setNetworkStatus(NetworkStatus.CONNECTED);
-            },
-            () => {
-              console.error("Timed out. Network is not healthy.");
-              setNetworkStatus(NetworkStatus.FAILED);
-              throw new Error("Timed out. Network is not healthy.");
-            }
-          );
+          setUtilsLoaded(true);
         }
       );
     }
-  }, [currentUser]);
+  }, [utilsLoaded]);
+
+  useEffect(() => {}, []);
   const ModalView: FC<{ modalView: string; closeModal(): any }> = ({
     modalView,
     closeModal
@@ -103,8 +96,6 @@ const DefaultLayout: FC<Props> = ({
 
     return (
       <Modal className={cn} onClose={closeModal}>
-        {modalView === "LOGIN_VIEW" && <LoginView />}
-        {modalView === "REGISTERATION_VIEW" && <RegisterView />}
         {modalView === "SHARE_CHANNEL" && <ShareChannelView />}
         {modalView === "CREATE_CHANNEL" && <CreateChannelView />}
         {modalView === "JOIN_CHANNEL" && <JoinChannelView />}
@@ -122,26 +113,21 @@ const DefaultLayout: FC<Props> = ({
     ) : null;
   };
 
-  const AuthenticationUI: FC = () => {
-    const { authenticationView } = useUI();
-
-    if (authenticationView === "REGISTERATION") {
-      return <RegisterView />;
-    } else {
-      return <LoginView />;
-    }
-  };
   return (
     <div className={cn(s.root)}>
-      {currentUser ? (
-        <>
-          <LeftSideBar cssClasses={s.leftSideBar} />
-          <main className="">{children}</main>
-          <RightSideBar cssClasses={s.rightSideBar} />
-          <ModalUI />
-        </>
+      {utilsLoaded ? (
+        network && isAuthenticated && getStorageTag() ? (
+          <>
+            <LeftSideBar cssClasses={s.leftSideBar} />
+            <main className="">{children}</main>
+            <RightSideBar cssClasses={s.rightSideBar} />
+            <ModalUI />
+          </>
+        ) : (
+          <AuthenticationUI />
+        )
       ) : (
-        <AuthenticationUI />
+        <Loading />
       )}
     </div>
   );

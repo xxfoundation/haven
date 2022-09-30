@@ -1,7 +1,10 @@
 import React, { FC, useState } from "react";
+import { STATE_PATH } from "../constants";
+import { isClientSide } from "utils";
 
 interface IUser {
   userName: string;
+  password: string;
 }
 
 interface IUserSecret {
@@ -10,24 +13,70 @@ interface IUserSecret {
 }
 
 const usersStorageKey = "ELIXXIR_USERS";
+const usersStorageTagsKey = "ELIXXIR_USERS_TAGS";
+const passwordKey = "ELIXXIR_PASSWORD";
 
 export const AuthenticationContext = React.createContext<{
-  currentUser: IUser | undefined;
   registerUser: Function;
   checkUser: Function;
+  isStatePathExisted: Function;
+  setStatePath: Function;
+  getStorageTag: Function;
+  addStorageTag: Function;
+  isAuthenticated: boolean;
+  setIsAuthenticated: Function;
 }>({
-  currentUser: undefined,
   registerUser: () => {},
-  checkUser: () => {}
+  checkUser: () => {},
+
+  isStatePathExisted: () => {},
+  setStatePath: () => {},
+  getStorageTag: () => {},
+  addStorageTag: () => {},
+  isAuthenticated: false,
+  setIsAuthenticated: () => {}
 });
 
 AuthenticationContext.displayName = "AuthenticationContext";
 
 export const AuthenticationProvider: FC<any> = props => {
-  const [currentUser, setCurrentUser] = useState<IUser | undefined>();
+  console.log("Test contexts: AuthenticationProvider");
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  const isStatePathExisted = () => {
+    return isClientSide() && localStorage.getItem(STATE_PATH) !== null;
+  };
+
+  const setStatePath = () => {
+    if (isClientSide()) {
+      console.log(`Test setting ${STATE_PATH} in local storage`);
+      // window.localStorage.setItem(STATE_PATH, JSON.stringify(true));
+      window.localStorage.setItem(STATE_PATH, "Test");
+    }
+  };
 
   const getStorageUsersSecrets = (): IUserSecret[] => {
     return JSON.parse(window.localStorage.getItem(usersStorageKey) || `[]`);
+  };
+
+  const getStorageTag = () => {
+    const usersStorageTags = JSON.parse(
+      window.localStorage.getItem(usersStorageTagsKey) || `[]`
+    );
+    return usersStorageTags.length ? usersStorageTags[0] : null;
+  };
+
+  const addStorageTag = (storageTag: string) => {
+    const existedUsersStorageTags = JSON.parse(
+      window.localStorage.getItem(usersStorageTagsKey) || `[]`
+    );
+
+    existedUsersStorageTags.push(storageTag);
+    window.localStorage.setItem(
+      usersStorageTagsKey,
+      JSON.stringify(existedUsersStorageTags)
+    );
   };
 
   const addStorageUsersSecrets = (userSecret: IUserSecret) => {
@@ -36,27 +85,29 @@ export const AuthenticationProvider: FC<any> = props => {
     window.localStorage.setItem(usersStorageKey, JSON.stringify(oldSecrets));
   };
 
-  const registerUser = (userName: string, password: string) => {
-    if (userName && password) {
-      setCurrentUser({ userName });
-      addStorageUsersSecrets({ userName, secret: password });
+  const registerUser = (password: string) => {
+    if (password) {
+      localStorage.setItem(passwordKey, JSON.stringify(password));
     }
   };
 
-  const checkUser = (userName: string, password: string) => {
-    const secrets = getStorageUsersSecrets();
-    const isRegistered =
-      secrets.findIndex(s => s.userName === userName && password === s.secret) >
-      -1;
-    if (isRegistered) {
-      setCurrentUser({ userName });
-    }
-    return isRegistered;
+  const checkUser = (password: string) => {
+    const existedPassword = JSON.parse(localStorage.getItem(passwordKey) || "");
+    return password === existedPassword;
   };
 
   return (
     <AuthenticationContext.Provider
-      value={{ currentUser, registerUser, checkUser }}
+      value={{
+        registerUser,
+        checkUser,
+        isStatePathExisted,
+        setStatePath,
+        getStorageTag,
+        addStorageTag,
+        isAuthenticated,
+        setIsAuthenticated
+      }}
       {...props}
     />
   );

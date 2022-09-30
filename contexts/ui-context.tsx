@@ -9,7 +9,7 @@ export interface State {
 
 const initialState = {
   displayModal: false,
-  modalView: "LOGIN_VIEW",
+  modalView: "",
   authenticationView: "REGISTERATION",
   activeModals: []
 };
@@ -31,8 +31,6 @@ type Action =
     };
 
 type MODAL_VIEWS =
-  | "REGISTERATION_VIEW"
-  | "LOGIN_VIEW"
   | "SHARE_CHANNEL"
   | "CREATE_CHANNEL"
   | "JOIN_CHANNEL"
