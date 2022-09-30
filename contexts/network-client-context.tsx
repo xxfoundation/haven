@@ -1,13 +1,10 @@
-import React, {
-  FC,
-  useCallback,
-  useMemo,
-  useState,
-  useEffect,
-  useRef
-} from "react";
-import { dec } from "@utils";
+import React, { FC, useState, useEffect } from "react";
+
 import { useAuthentication } from "contexts/authentication-context";
+import { useUtils } from "contexts/utils-context";
+import { enc, dec } from "@utils";
+import { ndf } from "@sdk/ndf";
+import { STATE_PATH } from "../constants";
 
 export enum NetworkStatus {
   CONNECTED = "connected",
@@ -23,17 +20,6 @@ interface INetwork {
   GetID: Function;
 }
 
-interface IHelperMethods {
-  NewCmix: Function;
-  LoadCmix: Function;
-  GetDefaultCMixParams: Function;
-  GenerateChannel: Function;
-  GetChannelInfo: Function;
-  NewChannelsManagerDummyNameService: Function;
-  NewChannelsManagerWithIndexedDbDummyNameService: Function;
-  Base64ToUint8Array: Function;
-}
-
 interface IChannelManager {
   GetChannels: Function;
   GetID: Function;
@@ -46,6 +32,7 @@ interface IChannelManager {
   SendMessage: Function;
   SendReaction: Function;
   SendReply: Function;
+  GetStorageTag: Function;
 }
 
 export interface IChannel {
@@ -68,6 +55,13 @@ export const NetworkClientContext = React.createContext<{
   shareChannel: Function;
   sendMessage: Function;
   leaveChannel: Function;
+  generateIdentitiesObjects: Function;
+  isNetworkLoading: boolean;
+  connectNetwork: Function;
+  initiateCmix: Function;
+  loadCmix: Function;
+  createChannelManager: Function;
+  loadChannelManager: Function;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -80,14 +74,29 @@ export const NetworkClientContext = React.createContext<{
   createChannel: () => {},
   shareChannel: () => {},
   sendMessage: () => {},
-  leaveChannel: () => {}
+  leaveChannel: () => {},
+  generateIdentitiesObjects: () => {},
+  isNetworkLoading: false,
+  connectNetwork: () => {},
+  initiateCmix: () => {},
+  loadCmix: () => {},
+  createChannelManager: () => {},
+  loadChannelManager: () => {}
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
 
 export const NetworkProvider: FC<any> = props => {
-  const { currentUser } = useAuthentication();
-  const [utils, setUtils] = useState<IHelperMethods | undefined>();
+  console.log("Test contexts: NetworkProvider");
+  const {
+    isStatePathExisted,
+    setStatePath,
+    getStorageTag,
+    addStorageTag,
+    setIsAuthenticated
+  } = useAuthentication();
+  const { utils } = useUtils();
+
   const [network, setNetwork] = useState<INetwork | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
@@ -95,46 +104,107 @@ export const NetworkProvider: FC<any> = props => {
   const [currentChannel, setCurrentChannel] = useState<IChannel | undefined>();
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
+  const [isNetworkLoading, setIsNetworkLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    setUtils({
-      NewCmix: ((window as any) || {}).NewCmix,
-      GenerateChannel: ((window as any) || {}).GenerateChannel,
-      GetChannelInfo: ((window as any) || {}).GetChannelInfo,
-      LoadCmix: ((window as any) || {}).LoadCmix,
-      GetDefaultCMixParams: ((window as any) || {}).GetDefaultCMixParams,
-      NewChannelsManagerDummyNameService: ((window as any) || {})
-        .NewChannelsManagerDummyNameService,
-      NewChannelsManagerWithIndexedDbDummyNameService: ((window as any) || {})
-        .NewChannelsManagerWithIndexedDbDummyNameService,
-      Base64ToUint8Array: ((window as any) || {}).Base64ToUint8Array
-    });
-  }, [networkStatus]);
+    setIsAuthenticated(true);
+    if (network && isNetworkLoading) {
+      setIsNetworkLoading(false);
+    }
+    if (network && networkStatus !== NetworkStatus.CONNECTED) {
+      connectNetwork();
+    }
+  }, [network]);
 
-  const createChannelManager = async () => {
-    if (network && utils && currentUser) {
-      utils
-        .NewChannelsManagerWithIndexedDbDummyNameService(
+  const onReceiveEvent = () => {
+    console.log("Test received event");
+  };
+
+  const loadChannelManager = async (storageTag: string) => {
+    if (network && utils && utils.LoadChannelsManagerWithIndexedDb)
+      await utils
+        .LoadChannelsManagerWithIndexedDb(
           network.GetID(),
-          currentUser.userName
+          storageTag,
+          onReceiveEvent
         )
         .then((res: IChannelManager) => {
+          console.log("Test 100 Channel Manager loaded");
           setChanManager(res);
+        });
+  };
+
+  const createChannelManager = async (privateIdentity: any) => {
+    if (network && utils && utils.NewChannelsManagerWithIndexedDb) {
+      utils
+        .NewChannelsManagerWithIndexedDb(
+          network.GetID(),
+          privateIdentity,
+          onReceiveEvent
+        )
+        .then((res: IChannelManager) => {
+          console.log("Test 100 Channel Manager created");
+          setChanManager(res);
+          const storageTag = res.GetStorageTag();
+          addStorageTag(storageTag);
         });
     }
   };
 
-  useEffect(() => {
-    if (network && utils) {
-      createChannelManager();
+  const initiateCmix = (password: string) => {
+    const statePassEncoded = enc.encode(password);
+    // Check if state exists
+    if (!isStatePathExisted()) {
+      utils.NewCmix(ndf, STATE_PATH, statePassEncoded, "");
+      setStatePath();
+      console.log("Test 100 created new cmix");
     }
-  }, [utils]);
+    loadCmix(password);
+  };
+
+  const loadCmix = async (password: string, cb?: Function) => {
+    const statePassEncoded = enc.encode(password);
+    let net;
+    setIsNetworkLoading(true);
+    try {
+      net = await utils.LoadCmix(
+        STATE_PATH,
+        statePassEncoded,
+        utils.GetDefaultCMixParams()
+      );
+      setNetwork(net);
+      if (cb) {
+        cb();
+      }
+      console.log("Test 100 loaded alredy existed cmix", net);
+    } catch (e) {
+      console.error("Failed to load Cmix: " + e);
+      return;
+    }
+  };
 
   useEffect(() => {
     if (!currentChannel && channels.length) {
       setCurrentChannel(channels[0]);
     }
   }, [currentChannel]);
+
+  const connectNetwork = async () => {
+    if (network) {
+      setNetworkStatus(NetworkStatus.CONNECTING);
+      network.StartNetworkFollower(5000);
+      await network.WaitForNetwork(25000).then(
+        () => {
+          setNetworkStatus(NetworkStatus.CONNECTED);
+        },
+        () => {
+          console.error("Timed out. Network is not healthy.");
+          setNetworkStatus(NetworkStatus.FAILED);
+          throw new Error("Timed out. Network is not healthy.");
+        }
+      );
+    }
+  };
 
   const joinChannel = (
     prettyPrint: string,
@@ -226,6 +296,24 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
+  // Identity object is combination of private identity and code name
+  const generateIdentitiesObjects = (n: number) => {
+    const identitiesObjects = [];
+    console.log("Test 999", network);
+    if (utils && utils.GenerateChannelIdentity && network) {
+      for (let i = 0; i < n; i++) {
+        const privateIdentity = utils.GenerateChannelIdentity(network?.GetID());
+        const publicIdentity = utils.GetPublicChannelIdentityFromPrivate(
+          privateIdentity
+        );
+        const identity = JSON.parse(dec.decode(publicIdentity));
+        const codeName = identity.Codename;
+        identitiesObjects.push({ privateIdentity, codeName });
+      }
+    }
+    return identitiesObjects;
+  };
+
   return (
     <NetworkClientContext.Provider
       value={{
@@ -240,7 +328,14 @@ export const NetworkProvider: FC<any> = props => {
         currentChannel,
         setCurrentChannel,
         sendMessage,
-        leaveChannel
+        leaveChannel,
+        generateIdentitiesObjects,
+        isNetworkLoading,
+        connectNetwork,
+        initiateCmix,
+        loadCmix,
+        createChannelManager,
+        loadChannelManager
       }}
       {...props}
     />

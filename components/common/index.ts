@@ -6,4 +6,6 @@ export { default as LeftSideBar } from "./LeftSideBar";
 export { default as Collapse } from "./Collapse";
 export { default as ChannelChat } from "./ChannelChat";
 export { default as ToolTip } from "./Tooltip";
+export { default as Spinner } from "./Spinner";
+export { default as Loading } from "./Loading";
 export { default as NetworkStatusIcon } from "./NetworkStatusIcon";
