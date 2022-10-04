@@ -9,6 +9,8 @@ import { IEmojiPickerProps } from "emoji-picker-react";
 import { EmojisPicker as EmojisPickerIcon, Reply } from "@components/icons";
 import { IMessage } from "@types";
 import { ToolTip } from "@components/common";
+import { useNetworkClient } from "contexts/network-client-context";
+import { Elixxir } from "@components/icons";
 
 const EmojiPicker = dynamic<IEmojiPickerProps>(
   () => import("emoji-picker-react"),
@@ -17,6 +19,27 @@ const EmojiPicker = dynamic<IEmojiPickerProps>(
     loading: () => <p>Loading ...</p>
   }
 );
+
+const MessageSenderHeader: FC<{ message: IMessage }> = ({ message }) => {
+  const color = (message?.color || "").replace("0x", "#");
+  return (
+    <span className={cn(s.sender)}>
+      <span>{message.status}</span>
+      {message.nickName && (
+        <span style={{ color: `${color}`, marginRight: "6px" }}>
+          {message.nickName}
+        </span>
+      )}
+      <Elixxir
+        style={message.nickName ? { fill: "#73767C" } : { fill: color }}
+      />
+      <span style={message.nickName ? { color: "#73767C" } : { color: color }}>
+        {message.codeName}
+      </span>
+      <span>{message?.id?.substring(0, 3) || ""}</span>
+    </span>
+  );
+};
 
 const ActionsWrapper: FC<{
   onReplyClicked: Function;
@@ -27,6 +50,7 @@ const ActionsWrapper: FC<{
   const pickerIconRef = useRef<HTMLDivElement>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [style, setStyle] = useState({});
+
   useEffect(() => {
     const listener = (event: any) => {
       if (
@@ -88,7 +112,7 @@ const ActionsWrapper: FC<{
               onEmojiClick={(event, emoji) => {
                 onReactToMessage({
                   emoji: emoji.emoji,
-                  userName: "Mostafa"
+                  codeName: "Mostafa"
                 });
               }}
             />
@@ -110,6 +134,9 @@ const ChatMessage: FC<{
   onReactToMessage: Function;
 }> = ({ message, onReplyClicked, onReactToMessage }) => {
   const [actionsWrapperVisible, setActionsWrapperVisible] = useState(false);
+  const { getIdentity, getNickName } = useNetworkClient();
+  const identity = getIdentity();
+
   return (
     <div
       className={cn("flex items-center", s.root, {
@@ -126,36 +153,26 @@ const ChatMessage: FC<{
         setActionsWrapperVisible(false);
       }}
     >
-      {actionsWrapperVisible && (
-        <ActionsWrapper
-          onReactToMessage={onReactToMessage}
-          onReplyClicked={onReplyClicked}
-        />
-      )}
+      {message?.status &&
+        [1, 2].includes(message?.status) &&
+        actionsWrapperVisible && (
+          <ActionsWrapper
+            onReactToMessage={onReactToMessage}
+            onReplyClicked={onReplyClicked}
+          />
+        )}
 
       <div className={cn("flex flex-col", s.messageWrapper)}>
         <div className={cn(s.header)}>
           {message.replyToMessage ? (
             <>
-              <span className={cn(s.sender)}>
-                {message.userName !== "Mostafa" ? message.userName : "You"}
-              </span>
+              <MessageSenderHeader message={message} />
               <span className={cn(s.separator, "mx-1")}>replied to</span>
 
-              {message.userName === message.replyToMessage.userName ? (
-                <span className={cn(s.sender)}>Yourself</span>
-              ) : (
-                <span className={cn(s.sender)}>
-                  {message.replyToMessage.userName !== "Mostafa"
-                    ? message.replyToMessage.userName
-                    : "You"}
-                </span>
-              )}
+              <MessageSenderHeader message={message.replyToMessage} />
             </>
           ) : (
-            <span className={cn(s.sender)}>
-              {message.userName !== "Mostafa" ? message.userName : "You"}
-            </span>
+            <MessageSenderHeader message={message} />
           )}
 
           <span className={cn(s.messageTimestamp)}>
@@ -169,7 +186,7 @@ const ChatMessage: FC<{
               className={cn(s.replyToMessageBody)}
               onClick={() => {
                 const originalMessage = document.getElementById(
-                  message?.replyToMessage.id
+                  message?.replyToMessage?.id || ""
                 );
                 if (originalMessage) {
                   originalMessage.scrollIntoView();
@@ -180,11 +197,8 @@ const ChatMessage: FC<{
                 }
               }}
             >
-              <span className={cn(s.sender)}>
-                {message.replyToMessage.userName !== "Mostafa"
-                  ? message.replyToMessage.userName
-                  : "You"}
-              </span>
+              <MessageSenderHeader message={message.replyToMessage} />
+
               {message.replyToMessage.body}
             </p>
           )}
@@ -203,7 +217,7 @@ const ChatMessage: FC<{
                     onClick={() =>
                       onReactToMessage({
                         emoji: emoji,
-                        userName: "Mostafa"
+                        codeName: "Mostafa"
                       })
                     }
                   >

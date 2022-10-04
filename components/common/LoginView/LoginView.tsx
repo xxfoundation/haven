@@ -38,12 +38,13 @@ const LoginView: FC<{}> = ({}) => {
           cssClass="mb-4"
           onClick={() => {
             setError("");
-            console.log("Test actual pass:", password);
             const isRegistered = checkUser(password);
             if (!isRegistered) {
               setError("Invalid credentials.");
             } else {
-              loadCmix(password, loadChannelManager(getStorageTag()));
+              loadCmix(password, (net: any) =>
+                loadChannelManager(getStorageTag(), net)
+              );
             }
           }}
         />

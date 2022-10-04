@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import s from "./LeftSideBar.module.scss";
 import cn from "classnames";
 import { Button, Collapse, NetworkStatusIcon } from "@components/common";

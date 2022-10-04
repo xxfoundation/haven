@@ -6,8 +6,6 @@ import { useNetworkClient } from "contexts/network-client-context";
 import { Spinner } from "@components/common";
 
 const RegisterView2: FC<{}> = ({}) => {
-  console.log("Test register view 2 rerendered");
-
   const {
     generateIdentitiesObjects,
     isNetworkLoading,
@@ -34,7 +32,7 @@ const RegisterView2: FC<{}> = ({}) => {
       <h2 className="mt-9 mb-4">Registration </h2>
 
       <p
-        className="mb-8 text text--xs"
+        className="mb-8 text"
         style={{ color: "var(--cyan)", lineHeight: "13px" }}
       >
         Choose a code name that will be unique to your account. You can later
@@ -88,7 +86,9 @@ const RegisterView2: FC<{}> = ({}) => {
           onClick={() => {
             createChannelManager(selectedPrivateIdentity);
           }}
-          disabled={isNetworkLoading || !network}
+          disabled={
+            isNetworkLoading || !network || selectedCodeName.length === 0
+          }
         />
       </div>
     </div>

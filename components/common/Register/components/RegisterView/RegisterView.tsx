@@ -17,7 +17,7 @@ const RegisterView: FC<{
       <h2 className="mt-9 mb-4">Registration</h2>
 
       <p
-        className="mb-12 text text--xs"
+        className="mb-12 text"
         style={{ color: "var(--cyan)", lineHeight: "13px" }}
       >
         !!Warning: Your password cannot be recovered or changed, please make

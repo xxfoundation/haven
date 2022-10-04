@@ -5,7 +5,7 @@ import { ModalCtaButton } from "@components/common";
 import { useNetworkClient } from "contexts/network-client-context";
 
 const ShareChannelView: FC<{}> = ({}) => {
-  const { currentChannel } = useNetworkClient();
+  const { currentChannel, getPrettyPrint } = useNetworkClient();
   return (
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
@@ -26,7 +26,11 @@ const ShareChannelView: FC<{}> = ({}) => {
           <span className="font-bold">Channel key:</span>
           <textarea
             name=""
-            value={currentChannel?.prettyPrint || ""}
+            value={
+              currentChannel?.prettyPrint ||
+              getPrettyPrint(currentChannel?.id) ||
+              ""
+            }
             disabled
           ></textarea>
         </div>
@@ -35,7 +39,9 @@ const ShareChannelView: FC<{}> = ({}) => {
         buttonCopy="Copy"
         cssClass="my-7"
         onClick={() => {
-          navigator.clipboard.writeText(currentChannel?.prettyPrint);
+          navigator.clipboard.writeText(
+            currentChannel?.prettyPrint || getPrettyPrint(currentChannel?.id)
+          );
         }}
       />
       <p

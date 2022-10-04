@@ -11,6 +11,7 @@ export interface IHelperMethods {
   NewChannelsManagerWithIndexedDb: Function;
   LoadChannelsManagerWithIndexedDb: Function;
   GetPublicChannelIdentityFromPrivate: Function;
+  IsNicknameValid: Function;
 }
 
 const initialUtils = {
@@ -23,7 +24,8 @@ const initialUtils = {
   GenerateChannelIdentity: () => {},
   NewChannelsManagerWithIndexedDb: () => {},
   LoadChannelsManagerWithIndexedDb: () => {},
-  GetPublicChannelIdentityFromPrivate: () => {}
+  GetPublicChannelIdentityFromPrivate: () => {},
+  IsNicknameValid: () => {}
 };
 
 export const UtilsContext = React.createContext<{
