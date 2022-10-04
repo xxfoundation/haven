@@ -76,23 +76,43 @@ const LeftSideBar: FC<{
           Create Channel
         </Button>
         <div className={s.links}>
-          <a href="https://xx.network" target="_blank">
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             About
           </a>
           |
-          <a href="https://xx.network" target="_blank">
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Roadmap
           </a>
           |
-          <a href="https://xx.network" target="_blank">
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Contact
           </a>
           |
-          <a href="https://xx.network" target="_blank">
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             xx network
           </a>
           |
-          <a href="https://xx.network" target="_blank">
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Privacy Policy
           </a>
         </div>
