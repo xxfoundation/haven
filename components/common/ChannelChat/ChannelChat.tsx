@@ -10,6 +10,8 @@ import moment from "moment";
 import _ from "lodash";
 import { useNetworkClient, IChannel } from "contexts/network-client-context";
 import { Tree } from "@components/icons";
+import { Loading } from "@components/common";
+import { Spinner } from "@components/common";
 
 const fakeHoursFlag = true;
 
@@ -102,7 +104,7 @@ const ChannelChat: FC<{}> = ({}) => {
           </div>
           <div
             id={"messagesContainer"}
-            className={s.messagesContainer}
+            className={cn(s.messagesContainer)}
             ref={messagesContainerRef}
             onScroll={() => {
               if (checkBottom()) {
@@ -112,33 +114,39 @@ const ChannelChat: FC<{}> = ({}) => {
               }
             }}
           >
-            {Object.entries(groupedMessagesPerDay).map(([key, value]) => {
-              return (
-                <div className={cn(s.dayMessagesWrapper)} key={key}>
-                  <div className={s.separator}></div>
-                  <span className={cn(s.currentDay)}>
-                    {moment(key).format("dddd MMMM Do, YYYY")}
-                  </span>
-                  <div>
-                    {value.map((m, index) => {
-                      return (
-                        <ChatMessage
-                          key={`${m.id}${m.status}${index}`}
-                          // key={Math.random()}
-                          message={m}
-                          onReactToMessage={(reaction: IEmojiReaction) => {
-                            handleReactToMessage(reaction, m);
-                          }}
-                          onReplyClicked={() => {
-                            setReplyToMessage(m);
-                          }}
-                        />
-                      );
-                    })}
+            {currentChannel.isLoading ? (
+              <div className="m-auto flex w-full h-full justify-center items-center">
+                <Spinner />
+              </div>
+            ) : (
+              Object.entries(groupedMessagesPerDay).map(([key, value]) => {
+                return (
+                  <div className={cn(s.dayMessagesWrapper)} key={key}>
+                    <div className={s.separator}></div>
+                    <span className={cn(s.currentDay)}>
+                      {moment(key).format("dddd MMMM Do, YYYY")}
+                    </span>
+                    <div>
+                      {value.map((m, index) => {
+                        return (
+                          <ChatMessage
+                            key={`${m.id}${m.status}${index}`}
+                            // key={Math.random()}
+                            message={m}
+                            onReactToMessage={(reaction: IEmojiReaction) => {
+                              handleReactToMessage(reaction, m);
+                            }}
+                            onReplyClicked={() => {
+                              setReplyToMessage(m);
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
           <div className={s.textArea}>
             {replyToMessage && (

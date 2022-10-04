@@ -17,7 +17,7 @@ const NetworkStatusIcon: FC<{ status: NetworkStatus }> = ({ status }) => {
     }
   };
   return (
-    <div className={cn("flex items-center")}>
+    <div className={cn("flex items-center mt-4")}>
       <div
         className={cn(
           s.bubble,

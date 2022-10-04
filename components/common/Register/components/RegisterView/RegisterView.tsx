@@ -14,14 +14,13 @@ const RegisterView: FC<{
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
     >
-      <h2 className="mt-9 mb-4">Registration</h2>
+      <h2 className="mt-9 mb-4">Get Started</h2>
 
       <p
-        className="mb-12 text"
+        className="mb-6 text"
         style={{ color: "var(--cyan)", lineHeight: "13px" }}
       >
-        !!Warning: Your password cannot be recovered or changed, please make
-        sure to keep it safe.
+        Select a password to secure your speakeasy identity
       </p>
       <input
         type="password"
@@ -32,6 +31,7 @@ const RegisterView: FC<{
           setPassword(e.target.value);
         }}
       />
+
       <input
         type="password"
         placeholder="Confirm your password"
@@ -46,7 +46,21 @@ const RegisterView: FC<{
           {error}
         </div>
       )}
-      <div className="flex flex-col my-5">
+
+      <div
+        style={{
+          color: "var(--red)",
+          marginTop: "14px",
+          fontSize: "11px",
+          maxWidth: "444px",
+          textAlign: "center"
+        }}
+      >
+        !!Warning: Your password cannot be recovered or changed, please make
+        sure to keep it safe.
+      </div>
+
+      <div className="flex flex-col mb-5 mt-14">
         <ModalCtaButton
           buttonCopy="Continue"
           cssClass="mb-4"

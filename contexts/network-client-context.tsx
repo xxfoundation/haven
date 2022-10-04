@@ -45,6 +45,7 @@ export interface IChannel {
   name: string;
   id: string;
   description: string;
+  isLoading: boolean;
 }
 
 let db: Dexie | undefined;
@@ -132,6 +133,11 @@ export const NetworkProvider: FC<any> = props => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
   const [isNetworkLoading, setIsNetworkLoading] = useState<boolean>(false);
+  const channelsRef = useRef<IChannel[]>([]);
+
+  useEffect(() => {
+    channelsRef.current = channels;
+  }, [channels]);
 
   useEffect(() => {
     setIsAuthenticated(true);
@@ -275,6 +281,15 @@ export const NetworkProvider: FC<any> = props => {
   ) => {
     if (db) {
       const receivedMessage = await db.table("messages").get(uuid);
+
+      // Ignore events from recently joined channels until making sure all data loads
+      const currentlyBlockedChannelsIds = channelsRef.current
+        .filter(ch => ch.isLoading === true)
+        .map(ch => ch.id);
+      if (currentlyBlockedChannelsIds.includes(receivedMessage.channel_id)) {
+        return;
+      }
+
       console.log(
         "Test 7777 received event. isupdate = ",
         isUpdate,
@@ -388,6 +403,40 @@ export const NetworkProvider: FC<any> = props => {
     return messagesCopy;
   };
 
+  const loadChannelData = async (channelId: string) => {
+    if (db) {
+      const messages = await db.table("messages").toArray();
+      const channelDbMessages = messages.filter(
+        m => m.channel_id === channelId
+      );
+      const result = await mapInitialLoadDataToCurrentState(
+        [],
+        channelDbMessages
+      );
+      const mappedMessages = result.mappedMessages;
+      const messagesWithReactions = bulkUpdateMessagesWithReactions(
+        messages,
+        mappedMessages
+      );
+      const sorted = messagesWithReactions.sort(function(x, y) {
+        return x.uuid - y.uuid;
+        // return (
+        //   new Date(x.timestamp).getTime() - new Date(y.timestamp).getTime()
+        // );
+      });
+      setMessages(prevMessages => {
+        return [...prevMessages, ...sorted];
+      });
+      setChannels(prevChannels => {
+        return prevChannels.map(ch => {
+          if (ch.id === channelId) {
+            return { ...ch, isLoading: false };
+          } else return ch;
+        });
+      });
+    }
+  };
+
   const handleInitialLoadData = (storageTag: string) => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -397,11 +446,6 @@ export const NetworkProvider: FC<any> = props => {
           messages:
             "++id,channel_id,channel_id,parent_message_id,pinned,timestamp"
         });
-
-        // console.log("Test 5555 Version", db.verno);
-        // db.tables.map(({ name, schema }) => {
-        //   console.log("Test 5555 Table name", name, " and schema", { schema });
-        // });
 
         const channels = await db.table("channels").toArray();
         const messages = await db.table("messages").toArray();
@@ -425,6 +469,12 @@ export const NetworkProvider: FC<any> = props => {
         );
         // Change the state here
         setChannels(mappedChannels);
+
+        // const sorted = messagesWithReactions.sort((x, y) => {
+        //   // let xTime = new Date(x.timestamp).getTime();
+        //   // let yTime = new Date(y.timestamp).getTime();
+        //   return x.uuid - y.uuid;
+        // });
         setMessages(messagesWithReactions);
 
         resolve({ channels, messages });
@@ -535,10 +585,15 @@ export const NetworkProvider: FC<any> = props => {
           id: chanInfo?.ChannelID,
           name: chanInfo?.Name,
           description: chanInfo?.Description,
-          prettyPrint: prettyPrint
+          prettyPrint: prettyPrint,
+          isLoading: true
         };
         setCurrentChannel(temp);
         setChannels([...channels, temp]);
+        setTimeout(() => {
+          setCurrentChannel({ ...temp, isLoading: false });
+          loadChannelData(temp.id);
+        }, 5000);
       }
     }
   };
@@ -561,7 +616,8 @@ export const NetworkProvider: FC<any> = props => {
         id: channelInfo?.ChannelID,
         name: channelInfo?.Name,
         description: channelInfo?.Description,
-        prettyPrint: channel?.Channel
+        prettyPrint: channel?.Channel,
+        isLoading: false
       };
       savePrettyPrint(temp.id, temp.prettyPrint);
       setCurrentChannel(temp);
