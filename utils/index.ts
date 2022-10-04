@@ -14,3 +14,7 @@ export const enc = new TextEncoder();
 
 // Decodes a string to a Uint8Array.
 export const dec = new TextDecoder();
+
+export const isClientSide = () => {
+  return typeof window !== "undefined";
+};

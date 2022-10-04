@@ -26,8 +26,6 @@ async function Channels(
   );
   htmlConsole.log("Starting client with path " + statePath);
 
-  console.log("Test 100 NewCmix and LoadCmix", NewCmix, LoadCmix);
-
   // Check if state exists
   if (localStorage.getItem(statePath) === null) {
     htmlConsole.log("No state found at " + statePath + ". Calling NewCmix.");
@@ -110,12 +108,9 @@ async function Channels(
     const chanName = chanNameInput.value;
     const chanDescription = chanDescriptionInput.value;
 
-    const temp = GenerateChannel(net.GetID(), chanName, chanDescription);
-
-    let chanGen = JSON.parse(dec.decode(temp));
-
-    console.log("Test 100 temp", temp);
-    console.log("Test 100 chanGen", chanGen);
+    let chanGen = JSON.parse(
+      dec.decode(GenerateChannel(net.GetID(), chanName, chanDescription))
+    );
 
     const username = usernameInput1.value;
 
@@ -164,25 +159,44 @@ async function joinChannel(
   document.getElementById("messageLabel").innerHTML +=
     " as <em>" + username + "</em>";
 
+  // Generate private channel identity
+  let privateIdentity = GenerateChannelIdentity(net.GetID());
+
+  /*
+   * Use this when NOT using the database
+   */
+
+  let uuidCount = 0;
+
   // The eventModel is used only without the database
   let eventModel = {
-    JoinChannel: function(channel) {
-      console.log("Test Join channel");
-    },
+    JoinChannel: function(channel) {},
     LeaveChannel: function(channelID) {},
     ReceiveMessage: function(
       channelID,
       messageID,
-      senderUsername,
+      nickname,
       text,
+      identity,
       timestamp,
       lease,
       roundId,
       status
     ) {
-      console.log("Test ReceiveMessag:", text);
-      messageConsole.overwrite(text);
-      // htmlConsole.log(senderUsername + ": " + text)
+      htmlConsole.log("Identity: " + dec.decode(identity));
+      identity = jsonToObj(identity);
+
+      let msg =
+        "<strong>" +
+        identity.Codename +
+        "#" +
+        nickname +
+        "</strong><br />" +
+        text +
+        "<br /><br />";
+      messageConsole.log(msg);
+      uuidCount++;
+      return uuidCount;
     },
     ReceiveReply: function(
       channelID,
@@ -190,44 +204,71 @@ async function joinChannel(
       reactionTo,
       senderUsername,
       text,
+      identity,
       timestamp,
       lease,
       roundId,
       status
-    ) {},
+    ) {
+      uuidCount++;
+      return uuidCount;
+    },
     ReceiveReaction: function(
       channelID,
       messageID,
       reactionTo,
       senderUsername,
       reaction,
+      identity,
       timestamp,
       lease,
       roundId,
       status
-    ) {},
-    UpdateSentStatus: function(messageID, status) {}
+    ) {
+      uuidCount++;
+      return uuidCount;
+    },
+    UpdateSentStatus: function(uuid, messageID, timestamp, roundID, status) {}
   };
 
-  //   This is for use without the database
-  // let chanManager = NewChannelsManagerDummyNameService(
-  //   net.GetID(),
-  //   username,
-  //   eventModel
-  // );
+  let eventModelBuilder = function(path) {
+    return eventModel;
+  };
 
-  // Use this when using the database
-  let chanManager = NewChannelsManagerWithIndexedDbDummyNameService(
+  // Create a channel manager that uses the event model instead of a database
+  let chanManager = NewChannelsManager(
     net.GetID(),
-    username
+    privateIdentity,
+    eventModelBuilder
   );
 
-  // let chanInfo = JSON.parse(dec.decode(chanManager.JoinChannel(prettyPrint)))
-  let chanInfo;
+  /*
+   * Use this when using the database
+   */
+  /*
+// Define callback that will receive message updates
+let messageReceivedCallbackFunc = function (uuid, channelID) {
+// This is where you query indexedDb and update the DOM
+}
 
+// Create a channel manager that uses a database backend
+let chanManager = await NewChannelsManagerWithIndexedDb(
+net.GetID(), privateIdentity, messageReceivedCallbackFunc)
+
+// Once the channel manager is created for the first time, make sure to
+// store the storage tag so that next time the page is loaded, you can load
+// the already created manager
+let storageTag = chanManager.GetStorageTag()
+
+// Once a channel manager is created, on subsequent loads,
+// LoadChannelsManagerWithIndexedDb must be used to create the channel
+// manager
+let chanManager = await LoadChannelsManagerWithIndexedDb(
+net.GetID(), storageTag, messageReceivedCallbackFunc)*/
+
+  let chanInfo;
   try {
     chanInfo = JSON.parse(dec.decode(chanManager.JoinChannel(prettyPrint)));
-    console.log("Test 200 chan info after join", chanInfo);
   } catch (e) {
     console.log(e);
     if (

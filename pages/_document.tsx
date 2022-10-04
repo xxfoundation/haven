@@ -20,7 +20,6 @@ class MyDocument extends Document {
             src="/integrations/assets/wasm_exec.js"
             strategy="beforeInteractive"
             type="text/javascript"
-            id="wasm"
           />
         </body>
       </Html>

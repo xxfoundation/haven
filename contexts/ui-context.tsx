@@ -8,7 +8,7 @@ export interface State {
 
 const initialState = {
   displayModal: false,
-  modalView: "LOGIN_VIEW",
+  modalView: "",
   activeModals: []
 };
 
@@ -25,11 +25,11 @@ type Action =
     };
 
 type MODAL_VIEWS =
-  | "REGISTERATION_VIEW"
-  | "LOGIN_VIEW"
   | "SHARE_CHANNEL"
   | "CREATE_CHANNEL"
-  | "JOIN_CHANNEL";
+  | "JOIN_CHANNEL"
+  | "LEAVE_CHANNEL_CONFIRMATION"
+  | "SET_NICK_NAME";
 
 export const UIContext = React.createContext<State | any>(initialState);
 

@@ -6,3 +6,4 @@ export { default as ArrowDown } from "./ArrowDown";
 export { default as ArrowUp } from "./ArrowUp";
 export { default as EmojisPicker } from "./EmojisPicker";
 export { default as Reply } from "./Reply";
+export { default as Tree } from "./Tree";

@@ -1,0 +1,16 @@
+.root {
+  textarea {
+    border: none;
+    outline: none;
+    background-color: var(--dark-5);
+
+    resize: none;
+    padding: 18px 14px;
+    color: var(--text-primary);
+    font-size: 14px;
+    width: 100%;
+    max-width: 520px;
+    height: 112px;
+    border-radius: 5px;
+  }
+}
