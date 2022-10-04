@@ -18,10 +18,14 @@ const LoginView: FC<{}> = ({}) => {
     >
       <h2 className="mt-9 mb-4">Login</h2>
 
+      <p className="text" style={{ color: "var(--cyan)", lineHeight: "13px" }}>
+        Use your password to unlock your speakeasy identity
+      </p>
+
       <input
         type="password"
         placeholder="Enter your password"
-        className="mt-4"
+        className="mt-12"
         value={password}
         onChange={e => {
           setPassword(e.target.value);

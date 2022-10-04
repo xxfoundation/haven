@@ -37,3 +37,14 @@
   background-color: var(--dark-4);
   padding: 14px 8px;
 }
+.links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  a {
+    padding: 2px 3px;
+    font-size: 11px;
+  }
+}

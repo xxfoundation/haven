@@ -2,7 +2,7 @@ import { FC, useState, useEffect } from "react";
 import s from "./LeftSideBar.module.scss";
 import cn from "classnames";
 import { Button, Collapse, NetworkStatusIcon } from "@components/common";
-import { Elixxir } from "@components/icons";
+import { Elixxir, SpeakEasy } from "@components/icons";
 import { useUI } from "contexts/ui-context";
 import {
   useNetworkClient,
@@ -29,9 +29,8 @@ const LeftSideBar: FC<{
   return (
     <div className={cn(s.root, cssClasses)}>
       <div className={s.header}>
-        <Elixxir />
-        <div className={"headline--text mb-3"}>Elixxir Covert Communites</div>
-        <NetworkStatusIcon status={networkStatus} />
+        <SpeakEasy />
+        {/* <NetworkStatusIcon status={networkStatus} /> */}
       </div>
       <div className={s.content}>
         <Collapse title="JOINED" defaultActive>
@@ -76,6 +75,47 @@ const LeftSideBar: FC<{
         >
           Create Channel
         </Button>
+        <div className={s.links}>
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            About
+          </a>
+          |
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Roadmap
+          </a>
+          |
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Contact
+          </a>
+          |
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            xx network
+          </a>
+          |
+          <a
+            href="https://xx.network"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Privacy Policy
+          </a>
+        </div>
       </div>
     </div>
   );
