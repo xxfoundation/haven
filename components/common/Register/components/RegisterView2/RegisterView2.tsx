@@ -29,14 +29,15 @@ const RegisterView2: FC<{}> = ({}) => {
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
     >
-      <h2 className="mt-9 mb-4">Registration </h2>
+      <h2 className="mt-9 mb-4">Find your Codename</h2>
 
       <p
         className="mb-8 text"
         style={{ color: "var(--cyan)", lineHeight: "13px" }}
       >
-        Choose a code name that will be unique to your account. You can later
-        use a nickname you choose for each channel.
+        Your unique codename allows anyone to know they are talking to you.
+        Codenames are private, only those you are talking to ever know your
+        codename.
       </p>
 
       {identities.length ? (
@@ -68,7 +69,7 @@ const RegisterView2: FC<{}> = ({}) => {
 
       <div className="flex my-5">
         <ModalCtaButton
-          buttonCopy="Give me more"
+          buttonCopy="Discover More"
           cssClass={s.generateButton}
           style={{
             backgroundColor: "var(--dark-1)",
@@ -81,7 +82,7 @@ const RegisterView2: FC<{}> = ({}) => {
           disabled={isNetworkLoading || !network}
         />
         <ModalCtaButton
-          buttonCopy="Register"
+          buttonCopy="Claim"
           cssClass={s.registerButton}
           onClick={() => {
             createChannelManager(selectedPrivateIdentity);

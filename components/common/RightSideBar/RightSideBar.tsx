@@ -118,7 +118,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                   }, 0);
                 }}
               >
-                Admin Message
+                Download Logs
               </Button>
             </>
           )}
@@ -141,7 +141,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
 
                 <span
                   style={{
-                    color: "var(--orange)"
+                    color: "var(--cyan)"
                   }}
                   className="cursor-pointer underline mt-1"
                   onClick={() => {

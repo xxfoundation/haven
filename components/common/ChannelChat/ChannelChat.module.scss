@@ -112,7 +112,8 @@
     left: 50%;
     transform: translateX(-50%);
     background-color: var(--dark-5);
-    color: var(--cyan);
+    // color: var(--cyan);
+    color: var(--text-secondary);
     z-index: 2;
   }
 }
