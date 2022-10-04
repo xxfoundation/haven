@@ -1,6 +1,5 @@
 import { NextPage } from "next";
-import Image from "next/image";
-import styles from "../styles/Home.module.css";
+
 import { DefaultLayout } from "@layouts";
 import { ChannelChat } from "@components/common";
 
@@ -9,4 +8,4 @@ const Home: NextPage = () => {
 };
 
 export default Home;
-Home.Layout = DefaultLayout;
+(Home as any).Layout = DefaultLayout;

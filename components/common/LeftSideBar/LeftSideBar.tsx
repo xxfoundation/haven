@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import s from "./LeftSideBar.module.scss";
 import cn from "classnames";
 import { Button, Collapse, NetworkStatusIcon } from "@components/common";
@@ -62,6 +62,7 @@ const LeftSideBar: FC<{
             setModalView("JOIN_CHANNEL");
             openModal();
           }}
+          disabled={networkStatus !== NetworkStatus.CONNECTED}
         >
           Join Channel
         </Button>
@@ -71,6 +72,7 @@ const LeftSideBar: FC<{
             setModalView("CREATE_CHANNEL");
             openModal();
           }}
+          disabled={networkStatus !== NetworkStatus.CONNECTED}
         >
           Create Channel
         </Button>

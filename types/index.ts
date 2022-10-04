@@ -4,10 +4,15 @@ export interface IEmojiReaction {
 }
 
 export interface IMessage {
-  id: string;
+  id?: string;
   body: string;
   timestamp: number;
-  userName: string;
+  color?: string;
+  codeName: string;
+  nickName?: string;
   emojisMap?: Map<IEmojiReaction["emoji"], IEmojiReaction["userName"][]>;
   replyToMessage?: IMessage;
+  channelId: string;
+  status?: number;
+  uuid: number;
 }
