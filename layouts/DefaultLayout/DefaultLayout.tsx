@@ -16,7 +16,8 @@ import {
   CreateChannelView,
   JoinChannelView,
   ShareChannelView,
-  LeaveChannelConfirmationView
+  LeaveChannelConfirmationView,
+  NickNameSetView
 } from "@components/common/Modal/ModalViews";
 
 import Register from "components/common/Register";
@@ -24,6 +25,7 @@ import LoginView from "components/common/LoginView";
 
 interface Props {
   pageProps: {};
+  children: any;
 }
 
 const AuthenticationUI: FC = () => {
@@ -46,7 +48,12 @@ const DefaultLayout: FC<Props> = ({
 }) => {
   const { isAuthenticated, getStorageTag } = useAuthentication();
   const { setUtils, utilsLoaded, setUtilsLoaded } = useUtils();
-  const { network } = useNetworkClient();
+  const {
+    network,
+    setNickName,
+    currentChannel,
+    getNickName
+  } = useNetworkClient();
 
   useEffect(() => {
     if (!utilsLoaded) {
@@ -65,7 +72,9 @@ const DefaultLayout: FC<Props> = ({
             NewChannelsManagerWithIndexedDb,
             Base64ToUint8Array,
             LoadChannelsManagerWithIndexedDb,
-            GetPublicChannelIdentityFromPrivate
+            GetPublicChannelIdentityFromPrivate,
+            IsNicknameValid,
+            LogToFile
           } = (window as any) || {};
 
           setUtils({
@@ -78,9 +87,12 @@ const DefaultLayout: FC<Props> = ({
             NewChannelsManagerWithIndexedDb,
             Base64ToUint8Array,
             LoadChannelsManagerWithIndexedDb,
-            GetPublicChannelIdentityFromPrivate
+            GetPublicChannelIdentityFromPrivate,
+            IsNicknameValid
           });
 
+          const logFile = LogToFile(0, "receiver.log", 5000000);
+          (window as any).logFile = logFile;
           setUtilsLoaded(true);
         }
       );
@@ -101,6 +113,16 @@ const DefaultLayout: FC<Props> = ({
         {modalView === "JOIN_CHANNEL" && <JoinChannelView />}
         {modalView === "LEAVE_CHANNEL_CONFIRMATION" && (
           <LeaveChannelConfirmationView />
+        )}
+
+        {modalView === "SET_NICK_NAME" && currentChannel && (
+          <NickNameSetView
+          // channelName={currentChannel.name}
+          // onConfirm={(newNickName: string) => {
+          //   setNickName(newNickName);
+          // }}
+          // existedNickName={getNickName()}
+          />
         )}
       </Modal>
     );

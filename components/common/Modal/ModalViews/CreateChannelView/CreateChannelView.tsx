@@ -36,7 +36,6 @@ const CreateChannelView: FC<{}> = ({}) => {
         buttonCopy="Create"
         cssClass="mt-5 mb-8"
         onClick={() => {
-          console.log("Test 100 clicked");
           createChannel(channelName, channelDesc);
           setChannelName("");
           setChannelDesc("");

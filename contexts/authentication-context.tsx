@@ -40,8 +40,6 @@ export const AuthenticationContext = React.createContext<{
 AuthenticationContext.displayName = "AuthenticationContext";
 
 export const AuthenticationProvider: FC<any> = props => {
-  console.log("Test contexts: AuthenticationProvider");
-
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   const isStatePathExisted = () => {

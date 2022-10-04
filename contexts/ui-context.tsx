@@ -4,13 +4,11 @@ export interface State {
   displayModal: boolean;
   modalView: string;
   activeModals: object[];
-  authenticationView: string;
 }
 
 const initialState = {
   displayModal: false,
   modalView: "",
-  authenticationView: "REGISTERATION",
   activeModals: []
 };
 
@@ -24,19 +22,14 @@ type Action =
   | {
       type: "SET_MODAL_VIEW";
       view: MODAL_VIEWS;
-    }
-  | {
-      type: "SET_AUTHENTICATION_VIEW";
-      view: AUTHENTICATION_VIEWS;
     };
 
 type MODAL_VIEWS =
   | "SHARE_CHANNEL"
   | "CREATE_CHANNEL"
   | "JOIN_CHANNEL"
-  | "LEAVE_CHANNEL_CONFIRMATION";
-
-type AUTHENTICATION_VIEWS = "REGISTERATION" | "LOGIN";
+  | "LEAVE_CHANNEL_CONFIRMATION"
+  | "SET_NICK_NAME";
 
 export const UIContext = React.createContext<State | any>(initialState);
 
@@ -63,12 +56,6 @@ function uiReducer(state: State, action: Action) {
         modalView: action.view
       };
     }
-    case "SET_AUTHENTICATION_VIEW": {
-      return {
-        ...state,
-        authenticationView: action.view
-      };
-    }
   }
 }
 
@@ -87,19 +74,12 @@ export const UIProvider: FC<any> = props => {
     [dispatch]
   );
 
-  const setAuthenticationView = useCallback(
-    (view: AUTHENTICATION_VIEWS) =>
-      dispatch({ type: "SET_AUTHENTICATION_VIEW", view }),
-    [dispatch]
-  );
-
   const value = useMemo(
     () => ({
       ...state,
       openModal,
       closeModal,
-      setModalView,
-      setAuthenticationView
+      setModalView
     }),
     [state]
   );

@@ -1,4 +1,4 @@
-import { FC, useState, useRef, useEffect, useCallback } from "react";
+import { FC, useState, useRef, useEffect } from "react";
 import s from "./ChannelChat.module.scss";
 import SendButton from "./components/SendButton/SendButton";
 import ChatMessage from "./components/ChatMessage/ChatMessage";
@@ -6,29 +6,34 @@ import { IMessage, IEmojiReaction } from "@types";
 import cn from "classnames";
 import { Close } from "@components/icons";
 import { v4 as uuidv4 } from "uuid";
-import { randomStringGenerator } from "@utils";
-import { useInterval } from "@utils/hooks/useIntervals";
 import moment from "moment";
 import _ from "lodash";
-import { useNetworkClient } from "contexts/network-client-context";
+import { useNetworkClient, IChannel } from "contexts/network-client-context";
+import { Tree } from "@components/icons";
 
 const fakeHoursFlag = true;
 
 const ChannelChat: FC<{}> = ({}) => {
   const {
     currentChannel,
-    channels,
-    setCurrentChannel,
-    sendMessage
+    messages,
+    setMessages,
+    sendMessage,
+    sendReply,
+    sendReaction,
+    channels
   } = useNetworkClient();
 
-  const [channelMessages, setChannelMessages] = useState<IMessage[]>([]);
   const [messageBody, setMessageBody] = useState<string>("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [replyToMessage, setReplyToMessage] = useState<IMessage | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
 
-  let groupedMessagesPerDay = _.groupBy(channelMessages, message =>
+  let currentChannelMessages = messages.filter(m => {
+    return m?.channelId === currentChannel?.id;
+  });
+
+  let groupedMessagesPerDay = _.groupBy(currentChannelMessages, message =>
     moment(moment(message.timestamp), "DD/MM/YYYY").startOf("day")
   );
 
@@ -56,94 +61,38 @@ const ChannelChat: FC<{}> = ({}) => {
     if (!document.querySelector(".emoji-picker-react") && autoScrollToEnd) {
       scrollToEnd();
     }
-  }, [channelMessages, autoScrollToEnd]);
+  }, [currentChannelMessages, autoScrollToEnd]);
 
-  const addNewMessage = (externalMessage?: IMessage) => {
-    let fakeTimestamp;
-
-    if (fakeHoursFlag && channelMessages.length) {
-      const copyDate = new Date(
-        channelMessages[channelMessages.length - 1].timestamp
-      );
-      fakeTimestamp = copyDate.setTime(copyDate.getTime() + 1 * 60 * 60 * 1000);
-    }
-
-    if (externalMessage) {
-      setChannelMessages([
-        ...channelMessages,
-        {
-          ...externalMessage,
-          ...(fakeTimestamp && { timestamp: fakeTimestamp })
-        }
-      ]);
-      return;
-    }
-    if (messageBody.trim().length) {
-      setChannelMessages([
-        ...channelMessages,
-        {
-          id: uuidv4(),
-          body: messageBody.trim(),
-          userName: "Mostafa",
-          timestamp: Date.now(),
-          ...(replyToMessage && { replyToMessage }),
-          ...(fakeTimestamp && { timestamp: fakeTimestamp })
-        }
-      ]);
-      setAutoScrollToEnd(true); // This should be only for my messages
-      setMessageBody("");
-      setReplyToMessage(null);
-    }
-  };
+  // const addNewMessage = () => {
+  //   if (messageBody.trim().length) {
+  //     setMessages([
+  //       ...messages,
+  //       {
+  //         id: uuidv4(),
+  //         channelId: currentChannel?.id,
+  //         body: messageBody.trim(),
+  //         userName: "Mostafa",
+  //         timestamp: Date.now(),
+  //         ...(replyToMessage && { replyToMessage })
+  //       }
+  //     ]);
+  //     setAutoScrollToEnd(true); // This should be only for my messages
+  //     setMessageBody("");
+  //     setReplyToMessage(null);
+  //   }
+  // };
 
   const handleReactToMessage = (
     reaction: IEmojiReaction,
     message: IMessage
   ) => {
-    const temp = message;
-    // If no emojis map set it.
-    if (!temp.emojisMap) {
-      temp.emojisMap = new Map();
-    }
-
-    // If no key for this reaction set it with this username as the value
-    if (!temp.emojisMap.has(reaction.emoji)) {
-      temp.emojisMap.set(reaction.emoji, [reaction.userName]);
-    } else {
-      const previousInteractedUsers = temp.emojisMap.get(reaction.emoji) || [];
-      // If emojisMap has this same interaction for this user before then delete it
-      if (previousInteractedUsers?.includes(reaction.userName)) {
-        const updatedInteractedUsers = previousInteractedUsers.filter(
-          u => u !== reaction.userName
-        );
-        if (updatedInteractedUsers.length) {
-          temp.emojisMap.set(reaction.emoji, updatedInteractedUsers);
-        } else {
-          temp.emojisMap.delete(reaction.emoji);
-        }
-      } else {
-        //else add it to the array
-        previousInteractedUsers.push(reaction.userName);
-        temp.emojisMap.set(reaction.emoji, previousInteractedUsers);
-      }
-    }
-
-    setChannelMessages(
-      channelMessages.map(m => {
-        if (m.id === message.id) {
-          return temp;
-        } else {
-          return m;
-        }
-      })
-    );
+    sendReaction(reaction.emoji, message.id);
   };
 
   return (
     <div className={s.root}>
       {currentChannel ? (
         <>
-          {" "}
           <div className={s.channelHeader}>
             <div className={"headline--sm"}>
               {currentChannel?.name}{" "}
@@ -171,10 +120,11 @@ const ChannelChat: FC<{}> = ({}) => {
                     {moment(key).format("dddd MMMM Do, YYYY")}
                   </span>
                   <div>
-                    {value.map(m => {
+                    {value.map((m, index) => {
                       return (
                         <ChatMessage
-                          key={m.id}
+                          key={`${m.id}${m.status}${index}`}
+                          // key={Math.random()}
                           message={m}
                           onReactToMessage={(reaction: IEmojiReaction) => {
                             handleReactToMessage(reaction, m);
@@ -194,7 +144,7 @@ const ChannelChat: FC<{}> = ({}) => {
             {replyToMessage && (
               <div className={cn(s.replyContainer)}>
                 <div className="flex flex-col flex-1">
-                  <span>Reply to {replyToMessage.userName}</span>
+                  <span>Reply to {replyToMessage.codeName}</span>
                   <p>{replyToMessage.body}</p>
                 </div>
                 <Close
@@ -218,7 +168,16 @@ const ChannelChat: FC<{}> = ({}) => {
               onKeyDown={e => {
                 if (e.keyCode === 13 && !e.shiftKey) {
                   e.preventDefault();
-                  addNewMessage();
+                  if (replyToMessage) {
+                    sendReply(messageBody.trim(), replyToMessage.id);
+                  } else {
+                    sendMessage(messageBody.trim());
+                  }
+                  // addNewMessage();
+                  /////////
+                  setAutoScrollToEnd(true);
+                  setMessageBody("");
+                  setReplyToMessage(null);
                 }
               }}
             />
@@ -227,15 +186,43 @@ const ChannelChat: FC<{}> = ({}) => {
               <SendButton
                 cssClass={s.button}
                 onClick={async () => {
-                  sendMessage(messageBody);
-                  addNewMessage();
+                  if (replyToMessage) {
+                    sendReply(messageBody.trim(), replyToMessage.id);
+                  } else {
+                    sendMessage(messageBody.trim());
+                  }
+                  /////////
+                  setAutoScrollToEnd(true);
+                  setMessageBody("");
+                  setReplyToMessage(null);
+                  // addNewMessage();
                 }}
               />
             </div>
           </div>
         </>
+      ) : channels.length ? (
+        <div className={s.channelHeader}></div>
       ) : (
-        <div></div>
+        <>
+          <div className={s.channelHeader}></div>
+          <div className="flex flex-col justify-center items-center h-full">
+            <Tree></Tree>
+            <div
+              style={{
+                fontSize: "12px",
+                lineHeight: "14px",
+                marginTop: "14px",
+                maxWidth: "280px",
+                fontWeight: "700",
+                color: "var(--text-primary)"
+              }}
+            >
+              You haven’t joined any channel yet. You can create or join a
+              channel to start the journey!
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

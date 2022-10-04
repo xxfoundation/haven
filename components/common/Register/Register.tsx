@@ -21,8 +21,6 @@ const Register: FC<{}> = ({}) => {
     setPassword(password);
   };
 
-  console.log("Test Register view rendered");
-
   return password.length === 0 ? (
     <RegisterView onConfirm={onConfirm}></RegisterView>
   ) : (
