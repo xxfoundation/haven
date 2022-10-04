@@ -24,7 +24,6 @@ const MessageSenderHeader: FC<{ message: IMessage }> = ({ message }) => {
   const color = (message?.color || "").replace("0x", "#");
   return (
     <span className={cn(s.sender)}>
-      <span>{message.status}</span>
       {message.nickName && (
         <span style={{ color: `${color}`, marginRight: "6px" }}>
           {message.nickName}
@@ -36,7 +35,6 @@ const MessageSenderHeader: FC<{ message: IMessage }> = ({ message }) => {
       <span style={message.nickName ? { color: "#73767C" } : { color: color }}>
         {message.codeName}
       </span>
-      <span>{message?.id?.substring(0, 3) || ""}</span>
     </span>
   );
 };
@@ -111,8 +109,7 @@ const ActionsWrapper: FC<{
             <EmojiPicker
               onEmojiClick={(event, emoji) => {
                 onReactToMessage({
-                  emoji: emoji.emoji,
-                  codeName: "Mostafa"
+                  emoji: emoji.emoji
                 });
               }}
             />
@@ -153,8 +150,8 @@ const ChatMessage: FC<{
         setActionsWrapperVisible(false);
       }}
     >
-      {message?.status &&
-        [1, 2].includes(message?.status) &&
+      {typeof message?.status !== "undefined" &&
+        [1, 2, 3].includes(message?.status) &&
         actionsWrapperVisible && (
           <ActionsWrapper
             onReactToMessage={onReactToMessage}
