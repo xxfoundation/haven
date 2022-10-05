@@ -173,6 +173,7 @@ export const NetworkProvider: FC<any> = props => {
             channelId: m.channel_id,
             status: m.status,
             uuid: m.id,
+            round: m.round,
             replyToMessage: {
               id: replyToMessage.message_id,
               body: replyToMessage.text,
@@ -182,7 +183,8 @@ export const NetworkProvider: FC<any> = props => {
               color: replyToMessage.color,
               channelId: replyToMessage.channel_id,
               status: replyToMessage.status,
-              uuid: replyToMessage.id
+              uuid: replyToMessage.id,
+              round: replyToMessage.round
             }
           };
           mappedMessages.push(resolvedMessage);
@@ -197,7 +199,8 @@ export const NetworkProvider: FC<any> = props => {
             color: m.color,
             channelId: m.channel_id,
             status: m.status,
-            uuid: m.id
+            uuid: m.id,
+            round: m.round
           };
           mappedMessages.push(resolvedMessage);
         }
@@ -261,7 +264,8 @@ export const NetworkProvider: FC<any> = props => {
           return {
             ...m,
             id: message.message_id,
-            status: message.status
+            status: message.status,
+            round: message.round
           };
         } else return m;
       });
@@ -630,6 +634,10 @@ export const NetworkProvider: FC<any> = props => {
           utils.Base64ToUint8Array(currentChannel.id)
         );
         const temp = currentChannel;
+        const channelId = temp.id;
+        setMessages(prev => {
+          return prev.filter(m => m.channelId !== channelId);
+        });
         setCurrentChannel(undefined);
         setChannels(
           channels.filter((c: IChannel) => {
