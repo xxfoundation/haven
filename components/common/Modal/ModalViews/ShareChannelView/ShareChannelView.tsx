@@ -3,6 +3,7 @@ import s from "./ShareChannelView.module.scss";
 import cn from "classnames";
 import { ModalCtaButton } from "@components/common";
 import { useNetworkClient } from "contexts/network-client-context";
+import copy from "copy-to-clipboard";
 
 const ShareChannelView: FC<{}> = ({}) => {
   const { currentChannel, getPrettyPrint } = useNetworkClient();
@@ -39,7 +40,7 @@ const ShareChannelView: FC<{}> = ({}) => {
         buttonCopy="Copy"
         cssClass="my-7"
         onClick={() => {
-          navigator.clipboard.writeText(
+          copy(
             currentChannel?.prettyPrint || getPrettyPrint(currentChannel?.id)
           );
         }}
