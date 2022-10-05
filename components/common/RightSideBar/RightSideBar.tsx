@@ -131,9 +131,14 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
             <div className="flex flex-col">
               <div className={cn(s.channelPill, "headline--xs flex flex-col")}>
                 {nickName?.length ? (
-                  <span style={{ color }}>{nickName} (you)</span>
+                  <span style={{ color }} className={s.currentUser}>
+                    {nickName} (you)
+                  </span>
                 ) : (
-                  <span style={{ color }} className="flex items-center">
+                  <span
+                    style={{ color }}
+                    className={cn("flex items-center", s.currentUser)}
+                  >
                     <Elixxir style={{ fill: color, width: "10px" }} />
                     {codeName} (you)
                   </span>
@@ -157,26 +162,58 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                 if (c.codeName === codeName) {
                   return null;
                 } else {
+                  const color = c?.color.replace("0x", "#");
+
                   return (
                     <span
+                      className={cn(s.sender, "flex items-center")}
                       key={c.codeName}
-                      className={cn(
-                        s.channelPill,
-                        "headline--xs flex items-center"
-                      )}
-                      style={{
-                        color: c?.color?.replace("0x", "#")
-                      }}
                     >
-                      <Elixxir
-                        style={{
-                          width: "10px",
-                          fill: c?.color?.replace("0x", "#")
-                        }}
-                      />
-
-                      {c.codeName}
+                      {c.nickName && (
+                        <span
+                          style={{ color: `${color}`, marginRight: "6px" }}
+                          className={cn("headline--xs", s.nickNameWrapper)}
+                        >
+                          {c.nickName}
+                        </span>
+                      )}
+                      <span
+                        className={cn("flex items-center", s.codeNameWrapper)}
+                      >
+                        <Elixxir
+                          style={
+                            c.nickName ? { fill: "#73767C" } : { fill: color }
+                          }
+                        />
+                        <span
+                          style={
+                            c.nickName ? { color: "#73767C" } : { color: color }
+                          }
+                          className="headline--xs"
+                        >
+                          {c.codeName}
+                        </span>
+                      </span>
                     </span>
+                    // <span
+                    //   key={c.codeName}
+                    //   className={cn(
+                    //     s.channelPill,
+                    //     "headline--xs flex items-center"
+                    //   )}
+                    //   style={{
+                    //     color: c?.color?.replace("0x", "#")
+                    //   }}
+                    // >
+                    //   <Elixxir
+                    //     style={{
+                    //       width: "10px",
+                    //       fill: c?.color?.replace("0x", "#")
+                    //     }}
+                    //   />
+
+                    //   {c.codeName}
+                    // </span>
                   );
                 }
               })}
