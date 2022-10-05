@@ -15,4 +15,5 @@ export interface IMessage {
   channelId: string;
   status?: number;
   uuid: number;
+  round: number;
 }
