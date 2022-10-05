@@ -74,7 +74,8 @@ const DefaultLayout: FC<Props> = ({
             LoadChannelsManagerWithIndexedDb,
             GetPublicChannelIdentityFromPrivate,
             IsNicknameValid,
-            LogToFile
+            LogToFile,
+            LogLevel
           } = (window as any) || {};
 
           setUtils({
@@ -91,6 +92,9 @@ const DefaultLayout: FC<Props> = ({
             IsNicknameValid
           });
 
+          if (LogLevel) {
+            LogLevel(2);
+          }
           const logFile = LogToFile(0, "receiver.log", 5000000);
           (window as any).logFile = logFile;
           setUtilsLoaded(true);

@@ -63,7 +63,7 @@ const LeftSideBar: FC<{
           }}
           disabled={networkStatus !== NetworkStatus.CONNECTED}
         >
-          Join Channel
+          Join
         </Button>
         <Button
           cssClasses={"w-full"}
@@ -73,7 +73,7 @@ const LeftSideBar: FC<{
           }}
           disabled={networkStatus !== NetworkStatus.CONNECTED}
         >
-          Create Channel
+          Create
         </Button>
         <div className={s.links}>
           <a
