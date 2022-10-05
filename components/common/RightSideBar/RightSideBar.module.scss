@@ -65,3 +65,32 @@
   justify-content: center;
   align-items: center;
 }
+
+.sender {
+  font-weight: 700;
+
+  .codeNameWrapper {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+
+  svg {
+    width: 10px !important;
+    display: inline;
+  }
+  .nickNameWrapper {
+    white-space: nowrap;
+  }
+}
+
+.currentUser {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  svg {
+    display: inline;
+  }
+}
