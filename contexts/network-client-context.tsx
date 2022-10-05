@@ -207,11 +207,6 @@ export const NetworkProvider: FC<any> = props => {
   };
 
   const handleReactionReceived = (dbMessage: any) => {
-    console.log(
-      "Test 0000 handleReactionReceived called with event",
-      dbMessage
-    );
-
     setMessages(prevMessages => {
       const destinationMessage = prevMessages.find(
         m => m.id === dbMessage.parent_message_id
@@ -260,7 +255,6 @@ export const NetworkProvider: FC<any> = props => {
   };
 
   const updateSenderMessageStatus = (message: any) => {
-    // console.log("Test 7777 update sender status called with:", message);
     setMessages(prevMessages => {
       return prevMessages.map(m => {
         if (m.status === 0 && m.uuid === message.id) {
@@ -290,13 +284,6 @@ export const NetworkProvider: FC<any> = props => {
         return;
       }
 
-      console.log(
-        "Test 7777 received event. isupdate = ",
-        isUpdate,
-        " event",
-        receivedMessage
-      );
-
       // Check for sender
       // is update is true only for sender
       if (isUpdate) {
@@ -305,11 +292,6 @@ export const NetworkProvider: FC<any> = props => {
           return;
         }
       }
-
-      console.log(
-        "Test 0000 onReceive Event called with event:",
-        receivedMessage
-      );
 
       if (receivedMessage.type === 3) {
         // It's reaction event
@@ -419,10 +401,9 @@ export const NetworkProvider: FC<any> = props => {
         mappedMessages
       );
       const sorted = messagesWithReactions.sort(function(x, y) {
-        return x.uuid - y.uuid;
-        // return (
-        //   new Date(x.timestamp).getTime() - new Date(y.timestamp).getTime()
-        // );
+        return (
+          new Date(x.timestamp).getTime() - new Date(y.timestamp).getTime()
+        );
       });
       setMessages(prevMessages => {
         return [...prevMessages, ...sorted];
@@ -463,18 +444,9 @@ export const NetworkProvider: FC<any> = props => {
           messages,
           mappedMessages
         );
-        console.log(
-          "Test 0000 handleInitialLoadData after resolving:",
-          messagesWithReactions
-        );
+
         // Change the state here
         setChannels(mappedChannels);
-
-        // const sorted = messagesWithReactions.sort((x, y) => {
-        //   // let xTime = new Date(x.timestamp).getTime();
-        //   // let yTime = new Date(y.timestamp).getTime();
-        //   return x.uuid - y.uuid;
-        // });
         setMessages(messagesWithReactions);
 
         resolve({ channels, messages });
@@ -576,7 +548,6 @@ export const NetworkProvider: FC<any> = props => {
     appendToCurrent: boolean = true
   ) => {
     if (prettyPrint && chanManager && chanManager.JoinChannel) {
-      console.log("Test 0000 Join channel called");
       const chanInfo = JSON.parse(
         dec.decode(chanManager.JoinChannel(prettyPrint))
       );
@@ -598,31 +569,37 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
   const createChannel = (channelName: string, channelDescription?: string) => {
-    if (
-      channelName &&
-      utils?.GenerateChannel &&
-      network &&
-      networkStatus === NetworkStatus.CONNECTED
-    ) {
-      const channelUnparsed = utils?.GenerateChannel(
-        network?.GetID(),
-        channelName,
-        channelDescription || ""
-      );
-      const channel = JSON.parse(dec.decode(channelUnparsed));
-      const channelInfo = getChannelInfo(channel?.Channel || "");
-      joinChannel(channel?.Channel, false);
-      let temp = {
-        id: channelInfo?.ChannelID,
-        name: channelInfo?.Name,
-        description: channelInfo?.Description,
-        prettyPrint: channel?.Channel,
-        isLoading: false
-      };
-      savePrettyPrint(temp.id, temp.prettyPrint);
-      setCurrentChannel(temp);
-      setChannels([...channels, temp]);
-    }
+    return new Promise((resolve, reject) => {
+      if (network && networkStatus !== NetworkStatus.CONNECTED) {
+        reject("Network is not connected yet");
+      }
+
+      if (channelName && utils?.GenerateChannel) {
+        try {
+          const channelUnparsed = utils?.GenerateChannel(
+            network?.GetID(),
+            channelName,
+            channelDescription || ""
+          );
+          const channel = JSON.parse(dec.decode(channelUnparsed));
+          const channelInfo = getChannelInfo(channel?.Channel || "");
+          joinChannel(channel?.Channel, false);
+          let temp = {
+            id: channelInfo?.ChannelID,
+            name: channelInfo?.Name,
+            description: channelInfo?.Description,
+            prettyPrint: channel?.Channel,
+            isLoading: false
+          };
+          savePrettyPrint(temp.id, temp.prettyPrint);
+          setCurrentChannel(temp);
+          setChannels([...channels, temp]);
+          resolve(true);
+        } catch (error) {
+          reject(error);
+        }
+      }
+    });
   };
   const shareChannel = () => {};
 
@@ -707,7 +684,6 @@ export const NetworkProvider: FC<any> = props => {
   const sendReaction = async (reaction: string, reactToMessageId: string) => {
     if (chanManager && utils && utils.Base64ToUint8Array && currentChannel) {
       try {
-        console.log("Test 200:", { reactToMessageId });
         await chanManager.SendReaction(
           utils.Base64ToUint8Array(currentChannel.id),
           reaction,
