@@ -630,6 +630,10 @@ export const NetworkProvider: FC<any> = props => {
           utils.Base64ToUint8Array(currentChannel.id)
         );
         const temp = currentChannel;
+        const channelId = temp.id;
+        setMessages(prev => {
+          return prev.filter(m => m.channelId !== channelId);
+        });
         setCurrentChannel(undefined);
         setChannels(
           channels.filter((c: IChannel) => {
