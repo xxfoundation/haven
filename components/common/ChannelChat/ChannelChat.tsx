@@ -13,8 +13,6 @@ import { Tree } from "@components/icons";
 import { Loading } from "@components/common";
 import { Spinner } from "@components/common";
 
-const fakeHoursFlag = true;
-
 const ChannelChat: FC<{}> = ({}) => {
   const {
     currentChannel,
