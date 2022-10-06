@@ -168,6 +168,9 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                     <span
                       className={cn(s.sender, "flex items-center")}
                       key={c.codeName}
+                      style={{
+                        padding: "6px"
+                      }}
                     >
                       {c.nickName && (
                         <span
