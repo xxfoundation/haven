@@ -147,3 +147,9 @@
     text-align: center;
   }
 }
+
+.messageBody {
+  &__failed {
+    color: var(--red) !important;
+  }
+}

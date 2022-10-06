@@ -45,7 +45,7 @@ const Collapse: FC<CollapseProps> = React.memo(
     const IconTitle = () => {
       return (
         <>
-          {!!!isActive ? <Icon /> : <CloseIcon />}
+          {!!!isActive ? <CloseIcon /> : <Icon />}
           <span className={s.label}>{title}</span>
         </>
       );
