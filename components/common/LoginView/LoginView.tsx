@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import s from "./LoginView.module.scss";
 import { ModalCtaButton } from "@components/common";
 import cn from "classnames";
@@ -11,6 +11,18 @@ const LoginView: FC<{}> = ({}) => {
   const [error, setError] = useState<string>("");
   const { loadCmix, loadChannelManager } = useNetworkClient();
   const { checkUser, getStorageTag } = useAuthentication();
+
+  const handleSubmit = () => {
+    setError("");
+    const isRegistered = checkUser(password);
+    if (!isRegistered) {
+      setError("Invalid credentials.");
+    } else {
+      loadCmix(password, (net: any) =>
+        loadChannelManager(getStorageTag(), net)
+      );
+    }
+  };
 
   return (
     <div
@@ -30,6 +42,12 @@ const LoginView: FC<{}> = ({}) => {
         onChange={e => {
           setPassword(e.target.value);
         }}
+        onKeyDown={e => {
+          if (e.keyCode === 13) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
       />
       {error && (
         <div className={"text text--xs mt-2"} style={{ color: "var(--red)" }}>
@@ -40,17 +58,7 @@ const LoginView: FC<{}> = ({}) => {
         <ModalCtaButton
           buttonCopy="Login"
           cssClass="mb-4"
-          onClick={() => {
-            setError("");
-            const isRegistered = checkUser(password);
-            if (!isRegistered) {
-              setError("Invalid credentials.");
-            } else {
-              loadCmix(password, (net: any) =>
-                loadChannelManager(getStorageTag(), net)
-              );
-            }
-          }}
+          onClick={handleSubmit}
         />
       </div>
     </div>
