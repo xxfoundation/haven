@@ -260,7 +260,7 @@ export const NetworkProvider: FC<any> = props => {
   const updateSenderMessageStatus = (message: any) => {
     setMessages(prevMessages => {
       return prevMessages.map(m => {
-        if (m.status === 0 && m.uuid === message.id) {
+        if (m.uuid === message.id) {
           return {
             ...m,
             id: message.message_id,
@@ -291,7 +291,7 @@ export const NetworkProvider: FC<any> = props => {
       // Check for sender
       // is update is true only for sender
       if (isUpdate) {
-        if ([1, 2].includes(receivedMessage.status)) {
+        if ([1, 2, 3].includes(receivedMessage.status)) {
           updateSenderMessageStatus(receivedMessage);
           return;
         }

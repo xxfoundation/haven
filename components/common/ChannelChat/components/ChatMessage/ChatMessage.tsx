@@ -182,7 +182,8 @@ const ChatMessage: FC<{
             style={{
               fontSize: "9px",
               color: "var(--text-secondary)",
-              textDecoration: "underline"
+              textDecoration: "underline",
+              marginBottom: "1px"
             }}
           >
             Show mix
@@ -211,7 +212,13 @@ const ChatMessage: FC<{
               {message.replyToMessage.body}
             </p>
           )}
-          <p>{message.body}</p>
+          <p
+            className={cn(s.messageBody, {
+              [s.messageBody__failed]: message.status === 3
+            })}
+          >
+            {message.body}
+          </p>
         </div>
         {message.emojisMap && (
           <div className={cn(s.footer)}>
