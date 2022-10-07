@@ -45,7 +45,7 @@ export interface IChannel {
   name: string;
   id: string;
   description: string;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 let db: Dexie | undefined;
@@ -134,6 +134,7 @@ export const NetworkProvider: FC<any> = props => {
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
   const [isNetworkLoading, setIsNetworkLoading] = useState<boolean>(false);
   const channelsRef = useRef<IChannel[]>([]);
+  const blockedEvents = useRef<any[]>([]);
 
   useEffect(() => {
     channelsRef.current = channels;
@@ -149,8 +150,6 @@ export const NetworkProvider: FC<any> = props => {
     }
   }, [network]);
 
-  // const appendSenderMessage = message => {};
-
   const mapDbMessagesToMessages = async (messages: any[]) => {
     if (!db) {
       return [];
@@ -162,6 +161,12 @@ export const NetworkProvider: FC<any> = props => {
           const replyToMessage = allMessages.find(
             ms => ms.message_id === m.parent_message_id
           );
+
+          // If there is no reply To message Then it is not yet received
+          if (!replyToMessage) {
+            blockedEvents.current = [...blockedEvents.current, m];
+            return;
+          }
 
           const resolvedMessage: IMessage = {
             id: m.message_id,
@@ -252,6 +257,8 @@ export const NetworkProvider: FC<any> = props => {
           }
         });
       } else {
+        blockedEvents.current = [...blockedEvents.current, dbMessage];
+
         return prevMessages;
       }
     });
@@ -272,6 +279,33 @@ export const NetworkProvider: FC<any> = props => {
     });
   };
 
+  const checkIfWillResolveBlockedEvent = (receivedMessage: any) => {
+    const blockedEventsToResolve = blockedEvents.current.filter(
+      e => e.parent_message_id === receivedMessage.message_id
+    );
+
+    if (blockedEventsToResolve?.length) {
+      blockedEvents.current = blockedEvents.current.filter(
+        e => e.parent_message_id !== blockedEventsToResolve[0].parent_message_id
+      );
+      blockedEventsToResolve.forEach(e => {
+        resolveBlockedEvent(e);
+      });
+    }
+  };
+
+  const resolveBlockedEvent = async (event: any) => {
+    if (event.type === 3) {
+      handleReactionReceived(event);
+    } else if (event.type === 1) {
+      const mappedMessages = await mapDbMessagesToMessages([event]);
+
+      if (mappedMessages.length) {
+        setMessages(prev => [...prev, mappedMessages[0]]);
+      }
+    }
+  };
+
   const onReceiveEvent = async (
     uuid: string,
     channelID: Uint8Array,
@@ -279,17 +313,6 @@ export const NetworkProvider: FC<any> = props => {
   ) => {
     if (db) {
       const receivedMessage = await db.table("messages").get(uuid);
-
-      // Ignore events from recently joined channels until making sure all data loads
-      const currentlyBlockedChannelsIds = channelsRef.current
-        .filter(ch => ch.isLoading === true)
-        .map(ch => ch.id);
-      if (currentlyBlockedChannelsIds.includes(receivedMessage.channel_id)) {
-        return;
-      }
-
-      // Check for sender
-      // is update is true only for sender
       if (isUpdate) {
         if ([1, 2, 3].includes(receivedMessage.status)) {
           updateSenderMessageStatus(receivedMessage);
@@ -300,8 +323,7 @@ export const NetworkProvider: FC<any> = props => {
       if (receivedMessage.type === 3) {
         // It's reaction event
         handleReactionReceived(receivedMessage);
-        return;
-      } else {
+      } else if (receivedMessage.type === 1) {
         // It's normal message or reply to message event
         const mappedMessages = await mapDbMessagesToMessages([receivedMessage]);
 
@@ -309,6 +331,7 @@ export const NetworkProvider: FC<any> = props => {
           setMessages(prev => [...prev, mappedMessages[0]]);
         }
       }
+      checkIfWillResolveBlockedEvent(receivedMessage);
     }
   };
 
@@ -325,9 +348,6 @@ export const NetworkProvider: FC<any> = props => {
         const mappedMessages = await mapDbMessagesToMessages(messages);
 
         resolve({ mappedChannels, mappedMessages });
-
-        // setChannels(mappedChannels as IChannel[]);
-        // setMessages(mappedMessages as IMessage[]);
       } catch (error) {
         reject(error);
       }
@@ -387,39 +407,6 @@ export const NetworkProvider: FC<any> = props => {
       }
     });
     return messagesCopy;
-  };
-
-  const loadChannelData = async (channelId: string) => {
-    if (db) {
-      const messages = await db.table("messages").toArray();
-      const channelDbMessages = messages.filter(
-        m => m.channel_id === channelId
-      );
-      const result = await mapInitialLoadDataToCurrentState(
-        [],
-        channelDbMessages
-      );
-      const mappedMessages = result.mappedMessages;
-      const messagesWithReactions = bulkUpdateMessagesWithReactions(
-        messages,
-        mappedMessages
-      );
-      const sorted = messagesWithReactions.sort(function(x, y) {
-        return (
-          new Date(x.timestamp).getTime() - new Date(y.timestamp).getTime()
-        );
-      });
-      setMessages(prevMessages => {
-        return [...prevMessages, ...sorted];
-      });
-      setChannels(prevChannels => {
-        return prevChannels.map(ch => {
-          if (ch.id === channelId) {
-            return { ...ch, isLoading: false };
-          } else return ch;
-        });
-      });
-    }
   };
 
   const handleInitialLoadData = (storageTag: string) => {
@@ -567,7 +554,6 @@ export const NetworkProvider: FC<any> = props => {
         setChannels([...channels, temp]);
         setTimeout(() => {
           setCurrentChannel({ ...temp, isLoading: false });
-          loadChannelData(temp.id);
         }, 5000);
       }
     }
