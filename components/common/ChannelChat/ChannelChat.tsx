@@ -5,19 +5,17 @@ import ChatMessage from "./components/ChatMessage/ChatMessage";
 import { IMessage, IEmojiReaction } from "@types";
 import cn from "classnames";
 import { Close } from "@components/icons";
-import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 import _ from "lodash";
-import { useNetworkClient, IChannel } from "contexts/network-client-context";
+import { useNetworkClient } from "contexts/network-client-context";
 import { Tree } from "@components/icons";
-import { Loading } from "@components/common";
+
 import { Spinner } from "@components/common";
 
 const ChannelChat: FC<{}> = ({}) => {
   const {
     currentChannel,
     messages,
-    setMessages,
     sendMessage,
     sendReply,
     sendReaction,
@@ -35,6 +33,12 @@ const ChannelChat: FC<{}> = ({}) => {
 
   let groupedMessagesPerDay = _.groupBy(currentChannelMessages, message =>
     moment(moment(message.timestamp), "DD/MM/YYYY").startOf("day")
+  );
+
+  let sortedGroupedMessagesPerDay = Object.entries(groupedMessagesPerDay).sort(
+    (x, y) => {
+      return new Date(x[0]).getTime() - new Date(y[0]).getTime();
+    }
   );
 
   const checkBottom = () => {
@@ -62,25 +66,6 @@ const ChannelChat: FC<{}> = ({}) => {
       scrollToEnd();
     }
   }, [currentChannelMessages, autoScrollToEnd]);
-
-  // const addNewMessage = () => {
-  //   if (messageBody.trim().length) {
-  //     setMessages([
-  //       ...messages,
-  //       {
-  //         id: uuidv4(),
-  //         channelId: currentChannel?.id,
-  //         body: messageBody.trim(),
-  //         userName: "Mostafa",
-  //         timestamp: Date.now(),
-  //         ...(replyToMessage && { replyToMessage })
-  //       }
-  //     ]);
-  //     setAutoScrollToEnd(true); // This should be only for my messages
-  //     setMessageBody("");
-  //     setReplyToMessage(null);
-  //   }
-  // };
 
   const handleReactToMessage = (
     reaction: IEmojiReaction,
@@ -117,7 +102,7 @@ const ChannelChat: FC<{}> = ({}) => {
                 <Spinner />
               </div>
             ) : (
-              Object.entries(groupedMessagesPerDay).map(([key, value]) => {
+              sortedGroupedMessagesPerDay.map(([key, value]) => {
                 return (
                   <div className={cn(s.dayMessagesWrapper)} key={key}>
                     <div className={s.separator}></div>
@@ -129,7 +114,6 @@ const ChannelChat: FC<{}> = ({}) => {
                         return (
                           <ChatMessage
                             key={`${m.id}${m.status}${index}`}
-                            // key={Math.random()}
                             message={m}
                             onReactToMessage={(reaction: IEmojiReaction) => {
                               handleReactToMessage(reaction, m);
