@@ -43,6 +43,7 @@
 .content {
   flex: 1;
   padding: 14px 8px;
+  overflow: auto;
 
   .channelPill {
     color: var(--grey);

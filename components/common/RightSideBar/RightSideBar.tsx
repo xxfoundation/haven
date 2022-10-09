@@ -198,25 +198,6 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                         </span>
                       </span>
                     </span>
-                    // <span
-                    //   key={c.codeName}
-                    //   className={cn(
-                    //     s.channelPill,
-                    //     "headline--xs flex items-center"
-                    //   )}
-                    //   style={{
-                    //     color: c?.color?.replace("0x", "#")
-                    //   }}
-                    // >
-                    //   <Elixxir
-                    //     style={{
-                    //       width: "10px",
-                    //       fill: c?.color?.replace("0x", "#")
-                    //     }}
-                    //   />
-
-                    //   {c.codeName}
-                    // </span>
                   );
                 }
               })}
