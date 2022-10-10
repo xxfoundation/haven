@@ -27,13 +27,21 @@ const RegisterView2: FC<{}> = ({}) => {
 
   return (
     <div
-      className={cn("w-full flex flex-col justify-center items-center", s.root)}
+      className={cn(
+        "w-full flex flex-col justify-center items-center px-6",
+        s.root
+      )}
     >
       <h2 className="mt-9 mb-4">Find your Codename</h2>
 
       <p
-        className="mb-8 text"
-        style={{ color: "var(--cyan)", lineHeight: "13px" }}
+        className="mb-8 text text--sm"
+        style={{
+          color: "var(--cyan)",
+          lineHeight: "15px",
+          maxWidth: "444px",
+          textAlign: "center"
+        }}
       >
         Your unique codename allows anyone to know they are talking to you.
         Codenames are private, only those you are talking to ever know your
@@ -41,7 +49,12 @@ const RegisterView2: FC<{}> = ({}) => {
       </p>
 
       {identities.length ? (
-        <div className={cn("grid grid-cols-4 gap-4", s.codeContainers)}>
+        <div
+          className={cn(
+            "grid grid-cols-4 gap-x-4 gap-y-6 overflow-auto",
+            s.codeContainers
+          )}
+        >
           {identities.map((i: any) => {
             return (
               <div
@@ -67,19 +80,19 @@ const RegisterView2: FC<{}> = ({}) => {
         </div>
       )}
 
-      <div className="flex my-5">
+      <div className="flex mb-5 mt-12">
         <ModalCtaButton
           buttonCopy="Discover More"
           cssClass={s.generateButton}
           style={{
-            backgroundColor: "var(--dark-1)",
+            backgroundColor: "var(--black-1)",
             color: "var(--orange)",
             borderColor: "var(--orange)"
           }}
           onClick={() => {
             setIdentites(generateIdentitiesObjects(20));
           }}
-          disabled={isNetworkLoading || !network}
+          disabled={!network}
         />
         <ModalCtaButton
           buttonCopy="Claim"
@@ -87,9 +100,7 @@ const RegisterView2: FC<{}> = ({}) => {
           onClick={() => {
             createChannelManager(selectedPrivateIdentity);
           }}
-          disabled={
-            isNetworkLoading || !network || selectedCodeName.length === 0
-          }
+          disabled={!network || selectedCodeName.length === 0}
         />
       </div>
     </div>
