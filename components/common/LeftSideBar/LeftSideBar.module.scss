@@ -40,7 +40,7 @@
 
 .footer {
   background-color: var(--dark-4);
-  padding: 14px 8px;
+  // padding: 14px 8px;
 }
 .links {
   display: flex;
@@ -51,5 +51,45 @@
   a {
     padding: 2px 3px;
     font-size: 11px;
+  }
+}
+
+.settingsWrapper {
+  border-bottom: 1px solid var(--dark-3);
+  padding: 18px 8px;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-primary);
+  max-width: 100%;
+}
+
+.version {
+  padding: 16px 8px;
+  color: var(--grey);
+
+  font-style: italic;
+  font-weight: 100;
+  font-size: 10px;
+  line-height: 12px;
+}
+
+.currentUserWrapper {
+  overflow: hidden;
+}
+
+.currentUser {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  svg {
+    display: inline;
+  }
+}
+
+.plus {
+  &__disabled:hover {
+    cursor: not-allowed;
   }
 }

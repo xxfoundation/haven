@@ -13,3 +13,6 @@ export { default as NormalHash } from "./NormalHash";
 export { default as OpenSource } from "./OpenSource";
 export { default as RoadMap } from "./RoadMap";
 export { default as Chat } from "./Chat";
+export { default as Plus } from "./Plus";
+export { default as Settings } from "./Settings";
+export { default as Download } from "./Download";

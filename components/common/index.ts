@@ -9,3 +9,4 @@ export { default as ToolTip } from "./Tooltip";
 export { default as Spinner } from "./Spinner";
 export { default as Loading } from "./Loading";
 export { default as NetworkStatusIcon } from "./NetworkStatusIcon";
+export { default as MissedMessagesIcon } from "./MissedMessagesIcon";
