@@ -103,22 +103,11 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
               <Button
                 cssClasses={cn("block mx-auto")}
                 onClick={() => {
-                  const filename = (window as any).logFile?.Name();
-                  const data = (window as any).logFile?.GetFile();
-                  const file = new Blob([data], { type: "text/plain" });
-                  let a = document.createElement("a"),
-                    url = URL.createObjectURL(file);
-                  a.href = url;
-                  a.download = filename;
-                  document.body.appendChild(a);
-                  a.click();
-                  setTimeout(function() {
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-                  }, 0);
+                  setModalView("CHANNEL_ACTIONS");
+                  openModal();
                 }}
               >
-                Download Logs
+                More
               </Button>
             </>
           )}
@@ -203,23 +192,6 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
               })}
             </div>
           </Collapse>
-        )}
-      </div>
-      <div className={s.footer}>
-        {currentChannel && (
-          <Button
-            cssClasses={"block mx-auto"}
-            style={{ borderColor: "var(--red)" }}
-            disabled={!currentChannel}
-            onClick={() => {
-              if (currentChannel) {
-                setModalView("LEAVE_CHANNEL_CONFIRMATION");
-                openModal();
-              }
-            }}
-          >
-            Leave
-          </Button>
         )}
       </div>
     </a.div>

@@ -1,8 +1,8 @@
-import { FC, useState, useEffect } from "react";
+import { FC } from "react";
 import s from "./LeftSideBar.module.scss";
 import cn from "classnames";
-import { Button, Collapse, NetworkStatusIcon } from "@components/common";
-import { Elixxir, SpeakEasy } from "@components/icons";
+import { Collapse } from "@components/common";
+import { Elixxir, SpeakEasy, Settings, Plus } from "@components/icons";
 import { useUI } from "contexts/ui-context";
 import {
   useNetworkClient,
@@ -13,18 +13,45 @@ import {
 const LeftSideBar: FC<{
   cssClasses?: string;
 }> = ({ cssClasses }) => {
-  const { openModal, closeModal, setModalView } = useUI();
+  const { openModal, setModalView } = useUI();
 
   const {
     currentChannel,
     channels,
     setCurrentChannel,
-    networkStatus
+    networkStatus,
+    getIdentity
   } = useNetworkClient();
+
+  const codeName = getIdentity().Codename;
+  let color = getIdentity().Color;
+  if (color) {
+    color = color.replace("0x", "#");
+  }
 
   const onChannelChange = (ch: IChannel) => {
     setCurrentChannel(ch);
   };
+
+  const collapseTitle = (
+    <div className={cn("flex justify-between")}>
+      <span>JOINED</span>
+      <Plus
+        className={cn(s.plus, {
+          [s.plus__disabled]: networkStatus !== NetworkStatus.CONNECTED
+        })}
+        onClick={e => {
+          if (e && e.stopPropagation) {
+            e.stopPropagation();
+          }
+          if (networkStatus === NetworkStatus.CONNECTED) {
+            setModalView("CREATE_CHANNEL");
+            openModal();
+          }
+        }}
+      />
+    </div>
+  );
 
   return (
     <div className={cn(s.root, cssClasses)}>
@@ -33,7 +60,7 @@ const LeftSideBar: FC<{
         {/* <NetworkStatusIcon status={networkStatus} /> */}
       </div>
       <div className={s.content}>
-        <Collapse title="JOINED" defaultActive>
+        <Collapse title={collapseTitle} defaultActive>
           <div className="flex flex-col">
             {channels.map(ch => {
               return (
@@ -55,66 +82,29 @@ const LeftSideBar: FC<{
         </Collapse>
       </div>
       <div className={s.footer}>
-        <Button
-          cssClasses={"w-full mb-3"}
-          onClick={() => {
-            setModalView("JOIN_CHANNEL");
-            openModal();
-          }}
-          disabled={networkStatus !== NetworkStatus.CONNECTED}
+        <div
+          className={cn("flex justify-between items-center", s.settingsWrapper)}
         >
-          Join
-        </Button>
-        <Button
-          cssClasses={"w-full"}
-          onClick={() => {
-            setModalView("CREATE_CHANNEL");
-            openModal();
-          }}
-          disabled={networkStatus !== NetworkStatus.CONNECTED}
-        >
-          Create
-        </Button>
-        <div className={s.links}>
-          <a
-            href="https://xx.network"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            About
-          </a>
-          |
-          <a
-            href="https://xx.network"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Roadmap
-          </a>
-          |
-          <a
-            href="https://xx.network"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Contact
-          </a>
-          |
-          <a
-            href="https://xx.network"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            xx network
-          </a>
-          |
-          <a
-            href="https://xx.network"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Privacy Policy
-          </a>
+          <div className={cn("mr-2 flex flex-col", s.currentUserWrapper)}>
+            <span>You are now connected as</span>
+            <span
+              style={{ color }}
+              className={cn("flex items-center", s.currentUser)}
+            >
+              <Elixxir style={{ fill: color, width: "10px" }} />
+              {codeName}
+            </span>
+          </div>
+          <Settings
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setModalView("SETTINGS");
+              openModal();
+            }}
+          />
+        </div>
+        <div className={cn(s.version)}>
+          <span>Version 1.0</span>
         </div>
       </div>
     </div>

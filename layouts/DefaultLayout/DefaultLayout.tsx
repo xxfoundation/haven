@@ -1,23 +1,22 @@
 import cn from "classnames";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect } from "react";
 import { LeftSideBar, RightSideBar, Modal } from "@components/common";
 import { useUI } from "contexts/ui-context";
 import { useNetworkClient } from "contexts/network-client-context";
 
 import s from "./DefaultLayout.module.scss";
-import { ndf } from "@sdk/ndf";
 import { useAuthentication } from "contexts/authentication-context";
 import { useUtils } from "contexts/utils-context";
 import { Loading } from "@components/common";
-import { enc, dec } from "@utils";
-import { STATE_PATH } from "../../constants";
 
 import {
   CreateChannelView,
   JoinChannelView,
   ShareChannelView,
   LeaveChannelConfirmationView,
-  NickNameSetView
+  NickNameSetView,
+  ChannelActionsView,
+  SettingsView
 } from "@components/common/Modal/ModalViews";
 
 import Register from "components/common/Register";
@@ -119,15 +118,9 @@ const DefaultLayout: FC<Props> = ({
           <LeaveChannelConfirmationView />
         )}
 
-        {modalView === "SET_NICK_NAME" && currentChannel && (
-          <NickNameSetView
-          // channelName={currentChannel.name}
-          // onConfirm={(newNickName: string) => {
-          //   setNickName(newNickName);
-          // }}
-          // existedNickName={getNickName()}
-          />
-        )}
+        {modalView === "SET_NICK_NAME" && currentChannel && <NickNameSetView />}
+        {modalView === "CHANNEL_ACTIONS" && <ChannelActionsView />}
+        {modalView === "SETTINGS" && <SettingsView />}
       </Modal>
     );
   };

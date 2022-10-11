@@ -29,7 +29,9 @@ type MODAL_VIEWS =
   | "CREATE_CHANNEL"
   | "JOIN_CHANNEL"
   | "LEAVE_CHANNEL_CONFIRMATION"
-  | "SET_NICK_NAME";
+  | "SET_NICK_NAME"
+  | "CHANNEL_ACTIONS"
+  | "SETTINGS";
 
 export const UIContext = React.createContext<State | any>(initialState);
 
