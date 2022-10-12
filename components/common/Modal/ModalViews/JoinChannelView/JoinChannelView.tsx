@@ -9,6 +9,7 @@ const JoinChannelView: FC<{}> = ({}) => {
   const [channelKey, setChannelKey] = useState<string>("");
   const { joinChannel } = useNetworkClient();
   const { closeModal } = useUI();
+  const [error, setError] = useState("");
 
   return (
     <div
@@ -23,13 +24,23 @@ const JoinChannelView: FC<{}> = ({}) => {
           setChannelKey(e.target.value);
         }}
       ></textarea>
+      {error && (
+        <div className={"text text--xs mt-2"} style={{ color: "var(--red)" }}>
+          {error}
+        </div>
+      )}
       <ModalCtaButton
         buttonCopy="Join"
         cssClass="mt-5 mb-10"
         onClick={() => {
-          joinChannel(channelKey);
-          setChannelKey("");
-          closeModal();
+          joinChannel(channelKey)
+            .then(() => {
+              setChannelKey("");
+              closeModal();
+            })
+            .catch((error: any) => {
+              setError("Something wrong happened, please check your details.");
+            });
         }}
       />
     </div>

@@ -46,6 +46,7 @@ export interface IChannel {
   id: string;
   description: string;
   isLoading?: boolean;
+  withMissedMessages?: boolean;
 }
 
 let db: Dexie | undefined;
@@ -538,25 +539,32 @@ export const NetworkProvider: FC<any> = props => {
     prettyPrint: string,
     appendToCurrent: boolean = true
   ) => {
-    if (prettyPrint && chanManager && chanManager.JoinChannel) {
-      const chanInfo = JSON.parse(
-        dec.decode(chanManager.JoinChannel(prettyPrint))
-      );
-      if (appendToCurrent) {
-        let temp = {
-          id: chanInfo?.ChannelID,
-          name: chanInfo?.Name,
-          description: chanInfo?.Description,
-          prettyPrint: prettyPrint,
-          isLoading: true
-        };
-        setCurrentChannel(temp);
-        setChannels([...channels, temp]);
-        setTimeout(() => {
-          setCurrentChannel({ ...temp, isLoading: false });
-        }, 5000);
+    return new Promise((resolve, reject) => {
+      if (prettyPrint && chanManager && chanManager.JoinChannel) {
+        try {
+          const chanInfo = JSON.parse(
+            dec.decode(chanManager.JoinChannel(prettyPrint))
+          );
+          if (appendToCurrent) {
+            let temp = {
+              id: chanInfo?.ChannelID,
+              name: chanInfo?.Name,
+              description: chanInfo?.Description,
+              prettyPrint: prettyPrint,
+              isLoading: true
+            };
+            setCurrentChannel(temp);
+            setChannels([...channels, temp]);
+            setTimeout(() => {
+              setCurrentChannel({ ...temp, isLoading: false });
+            }, 5000);
+            resolve(true);
+          }
+        } catch (error) {
+          reject(error);
+        }
       }
-    }
+    });
   };
   const createChannel = (channelName: string, channelDescription?: string) => {
     return new Promise((resolve, reject) => {

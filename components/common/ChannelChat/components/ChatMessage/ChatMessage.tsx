@@ -178,6 +178,7 @@ const ChatMessage: FC<{
           <a
             href={`https://dashboard.xx.network/rounds/${message.round}`}
             target="_blank"
+            rel="noreferrer"
             className="text text--xs ml-2"
             style={{
               fontSize: "9px",

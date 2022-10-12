@@ -1,0 +1,22 @@
+.bubble {
+  display: block;
+  cursor: pointer;
+
+  &:after {
+    background-color: var(--cyan);
+  }
+}
+
+.bubble {
+  &:hover:after {
+    background-color: var(--cyan);
+  }
+}
+
+.bubble:after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+}
