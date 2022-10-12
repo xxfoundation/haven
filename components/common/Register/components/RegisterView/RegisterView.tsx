@@ -73,7 +73,7 @@ const RegisterView: FC<{
             </div>
           )}
 
-          <div
+          {/* <div
             style={{
               color: "var(--red)",
               marginTop: "14px",
@@ -87,7 +87,7 @@ const RegisterView: FC<{
           >
             Warning: Your password cannot be recovered or changed, please make
             sure to keep it safe.
-          </div>
+          </div> */}
 
           <div className="flex flex-col mt-4">
             <ModalCtaButton
@@ -112,12 +112,12 @@ const RegisterView: FC<{
           <OpenSource />
           <span className={cn(s.perkCard__title)}>Open Source</span>
           <span className={cn(s.perkCard__description)}>
-            Every line is released under BSD 2-Clause
+            Every line — open source. Forever.
           </span>
         </div>
         <div className={cn("flex flex-col col-span-3", s.perkCard)}>
           <NormalHash />
-          <span className={cn(s.perkCard__title)}>Built differently</span>
+          <span className={cn(s.perkCard__title)}>Fundamentally Different</span>
           <span className={cn(s.perkCard__description)}>
             Powered by the first decentralized mixnet-blockchain
           </span>
@@ -137,25 +137,25 @@ const RegisterView: FC<{
         </div>
       </div>
       <div className={cn(s.links)}>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           Join the Discussion
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           Contact
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           Privacy Policy
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           xx network
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           xx foundation
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           xx messenger
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           twitter
         </a>
       </div>

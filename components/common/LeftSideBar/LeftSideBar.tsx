@@ -42,7 +42,7 @@ const LeftSideBar: FC<{
           className={cn("mr-1", s.plus, {
             [s.plus__disabled]: networkStatus !== NetworkStatus.CONNECTED
           })}
-          onClick={e => {
+          onClick={(e: any) => {
             if (e && e.stopPropagation) {
               e.stopPropagation();
             }
@@ -56,7 +56,7 @@ const LeftSideBar: FC<{
           className={cn(s.join, {
             [s.join__disabled]: networkStatus !== NetworkStatus.CONNECTED
           })}
-          onClick={e => {
+          onClick={(e: any) => {
             if (e && e.stopPropagation) {
               e.stopPropagation();
             }

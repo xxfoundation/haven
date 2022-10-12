@@ -131,25 +131,25 @@ const LoginView: FC<{}> = ({}) => {
       </div>
 
       <div className={cn(s.links)}>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           Join the Discussion
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           Contact
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           Privacy Policy
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           xx network
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           xx foundation
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           xx messenger
         </a>
-        <a href="https://xx.network" target="_blank">
+        <a href="https://xx.network" target="_blank" rel="noreferrer">
           twitter
         </a>
       </div>
