@@ -16,3 +16,4 @@ export { default as Chat } from "./Chat";
 export { default as Plus } from "./Plus";
 export { default as Settings } from "./Settings";
 export { default as Download } from "./Download";
+export { default as Join } from "./Join";

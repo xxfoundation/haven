@@ -93,3 +93,9 @@
     cursor: not-allowed;
   }
 }
+
+.join {
+  &__disabled:hover {
+    cursor: not-allowed;
+  }
+}
