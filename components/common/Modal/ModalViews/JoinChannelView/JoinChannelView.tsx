@@ -38,7 +38,7 @@ const JoinChannelView: FC<{}> = ({}) => {
               setChannelKey("");
               closeModal();
             })
-            .catch(error => {
+            .catch((error: any) => {
               setError("Something wrong happened, please check your details.");
             });
         }}
