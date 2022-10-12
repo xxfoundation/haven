@@ -67,7 +67,7 @@ const RegisterView2: FC<{}> = ({}) => {
                   setSelectedPrivateIdentity(i.privateIdentity);
                 }}
               >
-                {i.codeName}
+                <span>{i.codeName}</span>
               </div>
             );
           })}
