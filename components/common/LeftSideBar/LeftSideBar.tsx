@@ -2,7 +2,7 @@ import { FC } from "react";
 import s from "./LeftSideBar.module.scss";
 import cn from "classnames";
 import { Collapse } from "@components/common";
-import { Elixxir, SpeakEasy, Settings, Plus } from "@components/icons";
+import { Elixxir, SpeakEasy, Settings, Plus, Join } from "@components/icons";
 import { useUI } from "contexts/ui-context";
 import {
   useNetworkClient,
@@ -36,20 +36,37 @@ const LeftSideBar: FC<{
   const collapseTitle = (
     <div className={cn("flex justify-between")}>
       <span>JOINED</span>
-      <Plus
-        className={cn(s.plus, {
-          [s.plus__disabled]: networkStatus !== NetworkStatus.CONNECTED
-        })}
-        onClick={e => {
-          if (e && e.stopPropagation) {
-            e.stopPropagation();
-          }
-          if (networkStatus === NetworkStatus.CONNECTED) {
-            setModalView("CREATE_CHANNEL");
-            openModal();
-          }
-        }}
-      />
+
+      <div className="flex items-center">
+        <Plus
+          className={cn("mr-1", s.plus, {
+            [s.plus__disabled]: networkStatus !== NetworkStatus.CONNECTED
+          })}
+          onClick={e => {
+            if (e && e.stopPropagation) {
+              e.stopPropagation();
+            }
+            if (networkStatus === NetworkStatus.CONNECTED) {
+              setModalView("CREATE_CHANNEL");
+              openModal();
+            }
+          }}
+        />
+        <Join
+          className={cn(s.join, {
+            [s.join__disabled]: networkStatus !== NetworkStatus.CONNECTED
+          })}
+          onClick={e => {
+            if (e && e.stopPropagation) {
+              e.stopPropagation();
+            }
+            if (networkStatus === NetworkStatus.CONNECTED) {
+              setModalView("JOIN_CHANNEL");
+              openModal();
+            }
+          }}
+        />
+      </div>
     </div>
   );
 
@@ -91,7 +108,9 @@ const LeftSideBar: FC<{
               style={{ color }}
               className={cn("flex items-center", s.currentUser)}
             >
-              <Elixxir style={{ fill: color, width: "10px" }} />
+              <Elixxir
+                style={{ fill: color, width: "10px", marginTop: "-3px" }}
+              />
               {codeName}
             </span>
           </div>
