@@ -3,10 +3,18 @@
   height: 100vh;
   width: 100%;
 
-  padding: 0 60px 30px 60px;
+  display: flex;
+  flex-direction: column;
+  padding: 0 60px 0px 60px;
   position: relative;
-  justify-content: center;
   align-items: center;
+  overflow-y: auto;
+
+  .wrapper {
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+  }
 
   & > div {
     max-width: 1800px;
@@ -21,17 +29,14 @@
   }
 
   .header {
-    margin-top: 32px;
-    margin-bottom: 32px;
+    margin-top: 64px;
+    margin-bottom: 104px;
     width: 100%;
   }
 
   .content {
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-bottom: 32px;
-    min-height: 260px;
+    margin-bottom: 120px;
 
     h2 {
       font-weight: 500;
@@ -41,12 +46,11 @@
     width: 100%;
   }
   .links {
-    position: absolute;
-    bottom: 8px;
-
-    left: 50%;
-    transform: translate(-50%, 0);
+    margin-top: 32px;
+    padding-bottom: 6px;
     display: flex;
+    justify-content: center;
+
     flex-wrap: nowrap;
     a {
       font-family: "Montserrat";
@@ -110,13 +114,14 @@
 }
 
 .golden {
-  font-size: 36px;
+  font-size: 48px;
   color: #ecba60;
+  font-weight: 100;
   line-height: 1.1;
 }
 
 .thick {
-  font-size: 36px;
+  font-size: 48px;
   font-weight: 700;
   line-height: 1.1;
 }
@@ -127,11 +132,11 @@
   margin-left: 12px;
   color: var(--black-1);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .normal {
-  font-size: 14px;
+  font-size: 18px;
   margin-top: 18px;
 }
 

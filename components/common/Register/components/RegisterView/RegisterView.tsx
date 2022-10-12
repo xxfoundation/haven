@@ -18,62 +18,67 @@ const RegisterView: FC<{
   const [error, setError] = useState<string>("");
 
   return (
-    <div className={cn("w-full h-full flex flex-col", s.root)}>
-      <div className={cn(s.header)}>
-        <NormalSpeakeasy />
-      </div>
-      <div className={cn("grid grid-cols-12 gap-0", s.content)}>
-        <div className="col-span-9 flex flex-col items-start">
-          <span className={cn(s.golden)}>True Freedom</span>
-          <span className={cn(s.thick)}>to express yourself,</span>
-          <span className={cn(s.golden)}>your thoughts, your beliefs.</span>
-          <span className={cn(s.normal)}>
-            Speak easily to a group of friends or a global community.{" "}
-            <span className={cn(s.highlighted)}>Talk about what you want.</span>
-          </span>
-          <span className={cn(s.normal)}>
-            Surveillance free. Censorship proof.
-            <span className={cn(s.highlighted)}>Your speakeasy is yours.</span>
-          </span>
+    <div className={cn("", s.root)}>
+      <div className={cn("w-full flex flex-col", s.wrapper)}>
+        <div className={cn(s.header)}>
+          <NormalSpeakeasy />
         </div>
-        <div className="col-span-3 pl-3">
-          <h2 className="mb-2">Join the alpha</h2>
+        <div className={cn("grid grid-cols-12 gap-0", s.content)}>
+          <div className="col-span-9 flex flex-col items-start">
+            <span className={cn(s.golden)}>True Freedom</span>
+            <span className={cn(s.thick)}>to express yourself,</span>
+            <span className={cn(s.golden)}>your thoughts, your beliefs.</span>
+            <span className={cn(s.normal)}>
+              Speak easily to a group of friends or a global community.{" "}
+              <span className={cn(s.highlighted)}>
+                Talk about what you want.
+              </span>
+            </span>
+            <span className={cn(s.normal)}>
+              Surveillance free. Censorship proof.
+              <span className={cn(s.highlighted)}>
+                Your speakeasy is yours.
+              </span>
+            </span>
+          </div>
+          <div className="col-span-3 pl-3">
+            <h2 className="mb-2">Join the alpha</h2>
 
-          <p
-            className="mb-8 text"
-            style={{ color: "#5B5D62", lineHeight: "17px" }}
-          >
-            Enter a password to secure your soverign speakeasy identity
-          </p>
-          <input
-            type="password"
-            placeholder="Enter your password"
-            className=""
-            value={password}
-            onChange={e => {
-              setPassword(e.target.value);
-            }}
-          />
-
-          <input
-            type="password"
-            placeholder="Confirm your password"
-            className="mt-4"
-            value={passwordConfirm}
-            onChange={e => {
-              setPasswordConfirm(e.target.value);
-            }}
-          />
-          {error && (
-            <div
-              className={"text text--xs mt-4"}
-              style={{ color: "var(--red)" }}
+            <p
+              className="mb-8 text"
+              style={{ color: "#5B5D62", lineHeight: "17px" }}
             >
-              {error}
-            </div>
-          )}
+              Enter a password to secure your soverign speakeasy identity
+            </p>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              className=""
+              value={password}
+              onChange={e => {
+                setPassword(e.target.value);
+              }}
+            />
 
-          {/* <div
+            <input
+              type="password"
+              placeholder="Confirm your password"
+              className="mt-4"
+              value={passwordConfirm}
+              onChange={e => {
+                setPasswordConfirm(e.target.value);
+              }}
+            />
+            {error && (
+              <div
+                className={"text text--xs mt-4"}
+                style={{ color: "var(--red)" }}
+              >
+                {error}
+              </div>
+            )}
+
+            {/* <div
             style={{
               color: "var(--red)",
               marginTop: "14px",
@@ -89,51 +94,54 @@ const RegisterView: FC<{
             sure to keep it safe.
           </div> */}
 
-          <div className="flex flex-col mt-4">
-            <ModalCtaButton
-              buttonCopy="Continue"
-              cssClass={s.button}
-              onClick={() => {
-                if (passwordConfirm !== password) {
-                  setError("Password doesn't match confirmation.");
-                } else {
-                  if (password.length) {
-                    onConfirm(password);
+            <div className="flex flex-col mt-4">
+              <ModalCtaButton
+                buttonCopy="Continue"
+                cssClass={s.button}
+                onClick={() => {
+                  if (passwordConfirm !== password) {
+                    setError("Password doesn't match confirmation.");
+                  } else {
+                    if (password.length) {
+                      onConfirm(password);
+                    }
+                    setError("");
                   }
-                  setError("");
-                }
-              }}
-            />
+                }}
+              />
+            </div>
           </div>
         </div>
-      </div>
-      <div className={cn("grid grid-cols-12 gap-0", s.footer)}>
-        <div className={cn("flex flex-col col-span-3", s.perkCard)}>
-          <OpenSource />
-          <span className={cn(s.perkCard__title)}>Open Source</span>
-          <span className={cn(s.perkCard__description)}>
-            Every line — open source. Forever.
-          </span>
-        </div>
-        <div className={cn("flex flex-col col-span-3", s.perkCard)}>
-          <NormalHash />
-          <span className={cn(s.perkCard__title)}>Fundamentally Different</span>
-          <span className={cn(s.perkCard__description)}>
-            Powered by the first decentralized mixnet-blockchain
-          </span>
-        </div>
-        <div className={cn("flex flex-col col-span-3", s.perkCard)}>
-          <RoadMap />
-          <span className={cn(s.perkCard__title)}>Roadmap</span>
-          <span className={cn(s.perkCard__description)}>
-            Building to the future
-          </span>
-        </div>
-        <div className={cn("flex flex-col col-span-3", s.perkCard)}>
-          <Chat />
-          <span className={cn(s.perkCard__title)}>
-            Join the discussion on the official feedback speakeasy
-          </span>
+        <div className={cn("grid grid-cols-12 gap-0", s.footer)}>
+          <div className={cn("flex flex-col col-span-3", s.perkCard)}>
+            <OpenSource />
+            <span className={cn(s.perkCard__title)}>Open Source</span>
+            <span className={cn(s.perkCard__description)}>
+              Every line — open source. Forever.
+            </span>
+          </div>
+          <div className={cn("flex flex-col col-span-3", s.perkCard)}>
+            <NormalHash />
+            <span className={cn(s.perkCard__title)}>
+              Fundamentally Different
+            </span>
+            <span className={cn(s.perkCard__description)}>
+              Powered by the first decentralized mixnet-blockchain
+            </span>
+          </div>
+          <div className={cn("flex flex-col col-span-3", s.perkCard)}>
+            <RoadMap />
+            <span className={cn(s.perkCard__title)}>Roadmap</span>
+            <span className={cn(s.perkCard__description)}>
+              Building to the future
+            </span>
+          </div>
+          <div className={cn("flex flex-col col-span-3", s.perkCard)}>
+            <Chat />
+            <span className={cn(s.perkCard__title)}>
+              Join the discussion on the official feedback speakeasy
+            </span>
+          </div>
         </div>
       </div>
       <div className={cn(s.links)}>
