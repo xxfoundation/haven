@@ -4,9 +4,8 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: stretch;
-  max-width: 22%;
-  width: 22%;
   min-width: 316px;
+  max-width: 316px;
 
   &__collapsed {
     width: 40px;
