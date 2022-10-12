@@ -1,4 +1,7 @@
 .root {
+  background-color: var(--black-1);
+  height: 100vh;
+
   input {
     outline: none;
     background-color: var(--dark-5);
@@ -14,8 +17,9 @@
 
   .codeContainers,
   .loading {
-    max-width: 80%;
-    min-height: 424px;
+    max-width: 85%;
+    padding: 4px;
+    flex: 1;
   }
 
   .codeName {
@@ -26,6 +30,7 @@
     color: var(--text-primary);
     border-radius: 5px;
     word-break: break-all;
+    text-align: center;
 
     &:hover {
       background-color: var(--cyan);
