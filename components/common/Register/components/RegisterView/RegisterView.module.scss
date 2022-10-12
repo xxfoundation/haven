@@ -6,10 +6,16 @@
   padding: 0 60px 30px 60px;
   position: relative;
   justify-content: center;
+  align-items: center;
+
+  & > div {
+    max-width: 1800px;
+  }
 
   .header {
     margin-top: 32px;
     margin-bottom: 32px;
+    width: 100%;
   }
   .content {
     width: 100%;
