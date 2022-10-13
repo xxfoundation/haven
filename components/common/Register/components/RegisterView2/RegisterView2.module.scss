@@ -20,6 +20,7 @@
     max-width: 85%;
     padding: 4px;
     flex: 1;
+    max-height: 500px;
   }
 
   .codeName {
@@ -31,6 +32,9 @@
     border-radius: 5px;
     word-break: break-all;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover {
       background-color: var(--cyan);
@@ -45,12 +49,18 @@
 
   .generateButton {
     margin-right: 20px;
+    color: var(--black-1);
+    font-weight: 700;
+    font-size: 14px;
     &:disabled:hover {
       cursor: not-allowed;
     }
   }
 
   .registerButton {
+    color: var(--black-1);
+    font-weight: 700;
+    font-size: 14px;
     &:disabled:hover {
       cursor: not-allowed;
     }

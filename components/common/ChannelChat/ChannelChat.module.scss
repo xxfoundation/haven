@@ -35,7 +35,9 @@
     align-items: stretch;
 
     .replyContainer {
-      background-color: var(--dark-5);
+      background-color: var(--dark-3);
+      border-bottom: 1px solid var(--dark-8);
+
       border-radius: 5px;
       padding: 10px 8px;
       display: flex;
@@ -55,12 +57,8 @@
     textarea {
       border: none;
       outline: none;
-      // background-color: var(--dark-5);
       background-color: var(--dark-3);
-      // border: 1px solid var(--dark-2);
-      // border-width: 1px 1px 0 1px;
       resize: none;
-
       padding: 10px 8px;
       color: var(--text-primary);
       font-size: 14px;
