@@ -74,7 +74,9 @@ const DefaultLayout: FC<Props> = ({
             GetPublicChannelIdentityFromPrivate,
             IsNicknameValid,
             LogToFile,
-            LogLevel
+            LogLevel,
+            GetShareUrlType,
+            GetVersion
           } = (window as any) || {};
 
           setUtils({
@@ -88,7 +90,9 @@ const DefaultLayout: FC<Props> = ({
             Base64ToUint8Array,
             LoadChannelsManagerWithIndexedDb,
             GetPublicChannelIdentityFromPrivate,
-            IsNicknameValid
+            IsNicknameValid,
+            GetShareUrlType,
+            GetVersion
           });
 
           if (LogLevel) {

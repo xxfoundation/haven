@@ -20,7 +20,8 @@ const LeftSideBar: FC<{
     channels,
     setCurrentChannel,
     networkStatus,
-    getIdentity
+    getIdentity,
+    getVersion
   } = useNetworkClient();
 
   const codeName = getIdentity().Codename;
@@ -29,8 +30,9 @@ const LeftSideBar: FC<{
     color = color.replace("0x", "#");
   }
 
-  const onChannelChange = (ch: IChannel) => {
-    setCurrentChannel(ch);
+  const onChannelChange = (chId: string) => {
+    const selectedChannel = channels.find(ch => ch.id === chId);
+    setCurrentChannel(selectedChannel);
   };
 
   const collapseTitle = (
@@ -88,7 +90,7 @@ const LeftSideBar: FC<{
                       ch.id === (currentChannel?.id || "")
                   })}
                   onClick={() => {
-                    onChannelChange(ch);
+                    onChannelChange(ch.id);
                   }}
                 >
                   {ch.name}
@@ -123,7 +125,7 @@ const LeftSideBar: FC<{
           />
         </div>
         <div className={cn(s.version)}>
-          <span>Version 1.0</span>
+          {getVersion() && <span>Version {getVersion()}</span>}
         </div>
       </div>
     </div>
