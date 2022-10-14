@@ -92,7 +92,7 @@ const DefaultLayout: FC<Props> = ({
           });
 
           if (LogLevel) {
-            LogLevel(2);
+            LogLevel(4);
           }
           const logFile = LogToFile(0, "receiver.log", 5000000);
           (window as any).logFile = logFile;
