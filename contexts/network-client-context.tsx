@@ -38,10 +38,12 @@ interface IChannelManager {
   SetNickname: Function;
   GetNickname: Function;
   GetIdentity: Function;
+  GetShareURL: Function;
+  JoinChannelFromURL: Function;
 }
 
 export interface IChannel {
-  prettyPrint: string;
+  prettyPrint?: string;
   name: string;
   id: string;
   description: string;
@@ -81,6 +83,10 @@ export const NetworkClientContext = React.createContext<{
   sendReaction: Function;
   getPrettyPrint: Function;
   appendSenderMessage: Function;
+  getShareURL: Function;
+  getShareUrlType: Function;
+  joinChannelFromURL: Function;
+  getVersion: Function;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -110,7 +116,11 @@ export const NetworkClientContext = React.createContext<{
   sendReply: () => {},
   sendReaction: () => {},
   getPrettyPrint: () => {},
-  appendSenderMessage: () => {}
+  appendSenderMessage: () => {},
+  getShareURL: () => {},
+  getShareUrlType: () => {},
+  joinChannelFromURL: () => {},
+  getVersion: () => {}
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
@@ -535,39 +545,72 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
-  const joinChannel = (
-    prettyPrint: string,
-    appendToCurrent: boolean = true
-  ) => {
+  const joinChannel = (prettyPrint: string) => {
     return new Promise((resolve, reject) => {
       if (prettyPrint && chanManager && chanManager.JoinChannel) {
         try {
-          const chanInfo = JSON.parse(
-            dec.decode(chanManager.JoinChannel(prettyPrint))
-          );
-          if (appendToCurrent) {
-            let temp = {
-              id: chanInfo?.ChannelID,
-              name: chanInfo?.Name,
-              description: chanInfo?.Description,
-              prettyPrint: prettyPrint,
-              isLoading: true
-            };
-            setCurrentChannel(temp);
-            setChannels([...channels, temp]);
-            setTimeout(() => {
-              setCurrentChannel({ ...temp, isLoading: false });
-            }, 5000);
-            resolve(true);
-          }
+          chanManager.JoinChannel(prettyPrint);
+          resolve(true);
         } catch (error) {
           reject(error);
         }
       }
     });
   };
-  const createChannel = (channelName: string, channelDescription?: string) => {
-    return new Promise((resolve, reject) => {
+  const joinChannelFromURL = (url: string, password: string = "") => {
+    if (network && chanManager && chanManager.JoinChannelFromURL) {
+      try {
+        const chanInfo = JSON.parse(
+          dec.decode(chanManager.JoinChannelFromURL(url, password))
+        );
+        let temp = {
+          id: chanInfo?.ChannelID,
+          name: chanInfo?.Name,
+          description: chanInfo?.Description,
+          isLoading: true
+        };
+        setCurrentChannel(temp);
+        setChannels([...channels, temp]);
+        setTimeout(() => {
+          // setCurrentChannel({ ...temp, isLoading: false });
+          setCurrentChannel(prev => {
+            if (prev?.id === temp.id) {
+              return {
+                ...prev,
+                isLoading: false
+              };
+            } else {
+              return prev;
+            }
+          });
+          setChannels(prev => {
+            return prev.map(ch => {
+              if (ch.id === temp.id) {
+                return {
+                  ...temp,
+                  isLoading: false
+                };
+              } else {
+                return ch;
+              }
+            });
+          });
+        }, 5000);
+        return true;
+      } catch (error) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+
+  const createChannel = (
+    channelName: string,
+    channelDescription: string,
+    privacyLevel: 0 | 2
+  ) => {
+    return new Promise(async (resolve, reject) => {
       if (network && networkStatus !== NetworkStatus.CONNECTED) {
         reject("Network is not connected yet");
       }
@@ -577,11 +620,12 @@ export const NetworkProvider: FC<any> = props => {
           const channelUnparsed = utils?.GenerateChannel(
             network?.GetID(),
             channelName,
-            channelDescription || ""
+            channelDescription || "",
+            privacyLevel
           );
           const channel = JSON.parse(dec.decode(channelUnparsed));
           const channelInfo = getChannelInfo(channel?.Channel || "");
-          joinChannel(channel?.Channel, false);
+          joinChannel(channel?.Channel);
           let temp = {
             id: channelInfo?.ChannelID,
             name: channelInfo?.Name,
@@ -738,6 +782,44 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
+  const getShareURL = () => {
+    if (
+      network &&
+      chanManager &&
+      chanManager.GetShareURL &&
+      utils &&
+      utils.Base64ToUint8Array &&
+      currentChannel
+    ) {
+      try {
+        const res = chanManager.GetShareURL(
+          network?.GetID(),
+          "http://join.speakeasy.tech",
+          0,
+          utils.Base64ToUint8Array(currentChannel.id)
+        );
+        return JSON.parse(dec.decode(res));
+      } catch (error) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+
+  const getShareUrlType = (url: string) => {
+    if (url && network && utils && utils.GetShareUrlType) {
+      try {
+        const res = utils.GetShareUrlType(url);
+        return res;
+      } catch (error) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+
   // Identity object is combination of private identity and code name
   const generateIdentitiesObjects = (n: number) => {
     const identitiesObjects = [];
@@ -753,6 +835,12 @@ export const NetworkProvider: FC<any> = props => {
       }
     }
     return identitiesObjects;
+  };
+
+  const getVersion = () => {
+    if (utils && utils.GetVersion) {
+      return utils.GetVersion();
+    } else return null;
   };
 
   return (
@@ -785,7 +873,11 @@ export const NetworkProvider: FC<any> = props => {
         getIdentity,
         sendReply,
         sendReaction,
-        getPrettyPrint
+        getPrettyPrint,
+        getShareURL,
+        getShareUrlType,
+        joinChannelFromURL,
+        getVersion
       }}
       {...props}
     />
