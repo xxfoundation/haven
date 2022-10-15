@@ -466,15 +466,6 @@ export const NetworkProvider: FC<any> = props => {
 
         const channels = await db.table("channels").toArray();
         const channelsIds = channels.map(ch => ch.id);
-        // const messages = await db.table("messages").toArray();
-
-        // const allMessages = await db
-        //   .table("messages")
-        //   .orderBy("timestamp")
-        //   .reverse()
-        //   .limit(batchCount)
-        //   .toArray();
-        // console.log("Test 0000 allMessages:", _.reverse(allMessages));
 
         const groupedMessages = await Promise.all(
           channelsIds.map(async chId => {
@@ -491,36 +482,24 @@ export const NetworkProvider: FC<any> = props => {
         );
         let messages: any[] = [];
 
-        console.log("Test 0000 groupedMessages:", groupedMessages);
-
         groupedMessages.forEach(g => {
           messages = [...messages, ..._.reverse(g)];
         });
 
-        console.log("Test 0000 messages:", messages);
         const result = await mapInitialLoadDataToCurrentState(
           channels,
           messages
         );
-        // Here we should apply the reactions then change the state
         const mappedMessages = result.mappedMessages;
         const mappedChannels = result.mappedChannels;
 
         const reactionEvents = await getDBReactionEvents(messages);
-
-        // We should have a function that takes all the reaction events from messages and apply them to mappedMessages
-        // but don't change the state here
-        // const messagesWithReactions = bulkUpdateMessagesWithReactions(
-        //   messages,
-        //   mappedMessages
-        // );
 
         const messagesWithReactions = bulkUpdateMessagesWithReactions(
           reactionEvents,
           mappedMessages
         );
 
-        // Change the state here
         setChannels(
           mappedChannels.map((ch: IChannel) => {
             return {
@@ -702,7 +681,6 @@ export const NetworkProvider: FC<any> = props => {
         setCurrentChannel(temp);
         setChannels([...channels, temp]);
         setTimeout(() => {
-          // setCurrentChannel({ ...temp, isLoading: false });
           setCurrentChannel(prev => {
             if (prev?.id === temp.id) {
               return {
