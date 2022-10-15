@@ -7,6 +7,9 @@ import { STATE_PATH } from "../constants";
 import { Dexie } from "dexie";
 import { IMessage } from "types";
 import { enc, dec } from "utils";
+import _ from "lodash";
+
+const batchCount = 10;
 
 export enum NetworkStatus {
   CONNECTED = "connected",
@@ -49,6 +52,7 @@ export interface IChannel {
   description: string;
   isLoading?: boolean;
   withMissedMessages?: boolean;
+  currentMessagesBatch?: number;
 }
 
 let db: Dexie | undefined;
@@ -87,6 +91,7 @@ export const NetworkClientContext = React.createContext<{
   getShareUrlType: Function;
   joinChannelFromURL: Function;
   getVersion: Function;
+  loadMoreChannelData: Function;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -120,7 +125,8 @@ export const NetworkClientContext = React.createContext<{
   getShareURL: () => {},
   getShareUrlType: () => {},
   joinChannelFromURL: () => {},
-  getVersion: () => {}
+  getVersion: () => {},
+  loadMoreChannelData: () => {}
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
@@ -165,11 +171,22 @@ export const NetworkProvider: FC<any> = props => {
     if (!db) {
       return [];
     } else {
-      const allMessages = await db.table("messages").toArray();
+      // const allMessages = await db.table("messages").toArray();
+      const messagesParentIds = messages
+        .filter(e => e.parent_message_id)
+        .map(e => e.parent_message_id);
+
+      const relatedMessages =
+        (await db
+          .table("messages")
+          .where("message_id")
+          .anyOf(messagesParentIds)
+          .toArray()) || [];
+
       const mappedMessages: IMessage[] = [];
       messages.forEach((m: any) => {
         if (m.parent_message_id && m.type === 1) {
-          const replyToMessage = allMessages.find(
+          const replyToMessage = relatedMessages.find(
             ms => ms.message_id === m.parent_message_id
           );
 
@@ -420,6 +437,23 @@ export const NetworkProvider: FC<any> = props => {
     return messagesCopy;
   };
 
+  // Get all the reaction events related to a group of messages(DB-Events)
+  const getDBReactionEvents = async (events: any[]) => {
+    // message_id,parent_message_id
+    if (db) {
+      const eventsIds = events.map(e => e.message_id);
+      const reactionEvents = await db
+        .table("messages")
+        .filter((e: any) => {
+          return eventsIds.includes(e.parent_message_id) && e.type === 3;
+        })
+        .toArray();
+      return reactionEvents;
+    } else {
+      return [];
+    }
+  };
+
   const handleInitialLoadData = (storageTag: string) => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -427,11 +461,43 @@ export const NetworkProvider: FC<any> = props => {
         db.version(0.1).stores({
           channels: "++id",
           messages:
-            "++id,channel_id,channel_id,parent_message_id,pinned,timestamp"
+            "++id,channel_id,&message_id,parent_message_id,pinned,timestamp"
         });
 
         const channels = await db.table("channels").toArray();
-        const messages = await db.table("messages").toArray();
+        const channelsIds = channels.map(ch => ch.id);
+        // const messages = await db.table("messages").toArray();
+
+        // const allMessages = await db
+        //   .table("messages")
+        //   .orderBy("timestamp")
+        //   .reverse()
+        //   .limit(batchCount)
+        //   .toArray();
+        // console.log("Test 0000 allMessages:", _.reverse(allMessages));
+
+        const groupedMessages = await Promise.all(
+          channelsIds.map(async chId => {
+            return db
+              .table("messages")
+              .orderBy("timestamp")
+              .reverse()
+              .filter(m => {
+                return m.channel_id === chId && m.type === 1;
+              })
+              .limit(batchCount)
+              .toArray();
+          })
+        );
+        let messages: any[] = [];
+
+        console.log("Test 0000 groupedMessages:", groupedMessages);
+
+        groupedMessages.forEach(g => {
+          messages = [...messages, ..._.reverse(g)];
+        });
+
+        console.log("Test 0000 messages:", messages);
         const result = await mapInitialLoadDataToCurrentState(
           channels,
           messages
@@ -440,15 +506,29 @@ export const NetworkProvider: FC<any> = props => {
         const mappedMessages = result.mappedMessages;
         const mappedChannels = result.mappedChannels;
 
+        const reactionEvents = await getDBReactionEvents(messages);
+
         // We should have a function that takes all the reaction events from messages and apply them to mappedMessages
         // but don't change the state here
+        // const messagesWithReactions = bulkUpdateMessagesWithReactions(
+        //   messages,
+        //   mappedMessages
+        // );
+
         const messagesWithReactions = bulkUpdateMessagesWithReactions(
-          messages,
+          reactionEvents,
           mappedMessages
         );
 
         // Change the state here
-        setChannels(mappedChannels);
+        setChannels(
+          mappedChannels.map((ch: IChannel) => {
+            return {
+              ...ch,
+              currentMessagesBatch: 1
+            };
+          })
+        );
         setMessages(messagesWithReactions);
 
         resolve({ channels, messages });
@@ -543,6 +623,56 @@ export const NetworkProvider: FC<any> = props => {
         }
       );
     }
+  };
+
+  const loadMoreChannelData = async (chId: string) => {
+    return new Promise(async (resolve, reject) => {
+      if (db) {
+        const currentChannel = channels.find(ch => ch.id === chId);
+        const currentChannelBatch = currentChannel?.currentMessagesBatch || 1;
+        const newMessages = await db
+          .table("messages")
+          .orderBy("timestamp")
+          .reverse()
+          .filter(m => {
+            return m.channel_id === chId && m.type === 1;
+          })
+          .offset(currentChannelBatch * batchCount)
+          .limit(batchCount)
+          .toArray();
+
+        const result = await mapInitialLoadDataToCurrentState([], newMessages);
+        // Here we should apply the reactions then change the state
+        const mappedMessages = result.mappedMessages;
+
+        const reactionEvents = await getDBReactionEvents(newMessages);
+
+        const messagesWithReactions = bulkUpdateMessagesWithReactions(
+          reactionEvents,
+          mappedMessages
+        );
+
+        if (messagesWithReactions.length) {
+          setMessages(prev => {
+            return [..._.reverse(messagesWithReactions), ...prev];
+          });
+
+          setChannels((prevChannels: IChannel[]) => {
+            return prevChannels.map(ch => {
+              if (ch.id === chId) {
+                return {
+                  ...ch,
+                  currentMessagesBatch: currentChannelBatch + 1
+                };
+              } else {
+                return ch;
+              }
+            });
+          });
+          resolve(true);
+        }
+      }
+    });
   };
 
   const joinChannel = (prettyPrint: string) => {
@@ -877,7 +1007,8 @@ export const NetworkProvider: FC<any> = props => {
         getShareURL,
         getShareUrlType,
         joinChannelFromURL,
-        getVersion
+        getVersion,
+        loadMoreChannelData
       }}
       {...props}
     />

@@ -19,7 +19,8 @@ const ChannelChat: FC<{}> = ({}) => {
     sendMessage,
     sendReply,
     sendReaction,
-    channels
+    channels,
+    loadMoreChannelData
   } = useNetworkClient();
 
   const [messageBody, setMessageBody] = useState<string>("");
@@ -51,6 +52,24 @@ const ChannelChat: FC<{}> = ({}) => {
       );
     }
     return;
+  };
+
+  const checkTop = async () => {
+    if (
+      messagesContainerRef &&
+      messagesContainerRef.current &&
+      messagesContainerRef.current.scrollTop === 0
+    ) {
+      if (
+        currentChannel &&
+        typeof currentChannel.currentMessagesBatch !== "undefined"
+      ) {
+        const res = await loadMoreChannelData(currentChannel.id);
+        if (res) {
+          messagesContainerRef.current.scrollTop = 20;
+        }
+      }
+    }
   };
 
   const scrollToEnd = () => {
@@ -90,6 +109,7 @@ const ChannelChat: FC<{}> = ({}) => {
             className={cn(s.messagesContainer)}
             ref={messagesContainerRef}
             onScroll={() => {
+              checkTop();
               if (checkBottom()) {
                 setAutoScrollToEnd(true);
               } else {
@@ -163,8 +183,6 @@ const ChannelChat: FC<{}> = ({}) => {
                   } else {
                     sendMessage(messageBody.trim());
                   }
-                  // addNewMessage();
-                  /////////
                   setAutoScrollToEnd(true);
                   setMessageBody("");
                   setReplyToMessage(null);
