@@ -43,6 +43,7 @@ interface IChannelManager {
   GetIdentity: Function;
   GetShareURL: Function;
   JoinChannelFromURL: Function;
+  ExportPrivateIdentity: Function;
 }
 
 export interface IChannel {
@@ -92,6 +93,7 @@ export const NetworkClientContext = React.createContext<{
   joinChannelFromURL: Function;
   getVersion: Function;
   loadMoreChannelData: Function;
+  exportPrivateIdentity: Function;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -126,7 +128,8 @@ export const NetworkClientContext = React.createContext<{
   getShareUrlType: () => {},
   joinChannelFromURL: () => {},
   getVersion: () => {},
-  loadMoreChannelData: () => {}
+  loadMoreChannelData: () => {},
+  exportPrivateIdentity: () => {}
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
@@ -533,11 +536,12 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
-  const createChannelManager = async (privateIdentity: any) => {
-    if (network && utils && utils.NewChannelsManagerWithIndexedDb) {
+  const createChannelManager = async (privateIdentity: any, net?: any) => {
+    const currentNetwork = network || net;
+    if (currentNetwork && utils && utils.NewChannelsManagerWithIndexedDb) {
       utils
         .NewChannelsManagerWithIndexedDb(
-          network.GetID(),
+          currentNetwork.GetID(),
           privateIdentity,
           onReceiveEvent
         )
@@ -551,18 +555,25 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
-  const initiateCmix = (password: string) => {
-    const statePassEncoded = enc.encode(password);
-    // Check if state exists
-    if (!isStatePathExisted()) {
-      utils.NewCmix(ndf, STATE_PATH, statePassEncoded, "");
-      setStatePath();
+  // Used on registeration
+  const initiateCmix = (password: string, cb?: Function) => {
+    try {
+      const statePassEncoded = utils.GetOrInitPassword(password);
+
+      // Check if state exists
+      if (!isStatePathExisted()) {
+        utils.NewCmix(ndf, STATE_PATH, statePassEncoded, "");
+        setStatePath();
+      }
+      loadCmix(statePassEncoded, cb);
+    } catch (error) {
+      console.error("Failed to load Cmix: " + error);
+      return;
     }
-    loadCmix(password);
   };
 
-  const loadCmix = async (password: string, cb?: Function) => {
-    const statePassEncoded = enc.encode(password);
+  // Used directly on Login
+  const loadCmix = async (statePassEncoded: string, cb?: Function) => {
     let net;
     setIsNetworkLoading(true);
     try {
@@ -951,6 +962,42 @@ export const NetworkProvider: FC<any> = props => {
     } else return null;
   };
 
+  const exportDataToFile = (data: any) => {
+    const filename = "speakeasyIdentity.json";
+
+    const file = new Blob([data], { type: "text/plain" });
+    let a = document.createElement("a"),
+      url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+  };
+
+  const exportPrivateIdentity = (password: string) => {
+    if (utils && utils.GetOrInitPassword) {
+      try {
+        const statePassEncoded = utils.GetOrInitPassword(password);
+
+        if (
+          statePassEncoded &&
+          chanManager &&
+          chanManager.ExportPrivateIdentity
+        ) {
+          const data = chanManager.ExportPrivateIdentity(password);
+          exportDataToFile(data);
+          return statePassEncoded;
+        }
+      } catch (error) {
+        return false;
+      }
+    }
+  };
+
   return (
     <NetworkClientContext.Provider
       value={{
@@ -986,7 +1033,8 @@ export const NetworkProvider: FC<any> = props => {
         getShareUrlType,
         joinChannelFromURL,
         getVersion,
-        loadMoreChannelData
+        loadMoreChannelData,
+        exportPrivateIdentity
       }}
       {...props}
     />

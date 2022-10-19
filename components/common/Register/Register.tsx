@@ -6,13 +6,11 @@ import { useAuthentication } from "contexts/authentication-context";
 
 const Register: FC<{}> = ({}) => {
   const { initiateCmix } = useNetworkClient();
-  const { registerUser } = useAuthentication();
 
   const [password, setPassword] = useState("");
 
   useEffect(() => {
     if (password.length) {
-      registerUser(password);
       initiateCmix(password);
     }
   }, [password]);
