@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useRef } from "react";
 
 export interface IHelperMethods {
   NewCmix: Function;
@@ -14,6 +14,8 @@ export interface IHelperMethods {
   IsNicknameValid: Function;
   GetShareURLType: Function;
   GetGitVersion: Function;
+  GetOrInitPassword: Function;
+  ImportPrivateIdentity: Function;
 }
 
 const initialUtils = {
@@ -29,7 +31,9 @@ const initialUtils = {
   GetPublicChannelIdentityFromPrivate: () => {},
   IsNicknameValid: () => {},
   GetShareUrlType: () => {},
-  GetVersion: () => {}
+  GetVersion: () => {},
+  GetOrInitPassword: () => {},
+  ImportPrivateIdentity: () => {}
 };
 
 export const UtilsContext = React.createContext<{
@@ -49,9 +53,17 @@ UtilsContext.displayName = "UtilsContext";
 export const UtilsProvider: FC<any> = props => {
   const [utils, setUtils] = useState<IHelperMethods>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
+  const transferIdentittyVariables = useRef<any>({});
+
   return (
     <UtilsContext.Provider
-      value={{ utils, setUtils, utilsLoaded, setUtilsLoaded }}
+      value={{
+        utils,
+        setUtils,
+        utilsLoaded,
+        setUtilsLoaded,
+        transferIdentittyVariables
+      }}
       {...props}
     />
   );

@@ -16,7 +16,9 @@ import {
   LeaveChannelConfirmationView,
   NickNameSetView,
   ChannelActionsView,
-  SettingsView
+  SettingsView,
+  ExportCodenameView,
+  ImportCodenameView
 } from "@components/common/Modal/ModalViews";
 
 import Register from "components/common/Register";
@@ -76,7 +78,9 @@ const DefaultLayout: FC<Props> = ({
             LogToFile,
             LogLevel,
             GetShareUrlType,
-            GetVersion
+            GetVersion,
+            GetOrInitPassword,
+            ImportPrivateIdentity
           } = (window as any) || {};
 
           setUtils({
@@ -92,7 +96,9 @@ const DefaultLayout: FC<Props> = ({
             GetPublicChannelIdentityFromPrivate,
             IsNicknameValid,
             GetShareUrlType,
-            GetVersion
+            GetVersion,
+            GetOrInitPassword,
+            ImportPrivateIdentity
           });
 
           if (LogLevel) {
@@ -125,6 +131,8 @@ const DefaultLayout: FC<Props> = ({
         {modalView === "SET_NICK_NAME" && currentChannel && <NickNameSetView />}
         {modalView === "CHANNEL_ACTIONS" && <ChannelActionsView />}
         {modalView === "SETTINGS" && <SettingsView />}
+        {modalView === "EXPORT_CODENAME" && <ExportCodenameView />}
+        {modalView === "IMPORT_CODENAME" && <ImportCodenameView />}
       </Modal>
     );
   };
@@ -147,7 +155,10 @@ const DefaultLayout: FC<Props> = ({
             <ModalUI />
           </>
         ) : (
-          <AuthenticationUI />
+          <>
+            <AuthenticationUI />
+            <ModalUI />
+          </>
         )
       ) : (
         <Loading />

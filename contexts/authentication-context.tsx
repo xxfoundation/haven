@@ -1,6 +1,7 @@
 import React, { FC, useState } from "react";
 import { STATE_PATH } from "../constants";
 import { isClientSide } from "utils";
+import { useUtils } from "contexts/utils-context";
 
 interface IUser {
   userName: string;
@@ -17,7 +18,6 @@ const usersStorageTagsKey = "ELIXXIR_USERS_TAGS";
 const passwordKey = "ELIXXIR_PASSWORD";
 
 export const AuthenticationContext = React.createContext<{
-  registerUser: Function;
   checkUser: Function;
   isStatePathExisted: Function;
   setStatePath: Function;
@@ -26,7 +26,6 @@ export const AuthenticationContext = React.createContext<{
   isAuthenticated: boolean;
   setIsAuthenticated: Function;
 }>({
-  registerUser: () => {},
   checkUser: () => {},
 
   isStatePathExisted: () => {},
@@ -41,6 +40,7 @@ AuthenticationContext.displayName = "AuthenticationContext";
 
 export const AuthenticationProvider: FC<any> = props => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const { utils } = useUtils();
 
   const isStatePathExisted = () => {
     return isClientSide() && localStorage.getItem(STATE_PATH) !== null;
@@ -83,21 +83,18 @@ export const AuthenticationProvider: FC<any> = props => {
     window.localStorage.setItem(usersStorageKey, JSON.stringify(oldSecrets));
   };
 
-  const registerUser = (password: string) => {
-    if (password) {
-      localStorage.setItem(passwordKey, JSON.stringify(password));
-    }
-  };
-
   const checkUser = (password: string) => {
-    const existedPassword = JSON.parse(localStorage.getItem(passwordKey) || "");
-    return password === existedPassword;
+    try {
+      const statePassEncoded = utils.GetOrInitPassword(password);
+      return statePassEncoded;
+    } catch (error) {
+      return false;
+    }
   };
 
   return (
     <AuthenticationContext.Provider
       value={{
-        registerUser,
         checkUser,
         isStatePathExisted,
         setStatePath,

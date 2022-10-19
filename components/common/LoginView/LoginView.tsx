@@ -20,11 +20,11 @@ const LoginView: FC<{}> = ({}) => {
 
   const handleSubmit = () => {
     setError("");
-    const isRegistered = checkUser(password);
-    if (!isRegistered) {
-      setError("Invalid credentials.");
+    const statePassEncoded = checkUser(password);
+    if (!statePassEncoded) {
+      setError("Incorrect password");
     } else {
-      loadCmix(password, (net: any) =>
+      loadCmix(statePassEncoded, (net: any) =>
         loadChannelManager(getStorageTag(), net)
       );
     }
