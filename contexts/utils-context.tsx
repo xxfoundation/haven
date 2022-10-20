@@ -12,8 +12,8 @@ export interface IHelperMethods {
   LoadChannelsManagerWithIndexedDb: Function;
   GetPublicChannelIdentityFromPrivate: Function;
   IsNicknameValid: Function;
-  GetShareURLType: Function;
-  GetGitVersion: Function;
+  GetShareUrlType: Function;
+  GetVersion: Function;
   GetOrInitPassword: Function;
   ImportPrivateIdentity: Function;
   ConstructIdentity: Function;

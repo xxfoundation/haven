@@ -509,7 +509,7 @@ export const NetworkProvider: FC<any> = props => {
 
         const groupedMessages = await Promise.all(
           channelsIds.map(async chId => {
-            return db
+            return db!
               .table("messages")
               .orderBy("timestamp")
               .reverse()
@@ -741,7 +741,7 @@ export const NetworkProvider: FC<any> = props => {
         setCurrentChannel(temp);
         setChannels([...channels, temp]);
         setTimeout(() => {
-          setCurrentChannel(prev => {
+          setCurrentChannel((prev: any) => {
             if (prev?.id === temp.id) {
               return {
                 ...prev,
