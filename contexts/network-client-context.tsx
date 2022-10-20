@@ -650,15 +650,15 @@ export const NetworkProvider: FC<any> = props => {
   const connectNetwork = async () => {
     if (network) {
       setNetworkStatus(NetworkStatus.CONNECTING);
-      network.StartNetworkFollower(5000);
-      await network.WaitForNetwork(25000).then(
+      network.StartNetworkFollower(50000);
+      await network.WaitForNetwork(10 * 60 * 1000).then(
         () => {
           setNetworkStatus(NetworkStatus.CONNECTED);
         },
         () => {
           console.error("Timed out. Network is not healthy.");
           setNetworkStatus(NetworkStatus.FAILED);
-          throw new Error("Timed out. Network is not healthy.");
+          // throw new Error("Timed out. Network is not healthy.");
         }
       );
     }
@@ -959,6 +959,10 @@ export const NetworkProvider: FC<any> = props => {
       utils.Base64ToUint8Array &&
       currentChannel
     ) {
+      console.log(
+        "Test 0000 currentChannel ID passed (Base64):",
+        currentChannel.id
+      );
       try {
         const res = chanManager.GetShareURL(
           network?.GetID(),
