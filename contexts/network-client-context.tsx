@@ -962,7 +962,7 @@ export const NetworkProvider: FC<any> = props => {
       try {
         const res = chanManager.GetShareURL(
           network?.GetID(),
-          "http://join.speakeasy.tech",
+          "fdyxgquekd",
           0,
           utils.Base64ToUint8Array(currentChannel.id)
         );
