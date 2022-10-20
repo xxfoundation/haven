@@ -42,30 +42,30 @@ const LeftSideBar: FC<{
       <div className="flex items-center">
         <Plus
           className={cn("mr-1", s.plus, {
-            [s.plus__disabled]: networkStatus !== NetworkStatus.CONNECTED
+            // [s.plus__disabled]: networkStatus !== NetworkStatus.CONNECTED
           })}
           onClick={(e: any) => {
             if (e && e.stopPropagation) {
               e.stopPropagation();
             }
-            if (networkStatus === NetworkStatus.CONNECTED) {
-              setModalView("CREATE_CHANNEL");
-              openModal();
-            }
+            // if (networkStatus === NetworkStatus.CONNECTED) {
+            setModalView("CREATE_CHANNEL");
+            openModal();
+            // }
           }}
         />
         <Join
           className={cn(s.join, {
-            [s.join__disabled]: networkStatus !== NetworkStatus.CONNECTED
+            // [s.join__disabled]: networkStatus !== NetworkStatus.CONNECTED
           })}
           onClick={(e: any) => {
             if (e && e.stopPropagation) {
               e.stopPropagation();
             }
-            if (networkStatus === NetworkStatus.CONNECTED) {
-              setModalView("JOIN_CHANNEL");
-              openModal();
-            }
+            // if (networkStatus === NetworkStatus.CONNECTED) {
+            setModalView("JOIN_CHANNEL");
+            openModal();
+            // }
           }}
         />
       </div>
