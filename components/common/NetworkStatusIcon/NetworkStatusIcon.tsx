@@ -1,35 +1,26 @@
 import { FC } from "react";
 import s from "./NetworkStatusIcon.module.scss";
 import cn from "classnames";
-import { NetworkStatus } from "contexts/network-client-context";
+import { useNetworkClient } from "contexts/network-client-context";
 
-const NetworkStatusIcon: FC<{ status: NetworkStatus }> = ({ status }) => {
-  const getStatus = () => {
-    switch (status) {
-      case NetworkStatus.CONNECTED:
-        return "Connected";
-      case NetworkStatus.CONNECTING:
-        return "Connecting...";
-      case NetworkStatus.DISCONNECTED:
-        return "Disconnected";
-      case NetworkStatus.FAILED:
-        return "Failed to connect";
-    }
-  };
-  return (
-    <div className={cn("flex items-center mt-4")}>
-      <div
-        className={cn(
-          s.bubble,
-          { [s.bubble__connected]: status === NetworkStatus.CONNECTED },
-          { [s.bubble__connecting]: status === NetworkStatus.CONNECTING },
-          { [s.bubble__failed]: status === NetworkStatus.FAILED },
-          { [s.bubble__disconnected]: status === NetworkStatus.DISCONNECTED }
-        )}
-      ></div>
-      <span className="ml-2 text--xs">{getStatus()}</span>
-    </div>
-  );
+const NetworkStatusIcon: FC<{}> = ({}) => {
+  const { isNetworkHealthy } = useNetworkClient();
+
+  if (typeof isNetworkHealthy === "undefined") {
+    return null;
+  } else {
+    return (
+      <div className={cn("flex items-center mt-4")}>
+        <div
+          className={cn(
+            s.bubble,
+            { [s.bubble__connected]: isNetworkHealthy },
+            { [s.bubble__failed]: !isNetworkHealthy }
+          )}
+        ></div>
+      </div>
+    );
+  }
 };
 
 export default NetworkStatusIcon;

@@ -2,8 +2,11 @@ import { FC } from "react";
 import s from "./SettingsView.module.scss";
 import { Download } from "@components/icons";
 import cn from "classnames";
+import { useUI } from "@contexts/ui-context";
 
 const SettingsView: FC<{}> = ({}) => {
+  const { openModal, setModalView } = useUI();
+
   return (
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
@@ -27,6 +30,15 @@ const SettingsView: FC<{}> = ({}) => {
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
               }, 0);
+            }}
+          />
+        </div>
+        <div>
+          <h3 className="headline--sm">Export my codename</h3>
+          <Download
+            onClick={() => {
+              setModalView("EXPORT_CODENAME");
+              openModal();
             }}
           />
         </div>

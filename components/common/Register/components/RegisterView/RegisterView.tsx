@@ -9,10 +9,13 @@ import {
   Chat
 } from "@components/icons";
 import cn from "classnames";
+import { useUI } from "contexts/ui-context";
 
 const RegisterView: FC<{
   onConfirm: Function;
 }> = ({ onConfirm }) => {
+  const { closeModal, openModal, setModalView } = useUI();
+
   const [password, setPassword] = useState<string>("");
   const [passwordConfirm, setPasswordConfirm] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -109,6 +112,23 @@ const RegisterView: FC<{
                   }
                 }}
               />
+
+              <div
+                style={{
+                  textDecoration: "underline",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  textAlign: "center",
+                  marginTop: "12px",
+                  cursor: "pointer"
+                }}
+                onClick={() => {
+                  setModalView("IMPORT_CODENAME");
+                  openModal();
+                }}
+              >
+                Already have an account?{" "}
+              </div>
             </div>
           </div>
         </div>
