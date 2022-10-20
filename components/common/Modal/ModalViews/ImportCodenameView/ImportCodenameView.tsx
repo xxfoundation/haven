@@ -77,7 +77,7 @@ const ImportCodenameView: FC<{}> = ({}) => {
     }
   };
 
-  const readFile = async e => {
+  const readFile = async (e: any) => {
     const targetFile = e.target.files[0];
 
     e.preventDefault();
@@ -91,7 +91,7 @@ const ImportCodenameView: FC<{}> = ({}) => {
     }
     const reader = new FileReader();
     reader.onload = async e => {
-      const fileContent = e.target.result;
+      const fileContent = e?.target?.result;
       transferIdentittyVariables.current = {
         ...transferIdentittyVariables.current,
         privateIdentity: fileContent

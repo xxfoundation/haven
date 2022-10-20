@@ -23,6 +23,8 @@ interface INetwork {
   StopNetworkFollower: Function;
   WaitForNetwork: Function;
   GetID: Function;
+  ReadyToSend: Function;
+  AddHealthCallback: Function;
 }
 
 interface IChannelManager {
@@ -94,6 +96,8 @@ export const NetworkClientContext = React.createContext<{
   getVersion: Function;
   loadMoreChannelData: Function;
   exportPrivateIdentity: Function;
+  getCodeNameAndColor: Function;
+  isNetworkHealthy: boolean | undefined;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -129,7 +133,9 @@ export const NetworkClientContext = React.createContext<{
   joinChannelFromURL: () => {},
   getVersion: () => {},
   loadMoreChannelData: () => {},
-  exportPrivateIdentity: () => {}
+  exportPrivateIdentity: () => {},
+  getCodeNameAndColor: () => {},
+  isNetworkHealthy: undefined
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
@@ -153,6 +159,9 @@ export const NetworkProvider: FC<any> = props => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
   const [isNetworkLoading, setIsNetworkLoading] = useState<boolean>(false);
+  const [isNetworkHealthy, setIsNetworkHealthy] = useState<boolean | undefined>(
+    undefined
+  );
   const channelsRef = useRef<IChannel[]>([]);
   const blockedEvents = useRef<any[]>([]);
 
@@ -199,13 +208,26 @@ export const NetworkProvider: FC<any> = props => {
             return;
           }
 
+          const {
+            codeName: messageCodeName,
+            color: messageColor
+          } = getCodeNameAndColor(m.pubkey, m.codeset_version);
+
+          const {
+            codeName: replyToMessageCodeName,
+            color: replyToMessageColor
+          } = getCodeNameAndColor(
+            replyToMessage.pubkey,
+            replyToMessage.codeset_version
+          );
+
           const resolvedMessage: IMessage = {
             id: m.message_id,
             body: m.text,
             timestamp: m.timestamp,
-            codeName: m.codename,
+            codeName: messageCodeName,
             nickName: m.nickname || "",
-            color: m.color,
+            color: messageColor,
             channelId: m.channel_id,
             status: m.status,
             uuid: m.id,
@@ -214,9 +236,9 @@ export const NetworkProvider: FC<any> = props => {
               id: replyToMessage.message_id,
               body: replyToMessage.text,
               timestamp: replyToMessage.timestamp,
-              codeName: replyToMessage.codename,
+              codeName: replyToMessageCodeName,
               nickName: replyToMessage.nickname || "",
-              color: replyToMessage.color,
+              color: replyToMessageColor,
               channelId: replyToMessage.channel_id,
               status: replyToMessage.status,
               uuid: replyToMessage.id,
@@ -226,13 +248,17 @@ export const NetworkProvider: FC<any> = props => {
           mappedMessages.push(resolvedMessage);
         } else if (!m.parent_message_id) {
           // This is normal message
+          const {
+            codeName: messageCodeName,
+            color: messageColor
+          } = getCodeNameAndColor(m.pubkey, m.codeset_version);
           const resolvedMessage: IMessage = {
             id: m.message_id,
             body: m.text,
             timestamp: m.timestamp,
-            codeName: m.codename,
+            codeName: messageCodeName,
             nickName: m.nickname || "",
-            color: m.color,
+            color: messageColor,
             channelId: m.channel_id,
             status: m.status,
             uuid: m.id,
@@ -253,7 +279,12 @@ export const NetworkProvider: FC<any> = props => {
       if (destinationMessage) {
         const temp = destinationMessage;
         const emoji = dbMessage.text;
-        const codeName = dbMessage.codename;
+
+        const { codeName } = getCodeNameAndColor(
+          dbMessage.pubkey,
+          dbMessage.codeset_version
+        );
+        // const codeName = dbMessage.codename;
         // If no emojis map set it.
         if (!temp.emojisMap) {
           temp.emojisMap = new Map();
@@ -399,7 +430,13 @@ export const NetworkProvider: FC<any> = props => {
 
     reactionEvents.forEach(event => {
       const emoji = event.text;
-      const codeName = event.codename;
+
+      const { codeName } = getCodeNameAndColor(
+        event.pubkey,
+        event.codeset_version
+      );
+
+      // const codeName = event.codename;
       const destinationMessage = messagesCopy.find(
         m => m.id === event.parent_message_id
       );
@@ -582,7 +619,19 @@ export const NetworkProvider: FC<any> = props => {
         statePassEncoded,
         utils.GetDefaultCMixParams()
       );
+      if (net?.AddHealthCallback) {
+        net.AddHealthCallback({
+          Callback: (isHealthy: boolean) => {
+            if (isHealthy) {
+              setIsNetworkHealthy(true);
+            } else {
+              setIsNetworkHealthy(false);
+            }
+          }
+        });
+      }
       setNetwork(net);
+
       if (cb) {
         cb(net);
       }
@@ -998,6 +1047,30 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
+  const getCodeNameAndColor = (publicKey: string, codeset: number) => {
+    if (utils && utils.ConstructIdentity && utils.Base64ToUint8Array) {
+      try {
+        const identity = JSON.parse(
+          dec.decode(
+            utils.ConstructIdentity(
+              utils.Base64ToUint8Array(publicKey),
+              codeset
+            )
+          )
+        );
+        return {
+          codeName: identity.Codename,
+          color: identity.Color
+        };
+      } catch (error) {
+        console.error("Failed to get codename and color", error);
+        return {};
+      }
+    } else {
+      return {};
+    }
+  };
+
   return (
     <NetworkClientContext.Provider
       value={{
@@ -1034,7 +1107,9 @@ export const NetworkProvider: FC<any> = props => {
         joinChannelFromURL,
         getVersion,
         loadMoreChannelData,
-        exportPrivateIdentity
+        exportPrivateIdentity,
+        getCodeNameAndColor,
+        isNetworkHealthy
       }}
       {...props}
     />
