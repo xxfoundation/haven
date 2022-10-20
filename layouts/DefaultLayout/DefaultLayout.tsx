@@ -16,7 +16,10 @@ import {
   LeaveChannelConfirmationView,
   NickNameSetView,
   ChannelActionsView,
-  SettingsView
+  SettingsView,
+  ExportCodenameView,
+  ImportCodenameView,
+  NetworkNotReadyView
 } from "@components/common/Modal/ModalViews";
 
 import Register from "components/common/Register";
@@ -74,7 +77,12 @@ const DefaultLayout: FC<Props> = ({
             GetPublicChannelIdentityFromPrivate,
             IsNicknameValid,
             LogToFile,
-            LogLevel
+            LogLevel,
+            GetShareUrlType,
+            GetVersion,
+            GetOrInitPassword,
+            ImportPrivateIdentity,
+            ConstructIdentity
           } = (window as any) || {};
 
           setUtils({
@@ -88,7 +96,12 @@ const DefaultLayout: FC<Props> = ({
             Base64ToUint8Array,
             LoadChannelsManagerWithIndexedDb,
             GetPublicChannelIdentityFromPrivate,
-            IsNicknameValid
+            IsNicknameValid,
+            GetShareUrlType,
+            GetVersion,
+            GetOrInitPassword,
+            ImportPrivateIdentity,
+            ConstructIdentity
           });
 
           if (LogLevel) {
@@ -121,6 +134,9 @@ const DefaultLayout: FC<Props> = ({
         {modalView === "SET_NICK_NAME" && currentChannel && <NickNameSetView />}
         {modalView === "CHANNEL_ACTIONS" && <ChannelActionsView />}
         {modalView === "SETTINGS" && <SettingsView />}
+        {modalView === "EXPORT_CODENAME" && <ExportCodenameView />}
+        {modalView === "IMPORT_CODENAME" && <ImportCodenameView />}
+        {modalView === "NETWORK_NOT_READY" && <NetworkNotReadyView />}
       </Modal>
     );
   };
@@ -143,7 +159,10 @@ const DefaultLayout: FC<Props> = ({
             <ModalUI />
           </>
         ) : (
-          <AuthenticationUI />
+          <>
+            <AuthenticationUI />
+            <ModalUI />
+          </>
         )
       ) : (
         <Loading />
