@@ -1,57 +1,82 @@
-import { FC } from "react";
+import { FC, useEffect, useState, useRef } from "react";
 import s from "./ShareChannelView.module.scss";
 import cn from "classnames";
 import { ModalCtaButton } from "@components/common";
 import { useNetworkClient } from "contexts/network-client-context";
 import copy from "copy-to-clipboard";
 
+interface ICredentials {
+  url: string;
+  password: string;
+}
+
 const ShareChannelView: FC<{}> = ({}) => {
-  const { currentChannel, getPrettyPrint } = useNetworkClient();
+  const { currentChannel, getShareURL } = useNetworkClient();
+  const [credentials, setCredentials] = useState<ICredentials>({
+    url: "",
+    password: ""
+  });
+  const credentialsDivRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const resultCredential: ICredentials = getShareURL();
+    if (resultCredential) {
+      setCredentials({
+        url: resultCredential?.url || "",
+        password: resultCredential?.password || ""
+      });
+    }
+  }, []);
+
   return (
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
     >
-      <h2 className="mt-9 mb-6">Share channel</h2>
+      <h2 className="mt-9 mb-6">Share</h2>
       <div>
         <div className={cn("mb-4")}>
           <h4>{currentChannel?.name || ""}</h4>
-          <p className={cn("mt-1 text text--xs")}>
+          <p className={cn("mt-2 text text--xs")}>
             {currentChannel?.description || ""}
           </p>
         </div>
         <div className={cn("text text--sm mb-2")}>
-          <span className="font-bold mr-1">Channel id:</span>
+          <span className="font-bold mr-1">speakeasy id:</span>
           <span>{currentChannel?.id || ""}</span>
         </div>
-        <div className={cn("text text--sm")}>
-          <span className="font-bold">Channel key:</span>
-          <textarea
-            name=""
-            value={
-              currentChannel?.prettyPrint ||
-              getPrettyPrint(currentChannel?.id) ||
-              ""
-            }
-            disabled
-          ></textarea>
+        <div className={cn(s.channelCredentials)} ref={credentialsDivRef}>
+          <span className="text--sm font-bold">speakeasy url:</span>
+          {credentials.url.length > 0 && (
+            <span className={cn("text text--xs")}>{credentials.url}</span>
+          )}
+          {credentials.password.length > 0 && (
+            <>
+              <span className="text--sm font-bold mt-1">
+                speakeasy password:
+              </span>
+              <span className={cn("text text--xs")}>
+                {credentials.password}
+              </span>
+            </>
+          )}
         </div>
       </div>
       <ModalCtaButton
         buttonCopy="Copy"
-        cssClass="my-7"
+        cssClass={cn("mb-7 mt-16", s.button)}
         onClick={() => {
-          copy(
-            currentChannel?.prettyPrint || getPrettyPrint(currentChannel?.id)
-          );
+          if (credentialsDivRef?.current) {
+            copy(credentialsDivRef?.current.innerText);
+          }
         }}
       />
       <p
-        className="mb-8 text text--xs"
+        className={cn("mb-8 text text--xs", s.warn)}
         style={{ color: "var(--cyan)", lineHeight: "13px" }}
       >
-        Warning: With this file anvone can read and send to the channell make
-        sure to keen it safe, Consider only sharing it under end-to-end
-        connection
+        Warning: With these credentials anyone can read and send to this
+        speakeasy, make sure to keep it safe! Consider only sharing it under
+        end-to-end connection.
       </p>
     </div>
   );
