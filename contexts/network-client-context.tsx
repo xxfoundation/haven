@@ -658,7 +658,7 @@ export const NetworkProvider: FC<any> = props => {
         () => {
           console.error("Timed out. Network is not healthy.");
           setNetworkStatus(NetworkStatus.FAILED);
-          throw new Error("Timed out. Network is not healthy.");
+          // throw new Error("Timed out. Network is not healthy.");
         }
       );
     }
@@ -959,6 +959,10 @@ export const NetworkProvider: FC<any> = props => {
       utils.Base64ToUint8Array &&
       currentChannel
     ) {
+      console.log(
+        "Test 0000 currentChannel ID passed (Base64):",
+        currentChannel.id
+      );
       try {
         const res = chanManager.GetShareURL(
           network?.GetID(),
