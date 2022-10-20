@@ -650,8 +650,8 @@ export const NetworkProvider: FC<any> = props => {
   const connectNetwork = async () => {
     if (network) {
       setNetworkStatus(NetworkStatus.CONNECTING);
-      network.StartNetworkFollower(5000);
-      await network.WaitForNetwork(25000).then(
+      network.StartNetworkFollower(50000);
+      await network.WaitForNetwork(10 * 60 * 1000).then(
         () => {
           setNetworkStatus(NetworkStatus.CONNECTED);
         },
