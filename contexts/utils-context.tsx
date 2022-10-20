@@ -16,6 +16,7 @@ export interface IHelperMethods {
   GetGitVersion: Function;
   GetOrInitPassword: Function;
   ImportPrivateIdentity: Function;
+  ConstructIdentity: Function;
 }
 
 const initialUtils = {
@@ -33,7 +34,8 @@ const initialUtils = {
   GetShareUrlType: () => {},
   GetVersion: () => {},
   GetOrInitPassword: () => {},
-  ImportPrivateIdentity: () => {}
+  ImportPrivateIdentity: () => {},
+  ConstructIdentity: () => {}
 };
 
 export const UtilsContext = React.createContext<{
@@ -41,11 +43,13 @@ export const UtilsContext = React.createContext<{
   setUtils: Function;
   utilsLoaded: boolean;
   setUtilsLoaded: Function;
+  transferIdentittyVariables: any;
 }>({
   utils: initialUtils,
   setUtils: () => {},
   utilsLoaded: false,
-  setUtilsLoaded: () => {}
+  setUtilsLoaded: () => {},
+  transferIdentittyVariables: {}
 });
 
 UtilsContext.displayName = "UtilsContext";

@@ -13,7 +13,7 @@ const CreateChannelView: FC<{}> = ({}) => {
   const [error, setError] = useState("");
   const [privacyLevel, setPrivacyLevel] = useState<0 | 2>(0); //0 = public, 1 = private, and 2 = secret
 
-  const handlePrivacyChange = e => {
+  const handlePrivacyChange = (e: any) => {
     setPrivacyLevel(e.target.value === "public" ? 0 : 2);
   };
   return (

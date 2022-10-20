@@ -65,7 +65,9 @@ const ShareChannelView: FC<{}> = ({}) => {
         buttonCopy="Copy"
         cssClass={cn("mb-7 mt-16", s.button)}
         onClick={() => {
-          copy(credentialsDivRef?.current.innerText);
+          if (credentialsDivRef?.current) {
+            copy(credentialsDivRef?.current.innerText);
+          }
         }}
       />
       <p

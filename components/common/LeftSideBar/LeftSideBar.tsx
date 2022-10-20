@@ -1,7 +1,7 @@
 import { FC } from "react";
 import s from "./LeftSideBar.module.scss";
 import cn from "classnames";
-import { Collapse } from "@components/common";
+import { Collapse, NetworkStatusIcon } from "@components/common";
 import { Elixxir, SpeakEasy, Settings, Plus, Join } from "@components/icons";
 import { useUI } from "contexts/ui-context";
 import {
@@ -75,8 +75,10 @@ const LeftSideBar: FC<{
   return (
     <div className={cn(s.root, cssClasses)}>
       <div className={s.header}>
-        <SpeakEasy />
-        {/* <NetworkStatusIcon status={networkStatus} /> */}
+        <div className={s.logo}>
+          <SpeakEasy />
+        </div>
+        <NetworkStatusIcon />
       </div>
       <div className={s.content}>
         <Collapse title={collapseTitle} defaultActive>

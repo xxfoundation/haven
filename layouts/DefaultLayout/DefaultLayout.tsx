@@ -18,7 +18,8 @@ import {
   ChannelActionsView,
   SettingsView,
   ExportCodenameView,
-  ImportCodenameView
+  ImportCodenameView,
+  NetworkNotReadyView
 } from "@components/common/Modal/ModalViews";
 
 import Register from "components/common/Register";
@@ -80,7 +81,8 @@ const DefaultLayout: FC<Props> = ({
             GetShareUrlType,
             GetVersion,
             GetOrInitPassword,
-            ImportPrivateIdentity
+            ImportPrivateIdentity,
+            ConstructIdentity
           } = (window as any) || {};
 
           setUtils({
@@ -98,7 +100,8 @@ const DefaultLayout: FC<Props> = ({
             GetShareUrlType,
             GetVersion,
             GetOrInitPassword,
-            ImportPrivateIdentity
+            ImportPrivateIdentity,
+            ConstructIdentity
           });
 
           if (LogLevel) {
@@ -133,6 +136,7 @@ const DefaultLayout: FC<Props> = ({
         {modalView === "SETTINGS" && <SettingsView />}
         {modalView === "EXPORT_CODENAME" && <ExportCodenameView />}
         {modalView === "IMPORT_CODENAME" && <ImportCodenameView />}
+        {modalView === "NETWORK_NOT_READY" && <NetworkNotReadyView />}
       </Modal>
     );
   };
