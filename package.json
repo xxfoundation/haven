@@ -4,12 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && next export",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.0.6",
+    "@emoji-mart/react": "^1.0.1",
     "@juggle/resize-observer": "^3.4.0",
+    "@types/emoji-mart": "^3.0.9",
     "@types/lodash": "^4.14.185",
     "@types/uuid": "^8.3.4",
     "autoprefixer": "^10.4.8",
@@ -17,7 +20,7 @@
     "classnames": "^2.3.1",
     "copy-to-clipboard": "^3.3.2",
     "dexie": "^3.2.2",
-    "emoji-picker-react": "^3.6.2",
+    "emoji-mart": "^5.2.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.37",

@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useRef } from "react";
 
 export interface IHelperMethods {
   NewCmix: Function;
@@ -12,6 +12,11 @@ export interface IHelperMethods {
   LoadChannelsManagerWithIndexedDb: Function;
   GetPublicChannelIdentityFromPrivate: Function;
   IsNicknameValid: Function;
+  GetShareUrlType: Function;
+  GetVersion: Function;
+  GetOrInitPassword: Function;
+  ImportPrivateIdentity: Function;
+  ConstructIdentity: Function;
 }
 
 const initialUtils = {
@@ -25,7 +30,12 @@ const initialUtils = {
   NewChannelsManagerWithIndexedDb: () => {},
   LoadChannelsManagerWithIndexedDb: () => {},
   GetPublicChannelIdentityFromPrivate: () => {},
-  IsNicknameValid: () => {}
+  IsNicknameValid: () => {},
+  GetShareUrlType: () => {},
+  GetVersion: () => {},
+  GetOrInitPassword: () => {},
+  ImportPrivateIdentity: () => {},
+  ConstructIdentity: () => {}
 };
 
 export const UtilsContext = React.createContext<{
@@ -33,11 +43,13 @@ export const UtilsContext = React.createContext<{
   setUtils: Function;
   utilsLoaded: boolean;
   setUtilsLoaded: Function;
+  transferIdentittyVariables: any;
 }>({
   utils: initialUtils,
   setUtils: () => {},
   utilsLoaded: false,
-  setUtilsLoaded: () => {}
+  setUtilsLoaded: () => {},
+  transferIdentittyVariables: {}
 });
 
 UtilsContext.displayName = "UtilsContext";
@@ -45,9 +57,17 @@ UtilsContext.displayName = "UtilsContext";
 export const UtilsProvider: FC<any> = props => {
   const [utils, setUtils] = useState<IHelperMethods>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
+  const transferIdentittyVariables = useRef<any>({});
+
   return (
     <UtilsContext.Provider
-      value={{ utils, setUtils, utilsLoaded, setUtilsLoaded }}
+      value={{
+        utils,
+        setUtils,
+        utilsLoaded,
+        setUtilsLoaded,
+        transferIdentittyVariables
+      }}
       {...props}
     />
   );
