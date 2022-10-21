@@ -9,7 +9,7 @@ import { IMessage } from "types";
 import { enc, dec } from "utils";
 import _ from "lodash";
 
-const batchCount = 10;
+const batchCount = 100;
 
 export enum NetworkStatus {
   CONNECTED = "connected",
@@ -1008,10 +1008,6 @@ export const NetworkProvider: FC<any> = props => {
       utils.Base64ToUint8Array &&
       currentChannel
     ) {
-      console.log(
-        "Test 0000 currentChannel ID passed (Base64):",
-        currentChannel.id
-      );
       try {
         const res = chanManager.GetShareURL(
           network?.GetID(),
