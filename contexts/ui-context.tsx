@@ -31,7 +31,10 @@ type MODAL_VIEWS =
   | "LEAVE_CHANNEL_CONFIRMATION"
   | "SET_NICK_NAME"
   | "CHANNEL_ACTIONS"
-  | "SETTINGS";
+  | "SETTINGS"
+  | "EXPORT_CODENAME"
+  | "IMPORT_CODENAME"
+  | "NETWORK_NOT_READY";
 
 export const UIContext = React.createContext<State | any>(initialState);
 

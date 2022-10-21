@@ -8,6 +8,7 @@ import { Close } from "@components/icons";
 import moment from "moment";
 import _ from "lodash";
 import { useNetworkClient } from "contexts/network-client-context";
+import { useUI } from "contexts/ui-context";
 import { Tree } from "@components/icons";
 
 import { Spinner } from "@components/common";
@@ -19,8 +20,12 @@ const ChannelChat: FC<{}> = ({}) => {
     sendMessage,
     sendReply,
     sendReaction,
-    channels
+    channels,
+    loadMoreChannelData,
+    network
   } = useNetworkClient();
+
+  const { setModalView, openModal } = useUI();
 
   const [messageBody, setMessageBody] = useState<string>("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +58,24 @@ const ChannelChat: FC<{}> = ({}) => {
     return;
   };
 
+  const checkTop = async () => {
+    if (
+      messagesContainerRef &&
+      messagesContainerRef.current &&
+      messagesContainerRef.current.scrollTop === 0
+    ) {
+      if (
+        currentChannel &&
+        typeof currentChannel.currentMessagesBatch !== "undefined"
+      ) {
+        const res = await loadMoreChannelData(currentChannel.id);
+        if (res) {
+          messagesContainerRef.current.scrollTop = 20;
+        }
+      }
+    }
+  };
+
   const scrollToEnd = () => {
     if (messagesContainerRef && messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop =
@@ -71,7 +94,12 @@ const ChannelChat: FC<{}> = ({}) => {
     reaction: IEmojiReaction,
     message: IMessage
   ) => {
-    sendReaction(reaction.emoji, message.id);
+    if (network && network.ReadyToSend && !network.ReadyToSend()) {
+      setModalView("NETWORK_NOT_READY");
+      openModal();
+    } else {
+      sendReaction(reaction.emoji, message.id);
+    }
   };
 
   return (
@@ -90,6 +118,7 @@ const ChannelChat: FC<{}> = ({}) => {
             className={cn(s.messagesContainer)}
             ref={messagesContainerRef}
             onScroll={() => {
+              checkTop();
               if (checkBottom()) {
                 setAutoScrollToEnd(true);
               } else {
@@ -158,13 +187,22 @@ const ChannelChat: FC<{}> = ({}) => {
               onKeyDown={e => {
                 if (e.keyCode === 13 && !e.shiftKey) {
                   e.preventDefault();
-                  if (replyToMessage) {
-                    sendReply(messageBody.trim(), replyToMessage.id);
+
+                  if (
+                    network &&
+                    network.ReadyToSend &&
+                    !network.ReadyToSend()
+                  ) {
+                    setModalView("NETWORK_NOT_READY");
+                    openModal();
                   } else {
-                    sendMessage(messageBody.trim());
+                    if (replyToMessage) {
+                      sendReply(messageBody.trim(), replyToMessage.id);
+                    } else {
+                      sendMessage(messageBody.trim());
+                    }
                   }
-                  // addNewMessage();
-                  /////////
+
                   setAutoScrollToEnd(true);
                   setMessageBody("");
                   setReplyToMessage(null);
@@ -176,16 +214,24 @@ const ChannelChat: FC<{}> = ({}) => {
               <SendButton
                 cssClass={s.button}
                 onClick={async () => {
-                  if (replyToMessage) {
-                    sendReply(messageBody.trim(), replyToMessage.id);
+                  if (
+                    network &&
+                    network.ReadyToSend &&
+                    !network.ReadyToSend()
+                  ) {
+                    setModalView("NETWORK_NOT_READY");
+                    openModal();
                   } else {
-                    sendMessage(messageBody.trim());
+                    if (replyToMessage) {
+                      sendReply(messageBody.trim(), replyToMessage.id);
+                    } else {
+                      sendMessage(messageBody.trim());
+                    }
                   }
-                  /////////
+
                   setAutoScrollToEnd(true);
                   setMessageBody("");
                   setReplyToMessage(null);
-                  // addNewMessage();
                 }}
               />
             </div>

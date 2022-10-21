@@ -7,6 +7,9 @@ import { STATE_PATH } from "../constants";
 import { Dexie } from "dexie";
 import { IMessage } from "types";
 import { enc, dec } from "utils";
+import _ from "lodash";
+
+const batchCount = 100;
 
 export enum NetworkStatus {
   CONNECTED = "connected",
@@ -20,6 +23,8 @@ interface INetwork {
   StopNetworkFollower: Function;
   WaitForNetwork: Function;
   GetID: Function;
+  ReadyToSend: Function;
+  AddHealthCallback: Function;
 }
 
 interface IChannelManager {
@@ -38,15 +43,19 @@ interface IChannelManager {
   SetNickname: Function;
   GetNickname: Function;
   GetIdentity: Function;
+  GetShareURL: Function;
+  JoinChannelFromURL: Function;
+  ExportPrivateIdentity: Function;
 }
 
 export interface IChannel {
-  prettyPrint: string;
+  prettyPrint?: string;
   name: string;
   id: string;
   description: string;
   isLoading?: boolean;
   withMissedMessages?: boolean;
+  currentMessagesBatch?: number;
 }
 
 let db: Dexie | undefined;
@@ -81,6 +90,14 @@ export const NetworkClientContext = React.createContext<{
   sendReaction: Function;
   getPrettyPrint: Function;
   appendSenderMessage: Function;
+  getShareURL: Function;
+  getShareUrlType: Function;
+  joinChannelFromURL: Function;
+  getVersion: Function;
+  loadMoreChannelData: Function;
+  exportPrivateIdentity: Function;
+  getCodeNameAndColor: Function;
+  isNetworkHealthy: boolean | undefined;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -110,7 +127,15 @@ export const NetworkClientContext = React.createContext<{
   sendReply: () => {},
   sendReaction: () => {},
   getPrettyPrint: () => {},
-  appendSenderMessage: () => {}
+  appendSenderMessage: () => {},
+  getShareURL: () => {},
+  getShareUrlType: () => {},
+  joinChannelFromURL: () => {},
+  getVersion: () => {},
+  loadMoreChannelData: () => {},
+  exportPrivateIdentity: () => {},
+  getCodeNameAndColor: () => {},
+  isNetworkHealthy: undefined
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
@@ -134,12 +159,22 @@ export const NetworkProvider: FC<any> = props => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
   const [isNetworkLoading, setIsNetworkLoading] = useState<boolean>(false);
+  const [isNetworkHealthy, setIsNetworkHealthy] = useState<boolean | undefined>(
+    undefined
+  );
   const channelsRef = useRef<IChannel[]>([]);
   const blockedEvents = useRef<any[]>([]);
+  const currentCodeNameRef = useRef<string>("");
 
   useEffect(() => {
     channelsRef.current = channels;
   }, [channels]);
+
+  useEffect(() => {
+    if (chanManager) {
+      currentCodeNameRef.current = getIdentity().Codename;
+    }
+  }, [chanManager]);
 
   useEffect(() => {
     setIsAuthenticated(true);
@@ -155,11 +190,22 @@ export const NetworkProvider: FC<any> = props => {
     if (!db) {
       return [];
     } else {
-      const allMessages = await db.table("messages").toArray();
+      // const allMessages = await db.table("messages").toArray();
+      const messagesParentIds = messages
+        .filter(e => e.parent_message_id)
+        .map(e => e.parent_message_id);
+
+      const relatedMessages =
+        (await db
+          .table("messages")
+          .where("message_id")
+          .anyOf(messagesParentIds)
+          .toArray()) || [];
+
       const mappedMessages: IMessage[] = [];
       messages.forEach((m: any) => {
         if (m.parent_message_id && m.type === 1) {
-          const replyToMessage = allMessages.find(
+          const replyToMessage = relatedMessages.find(
             ms => ms.message_id === m.parent_message_id
           );
 
@@ -169,13 +215,26 @@ export const NetworkProvider: FC<any> = props => {
             return;
           }
 
+          const {
+            codeName: messageCodeName,
+            color: messageColor
+          } = getCodeNameAndColor(m.pubkey, m.codeset_version);
+
+          const {
+            codeName: replyToMessageCodeName,
+            color: replyToMessageColor
+          } = getCodeNameAndColor(
+            replyToMessage.pubkey,
+            replyToMessage.codeset_version
+          );
+
           const resolvedMessage: IMessage = {
             id: m.message_id,
             body: m.text,
             timestamp: m.timestamp,
-            codeName: m.codename,
+            codeName: messageCodeName,
             nickName: m.nickname || "",
-            color: m.color,
+            color: messageColor,
             channelId: m.channel_id,
             status: m.status,
             uuid: m.id,
@@ -184,9 +243,9 @@ export const NetworkProvider: FC<any> = props => {
               id: replyToMessage.message_id,
               body: replyToMessage.text,
               timestamp: replyToMessage.timestamp,
-              codeName: replyToMessage.codename,
+              codeName: replyToMessageCodeName,
               nickName: replyToMessage.nickname || "",
-              color: replyToMessage.color,
+              color: replyToMessageColor,
               channelId: replyToMessage.channel_id,
               status: replyToMessage.status,
               uuid: replyToMessage.id,
@@ -196,13 +255,17 @@ export const NetworkProvider: FC<any> = props => {
           mappedMessages.push(resolvedMessage);
         } else if (!m.parent_message_id) {
           // This is normal message
+          const {
+            codeName: messageCodeName,
+            color: messageColor
+          } = getCodeNameAndColor(m.pubkey, m.codeset_version);
           const resolvedMessage: IMessage = {
             id: m.message_id,
             body: m.text,
             timestamp: m.timestamp,
-            codeName: m.codename,
+            codeName: messageCodeName,
             nickName: m.nickname || "",
-            color: m.color,
+            color: messageColor,
             channelId: m.channel_id,
             status: m.status,
             uuid: m.id,
@@ -223,7 +286,12 @@ export const NetworkProvider: FC<any> = props => {
       if (destinationMessage) {
         const temp = destinationMessage;
         const emoji = dbMessage.text;
-        const codeName = dbMessage.codename;
+
+        const { codeName } = getCodeNameAndColor(
+          dbMessage.pubkey,
+          dbMessage.codeset_version
+        );
+        // const codeName = dbMessage.codename;
         // If no emojis map set it.
         if (!temp.emojisMap) {
           temp.emojisMap = new Map();
@@ -302,7 +370,50 @@ export const NetworkProvider: FC<any> = props => {
       const mappedMessages = await mapDbMessagesToMessages([event]);
 
       if (mappedMessages.length) {
-        setMessages(prev => [...prev, mappedMessages[0]]);
+        const currentUserCodename = currentCodeNameRef.current;
+        const newMessage = mappedMessages[0];
+
+        setMessages(prev => {
+          // This is the Sender side (Just append)
+          if (currentUserCodename === newMessage.codeName) {
+            return [...prev, newMessage];
+          } else {
+            // This is receiver side (Sort if needed)
+            if (prev.length === 0) {
+              return [newMessage];
+            } else {
+              const channelMessages = prev.filter(
+                m => m.channelId === newMessage.channelId
+              );
+
+              // This is the first message for this channel
+              if (channelMessages.length === 0) {
+                return [...prev, newMessage];
+              } else {
+                const lastChannelMessageTimestamp = new Date(
+                  channelMessages[channelMessages.length - 1].timestamp
+                ).getTime();
+                const newMessageTimestamp = new Date(
+                  newMessage.timestamp
+                ).getTime();
+
+                // No need to sort
+                if (newMessageTimestamp >= lastChannelMessageTimestamp) {
+                  return [...prev, newMessage];
+                } else {
+                  const newMessages = [...prev, newMessage];
+                  const sortedNewMessages = newMessages.sort((x, y) => {
+                    return (
+                      new Date(x.timestamp).getTime() -
+                      new Date(y.timestamp).getTime()
+                    );
+                  });
+                  return sortedNewMessages;
+                }
+              }
+            }
+          }
+        });
       }
     }
   };
@@ -327,9 +438,51 @@ export const NetworkProvider: FC<any> = props => {
       } else if (receivedMessage.type === 1) {
         // It's normal message or reply to message event
         const mappedMessages = await mapDbMessagesToMessages([receivedMessage]);
-
         if (mappedMessages.length) {
-          setMessages(prev => [...prev, mappedMessages[0]]);
+          const currentUserCodename = currentCodeNameRef.current;
+          const newMessage = mappedMessages[0];
+
+          setMessages(prev => {
+            // This is the Sender side (Just append)
+            if (currentUserCodename === newMessage.codeName) {
+              return [...prev, newMessage];
+            } else {
+              // This is receiver side (Sort if needed)
+              if (prev.length === 0) {
+                return [newMessage];
+              } else {
+                const channelMessages = prev.filter(
+                  m => m.channelId === newMessage.channelId
+                );
+
+                // This is the first message for this channel
+                if (channelMessages.length === 0) {
+                  return [...prev, newMessage];
+                } else {
+                  const lastChannelMessageTimestamp = new Date(
+                    channelMessages[channelMessages.length - 1].timestamp
+                  ).getTime();
+                  const newMessageTimestamp = new Date(
+                    newMessage.timestamp
+                  ).getTime();
+
+                  // No need to sort
+                  if (newMessageTimestamp >= lastChannelMessageTimestamp) {
+                    return [...prev, newMessage];
+                  } else {
+                    const newMessages = [...prev, newMessage];
+                    const sortedNewMessages = newMessages.sort((x, y) => {
+                      return (
+                        new Date(x.timestamp).getTime() -
+                        new Date(y.timestamp).getTime()
+                      );
+                    });
+                    return sortedNewMessages;
+                  }
+                }
+              }
+            }
+          });
         }
       }
       checkIfWillResolveBlockedEvent(receivedMessage);
@@ -369,7 +522,13 @@ export const NetworkProvider: FC<any> = props => {
 
     reactionEvents.forEach(event => {
       const emoji = event.text;
-      const codeName = event.codename;
+
+      const { codeName } = getCodeNameAndColor(
+        event.pubkey,
+        event.codeset_version
+      );
+
+      // const codeName = event.codename;
       const destinationMessage = messagesCopy.find(
         m => m.id === event.parent_message_id
       );
@@ -410,6 +569,23 @@ export const NetworkProvider: FC<any> = props => {
     return messagesCopy;
   };
 
+  // Get all the reaction events related to a group of messages(DB-Events)
+  const getDBReactionEvents = async (events: any[]) => {
+    // message_id,parent_message_id
+    if (db) {
+      const eventsIds = events.map(e => e.message_id);
+      const reactionEvents = await db
+        .table("messages")
+        .filter((e: any) => {
+          return eventsIds.includes(e.parent_message_id) && e.type === 3;
+        })
+        .toArray();
+      return reactionEvents;
+    } else {
+      return [];
+    }
+  };
+
   const handleInitialLoadData = (storageTag: string) => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -417,28 +593,53 @@ export const NetworkProvider: FC<any> = props => {
         db.version(0.1).stores({
           channels: "++id",
           messages:
-            "++id,channel_id,channel_id,parent_message_id,pinned,timestamp"
+            "++id,channel_id,&message_id,parent_message_id,pinned,timestamp"
         });
 
         const channels = await db.table("channels").toArray();
-        const messages = await db.table("messages").toArray();
+        const channelsIds = channels.map(ch => ch.id);
+
+        const groupedMessages = await Promise.all(
+          channelsIds.map(async chId => {
+            return db!
+              .table("messages")
+              .orderBy("timestamp")
+              .reverse()
+              .filter(m => {
+                return m.channel_id === chId && m.type === 1;
+              })
+              .limit(batchCount)
+              .toArray();
+          })
+        );
+        let messages: any[] = [];
+
+        groupedMessages.forEach(g => {
+          messages = [...messages, ..._.reverse(g)];
+        });
+
         const result = await mapInitialLoadDataToCurrentState(
           channels,
           messages
         );
-        // Here we should apply the reactions then change the state
         const mappedMessages = result.mappedMessages;
         const mappedChannels = result.mappedChannels;
 
-        // We should have a function that takes all the reaction events from messages and apply them to mappedMessages
-        // but don't change the state here
+        const reactionEvents = await getDBReactionEvents(messages);
+
         const messagesWithReactions = bulkUpdateMessagesWithReactions(
-          messages,
+          reactionEvents,
           mappedMessages
         );
 
-        // Change the state here
-        setChannels(mappedChannels);
+        setChannels(
+          mappedChannels.map((ch: IChannel) => {
+            return {
+              ...ch,
+              currentMessagesBatch: 1
+            };
+          })
+        );
         setMessages(messagesWithReactions);
 
         resolve({ channels, messages });
@@ -464,11 +665,12 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
-  const createChannelManager = async (privateIdentity: any) => {
-    if (network && utils && utils.NewChannelsManagerWithIndexedDb) {
+  const createChannelManager = async (privateIdentity: any, net?: any) => {
+    const currentNetwork = network || net;
+    if (currentNetwork && utils && utils.NewChannelsManagerWithIndexedDb) {
       utils
         .NewChannelsManagerWithIndexedDb(
-          network.GetID(),
+          currentNetwork.GetID(),
           privateIdentity,
           onReceiveEvent
         )
@@ -482,18 +684,25 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
-  const initiateCmix = (password: string) => {
-    const statePassEncoded = enc.encode(password);
-    // Check if state exists
-    if (!isStatePathExisted()) {
-      utils.NewCmix(ndf, STATE_PATH, statePassEncoded, "");
-      setStatePath();
+  // Used on registeration
+  const initiateCmix = (password: string, cb?: Function) => {
+    try {
+      const statePassEncoded = utils.GetOrInitPassword(password);
+
+      // Check if state exists
+      if (!isStatePathExisted()) {
+        utils.NewCmix(ndf, STATE_PATH, statePassEncoded, "");
+        setStatePath();
+      }
+      loadCmix(statePassEncoded, cb);
+    } catch (error) {
+      console.error("Failed to load Cmix: " + error);
+      return;
     }
-    loadCmix(password);
   };
 
-  const loadCmix = async (password: string, cb?: Function) => {
-    const statePassEncoded = enc.encode(password);
+  // Used directly on Login
+  const loadCmix = async (statePassEncoded: string, cb?: Function) => {
     let net;
     setIsNetworkLoading(true);
     try {
@@ -502,7 +711,19 @@ export const NetworkProvider: FC<any> = props => {
         statePassEncoded,
         utils.GetDefaultCMixParams()
       );
+      if (net?.AddHealthCallback) {
+        net.AddHealthCallback({
+          Callback: (isHealthy: boolean) => {
+            if (isHealthy) {
+              setIsNetworkHealthy(true);
+            } else {
+              setIsNetworkHealthy(false);
+            }
+          }
+        });
+      }
       setNetwork(net);
+
       if (cb) {
         cb(net);
       }
@@ -521,53 +742,135 @@ export const NetworkProvider: FC<any> = props => {
   const connectNetwork = async () => {
     if (network) {
       setNetworkStatus(NetworkStatus.CONNECTING);
-      network.StartNetworkFollower(5000);
-      await network.WaitForNetwork(25000).then(
+      network.StartNetworkFollower(50000);
+      await network.WaitForNetwork(10 * 60 * 1000).then(
         () => {
           setNetworkStatus(NetworkStatus.CONNECTED);
         },
         () => {
           console.error("Timed out. Network is not healthy.");
           setNetworkStatus(NetworkStatus.FAILED);
-          throw new Error("Timed out. Network is not healthy.");
+          // throw new Error("Timed out. Network is not healthy.");
         }
       );
     }
   };
 
-  const joinChannel = (
-    prettyPrint: string,
-    appendToCurrent: boolean = true
-  ) => {
+  const loadMoreChannelData = async (chId: string) => {
+    return new Promise(async (resolve, reject) => {
+      if (db) {
+        const currentChannel = channels.find(ch => ch.id === chId);
+        const currentChannelBatch = currentChannel?.currentMessagesBatch || 1;
+        const newMessages = await db
+          .table("messages")
+          .orderBy("timestamp")
+          .reverse()
+          .filter(m => {
+            return m.channel_id === chId && m.type === 1;
+          })
+          .offset(currentChannelBatch * batchCount)
+          .limit(batchCount)
+          .toArray();
+
+        const result = await mapInitialLoadDataToCurrentState([], newMessages);
+        // Here we should apply the reactions then change the state
+        const mappedMessages = result.mappedMessages;
+
+        const reactionEvents = await getDBReactionEvents(newMessages);
+
+        const messagesWithReactions = bulkUpdateMessagesWithReactions(
+          reactionEvents,
+          mappedMessages
+        );
+
+        if (messagesWithReactions.length) {
+          setMessages(prev => {
+            return [..._.reverse(messagesWithReactions), ...prev];
+          });
+
+          setChannels((prevChannels: IChannel[]) => {
+            return prevChannels.map(ch => {
+              if (ch.id === chId) {
+                return {
+                  ...ch,
+                  currentMessagesBatch: currentChannelBatch + 1
+                };
+              } else {
+                return ch;
+              }
+            });
+          });
+          resolve(true);
+        }
+      }
+    });
+  };
+
+  const joinChannel = (prettyPrint: string) => {
     return new Promise((resolve, reject) => {
       if (prettyPrint && chanManager && chanManager.JoinChannel) {
         try {
-          const chanInfo = JSON.parse(
-            dec.decode(chanManager.JoinChannel(prettyPrint))
-          );
-          if (appendToCurrent) {
-            let temp = {
-              id: chanInfo?.ChannelID,
-              name: chanInfo?.Name,
-              description: chanInfo?.Description,
-              prettyPrint: prettyPrint,
-              isLoading: true
-            };
-            setCurrentChannel(temp);
-            setChannels([...channels, temp]);
-            setTimeout(() => {
-              setCurrentChannel({ ...temp, isLoading: false });
-            }, 5000);
-            resolve(true);
-          }
+          chanManager.JoinChannel(prettyPrint);
+          resolve(true);
         } catch (error) {
           reject(error);
         }
       }
     });
   };
-  const createChannel = (channelName: string, channelDescription?: string) => {
-    return new Promise((resolve, reject) => {
+  const joinChannelFromURL = (url: string, password: string = "") => {
+    if (network && chanManager && chanManager.JoinChannelFromURL) {
+      try {
+        const chanInfo = JSON.parse(
+          dec.decode(chanManager.JoinChannelFromURL(url, password))
+        );
+        let temp = {
+          id: chanInfo?.ChannelID,
+          name: chanInfo?.Name,
+          description: chanInfo?.Description,
+          isLoading: true
+        };
+        setCurrentChannel(temp);
+        setChannels([...channels, temp]);
+        setTimeout(() => {
+          setCurrentChannel((prev: any) => {
+            if (prev?.id === temp.id) {
+              return {
+                ...prev,
+                isLoading: false
+              };
+            } else {
+              return prev;
+            }
+          });
+          setChannels(prev => {
+            return prev.map(ch => {
+              if (ch.id === temp.id) {
+                return {
+                  ...temp,
+                  isLoading: false
+                };
+              } else {
+                return ch;
+              }
+            });
+          });
+        }, 5000);
+        return true;
+      } catch (error) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+
+  const createChannel = (
+    channelName: string,
+    channelDescription: string,
+    privacyLevel: 0 | 2
+  ) => {
+    return new Promise(async (resolve, reject) => {
       if (network && networkStatus !== NetworkStatus.CONNECTED) {
         reject("Network is not connected yet");
       }
@@ -577,11 +880,12 @@ export const NetworkProvider: FC<any> = props => {
           const channelUnparsed = utils?.GenerateChannel(
             network?.GetID(),
             channelName,
-            channelDescription || ""
+            channelDescription || "",
+            privacyLevel
           );
           const channel = JSON.parse(dec.decode(channelUnparsed));
           const channelInfo = getChannelInfo(channel?.Channel || "");
-          joinChannel(channel?.Channel, false);
+          joinChannel(channel?.Channel);
           let temp = {
             id: channelInfo?.ChannelID,
             name: channelInfo?.Name,
@@ -738,6 +1042,44 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
+  const getShareURL = () => {
+    if (
+      network &&
+      chanManager &&
+      chanManager.GetShareURL &&
+      utils &&
+      utils.Base64ToUint8Array &&
+      currentChannel
+    ) {
+      try {
+        const res = chanManager.GetShareURL(
+          network?.GetID(),
+          "fdyxgquekd",
+          0,
+          utils.Base64ToUint8Array(currentChannel.id)
+        );
+        return JSON.parse(dec.decode(res));
+      } catch (error) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+
+  const getShareUrlType = (url: string) => {
+    if (url && network && utils && utils.GetShareUrlType) {
+      try {
+        const res = utils.GetShareUrlType(url);
+        return res;
+      } catch (error) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  };
+
   // Identity object is combination of private identity and code name
   const generateIdentitiesObjects = (n: number) => {
     const identitiesObjects = [];
@@ -753,6 +1095,72 @@ export const NetworkProvider: FC<any> = props => {
       }
     }
     return identitiesObjects;
+  };
+
+  const getVersion = () => {
+    if (utils && utils.GetVersion) {
+      return utils.GetVersion();
+    } else return null;
+  };
+
+  const exportDataToFile = (data: any) => {
+    const filename = "speakeasyIdentity.json";
+
+    const file = new Blob([data], { type: "text/plain" });
+    let a = document.createElement("a"),
+      url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+  };
+
+  const exportPrivateIdentity = (password: string) => {
+    if (utils && utils.GetOrInitPassword) {
+      try {
+        const statePassEncoded = utils.GetOrInitPassword(password);
+
+        if (
+          statePassEncoded &&
+          chanManager &&
+          chanManager.ExportPrivateIdentity
+        ) {
+          const data = chanManager.ExportPrivateIdentity(password);
+          exportDataToFile(data);
+          return statePassEncoded;
+        }
+      } catch (error) {
+        return false;
+      }
+    }
+  };
+
+  const getCodeNameAndColor = (publicKey: string, codeset: number) => {
+    if (utils && utils.ConstructIdentity && utils.Base64ToUint8Array) {
+      try {
+        const identity = JSON.parse(
+          dec.decode(
+            utils.ConstructIdentity(
+              utils.Base64ToUint8Array(publicKey),
+              codeset
+            )
+          )
+        );
+        return {
+          codeName: identity.Codename,
+          color: identity.Color
+        };
+      } catch (error) {
+        console.error("Failed to get codename and color", error);
+        return {};
+      }
+    } else {
+      return {};
+    }
   };
 
   return (
@@ -785,7 +1193,15 @@ export const NetworkProvider: FC<any> = props => {
         getIdentity,
         sendReply,
         sendReaction,
-        getPrettyPrint
+        getPrettyPrint,
+        getShareURL,
+        getShareUrlType,
+        joinChannelFromURL,
+        getVersion,
+        loadMoreChannelData,
+        exportPrivateIdentity,
+        getCodeNameAndColor,
+        isNetworkHealthy
       }}
       {...props}
     />
