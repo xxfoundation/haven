@@ -100,7 +100,7 @@ const ActionsWrapper: FC<{
             <Picker
               data={data}
               previewPosition="none"
-              onEmojiSelect={e => {
+              onEmojiSelect={(e: any) => {
                 onReactToMessage({
                   emoji: e.native
                 });
