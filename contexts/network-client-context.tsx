@@ -9,7 +9,7 @@ import { IMessage } from "types";
 import { enc, dec } from "utils";
 import _ from "lodash";
 
-const batchCount = 10;
+const batchCount = 100;
 
 export enum NetworkStatus {
   CONNECTED = "connected",
@@ -164,10 +164,17 @@ export const NetworkProvider: FC<any> = props => {
   );
   const channelsRef = useRef<IChannel[]>([]);
   const blockedEvents = useRef<any[]>([]);
+  const currentCodeNameRef = useRef<string>("");
 
   useEffect(() => {
     channelsRef.current = channels;
   }, [channels]);
+
+  useEffect(() => {
+    if (chanManager) {
+      currentCodeNameRef.current = getIdentity().Codename;
+    }
+  }, [chanManager]);
 
   useEffect(() => {
     setIsAuthenticated(true);
@@ -363,7 +370,50 @@ export const NetworkProvider: FC<any> = props => {
       const mappedMessages = await mapDbMessagesToMessages([event]);
 
       if (mappedMessages.length) {
-        setMessages(prev => [...prev, mappedMessages[0]]);
+        const currentUserCodename = currentCodeNameRef.current;
+        const newMessage = mappedMessages[0];
+
+        setMessages(prev => {
+          // This is the Sender side (Just append)
+          if (currentUserCodename === newMessage.codeName) {
+            return [...prev, newMessage];
+          } else {
+            // This is receiver side (Sort if needed)
+            if (prev.length === 0) {
+              return [newMessage];
+            } else {
+              const channelMessages = prev.filter(
+                m => m.channelId === newMessage.channelId
+              );
+
+              // This is the first message for this channel
+              if (channelMessages.length === 0) {
+                return [...prev, newMessage];
+              } else {
+                const lastChannelMessageTimestamp = new Date(
+                  channelMessages[channelMessages.length - 1].timestamp
+                ).getTime();
+                const newMessageTimestamp = new Date(
+                  newMessage.timestamp
+                ).getTime();
+
+                // No need to sort
+                if (newMessageTimestamp >= lastChannelMessageTimestamp) {
+                  return [...prev, newMessage];
+                } else {
+                  const newMessages = [...prev, newMessage];
+                  const sortedNewMessages = newMessages.sort((x, y) => {
+                    return (
+                      new Date(x.timestamp).getTime() -
+                      new Date(y.timestamp).getTime()
+                    );
+                  });
+                  return sortedNewMessages;
+                }
+              }
+            }
+          }
+        });
       }
     }
   };
@@ -388,9 +438,51 @@ export const NetworkProvider: FC<any> = props => {
       } else if (receivedMessage.type === 1) {
         // It's normal message or reply to message event
         const mappedMessages = await mapDbMessagesToMessages([receivedMessage]);
-
         if (mappedMessages.length) {
-          setMessages(prev => [...prev, mappedMessages[0]]);
+          const currentUserCodename = currentCodeNameRef.current;
+          const newMessage = mappedMessages[0];
+
+          setMessages(prev => {
+            // This is the Sender side (Just append)
+            if (currentUserCodename === newMessage.codeName) {
+              return [...prev, newMessage];
+            } else {
+              // This is receiver side (Sort if needed)
+              if (prev.length === 0) {
+                return [newMessage];
+              } else {
+                const channelMessages = prev.filter(
+                  m => m.channelId === newMessage.channelId
+                );
+
+                // This is the first message for this channel
+                if (channelMessages.length === 0) {
+                  return [...prev, newMessage];
+                } else {
+                  const lastChannelMessageTimestamp = new Date(
+                    channelMessages[channelMessages.length - 1].timestamp
+                  ).getTime();
+                  const newMessageTimestamp = new Date(
+                    newMessage.timestamp
+                  ).getTime();
+
+                  // No need to sort
+                  if (newMessageTimestamp >= lastChannelMessageTimestamp) {
+                    return [...prev, newMessage];
+                  } else {
+                    const newMessages = [...prev, newMessage];
+                    const sortedNewMessages = newMessages.sort((x, y) => {
+                      return (
+                        new Date(x.timestamp).getTime() -
+                        new Date(y.timestamp).getTime()
+                      );
+                    });
+                    return sortedNewMessages;
+                  }
+                }
+              }
+            }
+          });
         }
       }
       checkIfWillResolveBlockedEvent(receivedMessage);
@@ -959,10 +1051,6 @@ export const NetworkProvider: FC<any> = props => {
       utils.Base64ToUint8Array &&
       currentChannel
     ) {
-      console.log(
-        "Test 0000 currentChannel ID passed (Base64):",
-        currentChannel.id
-      );
       try {
         const res = chanManager.GetShareURL(
           network?.GetID(),
