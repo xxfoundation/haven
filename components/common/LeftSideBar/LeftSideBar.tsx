@@ -21,7 +21,8 @@ const LeftSideBar: FC<{
     setCurrentChannel,
     networkStatus,
     getIdentity,
-    getVersion
+    getVersion,
+    getClientVersion
   } = useNetworkClient();
 
   const codeName = getIdentity().Codename;
@@ -127,7 +128,8 @@ const LeftSideBar: FC<{
           />
         </div>
         <div className={cn(s.version)}>
-          {getVersion() && <span>Version {getVersion()}</span>}
+          {getClientVersion() && <span>XXDK version {getClientVersion()}</span>}
+          {getVersion() && <span>Wasm version {getVersion()}</span>}
         </div>
       </div>
     </div>

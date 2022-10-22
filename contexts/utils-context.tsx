@@ -14,6 +14,7 @@ export interface IHelperMethods {
   IsNicknameValid: Function;
   GetShareUrlType: Function;
   GetVersion: Function;
+  GetClientVersion: Function;
   GetOrInitPassword: Function;
   ImportPrivateIdentity: Function;
   ConstructIdentity: Function;
@@ -33,6 +34,7 @@ const initialUtils = {
   IsNicknameValid: () => {},
   GetShareUrlType: () => {},
   GetVersion: () => {},
+  GetClientVersion: () => {},
   GetOrInitPassword: () => {},
   ImportPrivateIdentity: () => {},
   ConstructIdentity: () => {}
