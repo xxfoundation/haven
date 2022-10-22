@@ -80,6 +80,7 @@ const DefaultLayout: FC<Props> = ({
             LogLevel,
             GetShareUrlType,
             GetVersion,
+            GetClientVersion,
             GetOrInitPassword,
             ImportPrivateIdentity,
             ConstructIdentity
@@ -99,6 +100,7 @@ const DefaultLayout: FC<Props> = ({
             IsNicknameValid,
             GetShareUrlType,
             GetVersion,
+            GetClientVersion,
             GetOrInitPassword,
             ImportPrivateIdentity,
             ConstructIdentity
