@@ -94,6 +94,7 @@ export const NetworkClientContext = React.createContext<{
   getShareUrlType: Function;
   joinChannelFromURL: Function;
   getVersion: Function;
+  getClientVersion: Function;
   loadMoreChannelData: Function;
   exportPrivateIdentity: Function;
   getCodeNameAndColor: Function;
@@ -132,6 +133,7 @@ export const NetworkClientContext = React.createContext<{
   getShareUrlType: () => {},
   joinChannelFromURL: () => {},
   getVersion: () => {},
+  getClientVersion: () => {},
   loadMoreChannelData: () => {},
   exportPrivateIdentity: () => {},
   getCodeNameAndColor: () => {},
@@ -1103,6 +1105,12 @@ export const NetworkProvider: FC<any> = props => {
     } else return null;
   };
 
+  const getClientVersion = () => {
+    if (utils && utils.GetClientVersion) {
+      return utils.GetClientVersion();
+    } else return null;
+  };
+
   const exportDataToFile = (data: any) => {
     const filename = "speakeasyIdentity.json";
 
@@ -1198,6 +1206,7 @@ export const NetworkProvider: FC<any> = props => {
         getShareUrlType,
         joinChannelFromURL,
         getVersion,
+        getClientVersion,
         loadMoreChannelData,
         exportPrivateIdentity,
         getCodeNameAndColor,
