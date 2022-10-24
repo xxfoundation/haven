@@ -960,7 +960,8 @@ export const NetworkProvider: FC<any> = props => {
           );
           const channel = JSON.parse(dec.decode(channelUnparsed));
           const channelInfo = getChannelInfo(channel?.Channel || "");
-          joinChannel(channel?.Channel, false);
+          joinChannel(channel?.Channel, true);
+          console.log("JK JOINNNNED")
           let temp = {
             id: channelInfo?.ChannelID,
             name: channelInfo?.Name,
