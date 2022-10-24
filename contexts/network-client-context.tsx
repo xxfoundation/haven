@@ -849,10 +849,11 @@ export const NetworkProvider: FC<any> = props => {
     return new Promise((resolve, reject) => {
       if (prettyPrint && chanManager && chanManager.JoinChannel) {
         try {
+          const chanInfo = JSON.parse(
+            dec.decode(chanManager.JoinChannel(prettyPrint))
+          );
+
           if (appendToCurrent) {
-            const chanInfo = JSON.parse(
-              dec.decode(chanManager.JoinChannel(prettyPrint))
-            );
             let temp = {
               id: chanInfo?.ChannelID,
               name: chanInfo?.Name,
@@ -886,6 +887,7 @@ export const NetworkProvider: FC<any> = props => {
               });
             }, 5000);
           }
+
           resolve(true);
         } catch (error) {
           reject(error);
@@ -960,8 +962,7 @@ export const NetworkProvider: FC<any> = props => {
           );
           const channel = JSON.parse(dec.decode(channelUnparsed));
           const channelInfo = getChannelInfo(channel?.Channel || "");
-          joinChannel(channel?.Channel, true);
-          console.log("JK JOINNNNED")
+          joinChannel(channel?.Channel, false);
           let temp = {
             id: channelInfo?.ChannelID,
             name: channelInfo?.Name,

@@ -80,6 +80,10 @@ const CreateChannelView: FC<{}> = ({}) => {
         buttonCopy="Create"
         cssClass={cn("mt-5 mb-8", s.button)}
         onClick={() => {
+          if (channelName.includes(" ")) {
+            setError("Name can’t contain spaces");
+            return;
+          }
           createChannel(channelName, channelDesc, privacyLevel)
             .then(() => {
               setChannelName("");
