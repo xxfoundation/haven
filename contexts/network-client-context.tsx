@@ -8,6 +8,7 @@ import { Dexie } from "dexie";
 import { IMessage } from "types";
 import { enc, dec } from "utils";
 import _ from "lodash";
+import Cookies from "js-cookie";
 
 const batchCount = 100;
 
@@ -167,6 +168,11 @@ export const NetworkProvider: FC<any> = props => {
   const channelsRef = useRef<IChannel[]>([]);
   const blockedEvents = useRef<any[]>([]);
   const currentCodeNameRef = useRef<string>("");
+  const [bc, setBc] = useState<BroadcastChannel>(
+    new BroadcastChannel("join_channel")
+  );
+
+  const dummyTrafficObjRef = useRef<any>(undefined);
 
   useEffect(() => {
     channelsRef.current = channels;
@@ -175,8 +181,19 @@ export const NetworkProvider: FC<any> = props => {
   useEffect(() => {
     if (chanManager) {
       currentCodeNameRef.current = getIdentity().Codename;
+      Cookies.set("userAuthenticated", "true", { path: "/" });
     }
   }, [chanManager]);
+
+  useEffect(() => {
+    bc.onmessage = async event => {
+      if (event.data?.prettyPrint) {
+        try {
+          await joinChannel(event.data.prettyPrint);
+        } catch (error) {}
+      }
+    };
+  }, [bc, chanManager]);
 
   useEffect(() => {
     setIsAuthenticated(true);
@@ -713,11 +730,28 @@ export const NetworkProvider: FC<any> = props => {
         statePassEncoded,
         utils.GetDefaultCMixParams()
       );
+      try {
+        dummyTrafficObjRef.current = utils.NewDummyTrafficManager(
+          net.GetID(),
+          3,
+          15000,
+          7000
+        );
+      } catch (error) {
+        console.log("error while creating the Dummy Traffic Object:", error);
+      }
       if (net?.AddHealthCallback) {
         net.AddHealthCallback({
           Callback: (isHealthy: boolean) => {
             if (isHealthy) {
               setIsNetworkHealthy(true);
+              if (
+                dummyTrafficObjRef &&
+                dummyTrafficObjRef.current &&
+                !dummyTrafficObjRef?.current?.GetStatus()
+              ) {
+                dummyTrafficObjRef?.current?.SetStatus(true);
+              }
             } else {
               setIsNetworkHealthy(false);
             }
@@ -808,11 +842,50 @@ export const NetworkProvider: FC<any> = props => {
     });
   };
 
-  const joinChannel = (prettyPrint: string) => {
+  const joinChannel = (
+    prettyPrint: string,
+    appendToCurrent: boolean = true
+  ) => {
     return new Promise((resolve, reject) => {
       if (prettyPrint && chanManager && chanManager.JoinChannel) {
         try {
-          chanManager.JoinChannel(prettyPrint);
+          if (appendToCurrent) {
+            const chanInfo = JSON.parse(
+              dec.decode(chanManager.JoinChannel(prettyPrint))
+            );
+            let temp = {
+              id: chanInfo?.ChannelID,
+              name: chanInfo?.Name,
+              description: chanInfo?.Description,
+              isLoading: true
+            };
+            setCurrentChannel(temp);
+            setChannels(prev => [...prev, temp]);
+            setTimeout(() => {
+              setCurrentChannel((prev: any) => {
+                if (prev?.id === temp.id) {
+                  return {
+                    ...prev,
+                    isLoading: false
+                  };
+                } else {
+                  return prev;
+                }
+              });
+              setChannels(prev => {
+                return prev.map(ch => {
+                  if (ch.id === temp.id) {
+                    return {
+                      ...temp,
+                      isLoading: false
+                    };
+                  } else {
+                    return ch;
+                  }
+                });
+              });
+            }, 5000);
+          }
           resolve(true);
         } catch (error) {
           reject(error);
@@ -887,7 +960,7 @@ export const NetworkProvider: FC<any> = props => {
           );
           const channel = JSON.parse(dec.decode(channelUnparsed));
           const channelInfo = getChannelInfo(channel?.Channel || "");
-          joinChannel(channel?.Channel);
+          joinChannel(channel?.Channel, false);
           let temp = {
             id: channelInfo?.ChannelID,
             name: channelInfo?.Name,
@@ -1054,9 +1127,10 @@ export const NetworkProvider: FC<any> = props => {
       currentChannel
     ) {
       try {
+        const currentHostName = window.location.host;
         const res = chanManager.GetShareURL(
           network?.GetID(),
-          "fdyxgquekd",
+          `http://${currentHostName}/join`,
           0,
           utils.Base64ToUint8Array(currentChannel.id)
         );
@@ -1070,7 +1144,7 @@ export const NetworkProvider: FC<any> = props => {
   };
 
   const getShareUrlType = (url: string) => {
-    if (url && network && utils && utils.GetShareUrlType) {
+    if (url && utils && utils.GetShareUrlType) {
       try {
         const res = utils.GetShareUrlType(url);
         return res;
