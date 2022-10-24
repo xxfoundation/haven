@@ -133,14 +133,14 @@ const RegisterView: FC<{
           </div>
         </div>
         <div className={cn("grid grid-cols-12 gap-0", s.footer)}>
-          <div className={cn("flex flex-col col-span-3", s.perkCard)}>
+          <div className={cn("flex flex-col col-span-4", s.perkCard)}>
             <OpenSource />
             <span className={cn(s.perkCard__title)}>Open Source</span>
             <span className={cn(s.perkCard__description)}>
               Every line — open source. Forever.
             </span>
           </div>
-          <div className={cn("flex flex-col col-span-3", s.perkCard)}>
+          <div className={cn("flex flex-col col-span-4", s.perkCard)}>
             <NormalHash />
             <span className={cn(s.perkCard__title)}>
               Fundamentally Different
@@ -149,17 +149,11 @@ const RegisterView: FC<{
               Powered by the first decentralized mixnet-blockchain
             </span>
           </div>
-          <div className={cn("flex flex-col col-span-3", s.perkCard)}>
+          <div className={cn("flex flex-col col-span-4", s.perkCard)}>
             <RoadMap />
             <span className={cn(s.perkCard__title)}>Roadmap</span>
             <span className={cn(s.perkCard__description)}>
               Building to the future
-            </span>
-          </div>
-          <div className={cn("flex flex-col col-span-3", s.perkCard)}>
-            <Chat />
-            <span className={cn(s.perkCard__title)}>
-              Join the discussion on the official feedback speakeasy
             </span>
           </div>
         </div>
