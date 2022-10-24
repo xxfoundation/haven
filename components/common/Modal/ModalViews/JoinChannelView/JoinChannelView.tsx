@@ -4,16 +4,22 @@ import cn from "classnames";
 import { ModalCtaButton } from "@components/common";
 import { useNetworkClient } from "contexts/network-client-context";
 import { useUI } from "contexts/ui-context";
+import { useUtils } from "@contexts/utils-context";
 
 const JoinChannelView: FC<{}> = ({}) => {
   const [url, setUrl] = useState<string>("");
-  const { getShareUrlType, joinChannelFromURL } = useNetworkClient();
+  const {
+    getShareUrlType,
+    joinChannelFromURL,
+    joinChannel
+  } = useNetworkClient();
+  const { utils } = useUtils();
   const { closeModal } = useUI();
   const [error, setError] = useState("");
   const [needPassword, setNeedPassword] = useState(false);
   const [password, setPassword] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (url.length === 0) {
       return;
     }
@@ -23,11 +29,13 @@ const JoinChannelView: FC<{}> = ({}) => {
 
       if (res === 0) {
         // Public then we should proceed
-        const success = joinChannelFromURL(url);
-        if (success) {
+
+        try {
+          const prettyPrint = utils.DecodePublicURL(url);
+          await joinChannel(prettyPrint);
           setUrl("");
           closeModal();
-        } else {
+        } catch (error) {
           setError("Something wrong happened, please check your details.");
         }
       } else if (res === 2) {
@@ -41,12 +49,13 @@ const JoinChannelView: FC<{}> = ({}) => {
       }
     } else {
       if (url && password) {
-        const success = joinChannelFromURL(url, password);
-        if (success) {
+        try {
+          const prettyPrint = utils.DecodePrivateURL(url, password);
+          await joinChannel(prettyPrint);
           setUrl("");
           setPassword("");
           closeModal();
-        } else {
+        } catch (error) {
           setError("Something wrong happened, please check your details.");
         }
       }
