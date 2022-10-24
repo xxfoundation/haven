@@ -147,25 +147,36 @@ const LoginView: FC<{}> = ({}) => {
         </div>
       </div>
       <div className={cn(s.links)}>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
-          Join the Discussion
-        </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
-          Contact
-        </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
-          Privacy Policy
-        </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
+        <a href="https://xx.network/" target="_blank" rel="noreferrer">
           xx network
         </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
+        <a
+          href="https://www.speakeasy.tech/privacy-policy/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Privacy Policy
+        </a>
+
+        <a
+          href="https://www.speakeasy.tech/terms-of-use/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Terms of Use
+        </a>
+
+        <a href="https://xxfoundation.org/" target="_blank" rel="noreferrer">
           xx foundation
         </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
+        <a href="https://elixxir.io/" target="_blank" rel="noreferrer">
           xx messenger
         </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
+        <a
+          href="https://twitter.com/speakeasy_tech"
+          target="_blank"
+          rel="noreferrer"
+        >
           twitter
         </a>
       </div>
