@@ -32,6 +32,11 @@ const ChannelChat: FC<{}> = ({}) => {
   const [replyToMessage, setReplyToMessage] = useState<IMessage | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
 
+  useEffect(() => {
+    setReplyToMessage(undefined);
+    setMessageBody("");
+  }, [currentChannel?.id]);
+
   let currentChannelMessages = messages.filter(m => {
     return m?.channelId === currentChannel?.id;
   });
@@ -73,6 +78,17 @@ const ChannelChat: FC<{}> = ({}) => {
           messagesContainerRef.current.scrollTop = 20;
         }
       }
+    }
+  };
+
+  // return false if
+  const checkMessageLength = () => {
+    if (messageBody.trim().length > 700) {
+      setModalView("MESSAGE_LONG");
+      openModal();
+      return false;
+    } else {
+      return true;
     }
   };
 
@@ -197,9 +213,13 @@ const ChannelChat: FC<{}> = ({}) => {
                     openModal();
                   } else {
                     if (replyToMessage) {
-                      sendReply(messageBody.trim(), replyToMessage.id);
+                      if (checkMessageLength()) {
+                        sendReply(messageBody.trim(), replyToMessage.id);
+                      }
                     } else {
-                      sendMessage(messageBody.trim());
+                      if (checkMessageLength()) {
+                        sendMessage(messageBody.trim());
+                      }
                     }
                   }
 
@@ -223,9 +243,13 @@ const ChannelChat: FC<{}> = ({}) => {
                     openModal();
                   } else {
                     if (replyToMessage) {
-                      sendReply(messageBody.trim(), replyToMessage.id);
+                      if (checkMessageLength()) {
+                        sendReply(messageBody.trim(), replyToMessage.id);
+                      }
                     } else {
-                      sendMessage(messageBody.trim());
+                      if (checkMessageLength()) {
+                        sendMessage(messageBody.trim());
+                      }
                     }
                   }
 

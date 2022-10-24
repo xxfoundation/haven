@@ -20,7 +20,8 @@ import {
   ExportCodenameView,
   ImportCodenameView,
   NetworkNotReadyView,
-  JoinChannelSuccessView
+  JoinChannelSuccessView,
+  MessageLongView
 } from "@components/common/Modal/ModalViews";
 
 import Register from "components/common/Register";
@@ -76,6 +77,7 @@ const DefaultLayout: FC<Props> = ({
         {modalView === "IMPORT_CODENAME" && <ImportCodenameView />}
         {modalView === "NETWORK_NOT_READY" && <NetworkNotReadyView />}
         {modalView === "JOIN_CHANNEL_SUCCESS" && <JoinChannelSuccessView />}
+        {modalView === "MESSAGE_LONG" && <MessageLongView />}
       </Modal>
     );
   };
