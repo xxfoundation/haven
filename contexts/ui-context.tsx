@@ -34,7 +34,8 @@ type MODAL_VIEWS =
   | "SETTINGS"
   | "EXPORT_CODENAME"
   | "IMPORT_CODENAME"
-  | "NETWORK_NOT_READY";
+  | "NETWORK_NOT_READY"
+  | "JOIN_CHANNEL_SUCCESS";
 
 export const UIContext = React.createContext<State | any>(initialState);
 

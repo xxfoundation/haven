@@ -11,7 +11,7 @@ const CreateChannelView: FC<{}> = ({}) => {
   const [channelName, setChannelName] = useState<string>("");
   const [channelDesc, setChannelDesc] = useState<string>("");
   const [error, setError] = useState("");
-  const [privacyLevel, setPrivacyLevel] = useState<0 | 2>(0); //0 = public, 1 = private, and 2 = secret
+  const [privacyLevel, setPrivacyLevel] = useState<0 | 2>(2); //0 = public, 1 = private, and 2 = secret
 
   const handlePrivacyChange = (e: any) => {
     setPrivacyLevel(e.target.value === "public" ? 0 : 2);
@@ -69,9 +69,7 @@ const CreateChannelView: FC<{}> = ({}) => {
           ? `Public Speakeasies are accessible by anyone with just the link. No
         password is needed to join. You can assume everyone knows when you are
         in a public speakeasy`
-          : `Secret Speakeasies are accessible by anyone with just the link. No
-          password is needed to join. You can assume everyone knows when you are
-          in a public speakeasy....`}
+          : `Secret speakeasies hide everything: their names, descriptions, members, messages, and more. No one knows anything about the speakeasy unless they have the passphrase`}
       </p>
       {error && (
         <div className={"text text--xs mt-2"} style={{ color: "var(--red)" }}>

@@ -18,6 +18,10 @@ export interface IHelperMethods {
   GetOrInitPassword: Function;
   ImportPrivateIdentity: Function;
   ConstructIdentity: Function;
+  DecodePrivateURL: Function;
+  DecodePublicURL: Function;
+  GetChannelJSON: Function;
+  NewDummyTrafficManager: Function;
 }
 
 const initialUtils = {
@@ -37,7 +41,11 @@ const initialUtils = {
   GetClientVersion: () => {},
   GetOrInitPassword: () => {},
   ImportPrivateIdentity: () => {},
-  ConstructIdentity: () => {}
+  ConstructIdentity: () => {},
+  DecodePrivateURL: () => {},
+  DecodePublicURL: () => {},
+  GetChannelJSON: () => {},
+  NewDummyTrafficManager: () => {}
 };
 
 export const UtilsContext = React.createContext<{
