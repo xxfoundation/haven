@@ -1,7 +1,11 @@
 import { FC } from "react";
 import s from "./LeftSideBar.module.scss";
 import cn from "classnames";
-import { Collapse, NetworkStatusIcon } from "@components/common";
+import {
+  Collapse,
+  NetworkStatusIcon,
+  MissedMessagesIcon
+} from "@components/common";
 import { Elixxir, SpeakEasy, Settings, Plus, Join } from "@components/icons";
 import { useUI } from "contexts/ui-context";
 import {
@@ -86,18 +90,25 @@ const LeftSideBar: FC<{
           <div className="flex flex-col">
             {channels.map(ch => {
               return (
-                <span
-                  key={ch.id}
-                  className={cn(s.channelPill, "headline--xs", {
-                    [s.channelPill__active]:
-                      ch.id === (currentChannel?.id || "")
-                  })}
-                  onClick={() => {
-                    onChannelChange(ch.id);
-                  }}
-                >
-                  {ch.name}
-                </span>
+                <div className="flex justify-between items-center">
+                  <span
+                    key={ch.id}
+                    className={cn(s.channelPill, "headline--xs", {
+                      [s.channelPill__active]:
+                        ch.id === (currentChannel?.id || "")
+                    })}
+                    onClick={() => {
+                      onChannelChange(ch.id);
+                    }}
+                  >
+                    {ch.name}
+                  </span>
+                  {ch.withMissedMessages && (
+                    <span className="mr-2">
+                      <MissedMessagesIcon></MissedMessagesIcon>
+                    </span>
+                  )}
+                </div>
               );
             })}
           </div>
