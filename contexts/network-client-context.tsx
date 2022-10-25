@@ -28,6 +28,11 @@ interface INetwork {
   AddHealthCallback: Function;
 }
 
+interface IDatabaseCipher {
+  GetID: Function;
+  Decrypt: Function;
+}
+
 interface IChannelManager {
   GetChannels: Function;
   GetID: Function;
@@ -154,6 +159,7 @@ export const NetworkProvider: FC<any> = props => {
   const { utils } = useUtils();
 
   const [network, setNetwork] = useState<INetwork | undefined>();
+  // const [cipher, setCipher] = useState<IDatabaseCipher | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
   );
@@ -173,6 +179,8 @@ export const NetworkProvider: FC<any> = props => {
   );
 
   const dummyTrafficObjRef = useRef<any>(undefined);
+
+  const cipherRef = useRef<IDatabaseCipher>();
 
   useEffect(() => {
     channelsRef.current = channels;
@@ -206,7 +214,7 @@ export const NetworkProvider: FC<any> = props => {
   }, [network]);
 
   const mapDbMessagesToMessages = async (messages: any[]) => {
-    if (!db) {
+    if (!db || !(cipherRef && cipherRef.current)) {
       return [];
     } else {
       // const allMessages = await db.table("messages").toArray();
@@ -249,7 +257,9 @@ export const NetworkProvider: FC<any> = props => {
 
           const resolvedMessage: IMessage = {
             id: m.message_id,
-            body: m.text,
+            body: dec.decode(
+              cipherRef?.current.Decrypt(utils.Base64ToUint8Array(m.text))
+            ),
             timestamp: m.timestamp,
             codeName: messageCodeName,
             nickName: m.nickname || "",
@@ -260,7 +270,11 @@ export const NetworkProvider: FC<any> = props => {
             round: m.round,
             replyToMessage: {
               id: replyToMessage.message_id,
-              body: replyToMessage.text,
+              body: dec.decode(
+                cipherRef?.current.Decrypt(
+                  utils.Base64ToUint8Array(replyToMessage.text)
+                )
+              ),
               timestamp: replyToMessage.timestamp,
               codeName: replyToMessageCodeName,
               nickName: replyToMessage.nickname || "",
@@ -280,7 +294,9 @@ export const NetworkProvider: FC<any> = props => {
           } = getCodeNameAndColor(m.pubkey, m.codeset_version);
           const resolvedMessage: IMessage = {
             id: m.message_id,
-            body: m.text,
+            body: dec.decode(
+              cipherRef?.current.Decrypt(utils.Base64ToUint8Array(m.text))
+            ),
             timestamp: m.timestamp,
             codeName: messageCodeName,
             nickName: m.nickname || "",
@@ -670,12 +686,20 @@ export const NetworkProvider: FC<any> = props => {
 
   const loadChannelManager = async (storageTag: string, net?: any) => {
     const currentNetwork = network || net;
-    if (currentNetwork && utils && utils.LoadChannelsManagerWithIndexedDb) {
+
+    if (
+      currentNetwork &&
+      cipherRef?.current &&
+      utils &&
+      utils.LoadChannelsManagerWithIndexedDb
+    ) {
+      console.log("Test 0000 cipher is there:", cipherRef?.current);
       utils
         .LoadChannelsManagerWithIndexedDb(
           currentNetwork.GetID(),
           storageTag,
-          onReceiveEvent
+          onReceiveEvent,
+          cipherRef?.current.GetID()
         )
         .then(async (res: IChannelManager) => {
           setChanManager(res);
@@ -686,12 +710,18 @@ export const NetworkProvider: FC<any> = props => {
 
   const createChannelManager = async (privateIdentity: any, net?: any) => {
     const currentNetwork = network || net;
-    if (currentNetwork && utils && utils.NewChannelsManagerWithIndexedDb) {
+    if (
+      currentNetwork &&
+      cipherRef?.current &&
+      utils &&
+      utils.NewChannelsManagerWithIndexedDb
+    ) {
       utils
         .NewChannelsManagerWithIndexedDb(
           currentNetwork.GetID(),
           privateIdentity,
-          onReceiveEvent
+          onReceiveEvent,
+          cipherRef?.current.GetID()
         )
         .then(async (res: IChannelManager) => {
           setChanManager(res);
@@ -740,6 +770,13 @@ export const NetworkProvider: FC<any> = props => {
       } catch (error) {
         console.log("error while creating the Dummy Traffic Object:", error);
       }
+
+      const cipherObj = utils.NewChannelsDatabaseCipher(
+        net.GetID(),
+        statePassEncoded,
+        725
+      );
+      cipherRef.current = cipherObj;
       if (net?.AddHealthCallback) {
         net.AddHealthCallback({
           Callback: (isHealthy: boolean) => {

@@ -22,6 +22,7 @@ export interface IHelperMethods {
   DecodePublicURL: Function;
   GetChannelJSON: Function;
   NewDummyTrafficManager: Function;
+  NewChannelsDatabaseCipher: Function;
 }
 
 const initialUtils = {
@@ -45,7 +46,8 @@ const initialUtils = {
   DecodePrivateURL: () => {},
   DecodePublicURL: () => {},
   GetChannelJSON: () => {},
-  NewDummyTrafficManager: () => {}
+  NewDummyTrafficManager: () => {},
+  NewChannelsDatabaseCipher: () => {}
 };
 
 export const UtilsContext = React.createContext<{
