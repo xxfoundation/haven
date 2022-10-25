@@ -8,7 +8,6 @@ import { Spinner } from "@components/common";
 const RegisterView2: FC<{}> = ({}) => {
   const {
     generateIdentitiesObjects,
-    isNetworkLoading,
     network,
     createChannelManager
   } = useNetworkClient();

@@ -8,3 +8,5 @@ export { default as SettingsView } from "./SettingsView";
 export { default as ExportCodenameView } from "./ExportCodenameView";
 export { default as ImportCodenameView } from "./ImportCodenameView";
 export { default as NetworkNotReadyView } from "./NetworkNotReadyView";
+export { default as JoinChannelSuccessView } from "./JoinChannelSuccessView";
+export { default as MessageLongView } from "./MessageLongView";
