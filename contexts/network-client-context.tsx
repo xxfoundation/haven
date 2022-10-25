@@ -334,7 +334,10 @@ export const NetworkProvider: FC<any> = props => {
       );
       if (destinationMessage) {
         const temp = destinationMessage;
-        const emoji = dbMessage.text;
+        // const emoji = dbMessage.text;
+        const emoji = dec.decode(
+          cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(dbMessage.text))
+        );
 
         const { codeName } = getCodeNameAndColor(
           dbMessage.pubkey,
@@ -507,7 +510,6 @@ export const NetworkProvider: FC<any> = props => {
         if (mappedMessages.length) {
           const currentUserCodename = currentCodeNameRef.current;
           const newMessage = mappedMessages[0];
-
           setMessages(prev => {
             // This is the Sender side (Just append)
             if (currentUserCodename === newMessage.codeName) {
