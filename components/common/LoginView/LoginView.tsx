@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import s from "./LoginView.module.scss";
-import { ModalCtaButton } from "@components/common";
+import { ModalCtaButton, Spinner } from "@components/common";
 import cn from "classnames";
 import { useAuthentication } from "contexts/authentication-context";
 import { useNetworkClient } from "contexts/network-client-context";
@@ -17,16 +17,23 @@ const LoginView: FC<{}> = ({}) => {
   const [error, setError] = useState<string>("");
   const { loadCmix, loadChannelManager } = useNetworkClient();
   const { checkUser, getStorageTag } = useAuthentication();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
+    setIsLoading(true);
     const statePassEncoded = checkUser(password);
     if (!statePassEncoded) {
       setError("Incorrect password");
+      setIsLoading(false);
     } else {
-      loadCmix(statePassEncoded, (net: any) =>
-        loadChannelManager(getStorageTag(), net)
-      );
+      setTimeout(() => {
+        loadCmix(statePassEncoded, (net: any) => {
+          loadChannelManager(getStorageTag(), net);
+        }).then(() => {
+          setIsLoading(false);
+        });
+      }, 1000);
     }
   };
 
@@ -82,10 +89,17 @@ const LoginView: FC<{}> = ({}) => {
             <div className="flex flex-col mt-4">
               <ModalCtaButton
                 buttonCopy="Login"
+                disabled={isLoading}
                 cssClass={s.button}
                 onClick={handleSubmit}
               />
             </div>
+            {isLoading && (
+              <div className={s.loading}>
+                <Spinner />
+              </div>
+            )}
+
             {error && (
               <div
                 style={{

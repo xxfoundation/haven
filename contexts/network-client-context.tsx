@@ -82,7 +82,6 @@ export const NetworkClientContext = React.createContext<{
   sendMessage: Function;
   leaveChannel: Function;
   generateIdentitiesObjects: Function;
-  isNetworkLoading: boolean;
   connectNetwork: Function;
   initiateCmix: Function;
   loadCmix: Function;
@@ -121,7 +120,6 @@ export const NetworkClientContext = React.createContext<{
   sendMessage: () => {},
   leaveChannel: () => {},
   generateIdentitiesObjects: () => {},
-  isNetworkLoading: false,
   connectNetwork: () => {},
   initiateCmix: () => {},
   loadCmix: () => {},
@@ -159,7 +157,6 @@ export const NetworkProvider: FC<any> = props => {
   const { utils } = useUtils();
 
   const [network, setNetwork] = useState<INetwork | undefined>();
-  // const [cipher, setCipher] = useState<IDatabaseCipher | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
   );
@@ -167,7 +164,7 @@ export const NetworkProvider: FC<any> = props => {
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
-  const [isNetworkLoading, setIsNetworkLoading] = useState<boolean>(false);
+
   const [isNetworkHealthy, setIsNetworkHealthy] = useState<boolean | undefined>(
     undefined
   );
@@ -220,10 +217,11 @@ export const NetworkProvider: FC<any> = props => {
   }, [bc, chanManager]);
 
   useEffect(() => {
-    setIsAuthenticated(true);
-    if (network && isNetworkLoading) {
-      setIsNetworkLoading(false);
+    if (network) {
+      setIsAuthenticated(true);
     }
+    // setIsAuthenticated(true);
+
     if (network && networkStatus !== NetworkStatus.CONNECTED) {
       connectNetwork();
     }
@@ -783,59 +781,62 @@ export const NetworkProvider: FC<any> = props => {
   };
 
   // Used directly on Login
-  const loadCmix = async (statePassEncoded: string, cb?: Function) => {
-    let net;
-    setIsNetworkLoading(true);
-    try {
-      net = await utils.LoadCmix(
-        STATE_PATH,
-        statePassEncoded,
-        utils.GetDefaultCMixParams()
-      );
+  const loadCmix = (statePassEncoded: string, cb?: Function) => {
+    return new Promise(async (resolve, reject) => {
+      let net;
       try {
-        dummyTrafficObjRef.current = utils.NewDummyTrafficManager(
-          net.GetID(),
-          3,
-          15000,
-          7000
+        net = await utils.LoadCmix(
+          STATE_PATH,
+          statePassEncoded,
+          utils.GetDefaultCMixParams()
         );
-      } catch (error) {
-        console.log("error while creating the Dummy Traffic Object:", error);
-      }
+        try {
+          dummyTrafficObjRef.current = utils.NewDummyTrafficManager(
+            net.GetID(),
+            3,
+            15000,
+            7000
+          );
+        } catch (error) {
+          console.log("error while creating the Dummy Traffic Object:", error);
+        }
 
-      const cipherObj = utils.NewChannelsDatabaseCipher(
-        net.GetID(),
-        statePassEncoded,
-        725
-      );
-      cipherRef.current = cipherObj;
-      if (net?.AddHealthCallback) {
-        net.AddHealthCallback({
-          Callback: (isHealthy: boolean) => {
-            if (isHealthy) {
-              setIsNetworkHealthy(true);
-              if (
-                dummyTrafficObjRef &&
-                dummyTrafficObjRef.current &&
-                !dummyTrafficObjRef?.current?.GetStatus()
-              ) {
-                dummyTrafficObjRef?.current?.SetStatus(true);
+        const cipherObj = utils.NewChannelsDatabaseCipher(
+          net.GetID(),
+          statePassEncoded,
+          725
+        );
+        cipherRef.current = cipherObj;
+        if (net?.AddHealthCallback) {
+          net.AddHealthCallback({
+            Callback: (isHealthy: boolean) => {
+              if (isHealthy) {
+                setIsNetworkHealthy(true);
+                if (
+                  dummyTrafficObjRef &&
+                  dummyTrafficObjRef.current &&
+                  !dummyTrafficObjRef?.current?.GetStatus()
+                ) {
+                  dummyTrafficObjRef?.current?.SetStatus(true);
+                }
+              } else {
+                setIsNetworkHealthy(false);
               }
-            } else {
-              setIsNetworkHealthy(false);
             }
-          }
-        });
-      }
-      setNetwork(net);
+          });
+        }
+        setNetwork(net);
 
-      if (cb) {
-        cb(net);
+        if (cb) {
+          cb(net);
+        }
+        resolve(true);
+      } catch (e) {
+        console.error("Failed to load Cmix: " + e);
+        reject(e);
+        // return;
       }
-    } catch (e) {
-      console.error("Failed to load Cmix: " + e);
-      return;
-    }
+    });
   };
 
   useEffect(() => {
@@ -1334,7 +1335,6 @@ export const NetworkProvider: FC<any> = props => {
         sendMessage,
         leaveChannel,
         generateIdentitiesObjects,
-        isNetworkLoading,
         connectNetwork,
         initiateCmix,
         loadCmix,
