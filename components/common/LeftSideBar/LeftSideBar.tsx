@@ -90,9 +90,8 @@ const LeftSideBar: FC<{
           <div className="flex flex-col">
             {channels.map(ch => {
               return (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center" key={ch.id}>
                   <span
-                    key={ch.id}
                     className={cn(s.channelPill, "headline--xs", {
                       [s.channelPill__active]:
                         ch.id === (currentChannel?.id || "")

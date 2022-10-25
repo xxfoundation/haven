@@ -272,7 +272,7 @@ export const NetworkProvider: FC<any> = props => {
           const resolvedMessage: IMessage = {
             id: m.message_id,
             body: dec.decode(
-              cipherRef?.current.Decrypt(utils.Base64ToUint8Array(m.text))
+              cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(m.text))
             ),
             timestamp: m.timestamp,
             codeName: messageCodeName,
@@ -285,7 +285,7 @@ export const NetworkProvider: FC<any> = props => {
             replyToMessage: {
               id: replyToMessage.message_id,
               body: dec.decode(
-                cipherRef?.current.Decrypt(
+                cipherRef?.current?.Decrypt(
                   utils.Base64ToUint8Array(replyToMessage.text)
                 )
               ),
@@ -309,7 +309,7 @@ export const NetworkProvider: FC<any> = props => {
           const resolvedMessage: IMessage = {
             id: m.message_id,
             body: dec.decode(
-              cipherRef?.current.Decrypt(utils.Base64ToUint8Array(m.text))
+              cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(m.text))
             ),
             timestamp: m.timestamp,
             codeName: messageCodeName,
@@ -729,7 +729,7 @@ export const NetworkProvider: FC<any> = props => {
           currentNetwork.GetID(),
           storageTag,
           onReceiveEvent,
-          cipherRef?.current.GetID()
+          cipherRef?.current?.GetID()
         )
         .then(async (res: IChannelManager) => {
           setChanManager(res);
@@ -751,7 +751,7 @@ export const NetworkProvider: FC<any> = props => {
           currentNetwork.GetID(),
           privateIdentity,
           onReceiveEvent,
-          cipherRef?.current.GetID()
+          cipherRef?.current?.GetID()
         )
         .then(async (res: IChannelManager) => {
           setChanManager(res);
