@@ -174,6 +174,7 @@ export const NetworkProvider: FC<any> = props => {
   const channelsRef = useRef<IChannel[]>([]);
   const blockedEvents = useRef<any[]>([]);
   const currentCodeNameRef = useRef<string>("");
+  const currentChannelRef = useRef<IChannel>();
   const [bc, setBc] = useState<BroadcastChannel>(
     new BroadcastChannel("join_channel")
   );
@@ -185,6 +186,21 @@ export const NetworkProvider: FC<any> = props => {
   useEffect(() => {
     channelsRef.current = channels;
   }, [channels]);
+
+  useEffect(() => {
+    if (currentChannel) {
+      currentChannelRef.current = currentChannel;
+      setChannels(prev => {
+        return prev.map(ch => {
+          if (ch?.id === currentChannel?.id) {
+            return { ...ch, withMissedMessages: false };
+          } else {
+            return ch;
+          }
+        });
+      });
+    }
+  }, [currentChannel]);
 
   useEffect(() => {
     if (chanManager) {
@@ -471,6 +487,23 @@ export const NetworkProvider: FC<any> = props => {
         // It's reaction event
         handleReactionReceived(receivedMessage);
       } else if (receivedMessage.type === 1) {
+        const receivedMessageChannelId = receivedMessage?.channel_id;
+
+        if (receivedMessageChannelId !== currentChannelRef?.current?.id) {
+          setChannels(prev => {
+            return prev.map(ch => {
+              if (ch?.id === receivedMessageChannelId) {
+                return {
+                  ...ch,
+                  withMissedMessages: true
+                };
+              } else {
+                return ch;
+              }
+            });
+          });
+        }
+
         // It's normal message or reply to message event
         const mappedMessages = await mapDbMessagesToMessages([receivedMessage]);
         if (mappedMessages.length) {
@@ -693,7 +726,6 @@ export const NetworkProvider: FC<any> = props => {
       utils &&
       utils.LoadChannelsManagerWithIndexedDb
     ) {
-      console.log("Test 0000 cipher is there:", cipherRef?.current);
       utils
         .LoadChannelsManagerWithIndexedDb(
           currentNetwork.GetID(),

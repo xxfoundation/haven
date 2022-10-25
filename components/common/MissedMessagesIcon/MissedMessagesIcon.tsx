@@ -4,7 +4,7 @@ import cn from "classnames";
 
 const MissedMessagesIcon: FC<{}> = ({}) => {
   return (
-    <div className={cn("flex items-center mt-4")}>
+    <div className={cn("flex items-center")}>
       <div className={cn(s.bubble)}></div>
     </div>
   );

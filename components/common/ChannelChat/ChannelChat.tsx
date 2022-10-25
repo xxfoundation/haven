@@ -203,7 +203,6 @@ const ChannelChat: FC<{}> = ({}) => {
               onKeyDown={e => {
                 if (e.keyCode === 13 && !e.shiftKey) {
                   e.preventDefault();
-
                   if (
                     network &&
                     network.ReadyToSend &&
