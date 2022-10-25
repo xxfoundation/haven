@@ -8,6 +8,7 @@ import { Dexie } from "dexie";
 import { IMessage } from "types";
 import { enc, dec } from "utils";
 import _ from "lodash";
+import Cookies from "js-cookie";
 
 const batchCount = 10;
 
@@ -25,6 +26,11 @@ interface INetwork {
   GetID: Function;
   ReadyToSend: Function;
   AddHealthCallback: Function;
+}
+
+interface IDatabaseCipher {
+  GetID: Function;
+  Decrypt: Function;
 }
 
 interface IChannelManager {
@@ -76,7 +82,6 @@ export const NetworkClientContext = React.createContext<{
   sendMessage: Function;
   leaveChannel: Function;
   generateIdentitiesObjects: Function;
-  isNetworkLoading: boolean;
   connectNetwork: Function;
   initiateCmix: Function;
   loadCmix: Function;
@@ -115,7 +120,6 @@ export const NetworkClientContext = React.createContext<{
   sendMessage: () => {},
   leaveChannel: () => {},
   generateIdentitiesObjects: () => {},
-  isNetworkLoading: false,
   connectNetwork: () => {},
   initiateCmix: () => {},
   loadCmix: () => {},
@@ -160,29 +164,71 @@ export const NetworkProvider: FC<any> = props => {
   const [channels, setChannels] = useState<IChannel[]>([]);
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [chanManager, setChanManager] = useState<IChannelManager | undefined>();
-  const [isNetworkLoading, setIsNetworkLoading] = useState<boolean>(false);
+
   const [isNetworkHealthy, setIsNetworkHealthy] = useState<boolean | undefined>(
     undefined
   );
   const channelsRef = useRef<IChannel[]>([]);
   const blockedEvents = useRef<any[]>([]);
+  const currentCodeNameRef = useRef<string>("");
+  const currentChannelRef = useRef<IChannel>();
+  const [bc, setBc] = useState<BroadcastChannel>(
+    new BroadcastChannel("join_channel")
+  );
+
+  const dummyTrafficObjRef = useRef<any>(undefined);
+
+  const cipherRef = useRef<IDatabaseCipher>();
 
   useEffect(() => {
     channelsRef.current = channels;
   }, [channels]);
 
   useEffect(() => {
-    setIsAuthenticated(true);
-    if (network && isNetworkLoading) {
-      setIsNetworkLoading(false);
+    if (currentChannel) {
+      currentChannelRef.current = currentChannel;
+      setChannels(prev => {
+        return prev.map(ch => {
+          if (ch?.id === currentChannel?.id) {
+            return { ...ch, withMissedMessages: false };
+          } else {
+            return ch;
+          }
+        });
+      });
     }
+  }, [currentChannel]);
+
+  useEffect(() => {
+    if (chanManager) {
+      currentCodeNameRef.current = getIdentity().Codename;
+      Cookies.set("userAuthenticated", "true", { path: "/" });
+    }
+  }, [chanManager]);
+
+  useEffect(() => {
+    bc.onmessage = async event => {
+      if (event.data?.prettyPrint) {
+        try {
+          await joinChannel(event.data.prettyPrint);
+        } catch (error) {}
+      }
+    };
+  }, [bc, chanManager]);
+
+  useEffect(() => {
+    if (network) {
+      setIsAuthenticated(true);
+    }
+    // setIsAuthenticated(true);
+
     if (network && networkStatus !== NetworkStatus.CONNECTED) {
       connectNetwork();
     }
   }, [network]);
 
   const mapDbMessagesToMessages = async (messages: any[]) => {
-    if (!db) {
+    if (!db || !(cipherRef && cipherRef.current)) {
       return [];
     } else {
       // const allMessages = await db.table("messages").toArray();
@@ -225,7 +271,9 @@ export const NetworkProvider: FC<any> = props => {
 
           const resolvedMessage: IMessage = {
             id: m.message_id,
-            body: m.text,
+            body: dec.decode(
+              cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(m.text))
+            ),
             timestamp: m.timestamp,
             codeName: messageCodeName,
             nickName: m.nickname || "",
@@ -236,7 +284,11 @@ export const NetworkProvider: FC<any> = props => {
             round: m.round,
             replyToMessage: {
               id: replyToMessage.message_id,
-              body: replyToMessage.text,
+              body: dec.decode(
+                cipherRef?.current?.Decrypt(
+                  utils.Base64ToUint8Array(replyToMessage.text)
+                )
+              ),
               timestamp: replyToMessage.timestamp,
               codeName: replyToMessageCodeName,
               nickName: replyToMessage.nickname || "",
@@ -256,7 +308,9 @@ export const NetworkProvider: FC<any> = props => {
           } = getCodeNameAndColor(m.pubkey, m.codeset_version);
           const resolvedMessage: IMessage = {
             id: m.message_id,
-            body: m.text,
+            body: dec.decode(
+              cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(m.text))
+            ),
             timestamp: m.timestamp,
             codeName: messageCodeName,
             nickName: m.nickname || "",
@@ -388,6 +442,23 @@ export const NetworkProvider: FC<any> = props => {
         // It's reaction event
         handleReactionReceived(receivedMessage);
       } else if (receivedMessage.type === 1) {
+        const receivedMessageChannelId = receivedMessage?.channel_id;
+
+        if (receivedMessageChannelId !== currentChannelRef?.current?.id) {
+          setChannels(prev => {
+            return prev.map(ch => {
+              if (ch?.id === receivedMessageChannelId) {
+                return {
+                  ...ch,
+                  withMissedMessages: true
+                };
+              } else {
+                return ch;
+              }
+            });
+          });
+        }
+
         // It's normal message or reply to message event
         const mappedMessages = await mapDbMessagesToMessages([receivedMessage]);
 
@@ -561,12 +632,19 @@ export const NetworkProvider: FC<any> = props => {
 
   const loadChannelManager = async (storageTag: string, net?: any) => {
     const currentNetwork = network || net;
-    if (currentNetwork && utils && utils.LoadChannelsManagerWithIndexedDb) {
+
+    if (
+      currentNetwork &&
+      cipherRef?.current &&
+      utils &&
+      utils.LoadChannelsManagerWithIndexedDb
+    ) {
       utils
         .LoadChannelsManagerWithIndexedDb(
           currentNetwork.GetID(),
           storageTag,
-          onReceiveEvent
+          onReceiveEvent,
+          cipherRef?.current?.GetID()
         )
         .then(async (res: IChannelManager) => {
           setChanManager(res);
@@ -577,12 +655,18 @@ export const NetworkProvider: FC<any> = props => {
 
   const createChannelManager = async (privateIdentity: any, net?: any) => {
     const currentNetwork = network || net;
-    if (currentNetwork && utils && utils.NewChannelsManagerWithIndexedDb) {
+    if (
+      currentNetwork &&
+      cipherRef?.current &&
+      utils &&
+      utils.NewChannelsManagerWithIndexedDb
+    ) {
       utils
         .NewChannelsManagerWithIndexedDb(
           currentNetwork.GetID(),
           privateIdentity,
-          onReceiveEvent
+          onReceiveEvent,
+          cipherRef?.current?.GetID()
         )
         .then(async (res: IChannelManager) => {
           setChanManager(res);
@@ -612,35 +696,62 @@ export const NetworkProvider: FC<any> = props => {
   };
 
   // Used directly on Login
-  const loadCmix = async (statePassEncoded: string, cb?: Function) => {
-    let net;
-    setIsNetworkLoading(true);
-    try {
-      net = await utils.LoadCmix(
-        STATE_PATH,
-        statePassEncoded,
-        utils.GetDefaultCMixParams()
-      );
-      if (net?.AddHealthCallback) {
-        net.AddHealthCallback({
-          Callback: (isHealthy: boolean) => {
-            if (isHealthy) {
-              setIsNetworkHealthy(true);
-            } else {
-              setIsNetworkHealthy(false);
-            }
-          }
-        });
-      }
-      setNetwork(net);
+  const loadCmix = (statePassEncoded: string, cb?: Function) => {
+    return new Promise(async (resolve, reject) => {
+      let net;
+      try {
+        net = await utils.LoadCmix(
+          STATE_PATH,
+          statePassEncoded,
+          utils.GetDefaultCMixParams()
+        );
+        try {
+          dummyTrafficObjRef.current = utils.NewDummyTrafficManager(
+            net.GetID(),
+            3,
+            15000,
+            7000
+          );
+        } catch (error) {
+          console.log("error while creating the Dummy Traffic Object:", error);
+        }
 
-      if (cb) {
-        cb(net);
+        const cipherObj = utils.NewChannelsDatabaseCipher(
+          net.GetID(),
+          statePassEncoded,
+          725
+        );
+        cipherRef.current = cipherObj;
+        if (net?.AddHealthCallback) {
+          net.AddHealthCallback({
+            Callback: (isHealthy: boolean) => {
+              if (isHealthy) {
+                setIsNetworkHealthy(true);
+                if (
+                  dummyTrafficObjRef &&
+                  dummyTrafficObjRef.current &&
+                  !dummyTrafficObjRef?.current?.GetStatus()
+                ) {
+                  dummyTrafficObjRef?.current?.SetStatus(true);
+                }
+              } else {
+                setIsNetworkHealthy(false);
+              }
+            }
+          });
+        }
+        setNetwork(net);
+
+        if (cb) {
+          cb(net);
+        }
+        resolve(true);
+      } catch (e) {
+        console.error("Failed to load Cmix: " + e);
+        reject(e);
+        // return;
       }
-    } catch (e) {
-      console.error("Failed to load Cmix: " + e);
-      return;
-    }
+    });
   };
 
   useEffect(() => {
@@ -716,11 +827,52 @@ export const NetworkProvider: FC<any> = props => {
     });
   };
 
-  const joinChannel = (prettyPrint: string) => {
+  const joinChannel = (
+    prettyPrint: string,
+    appendToCurrent: boolean = true
+  ) => {
     return new Promise((resolve, reject) => {
       if (prettyPrint && chanManager && chanManager.JoinChannel) {
         try {
-          chanManager.JoinChannel(prettyPrint);
+          const chanInfo = JSON.parse(
+            dec.decode(chanManager.JoinChannel(prettyPrint))
+          );
+
+          if (appendToCurrent) {
+            let temp = {
+              id: chanInfo?.ChannelID,
+              name: chanInfo?.Name,
+              description: chanInfo?.Description,
+              isLoading: true
+            };
+            setCurrentChannel(temp);
+            setChannels(prev => [...prev, temp]);
+            setTimeout(() => {
+              setCurrentChannel((prev: any) => {
+                if (prev?.id === temp.id) {
+                  return {
+                    ...prev,
+                    isLoading: false
+                  };
+                } else {
+                  return prev;
+                }
+              });
+              setChannels(prev => {
+                return prev.map(ch => {
+                  if (ch.id === temp.id) {
+                    return {
+                      ...temp,
+                      isLoading: false
+                    };
+                  } else {
+                    return ch;
+                  }
+                });
+              });
+            }, 5000);
+          }
+
           resolve(true);
         } catch (error) {
           reject(error);
@@ -795,7 +947,7 @@ export const NetworkProvider: FC<any> = props => {
           );
           const channel = JSON.parse(dec.decode(channelUnparsed));
           const channelInfo = getChannelInfo(channel?.Channel || "");
-          joinChannel(channel?.Channel);
+          joinChannel(channel?.Channel, false);
           let temp = {
             id: channelInfo?.ChannelID,
             name: channelInfo?.Name,
@@ -966,9 +1118,10 @@ export const NetworkProvider: FC<any> = props => {
         currentChannel.id
       );
       try {
+        const currentHostName = window.location.host;
         const res = chanManager.GetShareURL(
           network?.GetID(),
-          "fdyxgquekd",
+          `http://${currentHostName}/join`,
           0,
           utils.Base64ToUint8Array(currentChannel.id)
         );
@@ -982,7 +1135,7 @@ export const NetworkProvider: FC<any> = props => {
   };
 
   const getShareUrlType = (url: string) => {
-    if (url && network && utils && utils.GetShareUrlType) {
+    if (url && utils && utils.GetShareUrlType) {
       try {
         const res = utils.GetShareUrlType(url);
         return res;
@@ -1101,7 +1254,6 @@ export const NetworkProvider: FC<any> = props => {
         sendMessage,
         leaveChannel,
         generateIdentitiesObjects,
-        isNetworkLoading,
         connectNetwork,
         initiateCmix,
         loadCmix,

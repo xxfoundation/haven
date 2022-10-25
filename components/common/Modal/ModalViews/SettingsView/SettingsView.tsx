@@ -1,6 +1,6 @@
 import { FC } from "react";
 import s from "./SettingsView.module.scss";
-import { Download } from "@components/icons";
+import { Download, Export } from "@components/icons";
 import cn from "classnames";
 import { useUI } from "@contexts/ui-context";
 
@@ -35,7 +35,7 @@ const SettingsView: FC<{}> = ({}) => {
         </div>
         <div>
           <h3 className="headline--sm">Export my codename</h3>
-          <Download
+          <Export
             onClick={() => {
               setModalView("EXPORT_CODENAME");
               openModal();
@@ -44,24 +44,40 @@ const SettingsView: FC<{}> = ({}) => {
         </div>
       </div>
       <div className={s.links}>
-        <a href="https://xx.network" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://www.speakeasy.tech/how-it-works/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           About
         </a>
         |
-        <a href="https://xx.network" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://www.speakeasy.tech/roadmap/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Roadmap
         </a>
         |
-        <a href="https://xx.network" target="_blank" rel="noopener noreferrer">
-          Contact
-        </a>
-        |
-        <a href="https://xx.network" target="_blank" rel="noopener noreferrer">
+        <a href="https://xx.network/" target="_blank" rel="noopener noreferrer">
           xx network
         </a>
         |
-        <a href="https://xx.network" target="_blank" rel="noopener noreferrer">
+        <a
+          href="https://www.speakeasy.tech/privacy-policy/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Privacy Policy
+        </a>
+        |
+        <a
+          href="https://www.speakeasy.tech/terms-of-use/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Terms of Use
         </a>
       </div>
     </div>

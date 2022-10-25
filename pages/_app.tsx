@@ -9,6 +9,7 @@ import ErrorBoundary from "components/common/ErrorBoundary";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { isDuplicatedWindow } from "utils/oneTabEnforcer";
+import { WebAssemblyRunner } from "@components/common";
 
 let regexp = /android|iphone|kindle|ipad|Harmony|harmony|Tizen|tizen/i;
 const isDesktop = () => {
@@ -28,42 +29,47 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     if (!isDesktop()) {
-      router.push("https://www.speakeasy.tech/open-source/");
+      router.push("https://www.speakeasy.tech/mobile/");
     }
   }, []);
 
   const Layout = (Component as any).Layout || Noop;
 
+  const skipDuplicateTabCheck = (Component as any).skipDuplicateTabCheck;
+
   if (shouldRender) {
-    if (isDuplicatedWindow(15000, 10000, "MyApp")) {
-      return <WarningComponent />;
-    } else {
-      return (
-        <ErrorBoundary>
-          <Head>
-            <title>internet speakeasy</title>
-            <link rel="icon" href="/favicon.svg" />
-          </Head>
-          <ManagedUtilsContext>
-            <ManagedAuthenticationContext>
-              <ManagedNetworkContext>
-                <ManagedUIContext>
-                  <Layout pageProps={{ ...pageProps }}>
-                    <Component {...pageProps} />
-                  </Layout>
-                </ManagedUIContext>
-              </ManagedNetworkContext>
-            </ManagedAuthenticationContext>
-          </ManagedUtilsContext>
-        </ErrorBoundary>
-      );
-    }
+    return (
+      <ErrorBoundary>
+        <Head>
+          <title>internet speakeasy</title>
+          <link rel="icon" href="/favicon.svg" />
+        </Head>
+        <ManagedUtilsContext>
+          <ManagedAuthenticationContext>
+            <ManagedNetworkContext>
+              <ManagedUIContext>
+                <WebAssemblyRunner>
+                  {!skipDuplicateTabCheck &&
+                  isDuplicatedWindow(15000, 10000, "MyApp") ? (
+                    <WarningComponent warning="Speakeasy app can only run with one tab/window at a time" />
+                  ) : (
+                    <Layout pageProps={{ ...pageProps }}>
+                      <Component {...pageProps} />
+                    </Layout>
+                  )}
+                </WebAssemblyRunner>
+              </ManagedUIContext>
+            </ManagedNetworkContext>
+          </ManagedAuthenticationContext>
+        </ManagedUtilsContext>
+      </ErrorBoundary>
+    );
   } else {
     return null;
   }
 }
 
-const WarningComponent = () => (
+export const WarningComponent: FC<{ warning: string }> = ({ warning }) => (
   <>
     <Head>
       <title>internet speakeasy</title>
@@ -77,7 +83,7 @@ const WarningComponent = () => (
           color: "var(--cyan)"
         }}
       >
-        Speakeasy app can only run with one tab/window at a time
+        {warning}
       </h1>
     </div>
   </>

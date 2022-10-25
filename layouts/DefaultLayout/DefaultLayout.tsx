@@ -19,7 +19,9 @@ import {
   SettingsView,
   ExportCodenameView,
   ImportCodenameView,
-  NetworkNotReadyView
+  NetworkNotReadyView,
+  JoinChannelSuccessView,
+  MessageLongView
 } from "@components/common/Modal/ModalViews";
 
 import Register from "components/common/Register";
@@ -49,73 +51,8 @@ const DefaultLayout: FC<Props> = ({
   pageProps: { ...pageProps }
 }) => {
   const { isAuthenticated, getStorageTag } = useAuthentication();
-  const { setUtils, utilsLoaded, setUtilsLoaded } = useUtils();
-  const {
-    network,
-    setNickName,
-    currentChannel,
-    getNickName
-  } = useNetworkClient();
-
-  useEffect(() => {
-    if (!utilsLoaded) {
-      const go = new (window as any).Go();
-      const binPath = "/integrations/assets/xxdk.wasm";
-      WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
-        async (result: any) => {
-          go?.run(result?.instance);
-          const {
-            NewCmix,
-            GenerateChannel,
-            LoadCmix,
-            GetChannelInfo,
-            GenerateChannelIdentity,
-            GetDefaultCMixParams,
-            NewChannelsManagerWithIndexedDb,
-            Base64ToUint8Array,
-            LoadChannelsManagerWithIndexedDb,
-            GetPublicChannelIdentityFromPrivate,
-            IsNicknameValid,
-            LogToFile,
-            LogLevel,
-            GetShareUrlType,
-            GetVersion,
-            GetClientVersion,
-            GetOrInitPassword,
-            ImportPrivateIdentity,
-            ConstructIdentity
-          } = (window as any) || {};
-
-          setUtils({
-            NewCmix,
-            GenerateChannel,
-            LoadCmix,
-            GetChannelInfo,
-            GenerateChannelIdentity,
-            GetDefaultCMixParams,
-            NewChannelsManagerWithIndexedDb,
-            Base64ToUint8Array,
-            LoadChannelsManagerWithIndexedDb,
-            GetPublicChannelIdentityFromPrivate,
-            IsNicknameValid,
-            GetShareUrlType,
-            GetVersion,
-            GetClientVersion,
-            GetOrInitPassword,
-            ImportPrivateIdentity,
-            ConstructIdentity
-          });
-
-          if (LogLevel) {
-            LogLevel(2);
-          }
-          const logFile = LogToFile(0, "receiver.log", 5000000);
-          (window as any).logFile = logFile;
-          setUtilsLoaded(true);
-        }
-      );
-    }
-  }, [utilsLoaded]);
+  const { utilsLoaded } = useUtils();
+  const { network, currentChannel } = useNetworkClient();
 
   useEffect(() => {}, []);
   const ModalView: FC<{ modalView: string; closeModal(): any }> = ({
@@ -139,6 +76,8 @@ const DefaultLayout: FC<Props> = ({
         {modalView === "EXPORT_CODENAME" && <ExportCodenameView />}
         {modalView === "IMPORT_CODENAME" && <ImportCodenameView />}
         {modalView === "NETWORK_NOT_READY" && <NetworkNotReadyView />}
+        {modalView === "JOIN_CHANNEL_SUCCESS" && <JoinChannelSuccessView />}
+        {modalView === "MESSAGE_LONG" && <MessageLongView />}
       </Modal>
     );
   };
