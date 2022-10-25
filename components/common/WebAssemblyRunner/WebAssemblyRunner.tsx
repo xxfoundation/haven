@@ -35,7 +35,8 @@ const WebAssemblyRunner: FC<{ children: any }> = ({ children }) => {
             DecodePrivateURL,
             DecodePublicURL,
             GetChannelJSON,
-            NewDummyTrafficManager
+            NewDummyTrafficManager,
+            NewChannelsDatabaseCipher
           } = (window as any) || {};
 
           setUtils({
@@ -59,11 +60,12 @@ const WebAssemblyRunner: FC<{ children: any }> = ({ children }) => {
             DecodePrivateURL,
             DecodePublicURL,
             GetChannelJSON,
-            NewDummyTrafficManager
+            NewDummyTrafficManager,
+            NewChannelsDatabaseCipher
           });
 
           if (LogLevel) {
-            LogLevel(4);
+            LogLevel(2);
           }
           const logFile = LogToFile(0, "receiver.log", 5000000);
           (window as any).logFile = logFile;

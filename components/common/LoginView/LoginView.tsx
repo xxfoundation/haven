@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import s from "./LoginView.module.scss";
-import { ModalCtaButton } from "@components/common";
+import { ModalCtaButton, Spinner } from "@components/common";
 import cn from "classnames";
 import { useAuthentication } from "contexts/authentication-context";
 import { useNetworkClient } from "contexts/network-client-context";
@@ -17,16 +17,23 @@ const LoginView: FC<{}> = ({}) => {
   const [error, setError] = useState<string>("");
   const { loadCmix, loadChannelManager } = useNetworkClient();
   const { checkUser, getStorageTag } = useAuthentication();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
+    setIsLoading(true);
     const statePassEncoded = checkUser(password);
     if (!statePassEncoded) {
       setError("Incorrect password");
+      setIsLoading(false);
     } else {
-      loadCmix(statePassEncoded, (net: any) =>
-        loadChannelManager(getStorageTag(), net)
-      );
+      setTimeout(() => {
+        loadCmix(statePassEncoded, (net: any) => {
+          loadChannelManager(getStorageTag(), net);
+        }).then(() => {
+          setIsLoading(false);
+        });
+      }, 1000);
     }
   };
 
@@ -82,10 +89,17 @@ const LoginView: FC<{}> = ({}) => {
             <div className="flex flex-col mt-4">
               <ModalCtaButton
                 buttonCopy="Login"
+                disabled={isLoading}
                 cssClass={s.button}
                 onClick={handleSubmit}
               />
             </div>
+            {isLoading && (
+              <div className={s.loading}>
+                <Spinner />
+              </div>
+            )}
+
             {error && (
               <div
                 style={{
@@ -106,14 +120,24 @@ const LoginView: FC<{}> = ({}) => {
         </div>
 
         <div className={cn("grid grid-cols-12 gap-0", s.footer)}>
-          <div className={cn("flex flex-col col-span-4", s.perkCard)}>
+          <a
+            href="https://www.speakeasy.tech/open-source/"
+            target="_blank"
+            rel="noreferrer"
+            className={cn("flex flex-col col-span-4", s.perkCard)}
+          >
             <OpenSource />
             <span className={cn(s.perkCard__title)}>Open Source</span>
             <span className={cn(s.perkCard__description)}>
               Every line — open source. Forever.
             </span>
-          </div>
-          <div className={cn("flex flex-col col-span-4", s.perkCard)}>
+          </a>
+          <a
+            href="https://www.speakeasy.tech/how-it-works/"
+            target="_blank"
+            rel="noreferrer"
+            className={cn("flex flex-col col-span-4", s.perkCard)}
+          >
             <NormalHash />
             <span className={cn(s.perkCard__title)}>
               Fundamentally Different
@@ -121,36 +145,52 @@ const LoginView: FC<{}> = ({}) => {
             <span className={cn(s.perkCard__description)}>
               Powered by the first decentralized mixnet-blockchain
             </span>
-          </div>
-          <div className={cn("flex flex-col col-span-4", s.perkCard)}>
+          </a>
+          <a
+            href="https://www.speakeasy.tech/roadmap/"
+            target="_blank"
+            rel="noreferrer"
+            className={cn("flex flex-col col-span-4", s.perkCard)}
+          >
             <RoadMap />
             <span className={cn(s.perkCard__title)}>Roadmap</span>
             <span className={cn(s.perkCard__description)}>
               Building to the future
             </span>
-          </div>
+          </a>
         </div>
       </div>
       <div className={cn(s.links)}>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
-          Join the Discussion
-        </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
-          Contact
-        </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
-          Privacy Policy
-        </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
+        <a href="https://xx.network/" target="_blank" rel="noreferrer">
           xx network
         </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
+        <a
+          href="https://www.speakeasy.tech/privacy-policy/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Privacy Policy
+        </a>
+
+        <a
+          href="https://www.speakeasy.tech/terms-of-use/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Terms of Use
+        </a>
+
+        <a href="https://xxfoundation.org/" target="_blank" rel="noreferrer">
           xx foundation
         </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
+        <a href="https://elixxir.io/" target="_blank" rel="noreferrer">
           xx messenger
         </a>
-        <a href="https://xx.network" target="_blank" rel="noreferrer">
+        <a
+          href="https://twitter.com/speakeasy_tech"
+          target="_blank"
+          rel="noreferrer"
+        >
           twitter
         </a>
       </div>
