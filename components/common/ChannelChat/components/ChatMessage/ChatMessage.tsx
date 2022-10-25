@@ -1,15 +1,24 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState, RefObject } from "react";
 import s from "./ChatMessage.module.scss";
 import cn from "classnames";
+import Moment from "react-moment";
 import "moment-timezone";
 import moment from "moment";
+import dynamic from "next/dynamic";
+import { IEmojiPickerProps } from "emoji-picker-react";
 import { EmojisPicker as EmojisPickerIcon, Reply } from "@components/icons";
 import { IMessage } from "@types";
 import { ToolTip } from "@components/common";
 import { useNetworkClient } from "contexts/network-client-context";
 import { Elixxir } from "@components/icons";
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
+
+const EmojiPicker = dynamic<IEmojiPickerProps>(
+  () => import("emoji-picker-react"),
+  {
+    ssr: false,
+    loading: () => <p>Loading ...</p>
+  }
+);
 
 const MessageSenderHeader: FC<{ message: IMessage }> = ({ message }) => {
   const color = (message?.color || "").replace("0x", "#");
@@ -97,12 +106,10 @@ const ActionsWrapper: FC<{
             style={{ ...style }}
             className={cn("absolute inline", s.emojisPickerWrapper)}
           >
-            <Picker
-              data={data}
-              previewPosition="none"
-              onEmojiSelect={(e: any) => {
+            <EmojiPicker
+              onEmojiClick={(event, emoji) => {
                 onReactToMessage({
-                  emoji: e.native
+                  emoji: emoji.emoji
                 });
               }}
             />

@@ -9,8 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@emoji-mart/data": "^1.0.6",
-    "@emoji-mart/react": "^1.0.1",
     "@juggle/resize-observer": "^3.4.0",
     "@types/emoji-mart": "^3.0.9",
     "@types/js-cookie": "^3.0.2",
