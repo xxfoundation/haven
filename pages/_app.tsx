@@ -29,7 +29,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     if (!isDesktop()) {
-      router.push("https://www.speakeasy.tech/open-source/");
+      router.push("https://www.speakeasy.tech/mobile/");
     }
   }, []);
 
