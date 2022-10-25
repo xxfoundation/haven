@@ -19,6 +19,7 @@ const RegisterView: FC<{
   const [password, setPassword] = useState<string>("");
   const [passwordConfirm, setPasswordConfirm] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className={cn("", s.root)}>
@@ -72,6 +73,13 @@ const RegisterView: FC<{
                 setPasswordConfirm(e.target.value);
               }}
             />
+
+            {isLoading && (
+              <div className={s.loading}>
+                <Spinner />
+              </div>
+            )}
+
             {error && (
               <div
                 className={"text text--xs mt-4"}
@@ -101,12 +109,17 @@ const RegisterView: FC<{
               <ModalCtaButton
                 buttonCopy="Continue"
                 cssClass={s.button}
+                disabled={isLoading}
                 onClick={() => {
                   if (passwordConfirm !== password) {
                     setError("Password doesn't match confirmation.");
                   } else {
                     if (password.length) {
-                      onConfirm(password);
+                      setIsLoading(true);
+                      setTimeout(() => {
+                        onConfirm(password);
+                        setIsLoading(false);
+                      }, 200);
                     }
                     setError("");
                   }
