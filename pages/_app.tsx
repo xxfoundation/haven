@@ -11,7 +11,7 @@ import { useRouter } from "next/router";
 import { isDuplicatedWindow } from "utils/oneTabEnforcer";
 import { WebAssemblyRunner } from "@components/common";
 
-let regexp = /android|iphone|kindle|ipad|Harmony|harmony|Tizen|tizen/i;
+let regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
 const isDesktop = () => {
   let details = navigator.userAgent;
   return !regexp.test(details);
