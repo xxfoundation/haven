@@ -14,13 +14,7 @@ import { Upload } from "@components/icons";
 
 const ImportCodenameView: FC<{}> = ({}) => {
   const { closeModal } = useUI();
-  const {
-    exportPrivateIdentity,
-    initiateCmix,
-    createChannelManager,
-    network,
-    networkStatus
-  } = useNetworkClient();
+  const { initiateCmix, createChannelManager, network } = useNetworkClient();
   const fileInputLabelRef = useRef<HTMLSpanElement>(null);
 
   const { utils, transferIdentittyVariables } = useUtils();
@@ -39,11 +33,7 @@ const ImportCodenameView: FC<{}> = ({}) => {
   );
 
   useEffect(() => {
-    if (
-      networkStatus === NetworkStatus.CONNECTED &&
-      privateIdentity &&
-      password
-    ) {
+    if (network && privateIdentity && password) {
       const result = utils.ImportPrivateIdentity(
         password,
         enc.encode(privateIdentity)
@@ -52,7 +42,7 @@ const ImportCodenameView: FC<{}> = ({}) => {
       transferIdentittyVariables.current = {};
       closeModal();
     }
-  }, [networkStatus, password, privateIdentity]);
+  }, [password, privateIdentity]);
 
   const handleSubmit = () => {
     setError("");

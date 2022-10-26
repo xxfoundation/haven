@@ -1,4 +1,4 @@
-import { FC, useState, useRef, useEffect } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import s from "./ChannelChat.module.scss";
 import SendButton from "./components/SendButton/SendButton";
 import ChatMessage from "./components/ChatMessage/ChatMessage";
@@ -22,7 +22,9 @@ const ChannelChat: FC<{}> = ({}) => {
     sendReaction,
     channels,
     loadMoreChannelData,
-    network
+    network,
+    getShareURL,
+    getShareUrlType
   } = useNetworkClient();
 
   const { setModalView, openModal } = useUI();
@@ -31,10 +33,30 @@ const ChannelChat: FC<{}> = ({}) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [replyToMessage, setReplyToMessage] = useState<IMessage | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
+  const [currentChannelType, setCurrentChannelType] = useState<
+    "" | "Public" | "Secret"
+  >("");
+
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setReplyToMessage(undefined);
     setMessageBody("");
+
+    if (currentChannel?.id) {
+      const shareUrl = getShareURL();
+
+      if (shareUrl) {
+        const type = getShareUrlType(shareUrl?.url || "");
+        if (type === 0) {
+          setCurrentChannelType("Public");
+        } else if (type === 2) {
+          setCurrentChannelType("Secret");
+        } else {
+          setCurrentChannelType("");
+        }
+      }
+    }
   }, [currentChannel?.id]);
 
   let currentChannelMessages = messages.filter(m => {
@@ -123,11 +145,18 @@ const ChannelChat: FC<{}> = ({}) => {
       {currentChannel ? (
         <>
           <div className={s.channelHeader}>
-            <div className={"headline--sm"}>
-              {currentChannel?.name}{" "}
-              <span className={"headline--xs"}>id: {currentChannel?.id}</span>
+            <div className={"headline--sm flex items-center"}>
+              {currentChannelType.length > 0 && (
+                <span className={s.channelType}>{currentChannelType}</span>
+              )}
+              <span className={cn("mr-2", s.channelName)}>
+                {currentChannel?.name}{" "}
+              </span>
+              <span className={cn("headline--xs", s.channelId)}>
+                (id: {currentChannel?.id})
+              </span>
             </div>
-            <p className={"text"}>{currentChannel?.description}</p>
+            <p className={"text mt-2"}>{currentChannel?.description}</p>
           </div>
           <div
             id={"messagesContainer"}
@@ -164,6 +193,9 @@ const ChannelChat: FC<{}> = ({}) => {
                               handleReactToMessage(reaction, m);
                             }}
                             onReplyClicked={() => {
+                              if (textAreaRef && textAreaRef.current) {
+                                textAreaRef.current.focus();
+                              }
                               setReplyToMessage(m);
                             }}
                           />
@@ -194,6 +226,7 @@ const ChannelChat: FC<{}> = ({}) => {
             )}
 
             <textarea
+              ref={textAreaRef}
               name=""
               placeholder="Type your message here..."
               value={messageBody}
@@ -214,16 +247,17 @@ const ChannelChat: FC<{}> = ({}) => {
                     if (replyToMessage) {
                       if (checkMessageLength()) {
                         sendReply(messageBody.trim(), replyToMessage.id);
+                        setMessageBody("");
                       }
                     } else {
                       if (checkMessageLength()) {
                         sendMessage(messageBody.trim());
+                        setMessageBody("");
                       }
                     }
                   }
 
                   setAutoScrollToEnd(true);
-                  setMessageBody("");
                   setReplyToMessage(null);
                 }
               }}
@@ -244,16 +278,17 @@ const ChannelChat: FC<{}> = ({}) => {
                     if (replyToMessage) {
                       if (checkMessageLength()) {
                         sendReply(messageBody.trim(), replyToMessage.id);
+                        setMessageBody("");
                       }
                     } else {
                       if (checkMessageLength()) {
                         sendMessage(messageBody.trim());
+                        setMessageBody("");
                       }
                     }
                   }
 
                   setAutoScrollToEnd(true);
-                  setMessageBody("");
                   setReplyToMessage(null);
                 }}
               />

@@ -9,7 +9,7 @@ import {
 import { useUI } from "contexts/ui-context";
 
 const ChannelActionsView: FC<{}> = ({}) => {
-  const { currentChannel, networkStatus } = useNetworkClient();
+  const { currentChannel } = useNetworkClient();
   const { setModalView, openModal } = useUI();
 
   return (
@@ -26,7 +26,6 @@ const ChannelActionsView: FC<{}> = ({}) => {
             setModalView("JOIN_CHANNEL");
             openModal();
           }}
-          disabled={networkStatus !== NetworkStatus.CONNECTED}
         />
         <ModalCtaButton
           buttonCopy="Leave"
