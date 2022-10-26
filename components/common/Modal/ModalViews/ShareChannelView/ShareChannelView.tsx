@@ -32,7 +32,7 @@ const ShareChannelView: FC<{}> = ({}) => {
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
     >
-      <h2 className="mt-9 mb-6">Share</h2>
+      <h2 className="mt-9 mb-6">Share Speakeasy</h2>
       <div>
         <div className={cn("mb-4")}>
           <h4>{currentChannel?.name || ""}</h4>
@@ -41,18 +41,18 @@ const ShareChannelView: FC<{}> = ({}) => {
           </p>
         </div>
         <div className={cn("text text--sm mb-2")}>
-          <span className="font-bold mr-1">speakeasy id:</span>
+          <span className="font-bold mr-1">Speakeasy id:</span>
           <span>{currentChannel?.id || ""}</span>
         </div>
         <div className={cn(s.channelCredentials)} ref={credentialsDivRef}>
-          <span className="text--sm font-bold">speakeasy url:</span>
+          <span className="text--sm font-bold">Speakeasy invite link:</span>
           {credentials.url.length > 0 && (
             <span className={cn("text text--xs")}>{credentials.url}</span>
           )}
           {credentials.password.length > 0 && (
             <>
               <span className="text--sm font-bold mt-1">
-                speakeasy password:
+                Speakeasy passphrase:
               </span>
               <span className={cn("text text--xs")}>
                 {credentials.password}

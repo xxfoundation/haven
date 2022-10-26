@@ -147,7 +147,13 @@ const ChannelChat: FC<{}> = ({}) => {
           <div className={s.channelHeader}>
             <div className={"headline--sm flex items-center"}>
               {currentChannelType.length > 0 && (
-                <span className={s.channelType}>{currentChannelType}</span>
+                <span
+                  className={cn(s.channelType, {
+                    [s.channelType__gold]: currentChannelType === "Public"
+                  })}
+                >
+                  {currentChannelType}
+                </span>
               )}
               <span className={cn("mr-2", s.channelName)}>
                 {currentChannel?.name}{" "}

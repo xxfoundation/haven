@@ -66,10 +66,10 @@ const JoinChannelView: FC<{}> = ({}) => {
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
     >
-      <h2 className="mt-9 mb-4">Join</h2>
+      <h2 className="mt-9 mb-4">Join a Speakeasy</h2>
       <input
         name=""
-        placeholder="Enter url"
+        placeholder="Enter invite link"
         value={url}
         onChange={e => {
           setUrl(e.target.value);
@@ -79,7 +79,7 @@ const JoinChannelView: FC<{}> = ({}) => {
         <input
           className="mt-3 mb-4"
           name=""
-          placeholder="Enter password"
+          placeholder="Enter passphrase"
           value={password}
           onChange={e => {
             setPassword(e.target.value);
@@ -96,7 +96,7 @@ const JoinChannelView: FC<{}> = ({}) => {
         </div>
       )}
       <ModalCtaButton
-        buttonCopy={needPassword ? "Done" : "Go"}
+        buttonCopy={needPassword ? "Join" : "Go"}
         cssClass={cn("mt-12 mb-10", s.button)}
         onClick={handleSubmit}
       />

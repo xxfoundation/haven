@@ -140,7 +140,7 @@ const RegisterView: FC<{
                   openModal();
                 }}
               >
-                Already have an account?{" "}
+                Already have a codename?
               </div>
             </div>
           </div>
