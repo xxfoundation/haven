@@ -6,8 +6,14 @@
   align-items: center;
   justify-content: center;
 
+  & > div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
   svg {
-    transform: scale(5);
     fill: var(--cyan) !important;
   }
 }
