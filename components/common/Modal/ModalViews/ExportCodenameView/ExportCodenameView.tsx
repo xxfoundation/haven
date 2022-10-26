@@ -28,9 +28,8 @@ const ExportCodenameView: FC<{}> = ({}) => {
     >
       <h2 className="mt-9 mb-4">Export codename</h2>
       <p className="mb-8">
-        This will export your codname to file to use it on a different device or
-        a different browser. Make sure to keep the file and the encryption
-        password safe as we can’t recover them.
+        You can export your codename for backup or to use your codename on a
+        second device.
       </p>
       <input
         type="password"

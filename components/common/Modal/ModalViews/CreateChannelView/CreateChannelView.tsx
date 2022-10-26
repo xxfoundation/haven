@@ -20,7 +20,7 @@ const CreateChannelView: FC<{}> = ({}) => {
     <div
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
     >
-      <h2 className="mt-9 mb-4">Create new Speakeasy</h2>
+      <h2 className="mt-9 mb-4">Create a new Speakeasy</h2>
       <input
         type="text"
         placeholder="Name"
@@ -66,10 +66,8 @@ const CreateChannelView: FC<{}> = ({}) => {
 
       <p className="mt-9 mb-6">
         {privacyLevel === 0
-          ? `Public Speakeasies are accessible by anyone with just the link. No
-        password is needed to join. You can assume everyone knows when you are
-        in a public speakeasy`
-          : `Secret speakeasies hide everything: their names, descriptions, members, messages, and more. No one knows anything about the speakeasy unless they have the passphrase`}
+          ? `Public Speakeasies are accessible by anyone with just the link. No passphrase is needed to join. You can assume everyone knows when your codename is in a public speakeasy.`
+          : `Secret speakeasies hide everything: Speakeasy name, description, members, messages, and more. No one knows anything about the Speakeasy unless they are invited.`}
       </p>
       {error && (
         <div className={"text text--xs mt-2"} style={{ color: "var(--red)" }}>
