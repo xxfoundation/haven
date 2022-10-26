@@ -1012,10 +1012,6 @@ export const NetworkProvider: FC<any> = props => {
     privacyLevel: 0 | 2
   ) => {
     return new Promise(async (resolve, reject) => {
-      if (network && networkStatus !== NetworkStatus.CONNECTED) {
-        reject("Network is not connected yet");
-      }
-
       if (channelName && utils?.GenerateChannel) {
         try {
           const channelUnparsed = utils?.GenerateChannel(
