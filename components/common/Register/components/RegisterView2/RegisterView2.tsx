@@ -37,14 +37,23 @@ const RegisterView2: FC<{}> = ({}) => {
         className="mb-8 text text--sm"
         style={{
           color: "var(--cyan)",
-          lineHeight: "15px",
-          maxWidth: "444px",
+          lineHeight: "18px",
+          fontSize: "14px",
+          fontWeight: "500",
+          maxWidth: "800px",
           textAlign: "center"
         }}
       >
-        Your unique codename allows anyone to know they are talking to you.
-        Codenames are private, only those you are talking to ever know your
-        codename.
+        <span>
+          Codenames are generated on your computer by you. No servers or
+          databases are involved at all.
+        </span>
+        <br />
+        <span>
+          Your Codename is your personally owned anonymous identity shared
+          across every Speakeasy you join. It is private and it can never be
+          traced back to you.
+        </span>
       </p>
 
       {identities.length ? (

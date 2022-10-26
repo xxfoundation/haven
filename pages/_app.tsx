@@ -51,7 +51,10 @@ function MyApp({ Component, pageProps }: AppProps) {
                 <WebAssemblyRunner>
                   {!skipDuplicateTabCheck &&
                   isDuplicatedWindow(15000, 10000, "MyApp") ? (
-                    <WarningComponent warning="Speakeasy app can only run with one tab/window at a time" />
+                    <WarningComponent
+                      warning="Speakeasy can only run with one tab/window at a time.</br>
+                    Return to your Speakeasy home tab to continue."
+                    />
                   ) : (
                     <Layout pageProps={{ ...pageProps }}>
                       <Component {...pageProps} />
@@ -69,7 +72,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   }
 }
 
-export const WarningComponent: FC<{ warning: string }> = ({ warning }) => (
+export const WarningComponent: FC<{ warning: any }> = ({ warning }) => (
   <>
     <Head>
       <title>internet speakeasy</title>
@@ -80,11 +83,13 @@ export const WarningComponent: FC<{ warning: string }> = ({ warning }) => (
         className="headline m-auto text-center"
         style={{
           fontSize: "48px",
-          color: "var(--cyan)"
+          color: "var(--cyan)",
+          lineHeight: "1.2"
         }}
-      >
-        {warning}
-      </h1>
+        dangerouslySetInnerHTML={{
+          __html: warning
+        }}
+      ></h1>
     </div>
   </>
 );
