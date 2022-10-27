@@ -61,6 +61,15 @@ const Join: NextPage = () => {
     );
   }
 
+  if (withLink && isUserAuthenticated && typeof channelType !== "number") {
+    return (
+      <WarningComponent
+        warning="This invite link is invalid.</br>
+    Return to your Speakeasy home tab to continue."
+      />
+    );
+  }
+
   return withLink ? (
     isUserAuthenticated ? (
       <>
@@ -80,13 +89,13 @@ const Join: NextPage = () => {
         {!channelInfoJson && window?.location?.href && channelType === 2 && (
           <div className={s.passwordWrapper}>
             <h2 className="mt-9 mb-6">
-              This Speakeasy requires a password to join
+              This Speakeasy requires a passphrase to join
             </h2>
             <input
               className="mt-3 mb-4"
               name=""
               type="password"
-              placeholder="Enter password"
+              placeholder="Enter passphrase"
               value={password}
               onChange={e => {
                 setPassword(e.target.value);
@@ -116,7 +125,7 @@ const Join: NextPage = () => {
                     setChannelPrettyPrint(channelPrettyPrint);
                     setChannelInfoJson(infoJson);
                   } catch (error) {
-                    setError("Invalid Password");
+                    setError("Invalid passphrase");
                   }
                 }
               }}
@@ -128,7 +137,10 @@ const Join: NextPage = () => {
       <WarningComponent warning="Cannot join a speakeasy, when the user is not logged in. Return to the signup page to create an identity or log in" />
     )
   ) : (
-    <WarningComponent warning="Speakeasy app can only run with one tab/window at a time" />
+    <WarningComponent
+      warning="Speakeasy can only run with one tab/window at a time.</br>
+    Return to your Speakeasy home tab to continue."
+    />
   );
 };
 

@@ -14,12 +14,13 @@ const LeaveChannelConfirmationView: FC<{}> = ({}) => {
       className={cn("w-full flex flex-col justify-center items-center", s.root)}
     >
       <span className="text font-bold mt-9 mb-4">
-        Are you sure you want to leave {currentChannel?.name || ""} channel ?
+        Are you sure you want to leave {currentChannel?.name || ""} Speakeasy ?
       </span>
 
       <div className="flex">
         <ModalCtaButton
           buttonCopy="Leave"
+          style={{ borderColor: "var(--red)" }}
           cssClass="mt-5 mb-10 mr-5"
           onClick={() => {
             leaveChannel();
