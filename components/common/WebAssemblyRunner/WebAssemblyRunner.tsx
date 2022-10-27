@@ -11,7 +11,7 @@ const WebAssemblyRunner: FC<{ children: any }> = ({ children }) => {
       const binPath = "/integrations/assets/xxdk.wasm";
       WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
         async (result: any) => {
-          go?.run(result?.instance);
+          await go?.run(result?.instance);
           const {
             NewCmix,
             GenerateChannel,
