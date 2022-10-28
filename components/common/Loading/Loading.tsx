@@ -28,12 +28,12 @@ const Elixxir = () => {
   );
 };
 
-const Loading: FC<{}> = ({}) => {
+const Loading: FC<{ children?: any }> = ({ children }) => {
   return (
     <div className={s.root}>
       <div>
         <Elixxir />
-        <Spinner />
+        {children ? children : <Spinner />}
       </div>
     </div>
   );

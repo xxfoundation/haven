@@ -26,6 +26,13 @@
   min-width: 680px;
   max-width: 680px;
   border-radius: 10px;
+
+  &[class*="import-codename"] {
+    max-width: unset !important;
+    .close {
+      display: none;
+    }
+  }
 }
 
 .modal:focus {

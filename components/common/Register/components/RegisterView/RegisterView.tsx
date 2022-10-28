@@ -52,7 +52,7 @@ const RegisterView: FC<{
               className="mb-8 text"
               style={{ color: "#5B5D62", lineHeight: "17px" }}
             >
-              Enter a password to secure your soverign speakeasy identity
+              Enter a password to secure your sovereign speakeasy identity
             </p>
             <input
               type="password"
