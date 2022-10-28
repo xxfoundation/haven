@@ -742,7 +742,6 @@ export const NetworkProvider: FC<any> = props => {
   };
 
   const createChannelManager = async (privateIdentity: any, net?: any) => {
-    console.log("Test 0000 createChannelManager called");
     return new Promise((resolve, reject) => {
       const currentNetwork = network || net;
       if (
@@ -759,7 +758,6 @@ export const NetworkProvider: FC<any> = props => {
             cipherRef?.current?.GetID()
           )
           .then(async (res: IChannelManager) => {
-            console.log("Test 0000 ChannelManager is created");
             setChanManager(res);
             const storageTag = res.GetStorageTag();
             addStorageTag(storageTag);
@@ -1324,12 +1322,10 @@ export const NetworkProvider: FC<any> = props => {
     selectedPrivateIdentity: string,
     onIsReadyInfoChange: Function
   ) => {
-    console.log("Test 0000 checkIsReday called:");
     return new Promise((resolve, reject) => {
       const intervalId = setInterval(() => {
         const isReadyInfo = JSON.parse(dec.decode(network?.IsReady(0.7)));
         onIsReadyInfoChange(isReadyInfo);
-        console.log("Test 0000 isReadyInfo:", isReadyInfo);
         if (isReadyInfo.IsReady) {
           clearInterval(intervalId);
           setTimeout(() => {

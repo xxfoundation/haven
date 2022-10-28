@@ -7,8 +7,7 @@ import { useNetworkClient } from "contexts/network-client-context";
 import s from "./DefaultLayout.module.scss";
 import { useAuthentication } from "contexts/authentication-context";
 import { useUtils } from "contexts/utils-context";
-import { Loading } from "@components/common";
-import { dec } from "utils";
+import { Loading, ImportCodeNameLoading } from "@components/common";
 
 import {
   CreateChannelView,
@@ -48,7 +47,7 @@ const DefaultLayout: FC<Props> = ({
   pageProps: { ...pageProps }
 }) => {
   const { isAuthenticated, getStorageTag } = useAuthentication();
-  const { utilsLoaded } = useUtils();
+  const { utilsLoaded, shouldRenderImportCodeNameScreen } = useUtils();
   const { network, currentChannel, isReadyToRegister } = useNetworkClient();
 
   const ModalView: FC<{ modalView: string; closeModal(): any }> = ({
@@ -95,6 +94,8 @@ const DefaultLayout: FC<Props> = ({
             <RightSideBar cssClasses={s.rightSideBar} />
             <ModalUI />
           </>
+        ) : shouldRenderImportCodeNameScreen ? (
+          <ImportCodeNameLoading />
         ) : (
           <>
             <AuthenticationUI />
