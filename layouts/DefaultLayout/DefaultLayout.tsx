@@ -1,5 +1,5 @@
 import cn from "classnames";
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { LeftSideBar, RightSideBar, Modal } from "@components/common";
 import { useUI } from "contexts/ui-context";
 import { useNetworkClient } from "contexts/network-client-context";
@@ -7,7 +7,7 @@ import { useNetworkClient } from "contexts/network-client-context";
 import s from "./DefaultLayout.module.scss";
 import { useAuthentication } from "contexts/authentication-context";
 import { useUtils } from "contexts/utils-context";
-import { Loading } from "@components/common";
+import { Loading, ImportCodeNameLoading } from "@components/common";
 
 import {
   CreateChannelView,
@@ -33,11 +33,7 @@ interface Props {
 }
 
 const AuthenticationUI: FC = () => {
-  const {
-    isStatePathExisted,
-
-    getStorageTag
-  } = useAuthentication();
+  const { isStatePathExisted, getStorageTag } = useAuthentication();
 
   if (!isStatePathExisted() || !getStorageTag()) {
     return <Register />;
@@ -51,10 +47,9 @@ const DefaultLayout: FC<Props> = ({
   pageProps: { ...pageProps }
 }) => {
   const { isAuthenticated, getStorageTag } = useAuthentication();
-  const { utilsLoaded } = useUtils();
-  const { network, currentChannel } = useNetworkClient();
+  const { utilsLoaded, shouldRenderImportCodeNameScreen } = useUtils();
+  const { network, currentChannel, isReadyToRegister } = useNetworkClient();
 
-  useEffect(() => {}, []);
   const ModalView: FC<{ modalView: string; closeModal(): any }> = ({
     modalView,
     closeModal
@@ -92,13 +87,15 @@ const DefaultLayout: FC<Props> = ({
   return (
     <div className={cn(s.root)}>
       {utilsLoaded ? (
-        network && isAuthenticated && getStorageTag() ? (
+        network && isAuthenticated && getStorageTag() && isReadyToRegister ? (
           <>
             <LeftSideBar cssClasses={s.leftSideBar} />
             <main className="">{children}</main>
             <RightSideBar cssClasses={s.rightSideBar} />
             <ModalUI />
           </>
+        ) : shouldRenderImportCodeNameScreen ? (
+          <ImportCodeNameLoading />
         ) : (
           <>
             <AuthenticationUI />

@@ -47,7 +47,9 @@ const initialUtils = {
   DecodePublicURL: () => {},
   GetChannelJSON: () => {},
   NewDummyTrafficManager: () => {},
-  NewChannelsDatabaseCipher: () => {}
+  NewChannelsDatabaseCipher: () => {},
+  shouldRenderImportCodeNameScreen: false,
+  setShouldRenderImportCodeNameScreen: () => {}
 };
 
 export const UtilsContext = React.createContext<{
@@ -56,12 +58,16 @@ export const UtilsContext = React.createContext<{
   utilsLoaded: boolean;
   setUtilsLoaded: Function;
   transferIdentittyVariables: any;
+  shouldRenderImportCodeNameScreen: boolean;
+  setShouldRenderImportCodeNameScreen: Function;
 }>({
   utils: initialUtils,
   setUtils: () => {},
   utilsLoaded: false,
   setUtilsLoaded: () => {},
-  transferIdentittyVariables: {}
+  transferIdentittyVariables: {},
+  shouldRenderImportCodeNameScreen: false,
+  setShouldRenderImportCodeNameScreen: () => {}
 });
 
 UtilsContext.displayName = "UtilsContext";
@@ -70,6 +76,10 @@ export const UtilsProvider: FC<any> = props => {
   const [utils, setUtils] = useState<IHelperMethods>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
   const transferIdentittyVariables = useRef<any>({});
+  const [
+    shouldRenderImportCodeNameScreen,
+    setShouldRenderImportCodeNameScreen
+  ] = useState(false);
 
   return (
     <UtilsContext.Provider
@@ -78,7 +88,9 @@ export const UtilsProvider: FC<any> = props => {
         setUtils,
         utilsLoaded,
         setUtilsLoaded,
-        transferIdentittyVariables
+        transferIdentittyVariables,
+        shouldRenderImportCodeNameScreen,
+        setShouldRenderImportCodeNameScreen
       }}
       {...props}
     />

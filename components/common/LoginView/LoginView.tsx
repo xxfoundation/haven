@@ -15,9 +15,17 @@ import {
 const LoginView: FC<{}> = ({}) => {
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const { loadCmix, loadChannelManager } = useNetworkClient();
+  const {
+    loadCmix,
+    loadChannelManager,
+    setIsReadyToRegister
+  } = useNetworkClient();
   const { checkUser, getStorageTag } = useAuthentication();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setIsReadyToRegister(true);
+  }, []);
 
   const handleSubmit = async () => {
     setError("");

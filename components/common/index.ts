@@ -11,3 +11,5 @@ export { default as Spinner } from "./Spinner";
 export { default as Loading } from "./Loading";
 export { default as NetworkStatusIcon } from "./NetworkStatusIcon";
 export { default as MissedMessagesIcon } from "./MissedMessagesIcon";
+export { default as ProgressBar } from "./ProgressBar";
+export { default as ImportCodeNameLoading } from "./ImportCodeNameLoading";
