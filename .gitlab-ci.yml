@@ -14,7 +14,7 @@ stages:
 deploy_preprod:
   stage: deploy
   script:
-    - ssh -o StrictHostKeychecking=no maint@142.93.100.204 "service speakeasy restart"
+    - ssh -o StrictHostKeychecking=no maint@142.93.100.204 "sudo service speakeasy restart"
     - echo Redeployed http://main.speakeasy.tech/
   only:
     - main
@@ -22,7 +22,7 @@ deploy_preprod:
 deploy_dev:
   stage: deploy
   script:
-    - ssh -o StrictHostKeychecking=no maint@167.71.42.39 "service speakeasy restart"
+    - ssh -o StrictHostKeychecking=no maint@167.71.42.39 "sudo service speakeasy restart"
     - echo Redeployed http://dev.speakeasy.tech/
   only:
     - dev
