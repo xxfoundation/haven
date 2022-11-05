@@ -1,8 +1,8 @@
 import cn from "classnames";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC } from "react";
 import { LeftSideBar, RightSideBar, Modal } from "@components/common";
 import { useUI } from "contexts/ui-context";
-import { useNetworkClient } from "contexts/network-client-context";
+import { useNetworkClient, IChannel } from "contexts/network-client-context";
 
 import s from "./DefaultLayout.module.scss";
 import { useAuthentication } from "contexts/authentication-context";
@@ -42,6 +42,45 @@ const AuthenticationUI: FC = () => {
   }
 };
 
+const AuthenticatedUserModals: FC<{ currentChannel?: IChannel }> = ({
+  currentChannel
+}) => {
+  const { displayModal, closeModal, modalView } = useUI();
+  const cn = modalView.toLowerCase().replace(/_/g, "-");
+
+  const allModals = [
+    "SHARE_CHANNEL",
+    "CREATE_CHANNEL",
+    "JOIN_CHANNEL",
+    "LEAVE_CHANNEL_CONFIRMATION",
+    "SET_NICK_NAME",
+    "CHANNEL_ACTIONS",
+    "SETTINGS",
+    "EXPORT_CODENAME",
+    "NETWORK_NOT_READY",
+    "JOIN_CHANNEL_SUCCESS",
+    "MESSAGE_LONG"
+  ];
+  return displayModal && allModals.includes(modalView) ? (
+    <Modal className={cn} onClose={closeModal}>
+      {modalView === "SHARE_CHANNEL" && <ShareChannelView />}
+      {modalView === "CREATE_CHANNEL" && <CreateChannelView />}
+      {modalView === "JOIN_CHANNEL" && <JoinChannelView />}
+      {modalView === "LEAVE_CHANNEL_CONFIRMATION" && (
+        <LeaveChannelConfirmationView />
+      )}
+
+      {modalView === "SET_NICK_NAME" && currentChannel && <NickNameSetView />}
+      {modalView === "CHANNEL_ACTIONS" && <ChannelActionsView />}
+      {modalView === "SETTINGS" && <SettingsView />}
+      {modalView === "EXPORT_CODENAME" && <ExportCodenameView />}
+      {modalView === "NETWORK_NOT_READY" && <NetworkNotReadyView />}
+      {modalView === "JOIN_CHANNEL_SUCCESS" && <JoinChannelSuccessView />}
+      {modalView === "MESSAGE_LONG" && <MessageLongView />}
+    </Modal>
+  ) : null;
+};
+
 const DefaultLayout: FC<Props> = ({
   children,
   pageProps: { ...pageProps }
@@ -50,37 +89,12 @@ const DefaultLayout: FC<Props> = ({
   const { utilsLoaded, shouldRenderImportCodeNameScreen } = useUtils();
   const { network, currentChannel, isReadyToRegister } = useNetworkClient();
 
-  const ModalView: FC<{ modalView: string; closeModal(): any }> = ({
-    modalView,
-    closeModal
-  }) => {
-    const cn = modalView.toLowerCase().replace(/_/g, "-");
-
-    return (
-      <Modal className={cn} onClose={closeModal}>
-        {modalView === "SHARE_CHANNEL" && <ShareChannelView />}
-        {modalView === "CREATE_CHANNEL" && <CreateChannelView />}
-        {modalView === "JOIN_CHANNEL" && <JoinChannelView />}
-        {modalView === "LEAVE_CHANNEL_CONFIRMATION" && (
-          <LeaveChannelConfirmationView />
-        )}
-
-        {modalView === "SET_NICK_NAME" && currentChannel && <NickNameSetView />}
-        {modalView === "CHANNEL_ACTIONS" && <ChannelActionsView />}
-        {modalView === "SETTINGS" && <SettingsView />}
-        {modalView === "EXPORT_CODENAME" && <ExportCodenameView />}
-        {modalView === "IMPORT_CODENAME" && <ImportCodenameView />}
-        {modalView === "NETWORK_NOT_READY" && <NetworkNotReadyView />}
-        {modalView === "JOIN_CHANNEL_SUCCESS" && <JoinChannelSuccessView />}
-        {modalView === "MESSAGE_LONG" && <MessageLongView />}
-      </Modal>
-    );
-  };
-
-  const ModalUI: FC = () => {
+  const ImportCodeNameModal = () => {
     const { displayModal, closeModal, modalView } = useUI();
-    return displayModal ? (
-      <ModalView modalView={modalView} closeModal={closeModal} />
+    return displayModal && modalView === "IMPORT_CODENAME" ? (
+      <Modal onClose={closeModal}>
+        <ImportCodenameView />
+      </Modal>
     ) : null;
   };
 
@@ -92,14 +106,14 @@ const DefaultLayout: FC<Props> = ({
             <LeftSideBar cssClasses={s.leftSideBar} />
             <main className="">{children}</main>
             <RightSideBar cssClasses={s.rightSideBar} />
-            <ModalUI />
+            <AuthenticatedUserModals currentChannel={currentChannel} />
           </>
         ) : shouldRenderImportCodeNameScreen ? (
           <ImportCodeNameLoading />
         ) : (
           <>
             <AuthenticationUI />
-            <ModalUI />
+            <ImportCodeNameModal />
           </>
         )
       ) : (
