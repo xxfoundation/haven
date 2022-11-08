@@ -6,10 +6,21 @@ import moment from "moment";
 import { EmojisPicker as EmojisPickerIcon, Reply } from "@components/icons";
 import { IMessage } from "@types";
 import { ToolTip } from "@components/common";
-import { useNetworkClient } from "contexts/network-client-context";
 import { Elixxir } from "@components/icons";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import DOMPurify from "dompurify";
+
+const mapTextToHtmlWithAnchors = (text: string) => {
+  const returnVal = text.replace(
+    /(https?:\/\/)([^ ]+)/g,
+    `<a target="_blank" href="$&">$2</a>`
+  );
+  return DOMPurify.sanitize(returnVal, {
+    ALLOWED_TAGS: ["a"],
+    ALLOWED_ATTR: ["target", "href"]
+  });
+};
 
 const MessageSenderHeader: FC<{ message: IMessage }> = ({ message }) => {
   const color = (message?.color || "").replace("0x", "#");
@@ -124,9 +135,6 @@ const ChatMessage: FC<{
   onReactToMessage: Function;
 }> = ({ message, onReplyClicked, onReactToMessage }) => {
   const [actionsWrapperVisible, setActionsWrapperVisible] = useState(false);
-  const { getIdentity, getNickName } = useNetworkClient();
-  const identity = getIdentity();
-
   return (
     <div
       className={cn("flex items-center", s.root, {
@@ -202,17 +210,21 @@ const ChatMessage: FC<{
               }}
             >
               <MessageSenderHeader message={message.replyToMessage} />
-
-              {message.replyToMessage.body}
+              <p
+                dangerouslySetInnerHTML={{
+                  __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)
+                }}
+              ></p>
             </p>
           )}
           <p
             className={cn(s.messageBody, {
               [s.messageBody__failed]: message.status === 3
             })}
-          >
-            {message.body}
-          </p>
+            dangerouslySetInnerHTML={{
+              __html: mapTextToHtmlWithAnchors(message.body)
+            }}
+          ></p>
         </div>
         {message.emojisMap && (
           <div className={cn(s.footer)}>
