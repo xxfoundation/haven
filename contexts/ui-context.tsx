@@ -4,12 +4,14 @@ export interface State {
   displayModal: boolean;
   modalView: string;
   activeModals: object[];
+  channelInviteLink: string;
 }
 
 const initialState = {
   displayModal: false,
   modalView: "",
-  activeModals: []
+  activeModals: [],
+  channelInviteLink: ""
 };
 
 type Action =
@@ -22,6 +24,10 @@ type Action =
   | {
       type: "SET_MODAL_VIEW";
       view: MODAL_VIEWS;
+    }
+  | {
+      type: "SET_CHANNEL_INVITE_LINK";
+      link: string;
     };
 
 type MODAL_VIEWS =
@@ -36,7 +42,8 @@ type MODAL_VIEWS =
   | "IMPORT_CODENAME"
   | "NETWORK_NOT_READY"
   | "JOIN_CHANNEL_SUCCESS"
-  | "MESSAGE_LONG";
+  | "MESSAGE_LONG"
+  | "LOGOUT";
 
 export const UIContext = React.createContext<State | any>(initialState);
 
@@ -63,6 +70,12 @@ function uiReducer(state: State, action: Action) {
         modalView: action.view
       };
     }
+    case "SET_CHANNEL_INVITE_LINK": {
+      return {
+        ...state,
+        channelInviteLink: action.link
+      };
+    }
   }
 }
 
@@ -81,12 +94,18 @@ export const UIProvider: FC<any> = props => {
     [dispatch]
   );
 
+  const setChannelInviteLink = useCallback(
+    (link: string) => dispatch({ type: "SET_CHANNEL_INVITE_LINK", link }),
+    [dispatch]
+  );
+
   const value = useMemo(
     () => ({
       ...state,
       openModal,
       closeModal,
-      setModalView
+      setModalView,
+      setChannelInviteLink
     }),
     [state]
   );

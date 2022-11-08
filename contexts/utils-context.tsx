@@ -23,6 +23,7 @@ export interface IHelperMethods {
   GetChannelJSON: Function;
   NewDummyTrafficManager: Function;
   NewChannelsDatabaseCipher: Function;
+  Purge: Function;
 }
 
 const initialUtils = {
@@ -49,7 +50,8 @@ const initialUtils = {
   NewDummyTrafficManager: () => {},
   NewChannelsDatabaseCipher: () => {},
   shouldRenderImportCodeNameScreen: false,
-  setShouldRenderImportCodeNameScreen: () => {}
+  setShouldRenderImportCodeNameScreen: () => {},
+  Purge: () => {}
 };
 
 export const UtilsContext = React.createContext<{

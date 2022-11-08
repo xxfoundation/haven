@@ -98,8 +98,10 @@ export const WarningComponent: FC<{ warning: any }> = ({ warning }) => (
 
 const SEO = () => {
   const [url, setUrl] = useState("");
+  const [origin, setOrigin] = useState("");
   useEffect(() => {
     setUrl(`${window.location.origin}${window.location.pathname}`);
+    setOrigin(window.location.origin);
   }, []);
   return (
     <NextSeo
@@ -110,7 +112,7 @@ const SEO = () => {
         description: "",
         images: [
           {
-            url: "/preview.jpeg",
+            url: `${origin}/preview.jpeg`,
             width: 1280,
             height: 720,
             alt: "Speakeasy"

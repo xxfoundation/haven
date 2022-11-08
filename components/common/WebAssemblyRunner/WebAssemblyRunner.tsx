@@ -36,7 +36,8 @@ const WebAssemblyRunner: FC<{ children: any }> = ({ children }) => {
             DecodePublicURL,
             GetChannelJSON,
             NewDummyTrafficManager,
-            NewChannelsDatabaseCipher
+            NewChannelsDatabaseCipher,
+            Purge
           } = (window as any) || {};
 
           setUtils({
@@ -61,7 +62,8 @@ const WebAssemblyRunner: FC<{ children: any }> = ({ children }) => {
             DecodePublicURL,
             GetChannelJSON,
             NewDummyTrafficManager,
-            NewChannelsDatabaseCipher
+            NewChannelsDatabaseCipher,
+            Purge
           });
 
           if (LogLevel) {
