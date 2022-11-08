@@ -2,10 +2,7 @@ import { FC } from "react";
 import s from "./ChannelActionsView.module.scss";
 import { ModalCtaButton } from "@components/common";
 import cn from "classnames";
-import {
-  useNetworkClient,
-  NetworkStatus
-} from "contexts/network-client-context";
+import { useNetworkClient } from "contexts/network-client-context";
 import { useUI } from "contexts/ui-context";
 
 const ChannelActionsView: FC<{}> = ({}) => {
@@ -20,10 +17,11 @@ const ChannelActionsView: FC<{}> = ({}) => {
 
       <div className="mt-6 mb-8 flex items-center mx-auto">
         <ModalCtaButton
-          buttonCopy="Join"
+          buttonCopy="Logout"
           cssClass="mr-8"
+          style={{ borderColor: "var(--red)" }}
           onClick={() => {
-            setModalView("JOIN_CHANNEL");
+            setModalView("LOGOUT");
             openModal();
           }}
         />

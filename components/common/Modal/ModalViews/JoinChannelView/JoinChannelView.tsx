@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import s from "./JoinChannelView.module.scss";
 import cn from "classnames";
 import { ModalCtaButton } from "@components/common";
@@ -7,17 +7,22 @@ import { useUI } from "contexts/ui-context";
 import { useUtils } from "@contexts/utils-context";
 
 const JoinChannelView: FC<{}> = ({}) => {
-  const [url, setUrl] = useState<string>("");
-  const {
-    getShareUrlType,
-    joinChannelFromURL,
-    joinChannel
-  } = useNetworkClient();
+  const { closeModal, setChannelInviteLink, channelInviteLink } = useUI();
+
+  const [url, setUrl] = useState<string>(channelInviteLink || "");
+  const { getShareUrlType, joinChannel } = useNetworkClient();
   const { utils } = useUtils();
-  const { closeModal } = useUI();
   const [error, setError] = useState("");
   const [needPassword, setNeedPassword] = useState(false);
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    return () => {
+      if (channelInviteLink?.length) {
+        setChannelInviteLink("");
+      }
+    };
+  }, []);
 
   const handleSubmit = async () => {
     if (url.length === 0) {
