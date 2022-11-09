@@ -1,0 +1,32 @@
+.root {
+  & > input,
+  & > .error {
+    width: 100%;
+    max-width: 516px;
+  }
+  input {
+    border: none;
+    outline: none;
+    background-color: var(--dark-5);
+
+    padding: 18px 14px;
+    color: var(--text-primary);
+    font-size: 14px;
+    width: 100%;
+    max-width: 520px;
+    border-radius: 5px;
+  }
+
+  .button {
+    color: black;
+  }
+  p {
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 15px;
+    color: var(--cyan);
+    max-width: 520px;
+    text-align: left;
+    width: 100%;
+  }
+}

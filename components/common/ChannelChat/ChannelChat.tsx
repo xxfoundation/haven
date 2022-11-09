@@ -1,10 +1,8 @@
 import { FC, useState, useEffect, useRef } from "react";
 import s from "./ChannelChat.module.scss";
-import SendButton from "./components/SendButton/SendButton";
 import ChatMessage from "./components/ChatMessage/ChatMessage";
 import { IMessage, IEmojiReaction } from "@types";
 import cn from "classnames";
-import { Close } from "@components/icons";
 import moment from "moment";
 import _ from "lodash";
 import { useNetworkClient } from "contexts/network-client-context";
@@ -12,13 +10,12 @@ import { useUI } from "contexts/ui-context";
 import { Tree } from "@components/icons";
 
 import { Spinner } from "@components/common";
+import UserTextArea from "./components/UserTextArea/UserTextArea";
 
 const ChannelChat: FC<{}> = ({}) => {
   const {
     currentChannel,
     messages,
-    sendMessage,
-    sendReply,
     sendReaction,
     channels,
     loadMoreChannelData,
@@ -29,7 +26,6 @@ const ChannelChat: FC<{}> = ({}) => {
 
   const { setModalView, openModal } = useUI();
 
-  const [messageBody, setMessageBody] = useState<string>("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [replyToMessage, setReplyToMessage] = useState<IMessage | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
@@ -39,10 +35,10 @@ const ChannelChat: FC<{}> = ({}) => {
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
+  console.log("Test 2222 channel chat rendered");
+
   useEffect(() => {
     setReplyToMessage(undefined);
-    setMessageBody("");
-
     if (currentChannel?.id) {
       const shareUrl = getShareURL();
 
@@ -100,17 +96,6 @@ const ChannelChat: FC<{}> = ({}) => {
           messagesContainerRef.current.scrollTop = 20;
         }
       }
-    }
-  };
-
-  // return false if
-  const checkMessageLength = () => {
-    if (messageBody.trim().length > 700) {
-      setModalView("MESSAGE_LONG");
-      openModal();
-      return false;
-    } else {
-      return true;
     }
   };
 
@@ -213,93 +198,11 @@ const ChannelChat: FC<{}> = ({}) => {
               })
             )}
           </div>
-          <div className={s.textArea}>
-            {replyToMessage && (
-              <div className={cn(s.replyContainer)}>
-                <div className="flex flex-col flex-1">
-                  <span>Reply to {replyToMessage.codeName}</span>
-                  <p>{replyToMessage.body}</p>
-                </div>
-                <Close
-                  width={14}
-                  height={14}
-                  fill={"var(--orange)"}
-                  onClick={() => {
-                    setReplyToMessage(null);
-                  }}
-                />
-              </div>
-            )}
-
-            <textarea
-              ref={textAreaRef}
-              name=""
-              placeholder="Type your message here..."
-              value={messageBody}
-              onChange={e => {
-                setMessageBody(e.target.value);
-              }}
-              onKeyDown={e => {
-                if (e.keyCode === 13 && !e.shiftKey) {
-                  e.preventDefault();
-                  if (
-                    network &&
-                    network.ReadyToSend &&
-                    !network.ReadyToSend()
-                  ) {
-                    setModalView("NETWORK_NOT_READY");
-                    openModal();
-                  } else {
-                    if (replyToMessage) {
-                      if (checkMessageLength()) {
-                        sendReply(messageBody.trim(), replyToMessage.id);
-                        setMessageBody("");
-                      }
-                    } else {
-                      if (checkMessageLength()) {
-                        sendMessage(messageBody.trim());
-                        setMessageBody("");
-                      }
-                    }
-                  }
-
-                  setAutoScrollToEnd(true);
-                  setReplyToMessage(null);
-                }
-              }}
-            />
-
-            <div className={s.buttonsWrapper}>
-              <SendButton
-                cssClass={s.button}
-                onClick={async () => {
-                  if (
-                    network &&
-                    network.ReadyToSend &&
-                    !network.ReadyToSend()
-                  ) {
-                    setModalView("NETWORK_NOT_READY");
-                    openModal();
-                  } else {
-                    if (replyToMessage) {
-                      if (checkMessageLength()) {
-                        sendReply(messageBody.trim(), replyToMessage.id);
-                        setMessageBody("");
-                      }
-                    } else {
-                      if (checkMessageLength()) {
-                        sendMessage(messageBody.trim());
-                        setMessageBody("");
-                      }
-                    }
-                  }
-
-                  setAutoScrollToEnd(true);
-                  setReplyToMessage(null);
-                }}
-              />
-            </div>
-          </div>
+          <UserTextArea
+            setAutoScrollToEnd={setAutoScrollToEnd}
+            replyToMessage={replyToMessage}
+            setReplyToMessage={setReplyToMessage}
+          />
         </>
       ) : channels.length ? (
         <div className={s.channelHeader}></div>

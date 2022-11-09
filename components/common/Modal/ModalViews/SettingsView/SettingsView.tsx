@@ -1,6 +1,6 @@
 import { FC } from "react";
 import s from "./SettingsView.module.scss";
-import { Download, Export } from "@components/icons";
+import { Download, Export, Logout } from "@components/icons";
 import cn from "classnames";
 import { useUI } from "@contexts/ui-context";
 
@@ -38,6 +38,15 @@ const SettingsView: FC<{}> = ({}) => {
           <Export
             onClick={() => {
               setModalView("EXPORT_CODENAME");
+              openModal();
+            }}
+          />
+        </div>
+        <div>
+          <h3 className="headline--sm">Logout</h3>
+          <Logout
+            onClick={() => {
+              setModalView("LOGOUT");
               openModal();
             }}
           />
