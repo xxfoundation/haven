@@ -34,6 +34,10 @@
       margin-bottom: 8px;
       padding: 6px;
       border-radius: 5px;
+      a {
+        color: var(--cyan);
+      }
+
       cursor: pointer;
       .sender {
         svg {
@@ -151,6 +155,9 @@
 .messageBody {
   &__failed {
     color: var(--red) !important;
+  }
+  a {
+    color: var(--cyan);
   }
 }
 

@@ -10,6 +10,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { isDuplicatedWindow } from "utils/oneTabEnforcer";
 import { WebAssemblyRunner } from "@components/common";
+import { NextSeo } from "next-seo";
 
 let regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
 const isDesktop = () => {
@@ -44,6 +45,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <title>internet speakeasy</title>
           <link rel="icon" href="/favicon.svg" />
         </Head>
+        <SEO />
         <ManagedUtilsContext>
           <ManagedAuthenticationContext>
             <ManagedNetworkContext>
@@ -93,5 +95,32 @@ export const WarningComponent: FC<{ warning: any }> = ({ warning }) => (
     </div>
   </>
 );
+
+const SEO = () => {
+  const [url, setUrl] = useState("");
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    setUrl(`${window.location.origin}${window.location.pathname}`);
+    setOrigin(window.location.origin);
+  }, []);
+  return (
+    <NextSeo
+      openGraph={{
+        type: "website",
+        url: url,
+        title: "Speakeasy",
+        description: "",
+        images: [
+          {
+            url: `${origin}/preview.jpeg`,
+            width: 1280,
+            height: 720,
+            alt: "Speakeasy"
+          }
+        ]
+      }}
+    />
+  );
+};
 
 export default MyApp;
