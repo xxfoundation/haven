@@ -98,15 +98,10 @@ export const WarningComponent: FC<{ warning: any }> = ({ warning }) => (
 
 const SEO = () => {
   const [url, setUrl] = useState("");
-<<<<<<< HEAD
-  useEffect(() => {
-    setUrl(`${window.location.origin}${window.location.pathname}`);
-=======
   const [origin, setOrigin] = useState("");
   useEffect(() => {
     setUrl(`${window.location.origin}${window.location.pathname}`);
     setOrigin(window.location.origin);
->>>>>>> dev
   }, []);
   return (
     <NextSeo
