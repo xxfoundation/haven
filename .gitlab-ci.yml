@@ -9,7 +9,7 @@ before_script:
   - chmod 700 ~/.ssh
 
 stages:
-    - deploy
+  - deploy
 
 deploy_preprod:
   stage: deploy

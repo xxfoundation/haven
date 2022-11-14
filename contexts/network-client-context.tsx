@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, useCallback, useRef } from "react";
+import React, { FC, useState, useEffect, useRef } from "react";
 
 import { useAuthentication } from "contexts/authentication-context";
 import { useUtils } from "contexts/utils-context";
@@ -6,7 +6,7 @@ import { ndf } from "@sdk/ndf";
 import { STATE_PATH } from "../constants";
 import { Dexie } from "dexie";
 import { IMessage } from "types";
-import { enc, dec } from "utils";
+import { dec } from "utils";
 import _ from "lodash";
 import Cookies from "js-cookie";
 
@@ -108,6 +108,7 @@ export const NetworkClientContext = React.createContext<{
   isReadyToRegister: boolean | undefined;
   setIsReadyToRegister: Function;
   checkIsRedayToRegister: Function;
+  logout: Function;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -148,7 +149,8 @@ export const NetworkClientContext = React.createContext<{
   isNetworkHealthy: undefined,
   isReadyToRegister: undefined,
   setIsReadyToRegister: () => {},
-  checkIsRedayToRegister: () => {}
+  checkIsRedayToRegister: () => {},
+  logout: () => {}
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
@@ -853,7 +855,11 @@ export const NetworkProvider: FC<any> = props => {
   const connectNetwork = async () => {
     if (network) {
       setNetworkStatus(NetworkStatus.CONNECTING);
-      network.StartNetworkFollower(50000);
+      try {
+        network.StartNetworkFollower(50000);
+      } catch (error) {
+        console.error("Error while StartNetworkFollower:", error);
+      }
       await network.WaitForNetwork(10 * 60 * 1000).then(
         () => {
           setNetworkStatus(NetworkStatus.CONNECTED);
@@ -1325,6 +1331,7 @@ export const NetworkProvider: FC<any> = props => {
     return new Promise((resolve, reject) => {
       const intervalId = setInterval(() => {
         const isReadyInfo = JSON.parse(dec.decode(network?.IsReady(0.7)));
+
         onIsReadyInfoChange(isReadyInfo);
         if (isReadyInfo.IsReady) {
           clearInterval(intervalId);
@@ -1336,6 +1343,40 @@ export const NetworkProvider: FC<any> = props => {
         }
       }, 1000);
     });
+  };
+
+  const logout = (password: string) => {
+    if (utils && utils.Purge && network && network.StopNetworkFollower) {
+      try {
+        network.StopNetworkFollower();
+        utils.Purge(STATE_PATH, password);
+        window.localStorage.clear();
+        Cookies.remove("userAuthenticated", { path: "/" });
+        setIsAuthenticated(false);
+        setNetworkStatus(NetworkStatus.DISCONNECTED);
+        setNetwork(undefined);
+        setIsReadyToRegister(undefined);
+        setIsNetworkHealthy(undefined);
+        setChannels([]);
+        setCurrentChannel(undefined);
+        setChanManager(undefined);
+        setMessages([]);
+        blockedEvents.current = [];
+        currentCodeNameRef.current = "";
+        currentChannelRef.current = undefined;
+        dummyTrafficObjRef.current = undefined;
+        cipherRef.current = undefined;
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        // If something wrong happened like wrong password then we should start network follower again
+        network.StartNetworkFollower(50000);
+        return false;
+      }
+    } else {
+      return false;
+    }
   };
 
   return (
@@ -1379,7 +1420,8 @@ export const NetworkProvider: FC<any> = props => {
         isNetworkHealthy,
         isReadyToRegister,
         setIsReadyToRegister,
-        checkIsRedayToRegister
+        checkIsRedayToRegister,
+        logout
       }}
       {...props}
     />

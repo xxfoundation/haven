@@ -1,5 +1,5 @@
 import { NextPage } from "next";
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import cn from "classnames";
 import { useNetworkClient } from "@contexts/network-client-context";
 import { useUtils } from "@contexts/utils-context";
@@ -8,11 +8,13 @@ import { WarningComponent } from "pages/_app";
 import JoinChannelView from "@components/common/JoinChannelView";
 import { ModalCtaButton } from "@components/common";
 import { Spinner } from "@components/common";
+import { useRouter } from "next/router";
 
 import { dec } from "@utils";
 import s from "./join.module.scss";
 
 const Join: NextPage = () => {
+  const router = useRouter();
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [withLink, setWithLink] = useState(false);
   const { getShareUrlType } = useNetworkClient();
@@ -25,6 +27,7 @@ const Join: NextPage = () => {
   const [bc, setBc] = useState<BroadcastChannel>(
     new BroadcastChannel("join_channel")
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (Cookies.get("userAuthenticated")) {
@@ -36,7 +39,23 @@ const Join: NextPage = () => {
   }, []);
 
   useEffect(() => {
-    if (isUserAuthenticated && withLink) {
+    if (utilsLoaded && isLoading) {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 2000);
+    }
+  }, [utilsLoaded]);
+
+  useEffect(() => {
+    if (channelType === 0 || channelType === 2) {
+      if (!isUserAuthenticated) {
+        router.replace(`/${window.location.search}`);
+      }
+    }
+  }, [channelType]);
+
+  useEffect(() => {
+    if (withLink) {
       const urlType = getShareUrlType(window.location.href);
       setChannelType(urlType);
     }
@@ -53,7 +72,7 @@ const Join: NextPage = () => {
     }
   }, [channelType]);
 
-  if (!utilsLoaded) {
+  if (isLoading) {
     return (
       <div className={"w-full h-screen flex justify-center items-center"}>
         <Spinner />
@@ -61,7 +80,7 @@ const Join: NextPage = () => {
     );
   }
 
-  if (withLink && isUserAuthenticated && typeof channelType !== "number") {
+  if (withLink && typeof channelType !== "number") {
     return (
       <WarningComponent
         warning="This invite link is invalid.</br>
@@ -72,6 +91,7 @@ const Join: NextPage = () => {
 
   return withLink ? (
     isUserAuthenticated ? (
+      // Public channel
       <>
         {channelInfoJson && window?.location?.href && (
           <JoinChannelView
@@ -86,6 +106,7 @@ const Join: NextPage = () => {
             }}
           />
         )}
+        {/* Secret Channel */}
         {!channelInfoJson && window?.location?.href && channelType === 2 && (
           <div className={s.passwordWrapper}>
             <h2 className="mt-9 mb-6">
@@ -145,5 +166,4 @@ const Join: NextPage = () => {
 };
 
 export default Join;
-// (Join as any).Layout = DefaultLayout;
 (Join as any).skipDuplicateTabCheck = true;
