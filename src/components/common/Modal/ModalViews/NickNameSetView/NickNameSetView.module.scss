@@ -1,0 +1,23 @@
+.root {
+  input {
+    border: none;
+    outline: none;
+    background-color: var(--dark-5);
+    padding: 18px 10px;
+    color: var(--text-primary) !important;
+    font-size: 14px;
+    max-width: 444px;
+    width: 100%;
+    height: 55px;
+    border-radius: 5px;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    box-shadow: 0 0 0 30px var(--dark-5) inset;
+    -webkit-box-shadow: 0 0 0 30px var(--dark-5) inset;
+    -webkit-text-fill-color: var(--text-primary);
+  }
+}
