@@ -3,10 +3,9 @@ import s from './LeftSideBar.module.scss';
 import cn from 'classnames';
 import {
   Collapse,
-  NetworkStatusIcon,
-  MissedMessagesIcon
 } from 'src/components/common';
-import { Elixxir, SpeakEasy, Settings, Plus, Join } from 'src/components/icons';
+
+import { Elixxir, SpeakEasy, Settings, Plus, Join, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 

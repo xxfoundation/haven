@@ -5,7 +5,7 @@ import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 
-const NickNameSetView: FC<{}> = ({}) => {
+const NickNameSetView: FC = () => {
   const { currentChannel, getNickName, setNickName } = useNetworkClient();
   const [nickName, setnickName] = useState(getNickName() || '');
   const [error, setError] = useState('');

@@ -38,7 +38,7 @@ const JoinChannelView: FC = ({}) => {
 
         try {
           const prettyPrint = utils.DecodePublicURL(url);
-          await joinChannel(prettyPrint);
+          joinChannel(prettyPrint);
           setUrl('');
           closeModal();
         } catch (e) {
@@ -57,7 +57,7 @@ const JoinChannelView: FC = ({}) => {
       if (url && password) {
         try {
           const prettyPrint = utils.DecodePrivateURL(url, password);
-          await joinChannel(prettyPrint);
+          joinChannel(prettyPrint);
           setUrl('');
           setPassword('');
           closeModal();

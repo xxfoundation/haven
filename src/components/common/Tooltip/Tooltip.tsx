@@ -1,12 +1,9 @@
+import { WithChildren } from '@types';
 import { FC } from 'react';
-import s from './Tooltip.module.scss';
-import cn from 'classnames';
-import ReactTooltip from 'react-tooltip';
-import TooltipProps from 'react-tooltip';
+import ReactTooltip, { TooltipProps } from 'react-tooltip';
 
-interface ToolTipProps {
-  children: any;
-  tooltipProps: any;
+type ToolTipProps = WithChildren & {
+  tooltipProps: TooltipProps;
 }
 
 const ToolTip: FC<ToolTipProps> = ({ children, tooltipProps }) => {
