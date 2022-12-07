@@ -20,7 +20,7 @@ const RegisterView2: FC = () => {
 
   const [identities, setIdentites] = useState<ReturnType<typeof generateIdentities>>([]);
   const [selectedCodeName, setSelectedCodeName] = useState('');
-  const [selectedPrivateIdentity, setSelectedPrivateIdentity] = useState('');
+  const [selectedPrivateIdentity, setSelectedPrivateIdentity] = useState<Uint8Array>();
   const [firstTimeGenerated, setFirstTimeGenerated] = useState(false);
 
   const [readyProgress, setReadyProgress] = useState<number>(0);
@@ -71,7 +71,7 @@ const RegisterView2: FC = () => {
               s.codeContainers
             )}
           >
-            {identities.map((i: any) => {
+            {identities.map((i) => {
               return (
                 <div
                   key={i.codeName}
@@ -116,14 +116,17 @@ const RegisterView2: FC = () => {
             onClick={async () => {
               setIsReadyToRegister(false);
               setTimeout(async () => {
-                checkRegistrationReadiness(
-                  selectedPrivateIdentity,
-                  (isReadyInfo: any) => {
-                    setReadyProgress(
-                      Math.ceil((isReadyInfo?.HowClose || 0) * 100)
-                    );
-                  }
-                );
+                if (selectedPrivateIdentity) {
+                  checkRegistrationReadiness(
+                    selectedPrivateIdentity,
+                    (isReadyInfo) => {
+                      setReadyProgress(
+                        Math.ceil((isReadyInfo?.HowClose || 0) * 100)
+                      );
+                    }
+                  );
+                }
+                
               }, 500);
             }}
             disabled={!cmix || selectedCodeName.length === 0}

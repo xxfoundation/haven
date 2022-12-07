@@ -1,8 +1,9 @@
 import { FC, useCallback, useState } from 'react';
-import s from './JoinChannelView.module.scss';
 import { ModalCtaButton } from 'src/components/common';
 import cn from 'classnames';
 import { WarningComponent } from 'src/pages/_app';
+
+import s from './JoinChannel.module.scss';
 
 const JoinChannelView: FC<{
   channelInfo: any;

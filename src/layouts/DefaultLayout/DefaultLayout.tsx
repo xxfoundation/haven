@@ -27,8 +27,8 @@ import {
   LogoutView
 } from 'src/components/common/Modal/ModalViews';
 
-import Register from 'src/components/common/Register';
-import LoginView from 'src/components/common/LoginView';
+import Register from 'src/components/views/Register';
+import LoginView from '@components/views/Login';
 
 import s from './DefaultLayout.module.scss';
 

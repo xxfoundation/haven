@@ -13,7 +13,7 @@ import { ManagedUtilsContext } from 'src/contexts/utils-context';
 import { isDuplicatedWindow } from 'src/utils/oneTabEnforcer';
 import { WebAssemblyRunner } from 'src/components/common';
 
-import '@assets/scss/main.scss';
+import 'src/assets/scss/main.scss';
 import ErrorBoundary from 'src/components/common/ErrorBoundary';
 
 const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;

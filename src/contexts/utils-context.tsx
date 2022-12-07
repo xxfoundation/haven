@@ -1,3 +1,4 @@
+import type { ChannelManager } from './network-client-context'
 import React, { FC, useState, useRef } from 'react';
 import { CMix } from './network-client-context';
 
@@ -7,7 +8,19 @@ export enum PrivacyLevel {
   Secret = 2
 }
 
-export interface HelperMethods {
+type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
+
+type DummyTraffic = {
+  GetStatus: () => boolean;
+  SetStatus: (status: boolean) => void;
+}
+
+export type ChannelDbCipher = {
+  GetID: () => number;
+  Decrypt: (plaintext: Uint8Array) => Uint8Array;
+}
+
+export type XXDKUtils = {
   NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => void;
   LoadCmix: (storageDirectory: string, password: Uint8Array, cmixParams: Uint8Array) => Promise<CMix>;
   GetDefaultCMixParams: () => Uint8Array;
@@ -15,76 +28,61 @@ export interface HelperMethods {
   GetChannelInfo: (prettyPrint: string) => Uint8Array;
   Base64ToUint8Array: (base64: string) => Uint8Array;
   GenerateChannelIdentity: (cmixId: number) => Uint8Array;
-  NewChannelsManagerWithIndexedDb: (cmidId: number, privateIdentity: Uint8Array) => void;
-  LoadChannelsManagerWithIndexedDb: Function;
+  NewChannelsManagerWithIndexedDb: (
+    cmidId: number,
+    privateIdentity: Uint8Array,
+    onMessage: MessageReceivedCallback,
+    channelDbCipher: number
+  ) => Promise<ChannelManager>;
+  LoadChannelsManagerWithIndexedDb: (cmixId: number, storageTag: string, onMessage: MessageReceivedCallback, channelDbCipher: number) => ChannelManager;
   GetPublicChannelIdentityFromPrivate: (privateKey: Uint8Array) => Uint8Array;
-  IsNicknameValid: Function;
+  IsNicknameValid: (nickname: string) => null;
   GetShareUrlType: (url: string) => PrivacyLevel;
   GetVersion: () => string;
   GetClientVersion: () => string;
   GetOrInitPassword: (password: string) => Uint8Array;
-  ImportPrivateIdentity: Function;
-  ConstructIdentity: Function;
-  DecodePrivateURL: Function;
-  DecodePublicURL: Function;
-  GetChannelJSON: Function;
-  NewDummyTrafficManager: Function;
-  NewChannelsDatabaseCipher: Function;
-  Purge: Function;
+  ImportPrivateIdentity: (password: string, privateIdentity: Uint8Array) => Uint8Array;
+  ConstructIdentity: (publicKey: Uint8Array, codesetVersion: number) => Uint8Array;
+  DecodePrivateURL: (url: string, password: string) => string;
+  DecodePublicURL: (url: string) => string;
+  GetChannelJSON: (prettyPrint: string) => Uint8Array;
+  NewDummyTrafficManager: (
+    cmidId: number,
+    maximumOfMessagesPerCycle: number,
+    durationToWaitBetweenSendsMilliseconds: number,
+    upperBoundIntervalBetweenCyclesMilliseconds: number
+  ) => DummyTraffic;
+  NewChannelsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => ChannelDbCipher;
+  Purge: (storageDirectory: string, userPassword: string) => void;
 }
 
 const initialUtils = {
-  NewCmix: () => {},
-  LoadCmix: () => {},
-  GetDefaultCMixParams: () => {},
-  GenerateChannel: () => {},
-  GetChannelInfo: () => {},
-  Base64ToUint8Array: () => {},
-  GenerateChannelIdentity: () => {},
-  NewChannelsManagerWithIndexedDb: () => {},
-  LoadChannelsManagerWithIndexedDb: () => {},
-  GetPublicChannelIdentityFromPrivate: () => {},
-  IsNicknameValid: () => {},
-  GetShareUrlType: () => {},
-  GetVersion: () => {},
-  GetClientVersion: () => {},
-  GetOrInitPassword: () => {},
-  ImportPrivateIdentity: () => {},
-  ConstructIdentity: () => {},
-  DecodePrivateURL: () => {},
-  DecodePublicURL: () => {},
-  GetChannelJSON: () => {},
-  NewDummyTrafficManager: () => {},
-  NewChannelsDatabaseCipher: () => {},
   shouldRenderImportCodeNameScreen: false,
-  setShouldRenderImportCodeNameScreen: () => {},
-  Purge: () => {}
-};
+} as unknown as XXDKUtils;
 
-export const UtilsContext = React.createContext<{
-  utils: HelperMethods;
-  setUtils: Function;
+type XXDKContext = {
+  utils: XXDKUtils;
+  setUtils: (utils: XXDKUtils) => void;
   utilsLoaded: boolean;
-  setUtilsLoaded: Function;
-  transferIdentittyVariables: any;
+  setUtilsLoaded: (loaded: boolean) => void;
+  transferIdentityVariables: any;
   shouldRenderImportCodeNameScreen: boolean;
-  setShouldRenderImportCodeNameScreen: Function;
-}>({
+  setShouldRenderImportCodeNameScreen: (shouldRender: boolean) => void;
+}
+
+export const UtilsContext = React.createContext<XXDKContext>({
   utils: initialUtils,
-  setUtils: () => {},
   utilsLoaded: false,
-  setUtilsLoaded: () => {},
   transferIdentittyVariables: {},
   shouldRenderImportCodeNameScreen: false,
-  setShouldRenderImportCodeNameScreen: () => {}
-});
+} as unknown as XXDKContext);
 
 UtilsContext.displayName = 'UtilsContext';
 
 export const UtilsProvider: FC<any> = props => {
-  const [utils, setUtils] = useState<HelperMethods>(initialUtils);
+  const [utils, setUtils] = useState<XXDKUtils>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
-  const transferIdentittyVariables = useRef<any>({});
+  const transferIdentityVariables = useRef<any>({});
   const [
     shouldRenderImportCodeNameScreen,
     setShouldRenderImportCodeNameScreen
@@ -97,7 +95,7 @@ export const UtilsProvider: FC<any> = props => {
         setUtils,
         utilsLoaded,
         setUtilsLoaded,
-        transferIdentittyVariables,
+        transferIdentityVariables,
         shouldRenderImportCodeNameScreen,
         setShouldRenderImportCodeNameScreen
       }}

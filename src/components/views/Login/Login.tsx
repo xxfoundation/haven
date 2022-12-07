@@ -1,9 +1,12 @@
 import { FC, useState, useEffect } from 'react';
-import s from './LoginView.module.scss';
-import { ModalCtaButton, Spinner } from 'src/components/common';
 import cn from 'classnames';
+
+import { ModalCtaButton, Spinner } from 'src/components/common';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
+
+import s from './Login.module.scss';
+
 import {
   NormalSpeakeasy,
   OpenSource,
