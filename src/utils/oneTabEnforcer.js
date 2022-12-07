@@ -91,7 +91,6 @@ export const isDuplicatedWindow = function(
    * Another thing, that should be done (so you can open a tab within 15 seconds of closing it) would be to do the following (or hook onto an existing onunload method):
    */
   function isTabDuplicated() {
-    //console.log("In testTab");
     var sessionGuid = GetItem(ItemType.Session) || createGUID();
     SetItem(ItemType.Session, sessionGuid);
 
@@ -105,7 +104,6 @@ export const isDuplicatedWindow = function(
       tabObj.guid === sessionGuid
     ) {
       const setTabObj = () => {
-        //console.log("In setTabObj");
         var newTabObj = {
           guid: sessionGuid,
           timestamp: new Date().getTime()
@@ -125,5 +123,6 @@ export const isDuplicatedWindow = function(
       return true;
     }
   }
+  
   return isTabDuplicated();
 };

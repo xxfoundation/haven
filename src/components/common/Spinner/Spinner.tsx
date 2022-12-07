@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import s from './Spinner.module.scss';
 
-const Spinner: FC<{}> = ({}) => {
+const Spinner: FC = ({}) => {
   return (
     <div className={s['lds-ring']}>
       <div></div>

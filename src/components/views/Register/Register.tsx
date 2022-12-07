@@ -1,7 +1,7 @@
 import { FC, useState, useEffect } from 'react';
 
-import Registration from './Registration';
-import CodeNameRegistration from './CodeNameRegistration';
+import Registration from '../Registration';
+import CodeNameRegistration from '../CodeNameRegistration';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 
 const Register: FC = ({}) => {

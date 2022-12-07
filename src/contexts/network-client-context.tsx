@@ -49,7 +49,7 @@ export type CMix = {
   StopNetworkFollower: () => void;
 }
 
-interface DatabaseCipher {
+export type DatabaseCipher = {
   GetID: () => number;
   Decrypt: (plaintext: Uint8Array) => Uint8Array;
 }
@@ -60,7 +60,7 @@ type ChannelInfo = {
   ChannelID: string;
 }
 
-interface ChannelManager {
+export type ChannelManager = {
   GetChannels: () => Uint8Array;
   GetID: () => number;
   JoinChannel: (channelId: string) => Uint8Array;
@@ -141,7 +141,7 @@ type NetworkContext = {
   connectNetwork: () => Promise<void>;
   initiateCmix: (password: string, onCmixInitiated?: (cmix: CMix) => void) => void;
   loadCmix: (statePassEncoded: Uint8Array, onCmixLoaded?: (cmix: CMix) => void) => Promise<void>;
-  createChannelManager: (privateIdentity: string) => Promise<void>;
+  createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
   handleInitialLoadData: (storageTag: string) => Promise<void>;
   getNickName: () => string;
@@ -162,7 +162,7 @@ type NetworkContext = {
   isReadyToRegister: boolean | undefined;
   setIsReadyToRegister: (isReady: boolean | undefined) => void;
   checkRegistrationReadiness: (
-    selectedPrivateIdentity: string,
+    selectedPrivateIdentity: Uint8Array,
     onIsReadyInfoChange: (readinessInfo: IsReadyInfo) => void
   ) => Promise<void>;
   logout: (password: string) => void;
@@ -244,7 +244,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const getIdentity = useCallback(() => {
     try {
-      return JSON.parse(decoder.decode(channelManager?.GetIdentity())) as Identity;
+      const identity = decoder.decode(channelManager?.GetIdentity());
+      // eslint-disable-next-line no-console
+      console.log({ identity });
+      return JSON.parse(identity) as Identity;
     } catch (error) {
       console.error(error);
       return null;
@@ -318,7 +321,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const getCodeNameAndColor = useCallback((publicKey: string, codeset: number) => {
     try {
-      assert(utils && utils.ConstructIdentity && utils.Base64ToUint8Array)
+      assert(utils && typeof utils.ConstructIdentity === 'function' && utils.Base64ToUint8Array)
       const identity = JSON.parse(
         decoder.decode(
           utils.ConstructIdentity(
@@ -598,7 +601,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const onReceiveEvent = useCallback(async (
     uuid: string,
-    channelID: Uint8Array,
+    _channelID: Uint8Array,
     isUpdate: boolean
   ) => {
     if (db) {
@@ -771,7 +774,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const eventsIds = events.map(e => e.message_id);
       const reactionEvents = await db
         .table('messages')
-        .filter((e: any) => {
+        .filter((e) => {
           return eventsIds.includes(e.parent_message_id) && e.type === 3;
         })
         .toArray();
@@ -868,7 +871,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   };
 
-  const createChannelManager = useCallback(async (privateIdentity: string) => {
+  const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
     if (
       network &&
       cipherRef?.current &&
@@ -1313,7 +1316,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, utils]);
 
   const checkRegistrationReadiness = useCallback((
-    selectedPrivateIdentity: string,
+    selectedPrivateIdentity: Uint8Array,
     onIsReadyInfoChange: (readinessInfo: IsReadyInfo) => void
   ) => {
     return new Promise<void>((resolve) => {

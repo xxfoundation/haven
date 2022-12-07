@@ -1,16 +1,17 @@
-import { FC, useState, useEffect } from 'react';
-import s from './RightSideBar.module.scss';
+import { FC, useMemo, useState, useEffect, MouseEventHandler } from 'react';
+import { useSpring, a } from '@react-spring/web';
 import cn from 'classnames';
+
 import { Button, Collapse } from 'src/components/common';
 import { DoubleLeftArrows, DoubleRightArrows } from 'src/components/icons';
-import { useSpring, a } from '@react-spring/web';
 import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Elixxir } from 'src/components/icons';
 
+import s from './RightSideBar.module.scss';
+
 const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   const {
-    channels,
     currentChannel,
     getIdentity,
     getNickName,
@@ -18,9 +19,10 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   } = useNetworkClient();
   const [currentContributors, setCurrentContributors] = useState<any>([]);
 
-  const currentChannelMessages = messages.filter(
+  const currentChannelMessages = useMemo(() => messages.filter(
     m => m.channelId === (currentChannel?.id || '')
-  );
+  ), [currentChannel?.id, messages]);
+  const identity = useMemo(() => getIdentity(), [getIdentity]);
 
   useEffect(() => {
     const updated = [
@@ -31,13 +33,13 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
       )
     ];
     setCurrentContributors(updated);
-  }, [currentChannelMessages?.length]);
+  }, [currentChannelMessages]);
 
   const { openModal, setModalView } = useUI();
   const [isActive, setIsActive] = useState<boolean>(true);
 
-  const codeName = getIdentity().Codename;
-  let color = getIdentity().Color;
+  const codeName = identity?.Codename;
+  let color = identity?.Color;
   if (color) {
     color = color.replace('0x', '#');
   }
@@ -66,7 +68,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
     cssClass,
     onClick
   }: {
-    onClick: Function;
+    onClick: MouseEventHandler<SVGSVGElement>;
     cssClass?: string;
   }) => {
     return isActive ? (
@@ -151,7 +153,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                 if (c.codeName === codeName) {
                   return null;
                 } else {
-                  const color = c?.color.replace('0x', '#');
+                  const cssColor = c?.color.replace('0x', '#');
 
                   return (
                     <span
@@ -163,7 +165,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                     >
                       {c.nickName && (
                         <span
-                          style={{ color: `${color}`, marginRight: '6px' }}
+                          style={{ color: `${cssColor}`, marginRight: '6px' }}
                           className={cn('headline--xs', s.nickNameWrapper)}
                         >
                           {c.nickName}
@@ -174,12 +176,12 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                       >
                         <Elixxir
                           style={
-                            c.nickName ? { fill: '#73767C' } : { fill: color }
+                            c.nickName ? { fill: '#73767C' } : { fill: cssColor }
                           }
                         />
                         <span
                           style={
-                            c.nickName ? { color: '#73767C' } : { color: color }
+                            c.nickName ? { color: '#73767C' } : { color: cssColor }
                           }
                           className='headline--xs'
                         >

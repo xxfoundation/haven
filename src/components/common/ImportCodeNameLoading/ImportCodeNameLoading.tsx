@@ -7,7 +7,7 @@ import { ProgressBar } from 'src/components/common';
 import { encoder } from 'src/utils';
 
 const ImportCodeNameLoading: FC = ({}) => {
-  const { transferIdentittyVariables, utils } = useUtils();
+  const { transferIdentityVariables: transferIdentittyVariables, utils } = useUtils();
 
   const {
     checkRegistrationReadiness,

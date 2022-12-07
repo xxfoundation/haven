@@ -11,13 +11,13 @@ import { Upload } from 'src/components/icons';
 
 const ImportCodenameView: FC = () => {
   const { closeModal } = useUI();
-  const { initiateCmix, isReadyToRegister, cmix: network } = useNetworkClient();
+  const { cmix, initiateCmix, isReadyToRegister } = useNetworkClient();
   const fileInputLabelRef = useRef<HTMLSpanElement>(null);
 
   const {
     setShouldRenderImportCodeNameScreen,
     shouldRenderImportCodeNameScreen,
-    transferIdentittyVariables,
+    transferIdentityVariables: transferIdentittyVariables,
     utils
   } = useUtils();
   const [password, setPassword] = useState<string>(
@@ -42,7 +42,7 @@ const ImportCodenameView: FC = () => {
 
   useEffect(() => {
     if (
-      network &&
+      cmix &&
       privateIdentity &&
       password &&
       !shouldRenderImportCodeNameScreen
@@ -50,7 +50,7 @@ const ImportCodenameView: FC = () => {
       setShouldRenderImportCodeNameScreen(true);
     }
   }, [
-    network,
+    cmix,
     password,
     privateIdentity,
     setShouldRenderImportCodeNameScreen,

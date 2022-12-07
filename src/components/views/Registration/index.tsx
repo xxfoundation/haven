@@ -1,6 +1,6 @@
 import { FC, useCallback, useState } from 'react';
-import s from './RegisterView.module.scss';
 import { ModalCtaButton, Spinner } from 'src/components/common';
+
 import {
   NormalSpeakeasy,
   OpenSource,
@@ -9,6 +9,8 @@ import {
 } from 'src/components/icons';
 import cn from 'classnames';
 import { useUI } from 'src/contexts/ui-context';
+
+import s from './Registration.module.scss';
 
 type Props = {
   onPasswordConfirmation: (password: string) => void;
