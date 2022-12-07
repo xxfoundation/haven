@@ -27,7 +27,7 @@ const CreateChannelView: FC = ({}) => {
       return;
     }
     try {
-      await createChannel(channelName, channelDesc, privacyLevel);
+      createChannel(channelName, channelDesc, privacyLevel);
       setChannelName('');
       setChannelDesc('');
       closeModal();
