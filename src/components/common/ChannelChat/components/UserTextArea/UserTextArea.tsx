@@ -23,8 +23,8 @@ const UserTextArea: FC<Props> = ({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { openModal, setModalView } = useUI();
   const {
+    cmix,
     currentChannel,
-    cmix: network,
     sendMessage,
     sendReply
   } = useNetworkClient();
@@ -73,7 +73,7 @@ const UserTextArea: FC<Props> = ({
         onKeyDown={e => {
           if (e.keyCode === 13 && !e.shiftKey) {
             e.preventDefault();
-            if (network && network.ReadyToSend && !network.ReadyToSend()) {
+            if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
               setModalView('NETWORK_NOT_READY');
               openModal();
             } else {
@@ -100,7 +100,7 @@ const UserTextArea: FC<Props> = ({
         <SendButton
           cssClass={s.button}
           onClick={async () => {
-            if (network && network.ReadyToSend && !network.ReadyToSend()) {
+            if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
               setModalView('NETWORK_NOT_READY');
               openModal();
             } else {

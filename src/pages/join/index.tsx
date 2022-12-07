@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
-import JoinChannelView from '@components/views/JoinChannelView';
+import JoinChannelView from 'src/components/views/JoinChannel';
 import { ModalCtaButton } from 'src/components/common';
 import { Spinner } from 'src/components/common';
 import { decoder } from 'src/utils';

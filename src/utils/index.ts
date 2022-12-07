@@ -23,3 +23,5 @@ export const exportDataToFile = (data: any) => {
     window.URL.revokeObjectURL(url);
   }, 0);
 };
+
+export const byEntryTimestamp = (x: [string, unknown], y: [string, unknown]) => new Date(x[0]).getTime() - new Date(y[0]).getTime()

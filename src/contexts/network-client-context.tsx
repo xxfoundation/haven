@@ -34,19 +34,20 @@ export type IsReadyInfo = {
 
 
 type ShareURL = {
-  URL: string;
-  Password: string;
+  url: string;
+  password: string;
 }
 
 type HealthCallback = { Callback: (healthy: boolean) => void }
 
 export type CMix = {
   AddHealthCallback: (callback: HealthCallback) => number;
-  IsReady: (threshold: number) => Uint8Array;
   GetID: () => number;
+  IsReady: (threshold: number) => Uint8Array;
+  ReadyToSend: () => boolean,
   StartNetworkFollower: (timeoutMilliseconds: number) => void;
-  WaitForNetwork: (timeoutMilliseconds: number) => void;
   StopNetworkFollower: () => void;
+  WaitForNetwork: (timeoutMilliseconds: number) => Promise<void>;
 }
 
 export type DatabaseCipher = {
@@ -80,7 +81,7 @@ export type ChannelManager = {
     reaction: string,
     messageToReactTo: Uint8Array,
     cmixParams: Uint8Array
-  ) => Uint8Array;
+  ) => Promise<Uint8Array>;
   SendReply: (
     channelId: Uint8Array,
     message: string,
@@ -125,7 +126,7 @@ type NetworkContext = {
   messages: Message[];
   setMessages: (messages: Message[]) => void;
   setCurrentChannel: (channel: Channel) => void;
-  joinChannel: (prettyPrint: string, appendToCurrent: boolean) => void;
+  joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
   createChannel: (
     channelName: string,
     channelDescription: string,
@@ -145,7 +146,7 @@ type NetworkContext = {
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
   handleInitialLoadData: (storageTag: string) => Promise<void>;
   getNickName: () => string;
-  setNickName: (nickname: string) => void;
+  setNickName: (nickname: string) => boolean;
   getIdentity: () => Identity | null;
   sendReply: (reply: string, replyToMessageId: string) => Promise<void>;
   sendReaction: (reaction: string, reactToMessageId: string) => Promise<void>;
@@ -165,7 +166,7 @@ type NetworkContext = {
     selectedPrivateIdentity: Uint8Array,
     onIsReadyInfoChange: (readinessInfo: IsReadyInfo) => void
   ) => Promise<void>;
-  logout: (password: string) => void;
+  logout: (password: string) => boolean;
 };
 
 export const NetworkClientContext = React.createContext<NetworkContext>({
@@ -176,7 +177,6 @@ export const NetworkClientContext = React.createContext<NetworkContext>({
   messages: [],
   isNetworkHealthy: undefined,
   isReadyToRegister: undefined,
-  logout: () => {}
 } as unknown as NetworkContext);
 
 NetworkClientContext.displayName = 'NetworkClientContext';
@@ -245,8 +245,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const getIdentity = useCallback(() => {
     try {
       const identity = decoder.decode(channelManager?.GetIdentity());
-      // eslint-disable-next-line no-console
-      console.log({ identity });
+
       return JSON.parse(identity) as Identity;
     } catch (error) {
       console.error(error);
@@ -273,7 +272,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [network]);
   
-  const joinChannel = useCallback(async (
+  const joinChannel = useCallback((
     prettyPrint: string,
     appendToCurrent = true
   ) => {
@@ -979,53 +978,50 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channels, currentChannel]);
 
   const loadMoreChannelData = useCallback(async (chId: string) => {
-    return new Promise<void>(async (resolve) => {
-      if (db) {
-        const foundChannel = channels.find(ch => ch.id === chId);
-        const currentChannelBatch = foundChannel?.currentMessagesBatch || 1;
-        const newMessages = await db
-          .table('messages')
-          .orderBy('timestamp')
-          .reverse()
-          .filter(m => {
-            return m.channel_id === chId && m.type === 1;
-          })
-          .offset(currentChannelBatch * batchCount)
-          .limit(batchCount)
-          .toArray();
+    if (db) {
+      const foundChannel = channels.find(ch => ch.id === chId);
+      const currentChannelBatch = foundChannel?.currentMessagesBatch || 1;
+      const newMessages = await db
+        .table('messages')
+        .orderBy('timestamp')
+        .reverse()
+        .filter(m => {
+          return m.channel_id === chId && m.type === 1;
+        })
+        .offset(currentChannelBatch * batchCount)
+        .limit(batchCount)
+        .toArray();
 
-        const result = await mapInitialLoadDataToCurrentState([], newMessages);
-        // Here we should apply the reactions then change the state
-        const mappedMessages = result.mappedMessages;
+      const result = await mapInitialLoadDataToCurrentState([], newMessages);
+      // Here we should apply the reactions then change the state
+      const mappedMessages = result.mappedMessages;
 
-        const reactionEvents = await getDBReactionEvents(newMessages);
+      const reactionEvents = await getDBReactionEvents(newMessages);
 
-        const messagesWithReactions = bulkUpdateMessagesWithReactions(
-          reactionEvents,
-          mappedMessages
-        );
+      const messagesWithReactions = bulkUpdateMessagesWithReactions(
+        reactionEvents,
+        mappedMessages
+      );
 
-        if (messagesWithReactions.length) {
-          setMessages(prev => {
-            return [..._.reverse(messagesWithReactions), ...prev];
+      if (messagesWithReactions.length) {
+        setMessages(prev => {
+          return [..._.reverse(messagesWithReactions), ...prev];
+        });
+
+        setChannels((prevChannels: Channel[]) => {
+          return prevChannels.map(ch => {
+            if (ch.id === chId) {
+              return {
+                ...ch,
+                currentMessagesBatch: currentChannelBatch + 1
+              };
+            } else {
+              return ch;
+            }
           });
-
-          setChannels((prevChannels: Channel[]) => {
-            return prevChannels.map(ch => {
-              if (ch.id === chId) {
-                return {
-                  ...ch,
-                  currentMessagesBatch: currentChannelBatch + 1
-                };
-              } else {
-                return ch;
-              }
-            });
-          });
-          resolve();
-        }
+        });
       }
-    });
+    }
   }, [
     bulkUpdateMessagesWithReactions,
     channels,
@@ -1101,7 +1097,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
         );
         const channel = JSON.parse(decoder.decode(channelUnparsed));
         const channelInfo = getChannelInfo(channel?.Channel || '');
-        joinChannel(channel?.Channel, false);
         const temp = {
           id: channelInfo?.ChannelID,
           name: channelInfo?.Name,
@@ -1109,6 +1104,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           prettyPrint: channel?.Channel,
           isLoading: false
         };
+        joinChannel(channel?.Channel, false);
         savePrettyPrint(temp.id, temp.prettyPrint);
         setCurrentChannel(temp);
         setChannels([...channels, temp]);
@@ -1209,6 +1205,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         return false;
       }
     }
+    return false;
   }, [channelManager, currentChannel?.id, utils]);
 
   const getNickName = useCallback(() => {

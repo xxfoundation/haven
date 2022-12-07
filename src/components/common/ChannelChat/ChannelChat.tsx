@@ -1,26 +1,36 @@
-import { FC, useState, useEffect, useRef, useCallback } from 'react';
-import s from './ChannelChat.module.scss';
-import ChatMessage from './components/ChatMessage/ChatMessage';
-import { Message, EmojiReaction } from 'src/types';
+import { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+
 import cn from 'classnames';
 import moment from 'moment';
 import _ from 'lodash';
+
+import UserTextArea from './components/UserTextArea/UserTextArea';
+import { Message, EmojiReaction } from 'src/types';
+import ChatMessage from './components/ChatMessage/ChatMessage';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import { Tree } from 'src/components/icons';
-
 import { Spinner } from 'src/components/common';
-import UserTextArea from './components/UserTextArea/UserTextArea';
+import { byEntryTimestamp } from 'src/utils/index';
+import { PrivacyLevel } from 'src/contexts/utils-context';
+
+import s from './ChannelChat.module.scss';
+
+const privacyLevelLabels: Record<PrivacyLevel, string> = {
+  [PrivacyLevel.Private]: 'Private',
+  [PrivacyLevel.Public]: 'Public',
+  [PrivacyLevel.Secret]: 'Secret'
+};
 
 const ChannelChat: FC = () => {
   const {
     channels,
+    cmix,
     currentChannel,
     getShareURL,
     getShareUrlType,
     loadMoreChannelData,
     messages,
-    cmix: network,
     sendReaction
   } = useNetworkClient();
 
@@ -29,9 +39,7 @@ const ChannelChat: FC = () => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
-  const [currentChannelType, setCurrentChannelType] = useState<
-    '' | 'Public' | 'Secret'
-  >('');
+  const [currentChannelPrivacyLevel, setCurrentChannelPrivacyLevel] = useState<PrivacyLevel | null>(null);
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -42,30 +50,28 @@ const ChannelChat: FC = () => {
 
       if (shareUrl) {
         const type = getShareUrlType(shareUrl?.url || '');
-        if (type === 0) {
-          setCurrentChannelType('Public');
-        } else if (type === 2) {
-          setCurrentChannelType('Secret');
-        } else {
-          setCurrentChannelType('');
-        }
+        setCurrentChannelPrivacyLevel(type);
       }
     }
   }, [currentChannel?.id, getShareURL, getShareUrlType]);
 
-  const currentChannelMessages = messages.filter(m => {
-    return m?.channelId === currentChannel?.id;
-  });
-
-  const groupedMessagesPerDay = _.groupBy(currentChannelMessages, message =>
-    moment(moment(message.timestamp), 'DD/MM/YYYY').startOf('day')
+  const currentChannelMessages = useMemo(
+    () => messages.filter(m =>  m.channelId === currentChannel?.id),
+    [currentChannel?.id, messages]
   );
 
-  const sortedGroupedMessagesPerDay = Object.entries(groupedMessagesPerDay).sort(
-    (x, y) => {
-      return new Date(x[0]).getTime() - new Date(y[0]).getTime();
-    }
-  );
+  const sortedGroupedMessagesPerDay = useMemo(() => {
+    const groupedMessagesPerDay = _.groupBy(
+      currentChannelMessages,
+      (message) => moment(
+        moment(message.timestamp),
+        'DD/MM/YYYY'
+      ).startOf('day')
+    );
+
+    return Object.entries(groupedMessagesPerDay)
+      .sort(byEntryTimestamp);
+  }, [currentChannelMessages])
 
   const checkBottom = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
@@ -77,7 +83,7 @@ const ChannelChat: FC = () => {
     return;
   }, []);
 
-  const checkTop = async () => {
+  const checkTop = useCallback(async () => {
     if (
       messagesContainerRef &&
       messagesContainerRef.current &&
@@ -87,39 +93,40 @@ const ChannelChat: FC = () => {
         currentChannel &&
         typeof currentChannel.currentMessagesBatch !== 'undefined'
       ) {
-        const res = await loadMoreChannelData(currentChannel.id);
-        if (res) {
-          messagesContainerRef.current.scrollTop = 20;
-        }
+        await loadMoreChannelData(currentChannel.id);
+
+        messagesContainerRef.current.scrollTop = 20;
       }
     }
-  };
+  }, [currentChannel, loadMoreChannelData]);
 
-  const scrollToEnd = () => {
+  const scrollToEnd = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop =
         messagesContainerRef.current.scrollHeight;
     }
     setAutoScrollToEnd(true);
-  };
+  }, []);
 
   useEffect(() => {
     if (!document.querySelector('.emoji-picker-react') && autoScrollToEnd) {
       scrollToEnd();
     }
-  }, [currentChannelMessages, autoScrollToEnd]);
+  }, [currentChannelMessages, autoScrollToEnd, scrollToEnd]);
 
-  const handleReactToMessage = (
+  const handleReactToMessage = useCallback((
     reaction: EmojiReaction,
     message: Message
   ) => {
-    if (network && network.ReadyToSend && !network.ReadyToSend()) {
+    if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
       setModalView('NETWORK_NOT_READY');
       openModal();
     } else {
-      sendReaction(reaction.emoji, message.id);
+      if (message.id) {
+        sendReaction(reaction.emoji, message.id);
+      }
     }
-  };
+  }, [cmix, openModal, sendReaction, setModalView]);
 
   return (
     <div className={s.root}>
@@ -127,13 +134,13 @@ const ChannelChat: FC = () => {
         <>
           <div className={s.channelHeader}>
             <div className={'headline--sm flex items-center'}>
-              {currentChannelType.length > 0 && (
+              {currentChannelPrivacyLevel !== null && (
                 <span
                   className={cn(s.channelType, {
-                    [s.channelType__gold]: currentChannelType === 'Public'
+                    [s.channelType__gold]: currentChannelPrivacyLevel === PrivacyLevel.Public
                   })}
                 >
-                  {currentChannelType}
+                  {privacyLevelLabels[currentChannelPrivacyLevel]}
                 </span>
               )}
               <span className={cn('mr-2', s.channelName)}>

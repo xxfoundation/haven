@@ -6,7 +6,7 @@ export interface EmojiReaction {
 }
 
 export interface Message {
-  id?: string;
+  id: string;
   body: string;
   timestamp: number;
   color?: string;
