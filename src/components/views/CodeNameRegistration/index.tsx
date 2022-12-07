@@ -11,14 +11,14 @@ import s from './CodeNameRegistration.module.scss';
 
 const RegisterView2: FC = () => {
   const {
-    checkIsRedayToRegister,
-    generateIdentitiesObjects,
+    checkRegistrationReadiness,
+    cmix,
+    generateIdentities,
     isReadyToRegister,
-    network,
     setIsReadyToRegister
   } = useNetworkClient();
 
-  const [identities, setIdentites] = useState([]);
+  const [identities, setIdentites] = useState<ReturnType<typeof generateIdentities>>([]);
   const [selectedCodeName, setSelectedCodeName] = useState('');
   const [selectedPrivateIdentity, setSelectedPrivateIdentity] = useState('');
   const [firstTimeGenerated, setFirstTimeGenerated] = useState(false);
@@ -26,11 +26,11 @@ const RegisterView2: FC = () => {
   const [readyProgress, setReadyProgress] = useState<number>(0);
 
   useEffect(() => {
-    if (!firstTimeGenerated && network) {
-      setIdentites(generateIdentitiesObjects(20));
+    if (!firstTimeGenerated && cmix) {
+      setIdentites(generateIdentities(20));
       setFirstTimeGenerated(false);
     }
-  }, [firstTimeGenerated, generateIdentitiesObjects, network]);
+  }, [firstTimeGenerated, generateIdentities, cmix]);
 
   if (typeof isReadyToRegister === 'undefined') {
     return (
@@ -106,9 +106,9 @@ const RegisterView2: FC = () => {
               borderColor: 'var(--orange)'
             }}
             onClick={() => {
-              setIdentites(generateIdentitiesObjects(20));
+              setIdentites(generateIdentities(20));
             }}
-            disabled={!network}
+            disabled={!cmix}
           />
           <ModalCtaButton
             buttonCopy='Claim'
@@ -116,7 +116,7 @@ const RegisterView2: FC = () => {
             onClick={async () => {
               setIsReadyToRegister(false);
               setTimeout(async () => {
-                checkIsRedayToRegister(
+                checkRegistrationReadiness(
                   selectedPrivateIdentity,
                   (isReadyInfo: any) => {
                     setReadyProgress(
@@ -126,7 +126,7 @@ const RegisterView2: FC = () => {
                 );
               }, 500);
             }}
-            disabled={!network || selectedCodeName.length === 0}
+            disabled={!cmix || selectedCodeName.length === 0}
           />
         </div>
       </div>

@@ -6,18 +6,18 @@ import { isClientSide } from 'src/utils';
 import { useUtils } from 'src/contexts/utils-context';
 
 export const AuthenticationContext = React.createContext<{
-  checkUser: (password: string) => any;
+  checkUser: (password: string) => Uint8Array | false;
   statePathExists: () => boolean;
   setStatePath: () => void;
-  getStorageTags: () => string[];
+  getStorageTag: () => string | null;
   addStorageTag: (tag: string) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (authenticated: boolean) => void;
 }>({
-  checkUser: () => {},
+  checkUser: () => false,
   statePathExists: () => false,
   setStatePath: () => {},
-  getStorageTags: () => [],
+  getStorageTag: () => null,
   addStorageTag: () => {},
   isAuthenticated: false,
   setIsAuthenticated: () => {}
@@ -73,7 +73,7 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
         checkUser,
         statePathExists: isStatePathExisted,
         setStatePath,
-        getStorageTags: getStorageTag,
+        getStorageTag: getStorageTag,
         addStorageTag,
         isAuthenticated,
         setIsAuthenticated
@@ -93,6 +93,6 @@ export const useAuthentication = () => {
   return context;
 };
 
-export const ManagedAuthenticationContext: FC<any> = ({ children }) => (
+export const ManagedAuthenticationContext: FC<WithChildren> = ({ children }) => (
   <AuthenticationProvider>{children}</AuthenticationProvider>
 );

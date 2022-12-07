@@ -2,15 +2,16 @@ import { NextPage } from 'next';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import cn from 'classnames';
-import { useNetworkClient } from 'src/contexts/network-client-context';
-import { useUtils } from 'src/contexts/utils-context';
 import Cookies from 'js-cookie';
+
+import { useNetworkClient } from 'src/contexts/network-client-context';
+import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
 import JoinChannelView from 'src/components/common/JoinChannelView';
 import { ModalCtaButton } from 'src/components/common';
 import { Spinner } from 'src/components/common';
-
 import { decoder } from 'src/utils';
+
 import s from './join.module.scss';
 
 const Join: NextPage = () => {
@@ -20,7 +21,7 @@ const Join: NextPage = () => {
   const { getShareUrlType } = useNetworkClient();
   const [error, setError] = useState('');
   const [password, setPassword] = useState('');
-  const [channelType, setChannelType] = useState<null | 0 | 2>(null);
+  const [channelType, setChannelType] = useState<null | PrivacyLevel>(null);
   const { utils, utilsLoaded } = useUtils();
   const [channelInfoJson, setChannelInfoJson] = useState();
   const [channelPrettyPrint, setChannelPrettyPrint] = useState('');
