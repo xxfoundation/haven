@@ -17,21 +17,21 @@ const ImportCodenameView: FC = () => {
   const {
     setShouldRenderImportCodeNameScreen,
     shouldRenderImportCodeNameScreen,
-    transferIdentityVariables: transferIdentittyVariables,
+    transferIdentityVariables,
     utils
   } = useUtils();
   const [password, setPassword] = useState<string>(
-    transferIdentittyVariables.current.password || ''
+    transferIdentityVariables.current.password || ''
   );
   const [privateIdentity, setPrivateIdentity] = useState<any>(
-    transferIdentittyVariables.current.privateIdentity || ''
+    transferIdentityVariables.current.privateIdentity || ''
   );
   const [error, setError] = useState(
-    transferIdentittyVariables.current.error || ''
+    transferIdentityVariables.current.error || ''
   );
 
   const [isLoading, setIsLoading] = useState<boolean>(
-    transferIdentittyVariables.current.isLoading || false
+    transferIdentityVariables.current.isLoading || false
   );
 
   useEffect(() => {
@@ -69,8 +69,8 @@ const ImportCodenameView: FC = () => {
       try {
         utils.ImportPrivateIdentity(password, encoder.encode(privateIdentity));
         initiateCmix(password);
-        transferIdentittyVariables.current = {
-          ...transferIdentittyVariables.current,
+        transferIdentityVariables.current = {
+          ...transferIdentityVariables.current,
           isLoading: true
         };
         setIsLoading(true);
@@ -95,8 +95,8 @@ const ImportCodenameView: FC = () => {
     const reader = new FileReader();
     reader.onload = (evt) => {
       const fileContent = evt?.target?.result;
-      transferIdentittyVariables.current = {
-        ...transferIdentittyVariables.current,
+      transferIdentityVariables.current = {
+        ...transferIdentityVariables.current,
         privateIdentity: fileContent
       };
       setPrivateIdentity(fileContent as string);
@@ -105,7 +105,7 @@ const ImportCodenameView: FC = () => {
     if (targetFile && e.target.files) {
       reader.readAsText(e.target.files[0]);
     }
-  }, [transferIdentittyVariables]);
+  }, [transferIdentityVariables]);
 
   return (
     <div className={cn('w-full flex flex-col items-center', s.root)}>
@@ -135,8 +135,8 @@ const ImportCodenameView: FC = () => {
             placeholder='Unlock export with your password'
             value={password}
             onChange={(e) => {
-              transferIdentittyVariables.current = {
-                ...transferIdentittyVariables.current,
+              transferIdentityVariables.current = {
+                ...transferIdentityVariables.current,
                 password: e.target.value
               };
               setPassword(e.target.value);

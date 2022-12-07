@@ -20,8 +20,7 @@ const ShareChannelView: FC = () => {
 
   useEffect(() => {
     const resultCredential = getShareURL();
-    // eslint-disable-next-line no-console
-    console.log(resultCredential);
+    
     if (resultCredential) {
       setCredentials({
         url: resultCredential?.url || '',

@@ -6,8 +6,8 @@ import { Loading } from 'src/components/common';
 import { ProgressBar } from 'src/components/common';
 import { encoder } from 'src/utils';
 
-const ImportCodeNameLoading: FC = ({}) => {
-  const { transferIdentityVariables: transferIdentittyVariables, utils } = useUtils();
+const ImportCodeNameLoading: FC = () => {
+  const { transferIdentityVariables, utils } = useUtils();
 
   const {
     checkRegistrationReadiness,
@@ -16,12 +16,12 @@ const ImportCodeNameLoading: FC = ({}) => {
   } = useNetworkClient();
 
   const privateIdentity = useMemo(
-    () => transferIdentittyVariables.current.privateIdentity || '',
-    [transferIdentittyVariables]
+    () => transferIdentityVariables.current.privateIdentity || '',
+    [transferIdentityVariables]
   );
   const password = useMemo(
-    () => transferIdentittyVariables.current.password || '',
-    [transferIdentittyVariables]
+    () => transferIdentityVariables.current.password || '',
+    [transferIdentityVariables]
   );
 
   const [readyProgress, setReadyProgress] = useState<number>(0);
@@ -29,18 +29,25 @@ const ImportCodeNameLoading: FC = ({}) => {
   useEffect(() => {
     setTimeout(async () => {
       setIsReadyToRegister(false);
-      const result = utils.ImportPrivateIdentity(
+      const imported = utils.ImportPrivateIdentity(
         password,
         encoder.encode(privateIdentity)
       );
 
-      checkRegistrationReadiness(result, (isReadyInfo) => {
-        setReadyProgress(Math.ceil((isReadyInfo?.HowClose || 0) * 100));
-      });
+      checkRegistrationReadiness(
+        imported,
+        (isReadyInfo) => {
+          setReadyProgress(Math.ceil((isReadyInfo?.HowClose || 0) * 100));
+        }
+      );
     }, 100);
-    // TODO address this
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    checkRegistrationReadiness,
+    password,
+    privateIdentity,
+    setIsReadyToRegister,
+    utils
+  ]);
 
   if (typeof isReadyToRegister === 'undefined') {
     return <></>;
