@@ -10,12 +10,6 @@ class MyDocument extends Document {
           <Main />
           <NextScript />
           <Script
-            src='/integrations/assets/utils.js'
-            type='text/javascript'
-            strategy='beforeInteractive'
-            id='utils'
-          />
-          <Script
             id='wasm_script'
             src='/integrations/assets/wasm_exec.js'
             strategy='beforeInteractive'

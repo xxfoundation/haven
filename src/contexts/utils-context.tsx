@@ -73,13 +73,12 @@ type XXDKContext = {
 export const UtilsContext = React.createContext<XXDKContext>({
   utils: initialUtils,
   utilsLoaded: false,
-  transferIdentittyVariables: {},
   shouldRenderImportCodeNameScreen: false,
 } as unknown as XXDKContext);
 
 UtilsContext.displayName = 'UtilsContext';
 
-export const UtilsProvider: FC<any> = props => {
+export const UtilsProvider: FC = () => {
   const [utils, setUtils] = useState<XXDKUtils>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
   const transferIdentityVariables = useRef<any>({});
@@ -99,7 +98,6 @@ export const UtilsProvider: FC<any> = props => {
         shouldRenderImportCodeNameScreen,
         setShouldRenderImportCodeNameScreen
       }}
-      {...props}
     />
   );
 };

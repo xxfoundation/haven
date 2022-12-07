@@ -84,7 +84,7 @@ const ActionsWrapper: FC<ActionsWrapperProps> = ({
     };
   }, [listener, pickerRef]);
 
-  const adjustPickerPosition = () => {
+  const adjustPickerPosition = useCallback(() => {
     const messagesContainerElement = document.getElementById(
       'messagesContainer'
     );
@@ -98,11 +98,11 @@ const ActionsWrapper: FC<ActionsWrapperProps> = ({
       tempStyle.top = `${t}px`;
       setStyle(tempStyle);
     }
-  };
+  }, []);
 
   useEffect(() => {
     adjustPickerPosition();
-  }, [pickerVisible]);
+  }, [adjustPickerPosition, pickerVisible]);
 
   const onSelect = useCallback((e: BaseEmoji) => {
     onReactToMessage({
