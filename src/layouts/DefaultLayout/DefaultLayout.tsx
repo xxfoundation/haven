@@ -33,9 +33,9 @@ import LoginView from '@components/views/Login';
 import s from './DefaultLayout.module.scss';
 
 const AuthenticationUI: FC = () => {
-  const { getStorageTag, statePathExists: isStatePathExisted } = useAuthentication();
+  const { getStorageTag, statePathExists } = useAuthentication();
 
-  if (!isStatePathExisted() || !getStorageTag()) {
+  if (!statePathExists() || !getStorageTag()) {
     return <Register />;
   } else {
     return <LoginView />;

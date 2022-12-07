@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useCallback, useState, useEffect } from 'react';
 import cn from 'classnames';
 
 import { ModalCtaButton, Spinner } from 'src/components/common';
@@ -29,7 +29,7 @@ const LoginView: FC = ({}) => {
     setIsReadyToRegister(true);
   }, [setIsReadyToRegister]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     setError('');
     setIsLoading(true);
     const statePassEncoded = checkUser(password);
@@ -48,7 +48,13 @@ const LoginView: FC = ({}) => {
         });
       }, 1000);
     }
-  };
+  }, [
+    checkUser,
+    getStorageTag,
+    loadChannelManager,
+    loadCmix,
+    password
+  ]);
 
   return (
     <div className={cn('', s.root)}>
