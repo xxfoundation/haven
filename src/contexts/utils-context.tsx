@@ -1,6 +1,7 @@
 import type { ChannelManager } from './network-client-context'
 import React, { FC, useState, useRef } from 'react';
 import { CMix } from './network-client-context';
+import { WithChildren } from '@types';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -78,7 +79,7 @@ export const UtilsContext = React.createContext<XXDKContext>({
 
 UtilsContext.displayName = 'UtilsContext';
 
-export const UtilsProvider: FC = () => {
+export const UtilsProvider: FC<WithChildren> = ({ children }) => {
   const [utils, setUtils] = useState<XXDKUtils>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
   const transferIdentityVariables = useRef<any>({});
@@ -98,7 +99,9 @@ export const UtilsProvider: FC = () => {
         shouldRenderImportCodeNameScreen,
         setShouldRenderImportCodeNameScreen
       }}
-    />
+    >
+      {children}
+    </UtilsContext.Provider>
   );
 };
 
