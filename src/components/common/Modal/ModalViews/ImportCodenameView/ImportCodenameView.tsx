@@ -11,7 +11,7 @@ import { Upload } from 'src/components/icons';
 
 const ImportCodenameView: FC = () => {
   const { closeModal } = useUI();
-  const { initiateCmix, isReadyToRegister, network } = useNetworkClient();
+  const { initiateCmix, isReadyToRegister, cmix: network } = useNetworkClient();
   const fileInputLabelRef = useRef<HTMLSpanElement>(null);
 
   const {

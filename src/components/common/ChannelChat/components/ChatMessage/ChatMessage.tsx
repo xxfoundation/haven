@@ -1,4 +1,4 @@
-import type { IEmojiReaction, IMessage } from 'src/types';
+import type { EmojiReaction, Message } from 'src/types';
 import type { BaseEmoji } from 'emoji-mart';
 
 import React, { CSSProperties, FC, useCallback, useEffect, useRef, useState } from 'react';
@@ -27,7 +27,7 @@ const mapTextToHtmlWithAnchors = (text: string) => {
   });
 };
 
-const MessageSenderHeader: FC<{ message: IMessage }> = ({ message }) => {
+const MessageSenderHeader: FC<{ message: Message }> = ({ message }) => {
   const color = (message?.color || '').replace('0x', '#');
   return (
     <span className={cn(s.sender)}>
@@ -48,7 +48,7 @@ const MessageSenderHeader: FC<{ message: IMessage }> = ({ message }) => {
 
 type ActionsWrapperProps = {
   onReplyClicked: () => void;
-  onReactToMessage: (e: IEmojiReaction) => void;
+  onReactToMessage: (e: EmojiReaction) => void;
   className?: string;
 }
 
@@ -147,7 +147,7 @@ const ActionsWrapper: FC<ActionsWrapperProps> = ({
 };
 
 const ChatMessage: FC<{
-  message: IMessage;
+  message: Message;
 } & ActionsWrapperProps> = ({
   message,
   onReactToMessage,

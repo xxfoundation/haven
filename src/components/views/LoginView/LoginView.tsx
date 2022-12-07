@@ -19,7 +19,7 @@ const LoginView: FC = ({}) => {
     loadCmix,
     setIsReadyToRegister
   } = useNetworkClient();
-  const { checkUser, getStorageTags: getStorageTag } = useAuthentication();
+  const { checkUser, getStorageTag } = useAuthentication();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -35,8 +35,11 @@ const LoginView: FC = ({}) => {
       setIsLoading(false);
     } else {
       setTimeout(() => {
-        loadCmix(statePassEncoded, (net: any) => {
-          loadChannelManager(getStorageTag(), net);
+        loadCmix(statePassEncoded, (net) => {
+          const tag = getStorageTag();
+          if (tag) {
+            loadChannelManager(tag, net);
+          }
         }).then(() => {
           setIsLoading(false);
         });

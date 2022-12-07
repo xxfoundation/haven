@@ -24,15 +24,17 @@ const LeftSideBar: FC<{
     setCurrentChannel
   } = useNetworkClient();
 
-  const codeName = getIdentity().Codename;
-  let color = getIdentity().Color;
+  const codeName = getIdentity()?.Codename;
+  let color = getIdentity()?.Color;
   if (color) {
     color = color.replace('0x', '#');
   }
 
   const onChannelChange = (chId: string) => {
     const selectedChannel = channels.find(ch => ch.id === chId);
-    setCurrentChannel(selectedChannel);
+    if (selectedChannel) {
+      setCurrentChannel(selectedChannel);
+    }
   };
 
   const collapseTitle = (
@@ -42,7 +44,7 @@ const LeftSideBar: FC<{
       <div className='flex items-center'>
         <Plus
           className={cn('mr-1', s.plus, {})}
-          onClick={(e: any) => {
+          onClick={(e) => {
             if (e && e.stopPropagation) {
               e.stopPropagation();
             }
@@ -54,7 +56,7 @@ const LeftSideBar: FC<{
         />
         <Join
           className={cn(s.join, {})}
-          onClick={(e: any) => {
+          onClick={(e) => {
             if (e && e.stopPropagation) {
               e.stopPropagation();
             }

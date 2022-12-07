@@ -6,13 +6,13 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 
 const LeaveChannelConfirmationView: FC = () => {
-  const { currentChannel, leaveChannel } = useNetworkClient();
+  const { currentChannel, leaveCurrentChannel } = useNetworkClient();
   const { closeModal } = useUI();
 
   const onLeave = useCallback(() => {
-    leaveChannel();
+    leaveCurrentChannel();
     closeModal();
-  }, [closeModal, leaveChannel]);
+  }, [closeModal, leaveCurrentChannel]);
 
   return (
     <div
@@ -25,8 +25,10 @@ const LeaveChannelConfirmationView: FC = () => {
       <div className='flex'>
         <ModalCtaButton
           buttonCopy='Leave'
-          style={{ borderColor: 'var(--red)' }}
           cssClass='mt-5 mb-10 mr-5'
+          style={{
+            borderColor: 'var(--red)'
+          }}
           onClick={onLeave}
         />
         <ModalCtaButton

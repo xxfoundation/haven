@@ -1,22 +1,28 @@
 import React, { FC, useState, useRef } from 'react';
-import { CMix } from 'src/types/cmix';
+import { CMix } from './network-client-context';
 
-export interface IHelperMethods {
-  NewCmix: Function;
-  LoadCmix: (statePath: string, storageDirectory: string, password: string) => CMix;
-  GetDefaultCMixParams: Function;
-  GenerateChannel: Function;
-  GetChannelInfo: Function;
-  Base64ToUint8Array: Function;
-  GenerateChannelIdentity: Function;
-  NewChannelsManagerWithIndexedDb: Function;
+export enum PrivacyLevel {
+  Public = 0,
+  Private = 1,
+  Secret = 2
+}
+
+export interface HelperMethods {
+  NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => void;
+  LoadCmix: (storageDirectory: string, password: Uint8Array, cmixParams: Uint8Array) => Promise<CMix>;
+  GetDefaultCMixParams: () => Uint8Array;
+  GenerateChannel: (cmixId: number, channelname: string, description: string, privacyLevel: PrivacyLevel) => Uint8Array;
+  GetChannelInfo: (prettyPrint: string) => Uint8Array;
+  Base64ToUint8Array: (base64: string) => Uint8Array;
+  GenerateChannelIdentity: (cmixId: number) => Uint8Array;
+  NewChannelsManagerWithIndexedDb: (cmidId: number, privateIdentity: Uint8Array) => void;
   LoadChannelsManagerWithIndexedDb: Function;
-  GetPublicChannelIdentityFromPrivate: Function;
+  GetPublicChannelIdentityFromPrivate: (privateKey: Uint8Array) => Uint8Array;
   IsNicknameValid: Function;
-  GetShareUrlType: Function;
-  GetVersion: Function;
-  GetClientVersion: Function;
-  GetOrInitPassword: (password: string) => any;
+  GetShareUrlType: (url: string) => PrivacyLevel;
+  GetVersion: () => string;
+  GetClientVersion: () => string;
+  GetOrInitPassword: (password: string) => Uint8Array;
   ImportPrivateIdentity: Function;
   ConstructIdentity: Function;
   DecodePrivateURL: Function;
@@ -56,7 +62,7 @@ const initialUtils = {
 };
 
 export const UtilsContext = React.createContext<{
-  utils: IHelperMethods;
+  utils: HelperMethods;
   setUtils: Function;
   utilsLoaded: boolean;
   setUtilsLoaded: Function;
@@ -76,7 +82,7 @@ export const UtilsContext = React.createContext<{
 UtilsContext.displayName = 'UtilsContext';
 
 export const UtilsProvider: FC<any> = props => {
-  const [utils, setUtils] = useState<IHelperMethods>(initialUtils);
+  const [utils, setUtils] = useState<HelperMethods>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
   const transferIdentittyVariables = useRef<any>({});
   const [

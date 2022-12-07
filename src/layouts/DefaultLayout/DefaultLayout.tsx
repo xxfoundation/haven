@@ -5,10 +5,10 @@ import { useRouter } from 'next/router';
 
 import { LeftSideBar, RightSideBar, Modal } from 'src/components/common';
 import { useUI } from 'src/contexts/ui-context';
-import { useNetworkClient, IChannel } from 'src/contexts/network-client-context';
+import { useNetworkClient, Channel } from 'src/contexts/network-client-context';
 
 import { useAuthentication } from 'src/contexts/authentication-context';
-import { useUtils } from 'src/contexts/utils-context';
+import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { Loading, ImportCodeNameLoading } from 'src/components/common';
 
 import {
@@ -33,7 +33,7 @@ import LoginView from 'src/components/common/LoginView';
 import s from './DefaultLayout.module.scss';
 
 const AuthenticationUI: FC = () => {
-  const { getStorageTags: getStorageTag, statePathExists: isStatePathExisted } = useAuthentication();
+  const { getStorageTag, statePathExists: isStatePathExisted } = useAuthentication();
 
   if (!isStatePathExisted() || !getStorageTag()) {
     return <Register />;
@@ -42,7 +42,7 @@ const AuthenticationUI: FC = () => {
   }
 };
 
-const AuthenticatedUserModals: FC<{ currentChannel?: IChannel }> = ({
+const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   currentChannel
 }) => {
   const { closeModal, displayModal, modalView } = useUI();
@@ -87,26 +87,31 @@ const DefaultLayout: FC<WithChildren> = ({
   children,
 }) => {
   const router = useRouter();
-  const { getStorageTags: getStorageTag, isAuthenticated } = useAuthentication();
+  const { getStorageTag: getStorageTag, isAuthenticated } = useAuthentication();
   const { shouldRenderImportCodeNameScreen, utilsLoaded } = useUtils();
   const {
+    cmix,
     currentChannel,
     getShareUrlType,
     isNetworkHealthy,
-    isReadyToRegister,
-    network
+    isReadyToRegister
   } = useNetworkClient();
   const { openModal, setChannelInviteLink, setModalView } = useUI();
 
   useEffect(() => {
+    const privacyLevel = getShareUrlType(window.location.href);
     if (
-      network &&
+      privacyLevel !== null &&
+      cmix &&
       isNetworkHealthy &&
       isAuthenticated &&
       getStorageTag() &&
       isReadyToRegister &&
       window.location.search &&
-      [0, 2].includes(getShareUrlType(window.location.href))
+      [
+        PrivacyLevel.Private,
+        PrivacyLevel.Secret
+      ].includes(privacyLevel)
     ) {
       setChannelInviteLink(window.location.href);
       setModalView('JOIN_CHANNEL');
@@ -114,7 +119,7 @@ const DefaultLayout: FC<WithChildren> = ({
       router.replace(window.location.pathname);
     }
   }, [
-    network,
+    cmix,
     isAuthenticated,
     isReadyToRegister,
     isNetworkHealthy,
@@ -138,7 +143,7 @@ const DefaultLayout: FC<WithChildren> = ({
   return (
     <div className={cn(s.root)}>
       {utilsLoaded ? (
-        network && isAuthenticated && getStorageTag() && isReadyToRegister ? (
+        cmix && isAuthenticated && getStorageTag() && isReadyToRegister ? (
           <>
             <LeftSideBar cssClasses={s.leftSideBar} />
             <main className=''>{children}</main>

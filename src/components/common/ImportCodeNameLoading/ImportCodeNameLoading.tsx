@@ -10,7 +10,7 @@ const ImportCodeNameLoading: FC = ({}) => {
   const { transferIdentittyVariables, utils } = useUtils();
 
   const {
-    checkIsRedayToRegister,
+    checkRegistrationReadiness,
     isReadyToRegister,
     setIsReadyToRegister
   } = useNetworkClient();
@@ -34,7 +34,7 @@ const ImportCodeNameLoading: FC = ({}) => {
         encoder.encode(privateIdentity)
       );
 
-      checkIsRedayToRegister(result, (isReadyInfo: any) => {
+      checkRegistrationReadiness(result, (isReadyInfo) => {
         setReadyProgress(Math.ceil((isReadyInfo?.HowClose || 0) * 100));
       });
     }, 100);

@@ -1,7 +1,7 @@
 import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import s from './ChannelChat.module.scss';
 import ChatMessage from './components/ChatMessage/ChatMessage';
-import { IMessage, IEmojiReaction } from 'src/types';
+import { Message, EmojiReaction } from 'src/types';
 import cn from 'classnames';
 import moment from 'moment';
 import _ from 'lodash';
@@ -20,14 +20,14 @@ const ChannelChat: FC = () => {
     getShareUrlType,
     loadMoreChannelData,
     messages,
-    network,
+    cmix: network,
     sendReaction
   } = useNetworkClient();
 
   const { openModal, setModalView } = useUI();
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [replyToMessage, setReplyToMessage] = useState<IMessage | null>();
+  const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
   const [currentChannelType, setCurrentChannelType] = useState<
     '' | 'Public' | 'Secret'
@@ -110,8 +110,8 @@ const ChannelChat: FC = () => {
   }, [currentChannelMessages, autoScrollToEnd]);
 
   const handleReactToMessage = (
-    reaction: IEmojiReaction,
-    message: IMessage
+    reaction: EmojiReaction,
+    message: Message
   ) => {
     if (network && network.ReadyToSend && !network.ReadyToSend()) {
       setModalView('NETWORK_NOT_READY');
@@ -176,7 +176,7 @@ const ChannelChat: FC = () => {
                           <ChatMessage
                             key={`${m.id}${m.status}${index}`}
                             message={m}
-                            onReactToMessage={(reaction: IEmojiReaction) => {
+                            onReactToMessage={(reaction: EmojiReaction) => {
                               handleReactToMessage(reaction, m);
                             }}
                             onReplyClicked={() => {

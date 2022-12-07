@@ -1,7 +1,7 @@
 import { FC, useState, useEffect, useRef, useCallback } from 'react';
 import cn from 'classnames';
 
-import { IMessage } from 'src/types';
+import { Message } from 'src/types';
 import { Close } from 'src/components/icons';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
@@ -10,8 +10,8 @@ import SendButton from '../SendButton';
 
 type Props = {
   setAutoScrollToEnd: (scrollToEnd: boolean) => void;
-  replyToMessage: IMessage | null | undefined;
-  setReplyToMessage: (msg: IMessage | null) => void;
+  replyToMessage: Message | null | undefined;
+  setReplyToMessage: (msg: Message | null) => void;
 };
 
 const UserTextArea: FC<Props> = ({
@@ -24,7 +24,7 @@ const UserTextArea: FC<Props> = ({
   const { openModal, setModalView } = useUI();
   const {
     currentChannel,
-    network,
+    cmix: network,
     sendMessage,
     sendReply
   } = useNetworkClient();

@@ -1,19 +1,19 @@
 import type { ReactNode } from 'react';
 
-export interface IEmojiReaction {
+export interface EmojiReaction {
   emoji: string;
   userName: string;
 }
 
-export interface IMessage {
+export interface Message {
   id?: string;
   body: string;
   timestamp: number;
   color?: string;
   codeName: string;
   nickName?: string;
-  emojisMap?: Map<IEmojiReaction['emoji'], IEmojiReaction['userName'][]>;
-  replyToMessage?: IMessage;
+  emojisMap?: Map<EmojiReaction['emoji'], EmojiReaction['userName'][]>;
+  replyToMessage?: Message;
   channelId: string;
   status?: number;
   uuid: number;
