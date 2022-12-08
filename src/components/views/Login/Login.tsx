@@ -37,15 +37,13 @@ const LoginView: FC = ({}) => {
       setError('Incorrect password');
       setIsLoading(false);
     } else {
-      setTimeout(() => {
-        loadCmix(statePassEncoded, (net) => {
-          const tag = getStorageTag();
-          if (tag) {
-            loadChannelManager(tag, net);
-          }
-        }).then(() => {
-          setIsLoading(false);
-        });
+      setTimeout(async () => {
+        await loadCmix(statePassEncoded);
+        const tag = getStorageTag();
+        if (tag) {
+          loadChannelManager(tag);
+        }
+        setIsLoading(false);
       }, 1000);
     }
   }, [

@@ -20,6 +20,7 @@
     "prettier"
   ],
   "rules": {
+    "@typescript-eslint/no-explicit-any": "error",
     "no-unused-vars": "error",
     "sort-destructure-keys/sort-destructure-keys": [2],
     "react/jsx-filename-extension": [0],
@@ -34,7 +35,6 @@
     ],
     "no-console": ["error", { "allow": ["warn", "error"] }],
     "@typescript-eslint/comma-dangle": "off",
-    "@typescript-eslint/indent": "off",
     "function-paren-newline": "off",
     "quotes": ["error", "single"],
     "jsx-quotes": ["error", "prefer-single"]

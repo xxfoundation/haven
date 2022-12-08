@@ -1,3 +1,4 @@
+import type { DummyTraffic } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import { Dexie } from 'dexie';
@@ -13,6 +14,36 @@ import { ndf } from 'src/sdk-utils/ndf';
 import { STATE_PATH } from '../constants';
 
 const batchCount = 100;
+
+enum DBMessageType {
+  Normal = 1,
+  Reply = 2,
+  Reaction = 3
+}
+
+export type DBMessage = {
+  id: number;
+  nickname: string;
+  message_id: string;
+  channel_id: string;
+  parent_message_id: null | string;
+  timestamp: string;
+  lease: number;
+  status: number;
+  hidden: boolean,
+  pinned: boolean;
+  text: string;
+  type: DBMessageType;
+  round: number;
+  pubkey: string;
+  codeset_version: number;
+}
+
+export type DBChannel = {
+  id: string;
+  name: string;
+  description: string;
+}
 
 export enum NetworkStatus {
   CONNECTED = 'connected',
@@ -140,8 +171,8 @@ type NetworkContext = {
     codeName: string;
   }[];
   connectNetwork: () => Promise<void>;
-  initiateCmix: (password: string, onCmixInitiated?: (cmix: CMix) => void) => void;
-  loadCmix: (statePassEncoded: Uint8Array, onCmixLoaded?: (cmix: CMix) => void) => Promise<void>;
+  initiateCmix: (password: string) => Promise<void>;
+  loadCmix: (statePassEncoded: Uint8Array) => Promise<void>;
   createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
   handleInitialLoadData: (storageTag: string) => Promise<void>;
@@ -218,13 +249,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const [isReadyToRegister, setIsReadyToRegister] = useState<
     boolean | undefined
   >(undefined);
-  const blockedEvents = useRef<any[]>([]);
+  const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
+  const [blockedEvents, setBlockedEvents] = useState<DBMessage[]>([]);
   const currentCodeNameRef = useRef<string>('');
   const currentChannelRef = useRef<Channel>();
-  const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
 
-  const dummyTrafficObjRef = useRef<any>(undefined);
-
+  const dummyTrafficObjRef = useRef<DummyTraffic>();
   const cipherRef = useRef<DatabaseCipher>();
 
   useEffect(() => {
@@ -354,7 +384,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     bc.onmessage = async event => {
       if (event.data?.prettyPrint) {
         try {
-          await joinChannel(event.data.prettyPrint);
+          joinChannel(event.data.prettyPrint);
         } catch (error) {}
       }
     };
@@ -370,17 +400,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [connectNetwork, network, networkStatus, setIsAuthenticated]);
 
-  const mapDbMessagesToMessages = useCallback(async (msgs: any[]) => {
+  const mapDbMessagesToMessages = useCallback(async (msgs: DBMessage[]) => {
     if (!db || !(cipherRef && cipherRef.current)) {
       return [];
     } else {
       const messagesParentIds = msgs
-        .filter(e => e.parent_message_id)
-        .map(e => e.parent_message_id);
+        .map(e => e.parent_message_id)
+        .filter((parentId): parentId is string => typeof parentId === 'string');
 
       const relatedMessages =
-        (await db
-          .table('messages')
+        (await db.table<DBMessage>('messages')
           .where('message_id')
           .anyOf(messagesParentIds)
           .toArray()) || [];
@@ -393,9 +422,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
             ms => ms.message_id === m.parent_message_id
           );
 
-          // If there is no reply To message Then it is not yet received
+          // If there is no replyTo message then it is not yet received
           if (!replyToMessage) {
-            blockedEvents.current = [...blockedEvents.current, m];
+            setBlockedEvents((e) => e.concat(m));
             return;
           }
 
@@ -470,14 +499,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [getCodeNameAndColor, utils]);
 
-  const handleReactionReceived = useCallback((dbMessage: any) => {
-    setMessages(prevMessages => {
+  const handleReactionReceived = useCallback((dbMessage: DBMessage) => {
+    setMessages((prevMessages) => {
       const destinationMessage = prevMessages.find(
-        m => m.id === dbMessage.parent_message_id
+        (m) => m.id === dbMessage.parent_message_id
       );
       if (destinationMessage) {
         const temp = destinationMessage;
-        // const emoji = dbMessage.text;
         const emoji = decoder.decode(
           cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(dbMessage.text))
         );
@@ -504,22 +532,19 @@ export const NetworkProvider: FC<WithChildren> = props => {
             temp.emojisMap.set(emoji, previousInteractedUsers);
           }
         }
-        return prevMessages.map(m => {
-          if (m.id === destinationMessage.id) {
-            return temp;
-          } else {
-            return m;
-          }
-        });
+        return prevMessages.map(
+          (m) => m.id === destinationMessage.id ? temp : m
+        );
+        
       } else {
-        blockedEvents.current = [...blockedEvents.current, dbMessage];
+        setBlockedEvents((e) => e.concat(dbMessage));
 
         return prevMessages;
       }
     });
   }, [getCodeNameAndColor, utils]);
 
-  const updateSenderMessageStatus = useCallback((message: any) => {
+  const updateSenderMessageStatus = useCallback((message: DBMessage) => {
     setMessages(prevMessages => {
       return prevMessages.map(m => {
         if (m.uuid === message.id) {
@@ -534,7 +559,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     });
   }, []);
 
-  const resolveBlockedEvent = useCallback(async (event: any) => {
+  const resolveBlockedEvent = useCallback(async (event: DBMessage) => {
     if (event.type === 3) {
       handleReactionReceived(event);
     } else if (event.type === 1) {
@@ -583,20 +608,23 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [handleReactionReceived, mapDbMessagesToMessages]);
 
-  const checkIfWillResolveBlockedEvent = useCallback((receivedMessage: any) => {
-    const blockedEventsToResolve = blockedEvents.current.filter(
+  const checkIfWillResolveBlockedEvent = useCallback((receivedMessage: DBMessage) => {
+    const blockedEventsToResolve = blockedEvents.filter(
       e => e.parent_message_id === receivedMessage.message_id
     );
 
     if (blockedEventsToResolve?.length) {
-      blockedEvents.current = blockedEvents.current.filter(
-        e => e.parent_message_id !== blockedEventsToResolve[0].parent_message_id
+      setBlockedEvents(
+        (events) => events.filter(
+          (e) => e.parent_message_id !== 
+            blockedEventsToResolve[0].parent_message_id
+        )
       );
       blockedEventsToResolve.forEach(e => {
         resolveBlockedEvent(e);
       });
     }
-  }, [resolveBlockedEvent]);
+  }, [blockedEvents, resolveBlockedEvent]);
 
   const onReceiveEvent = useCallback(async (
     uuid: string,
@@ -604,18 +632,19 @@ export const NetworkProvider: FC<WithChildren> = props => {
     isUpdate: boolean
   ) => {
     if (db) {
-      const receivedMessage = await db.table('messages').get(uuid);
-      if (isUpdate) {
+      const receivedMessage = await db.table<DBMessage>('messages').get(uuid);
+
+      if (isUpdate && receivedMessage) {
         if ([1, 2, 3].includes(receivedMessage.status)) {
           updateSenderMessageStatus(receivedMessage);
           return;
         }
       }
 
-      if (receivedMessage.type === 3) {
+      if (receivedMessage?.type === DBMessageType.Reaction) {
         // It's reaction event
         handleReactionReceived(receivedMessage);
-      } else if (receivedMessage.type === 1) {
+      } else if (receivedMessage && receivedMessage?.type === DBMessageType.Normal) {
         const receivedMessageChannelId = receivedMessage?.channel_id;
 
         if (receivedMessageChannelId !== currentChannelRef?.current?.id) {
@@ -675,7 +704,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
           });
         }
       }
-      checkIfWillResolveBlockedEvent(receivedMessage);
+      if (receivedMessage) {
+        checkIfWillResolveBlockedEvent(receivedMessage);
+      }
     }
   }, [
     checkIfWillResolveBlockedEvent,
@@ -685,28 +716,22 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ]);
 
   const mapInitialLoadDataToCurrentState = useCallback(async (
-    channs: any[],
-    msgs: any[]
+    channs: DBChannel[],
+    msgs: DBMessage[]
   ) => {
-    return new Promise<any>(async (resolve, reject) => {
-      try {
-        const mappedChannels = channs.map((c: Record<string, unknown>) => {
-          return { ...c }; // Find a way to get the pretty print for the returned channels
-        });
-
-        const mappedMessages = await mapDbMessagesToMessages(msgs);
-
-        resolve({ mappedChannels, mappedMessages });
-      } catch (error) {
-        reject(error);
-      }
+    const mappedChannels = channs.map((c) => {
+      return { ...c }; // Find a way to get the pretty print for the returned channels
     });
+
+    const mappedMessages = await mapDbMessagesToMessages(msgs);
+
+    return { mappedChannels, mappedMessages };
   }, [mapDbMessagesToMessages]);
 
   // A function that takes DB messages, extract all reaction events then apply them to the passed IMessage[]
   // and return the results as IMessage[]
   const bulkUpdateMessagesWithReactions = useCallback((
-    dbEvents: any[],
+    dbEvents: DBMessage[],
     msgs: Message[]
   ) => {
     const reactionEvents = dbEvents.filter(event => {
@@ -767,7 +792,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [getCodeNameAndColor, utils]);
 
   // Get all the reaction events related to a group of messages(DB-Events)
-  const getDBReactionEvents = useCallback(async (events: any[]) => {
+  const getDBReactionEvents = useCallback(async (events: DBMessage[]) => {
     // message_id,parent_message_id
     if (db) {
       const eventsIds = events.map(e => e.message_id);
@@ -811,7 +836,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           .toArray();
       })
     );
-    let msgs: any[] = [];
+    let msgs: DBMessage[] = [];
 
     groupedMessages.forEach(g => {
       msgs = [...msgs, ..._.reverse(g)];
@@ -898,7 +923,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ]);
 
   // Used directly on Login
-  const loadCmix = useCallback(async (statePassEncoded: Uint8Array, onCmixLoaded?: (cmix: CMix) => void) => {
+  const loadCmix = useCallback(async (statePassEncoded: Uint8Array) => {
     let cmix;
     try {
       cmix = await utils.LoadCmix(
@@ -943,19 +968,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
           }
         });
       }
+      // eslint-disable-next-line no-console
+      console.log('SETTING CMIX');
       setNetwork(cmix);
-
-      if (onCmixLoaded) {
-        onCmixLoaded(cmix);
-      }
     } catch (e) {
       console.error('Failed to load Cmix: ' + e);
       throw e;
     }
   }, [utils]);
 
-  // Used on registeration
-  const initiateCmix = useCallback((password: string, onCmixInitiated?: (cmix: CMix) => void) => {
+  const initiateCmix = useCallback(async (password: string) => {
     try {
       const statePassEncoded = utils.GetOrInitPassword(password);
       // Check if state exists
@@ -964,10 +986,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
         setStatePath();
       }
 
-      loadCmix(statePassEncoded, onCmixInitiated);
+      await loadCmix(statePassEncoded);
     } catch (error) {
       console.error('Failed to load Cmix: ' + error);
-      return;
+      throw error;
     }
   }, [statePathExists, loadCmix, setStatePath, utils]);
 
@@ -1318,17 +1340,18 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ) => {
     return new Promise<void>((resolve) => {
       const intervalId = setInterval(() => {
-        assert(network);
-        const isReadyInfo = JSON.parse(decoder.decode(network?.IsReady(0.7))) as IsReadyInfo;
+        if (network) {
+          const isReadyInfo = JSON.parse(decoder.decode(network?.IsReady(0.7))) as IsReadyInfo;
 
-        onIsReadyInfoChange(isReadyInfo);
-        if (isReadyInfo.IsReady) {
-          clearInterval(intervalId);
-          setTimeout(() => {
-            createChannelManager(selectedPrivateIdentity);
-            setIsReadyToRegister(true);
-            resolve();
-          }, 3000);
+          onIsReadyInfoChange(isReadyInfo);
+          if (isReadyInfo.IsReady) {
+            clearInterval(intervalId);
+            setTimeout(() => {
+              createChannelManager(selectedPrivateIdentity);
+              setIsReadyToRegister(true);
+              resolve();
+            }, 3000);
+          }
         }
       }, 1000);
     });
@@ -1350,7 +1373,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         setCurrentChannel(undefined);
         setChannelManager(undefined);
         setMessages([]);
-        blockedEvents.current = [];
+        setBlockedEvents([]);
         currentCodeNameRef.current = '';
         currentChannelRef.current = undefined;
         dummyTrafficObjRef.current = undefined;
@@ -1427,6 +1450,6 @@ export const useNetworkClient = () => {
   return context;
 };
 
-export const ManagedNetworkContext: FC<any> = ({ children }) => (
+export const ManagedNetworkContext: FC<WithChildren> = ({ children }) => (
   <NetworkProvider>{children}</NetworkProvider>
 );

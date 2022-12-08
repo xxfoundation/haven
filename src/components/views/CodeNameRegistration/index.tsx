@@ -1,15 +1,13 @@
 import { FC, useState, useEffect } from 'react';
 import cn from 'classnames';
 
-import { ModalCtaButton } from 'src/components/common';
+import { ImportCodeNameLoading, ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Spinner } from 'src/components/common';
-import { Loading } from 'src/components/common';
-import { ProgressBar } from 'src/components/common';
 
 import s from './CodeNameRegistration.module.scss';
 
-const RegisterView2: FC = () => {
+const CodenameRegistration: FC = () => {
   const {
     checkRegistrationReadiness,
     cmix,
@@ -134,23 +132,13 @@ const RegisterView2: FC = () => {
         </div>
       </div>
     );
-  } else if (!isReadyToRegister) {
+  } else if (isReadyToRegister === false) {
     return (
-      <Loading>
-        <ProgressBar completed={readyProgress}></ProgressBar>
-        <div className='text-center'>
-          <div className='headline--md'>
-            Securely setting up your codename. This could take up to a minute.
-          </div>
-          <div className='headline--sm'>
-            Please do not close this page - your codename may be lost
-          </div>
-        </div>
-      </Loading>
+      <ImportCodeNameLoading fullscreen readyProgress={readyProgress} />
     );
   } else {
     return null;
   }
 };
 
-export default RegisterView2;
+export default CodenameRegistration;

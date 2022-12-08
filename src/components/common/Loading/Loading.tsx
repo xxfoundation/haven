@@ -1,4 +1,6 @@
-import { FC } from 'react';
+import type { WithChildren } from '@types';
+import type { FC } from 'react';
+import cn from 'classnames';
 import s from './Loading.module.scss';
 import { Spinner } from 'src/components/common';
 
@@ -28,9 +30,11 @@ const Elixxir = () => {
   );
 };
 
-const Loading: FC<{ children?: any }> = ({ children }) => {
+type Props = WithChildren;
+
+const Loading: FC<Props> = ({ children }) => {
   return (
-    <div className={s.root}>
+    <div className={cn(s.root)}>
       <div>
         <Elixxir />
         {children ? children : <Spinner />}

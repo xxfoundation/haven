@@ -8,7 +8,7 @@ export interface EmojiReaction {
 export interface Message {
   id: string;
   body: string;
-  timestamp: number;
+  timestamp: string;
   color?: string;
   codeName: string;
   nickName?: string;
