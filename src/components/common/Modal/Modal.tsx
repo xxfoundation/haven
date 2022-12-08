@@ -1,4 +1,5 @@
-import { FC, useRef } from 'react';
+import type { WithChildren } from '@types';
+import { FC, HTMLProps, useRef } from 'react';
 import cn from 'classnames';
 
 import s from './Modal.module.scss';
@@ -6,20 +7,20 @@ import { Close } from 'src/components/icons';
 
 interface ModalProps {
   className?: string;
-  children: any;
   onClose: () => void;
   onEnter?: () => void | null;
 }
 
-const Modal: FC<ModalProps> = ({
+const Modal: FC<WithChildren & ModalProps & HTMLProps<HTMLDivElement>> = ({
   children,
   className = '',
-  onClose
+  onClose,
+  ...props
 }) => {
   const ref = useRef() as React.MutableRefObject<HTMLDivElement>;
 
   return (
-    <div className={cn(s.root)}>
+    <div {...props} className={cn(s.root)}>
       <div className={cn(s.modal, className)} role='dialog' ref={ref}>
         <Close
           onClick={() => onClose()}

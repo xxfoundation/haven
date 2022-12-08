@@ -1,15 +1,16 @@
 import type { WithChildren } from 'src/types';
 import cn from 'classnames';
-import React, { FC, useEffect } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 
-import { LeftSideBar, RightSideBar, Modal } from 'src/components/common';
+import { LeftSideBar, RightSideBar, Modal, ImportCodeNameLoading } from 'src/components/common';
 import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient, Channel } from 'src/contexts/network-client-context';
 
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
-import { Loading, ImportCodeNameLoading } from 'src/components/common';
+import { Loading } from 'src/components/common';
+import { encoder } from 'src/utils/index';
 
 import {
   CreateChannelView,
@@ -20,7 +21,6 @@ import {
   ChannelActionsView,
   SettingsView,
   ExportCodenameView,
-  ImportCodenameView,
   NetworkNotReadyView,
   JoinChannelSuccessView,
   MessageLongView,
@@ -31,22 +31,61 @@ import Register from 'src/components/views/Register';
 import LoginView from '@components/views/Login';
 
 import s from './DefaultLayout.module.scss';
+import { IdentityVariables } from '@components/common/Modal/ModalViews/ImportAccountView/types';
+import ImportAccountModal from '@components/common/Modal/ModalViews/ImportAccountView';
 
 const AuthenticationUI: FC = () => {
+  const { displayModal, modalView = '' } = useUI();
   const { getStorageTag, statePathExists } = useAuthentication();
+  const { utils } = useUtils(); 
+  const { checkRegistrationReadiness, initiateCmix, setIsReadyToRegister } = useNetworkClient();
+  const [loading, setLoading] = useState(false); 
+  const [readyProgress, setReadyProgress] = useState<number>(0);
+  const authenticated = statePathExists() && getStorageTag();
 
-  if (!statePathExists() || !getStorageTag()) {
-    return <Register />;
-  } else {
-    return <LoginView />;
+  const onSubmit = useCallback(async ({ identity, password }: IdentityVariables) =>  {
+    const imported = utils.ImportPrivateIdentity(password, encoder.encode(identity));
+    await initiateCmix(password);
+    checkRegistrationReadiness(
+      imported,
+      (isReadyInfo) => {
+        // eslint-disable-next-line no-console
+        console.log('WE AT ', isReadyInfo?.HowClose);
+        setReadyProgress(Math.ceil((isReadyInfo?.HowClose || 0) * 100));
+      }
+    );
+    setIsReadyToRegister(true);
+    setLoading(true);
+  }, [checkRegistrationReadiness, initiateCmix, setIsReadyToRegister, utils]);
+
+  useEffect(() => {
+    if (readyProgress === 100) {
+      setLoading(false);
+      setReadyProgress(0);
+    }
+  }, [readyProgress])
+
+  if (loading) {
+    return (
+      <ImportCodeNameLoading readyProgress={readyProgress}/>
+    )
   }
+
+  return (
+    <>  
+      {displayModal && modalView === 'IMPORT_CODENAME' &&  (
+        <ImportAccountModal onSubmit={onSubmit} />
+      )}
+      {authenticated ? <LoginView /> : <Register />}
+    </>
+  );
 };
 
 const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   currentChannel
 }) => {
-  const { closeModal, displayModal, modalView } = useUI();
-  const classes = modalView.toLowerCase().replace(/_/g, '-');
+  const { closeModal, displayModal, modalView = '' } = useUI();
+  const classes = modalView?.toLowerCase().replace(/_/g, '-');
 
   const allModals = [
     'SHARE_CHANNEL',
@@ -62,6 +101,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     'MESSAGE_LONG',
     'LOGOUT'
   ];
+
   return displayModal && allModals.includes(modalView) ? (
     <Modal className={classes} onClose={closeModal}>
       {modalView === 'SHARE_CHANNEL' && <ShareChannelView />}
@@ -88,7 +128,7 @@ const DefaultLayout: FC<WithChildren> = ({
 }) => {
   const router = useRouter();
   const { getStorageTag: getStorageTag, isAuthenticated } = useAuthentication();
-  const { shouldRenderImportCodeNameScreen, utilsLoaded } = useUtils();
+  const { utilsLoaded } = useUtils();
   const {
     cmix,
     currentChannel,
@@ -131,15 +171,6 @@ const DefaultLayout: FC<WithChildren> = ({
     router
   ]);
 
-  const ImportCodeNameModal = () => {
-    const { closeModal, displayModal, modalView } = useUI();
-    return displayModal && modalView === 'IMPORT_CODENAME' ? (
-      <Modal onClose={closeModal}>
-        <ImportCodenameView />
-      </Modal>
-    ) : null;
-  };
-
   return (
     <div className={cn(s.root)}>
       {utilsLoaded ? (
@@ -150,12 +181,9 @@ const DefaultLayout: FC<WithChildren> = ({
             <RightSideBar cssClasses={s.rightSideBar} />
             <AuthenticatedUserModals currentChannel={currentChannel} />
           </>
-        ) : shouldRenderImportCodeNameScreen ? (
-          <ImportCodeNameLoading />
         ) : (
           <>
             <AuthenticationUI />
-            <ImportCodeNameModal />
           </>
         )
       ) : (

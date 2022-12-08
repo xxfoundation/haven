@@ -8,7 +8,7 @@ export const isClientSide = () => {
   return typeof window !== 'undefined';
 };
 
-export const exportDataToFile = (data: any) => {
+export const exportDataToFile = (data: Uint8Array) => {
   const filename = 'speakeasyIdentity.json';
 
   const file = new Blob([data], { type: 'text/plain' });

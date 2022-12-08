@@ -1,5 +1,5 @@
 import type { ChannelManager } from './network-client-context'
-import React, { FC, useState, useRef } from 'react';
+import React, { FC, useState } from 'react';
 import { CMix } from './network-client-context';
 import { WithChildren } from '@types';
 
@@ -9,9 +9,7 @@ export enum PrivacyLevel {
   Secret = 2
 }
 
-type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
-
-type DummyTraffic = {
+export type DummyTraffic = {
   GetStatus: () => boolean;
   SetStatus: (status: boolean) => void;
 }
@@ -20,6 +18,8 @@ export type ChannelDbCipher = {
   GetID: () => number;
   Decrypt: (plaintext: Uint8Array) => Uint8Array;
 }
+
+type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
 
 export type XXDKUtils = {
   NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => void;
@@ -35,7 +35,12 @@ export type XXDKUtils = {
     onMessage: MessageReceivedCallback,
     channelDbCipher: number
   ) => Promise<ChannelManager>;
-  LoadChannelsManagerWithIndexedDb: (cmixId: number, storageTag: string, onMessage: MessageReceivedCallback, channelDbCipher: number) => ChannelManager;
+  LoadChannelsManagerWithIndexedDb: (
+    cmixId: number,
+    storageTag: string,
+    onMessage: MessageReceivedCallback,
+    channelDbCipher: number
+  ) => Promise<ChannelManager>;
   GetPublicChannelIdentityFromPrivate: (privateKey: Uint8Array) => Uint8Array;
   IsNicknameValid: (nickname: string) => null;
   GetShareUrlType: (url: string) => PrivacyLevel;
@@ -66,9 +71,6 @@ type XXDKContext = {
   setUtils: (utils: XXDKUtils) => void;
   utilsLoaded: boolean;
   setUtilsLoaded: (loaded: boolean) => void;
-  transferIdentityVariables: any;
-  shouldRenderImportCodeNameScreen: boolean;
-  setShouldRenderImportCodeNameScreen: (shouldRender: boolean) => void;
 }
 
 export const UtilsContext = React.createContext<XXDKContext>({
@@ -82,11 +84,6 @@ UtilsContext.displayName = 'UtilsContext';
 export const UtilsProvider: FC<WithChildren> = ({ children }) => {
   const [utils, setUtils] = useState<XXDKUtils>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
-  const transferIdentityVariables = useRef<any>({});
-  const [
-    shouldRenderImportCodeNameScreen,
-    setShouldRenderImportCodeNameScreen
-  ] = useState(false);
 
   return (
     <UtilsContext.Provider
@@ -95,9 +92,6 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
         setUtils,
         utilsLoaded,
         setUtilsLoaded,
-        transferIdentityVariables,
-        shouldRenderImportCodeNameScreen,
-        setShouldRenderImportCodeNameScreen
       }}
     >
       {children}
@@ -115,6 +109,6 @@ export const useUtils = () => {
   return context;
 };
 
-export const ManagedUtilsContext: FC<any> = ({ children }) => (
+export const ManagedUtilsContext: FC<WithChildren> = ({ children }) => (
   <UtilsProvider>{children}</UtilsProvider>
 );

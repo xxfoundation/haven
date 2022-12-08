@@ -1,3 +1,4 @@
+import { WithChildren } from '@types';
 import React, { FC, useCallback, useMemo } from 'react';
 
 type ModalViews =
@@ -17,7 +18,7 @@ type ModalViews =
 
 export interface State {
   displayModal: boolean;
-  modalView: string;
+  modalView?: ModalViews;
   activeModals: object[];
   channelInviteLink: string;
   openModal: () => void;
@@ -28,7 +29,6 @@ export interface State {
 
 const initialState: State = {
   displayModal: false,
-  modalView: '',
   activeModals: [],
   channelInviteLink: '',
   openModal: () => {},
@@ -87,7 +87,7 @@ function uiReducer(state: State, action: Action) {
   }
 }
 
-export const UIProvider: FC<any> = (props) => {
+export const UIProvider: FC<WithChildren> = ({ children }) => {
   const [state, dispatch] = React.useReducer(uiReducer, initialState);
 
   const openModal = useCallback(() => dispatch({ type: 'OPEN_MODAL' }), [
@@ -119,7 +119,11 @@ export const UIProvider: FC<any> = (props) => {
     [closeModal, openModal, setChannelInviteLink, setModalView, state]
   );
 
-  return <UIContext.Provider value={value} {...props} />;
+  return (
+    <UIContext.Provider value={value}>
+      {children}
+    </UIContext.Provider>
+    );
 };
 
 export const useUI = () => {
@@ -130,6 +134,6 @@ export const useUI = () => {
   return context;
 };
 
-export const ManagedUIContext: FC<any> = ({ children }) => (
+export const ManagedUIContext: FC<WithChildren> = ({ children }) => (
   <UIProvider>{children}</UIProvider>
 );
