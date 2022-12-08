@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, useCallback, useRef } from "react";
+import React, { FC, useState, useEffect, useRef } from "react";
 
 import { useAuthentication } from "contexts/authentication-context";
 import { useUtils } from "contexts/utils-context";
@@ -6,7 +6,7 @@ import { ndf } from "@sdk/ndf";
 import { STATE_PATH } from "../constants";
 import { Dexie } from "dexie";
 import { IMessage } from "types";
-import { enc, dec } from "utils";
+import { dec } from "utils";
 import _ from "lodash";
 import Cookies from "js-cookie";
 
@@ -26,6 +26,7 @@ interface INetwork {
   GetID: Function;
   ReadyToSend: Function;
   AddHealthCallback: Function;
+  IsReady: Function;
 }
 
 interface IDatabaseCipher {
@@ -104,6 +105,10 @@ export const NetworkClientContext = React.createContext<{
   exportPrivateIdentity: Function;
   getCodeNameAndColor: Function;
   isNetworkHealthy: boolean | undefined;
+  isReadyToRegister: boolean | undefined;
+  setIsReadyToRegister: Function;
+  checkIsRedayToRegister: Function;
+  logout: Function;
 }>({
   network: undefined,
   networkStatus: NetworkStatus.DISCONNECTED,
@@ -141,7 +146,11 @@ export const NetworkClientContext = React.createContext<{
   loadMoreChannelData: () => {},
   exportPrivateIdentity: () => {},
   getCodeNameAndColor: () => {},
-  isNetworkHealthy: undefined
+  isNetworkHealthy: undefined,
+  isReadyToRegister: undefined,
+  setIsReadyToRegister: () => {},
+  checkIsRedayToRegister: () => {},
+  logout: () => {}
 });
 
 NetworkClientContext.displayName = "NetworkClientContext";
@@ -168,6 +177,9 @@ export const NetworkProvider: FC<any> = props => {
   const [isNetworkHealthy, setIsNetworkHealthy] = useState<boolean | undefined>(
     undefined
   );
+  const [isReadyToRegister, setIsReadyToRegister] = useState<
+    boolean | undefined
+  >(undefined);
   const channelsRef = useRef<IChannel[]>([]);
   const blockedEvents = useRef<any[]>([]);
   const currentCodeNameRef = useRef<string>("");
@@ -220,7 +232,6 @@ export const NetworkProvider: FC<any> = props => {
     if (network) {
       setIsAuthenticated(true);
     }
-    // setIsAuthenticated(true);
 
     if (network && networkStatus !== NetworkStatus.CONNECTED) {
       connectNetwork();
@@ -733,28 +744,30 @@ export const NetworkProvider: FC<any> = props => {
   };
 
   const createChannelManager = async (privateIdentity: any, net?: any) => {
-    const currentNetwork = network || net;
-    if (
-      currentNetwork &&
-      cipherRef?.current &&
-      utils &&
-      utils.NewChannelsManagerWithIndexedDb
-    ) {
-      utils
-        .NewChannelsManagerWithIndexedDb(
-          currentNetwork.GetID(),
-          privateIdentity,
-          onReceiveEvent,
-          cipherRef?.current?.GetID()
-        )
-        .then(async (res: IChannelManager) => {
-          setChanManager(res);
-          const storageTag = res.GetStorageTag();
-          addStorageTag(storageTag);
-
-          handleInitialLoadData(storageTag);
-        });
-    }
+    return new Promise((resolve, reject) => {
+      const currentNetwork = network || net;
+      if (
+        currentNetwork &&
+        cipherRef?.current &&
+        utils &&
+        utils.NewChannelsManagerWithIndexedDb
+      ) {
+        utils
+          .NewChannelsManagerWithIndexedDb(
+            currentNetwork.GetID(),
+            privateIdentity,
+            onReceiveEvent,
+            cipherRef?.current?.GetID()
+          )
+          .then(async (res: IChannelManager) => {
+            setChanManager(res);
+            const storageTag = res.GetStorageTag();
+            addStorageTag(storageTag);
+            resolve(true);
+            handleInitialLoadData(storageTag);
+          });
+      }
+    });
   };
 
   // Used on registeration
@@ -842,7 +855,11 @@ export const NetworkProvider: FC<any> = props => {
   const connectNetwork = async () => {
     if (network) {
       setNetworkStatus(NetworkStatus.CONNECTING);
-      network.StartNetworkFollower(50000);
+      try {
+        network.StartNetworkFollower(50000);
+      } catch (error) {
+        console.error("Error while StartNetworkFollower:", error);
+      }
       await network.WaitForNetwork(10 * 60 * 1000).then(
         () => {
           setNetworkStatus(NetworkStatus.CONNECTED);
@@ -1307,6 +1324,61 @@ export const NetworkProvider: FC<any> = props => {
     }
   };
 
+  const checkIsRedayToRegister = (
+    selectedPrivateIdentity: string,
+    onIsReadyInfoChange: Function
+  ) => {
+    return new Promise((resolve, reject) => {
+      const intervalId = setInterval(() => {
+        const isReadyInfo = JSON.parse(dec.decode(network?.IsReady(0.7)));
+
+        onIsReadyInfoChange(isReadyInfo);
+        if (isReadyInfo.IsReady) {
+          clearInterval(intervalId);
+          setTimeout(() => {
+            createChannelManager(selectedPrivateIdentity);
+            setIsReadyToRegister(true);
+            resolve(true);
+          }, 3000);
+        }
+      }, 1000);
+    });
+  };
+
+  const logout = (password: string) => {
+    if (utils && utils.Purge && network && network.StopNetworkFollower) {
+      try {
+        network.StopNetworkFollower();
+        utils.Purge(STATE_PATH, password);
+        window.localStorage.clear();
+        Cookies.remove("userAuthenticated", { path: "/" });
+        setIsAuthenticated(false);
+        setNetworkStatus(NetworkStatus.DISCONNECTED);
+        setNetwork(undefined);
+        setIsReadyToRegister(undefined);
+        setIsNetworkHealthy(undefined);
+        setChannels([]);
+        setCurrentChannel(undefined);
+        setChanManager(undefined);
+        setMessages([]);
+        blockedEvents.current = [];
+        currentCodeNameRef.current = "";
+        currentChannelRef.current = undefined;
+        dummyTrafficObjRef.current = undefined;
+        cipherRef.current = undefined;
+
+        return true;
+      } catch (error) {
+        console.error(error);
+        // If something wrong happened like wrong password then we should start network follower again
+        network.StartNetworkFollower(50000);
+        return false;
+      }
+    } else {
+      return false;
+    }
+  };
+
   return (
     <NetworkClientContext.Provider
       value={{
@@ -1345,7 +1417,11 @@ export const NetworkProvider: FC<any> = props => {
         loadMoreChannelData,
         exportPrivateIdentity,
         getCodeNameAndColor,
-        isNetworkHealthy
+        isNetworkHealthy,
+        isReadyToRegister,
+        setIsReadyToRegister,
+        checkIsRedayToRegister,
+        logout
       }}
       {...props}
     />

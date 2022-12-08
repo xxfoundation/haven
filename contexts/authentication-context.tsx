@@ -13,9 +13,7 @@ interface IUserSecret {
   secret: string;
 }
 
-const usersStorageKey = "ELIXXIR_USERS";
-const usersStorageTagsKey = "ELIXXIR_USERS_TAGS";
-const passwordKey = "ELIXXIR_PASSWORD";
+export const usersStorageTagsKey = "ELIXXIR_USERS_TAGS";
 
 export const AuthenticationContext = React.createContext<{
   checkUser: Function;
@@ -49,13 +47,8 @@ export const AuthenticationProvider: FC<any> = props => {
   const setStatePath = () => {
     if (isClientSide()) {
       console.log(`Test setting ${STATE_PATH} in local storage`);
-      // window.localStorage.setItem(STATE_PATH, JSON.stringify(true));
       window.localStorage.setItem(STATE_PATH, "Test");
     }
-  };
-
-  const getStorageUsersSecrets = (): IUserSecret[] => {
-    return JSON.parse(window.localStorage.getItem(usersStorageKey) || `[]`);
   };
 
   const getStorageTag = () => {
@@ -75,12 +68,6 @@ export const AuthenticationProvider: FC<any> = props => {
       usersStorageTagsKey,
       JSON.stringify(existedUsersStorageTags)
     );
-  };
-
-  const addStorageUsersSecrets = (userSecret: IUserSecret) => {
-    const oldSecrets = getStorageUsersSecrets();
-    oldSecrets.push(userSecret);
-    window.localStorage.setItem(usersStorageKey, JSON.stringify(oldSecrets));
   };
 
   const checkUser = (password: string) => {

@@ -2,10 +2,7 @@ import { FC, useState, useEffect, useRef } from "react";
 import s from "./ImportCodenameView.module.scss";
 import { ModalCtaButton } from "@components/common";
 import cn from "classnames";
-import {
-  useNetworkClient,
-  NetworkStatus
-} from "contexts/network-client-context";
+import { useNetworkClient } from "contexts/network-client-context";
 import { useUI } from "contexts/ui-context";
 import { useUtils } from "contexts/utils-context";
 import { enc } from "utils";
@@ -14,10 +11,15 @@ import { Upload } from "@components/icons";
 
 const ImportCodenameView: FC<{}> = ({}) => {
   const { closeModal } = useUI();
-  const { initiateCmix, createChannelManager, network } = useNetworkClient();
+  const { initiateCmix, network, isReadyToRegister } = useNetworkClient();
   const fileInputLabelRef = useRef<HTMLSpanElement>(null);
 
-  const { utils, transferIdentittyVariables } = useUtils();
+  const {
+    utils,
+    transferIdentittyVariables,
+    shouldRenderImportCodeNameScreen,
+    setShouldRenderImportCodeNameScreen
+  } = useUtils();
   const [password, setPassword] = useState<string>(
     transferIdentittyVariables.current.password || ""
   );
@@ -33,14 +35,19 @@ const ImportCodenameView: FC<{}> = ({}) => {
   );
 
   useEffect(() => {
-    if (network && privateIdentity && password) {
-      const result = utils.ImportPrivateIdentity(
-        password,
-        enc.encode(privateIdentity)
-      );
-      createChannelManager(result);
-      transferIdentittyVariables.current = {};
+    if (isReadyToRegister) {
       closeModal();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      network &&
+      privateIdentity &&
+      password &&
+      !shouldRenderImportCodeNameScreen
+    ) {
+      setShouldRenderImportCodeNameScreen(true);
     }
   }, [password, privateIdentity]);
 
@@ -92,6 +99,7 @@ const ImportCodenameView: FC<{}> = ({}) => {
       reader.readAsText(e.target.files[0]);
     }
   };
+
   return (
     <div className={cn("w-full flex flex-col items-center", s.root)}>
       <h2 className="mt-9 mb-4">Import your account</h2>
