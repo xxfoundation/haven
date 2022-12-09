@@ -41,7 +41,7 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
       value={{
         checkUser,
         statePathExists: () => !!statePath,
-        setStatePath: () => setStatePath('true'),
+        setStatePath: () => setStatePath('Test'),
         getStorageTag: () => storageTags?.[0] || null,
         addStorageTag: (tag: string) => setStorageTags((storageTags ?? []).concat(tag)),
         isAuthenticated,
