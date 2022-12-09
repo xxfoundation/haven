@@ -19,6 +19,13 @@ export type ChannelDbCipher = {
   Decrypt: (plaintext: Uint8Array) => Uint8Array;
 }
 
+export type Channel = {
+  ReceptionID: string;
+  Name: string;
+  Description: string;
+  Level: PrivacyLevel;
+}
+
 type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
 
 export type XXDKUtils = {

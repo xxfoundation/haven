@@ -87,8 +87,10 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   }, [router]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Layout = (Component as any).Layout || Noop;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const skipDuplicateTabCheck = (Component as any).skipDuplicateTabCheck;
 
   if (shouldRender) {

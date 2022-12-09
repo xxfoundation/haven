@@ -5,7 +5,7 @@ import cn from 'classnames';
 import Cookies from 'js-cookie';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { Channel, PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
 import JoinChannelView from 'src/components/views/JoinChannel';
 import { ModalCtaButton } from 'src/components/common';
@@ -23,9 +23,9 @@ const Join: NextPage = () => {
   const [password, setPassword] = useState('');
   const [channelType, setChannelType] = useState<null | PrivacyLevel>(null);
   const { utils, utilsLoaded } = useUtils();
-  const [channelInfoJson, setChannelInfoJson] = useState();
+  const [channelInfoJson, setChannelInfoJson] = useState<Channel>();
   const [channelPrettyPrint, setChannelPrettyPrint] = useState('');
-  const bc = useMemo<BroadcastChannel>(() => new BroadcastChannel('join_channel'), []);
+  const broadcastChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('join_channel'), []);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -61,15 +61,15 @@ const Join: NextPage = () => {
   }, [isUserAuthenticated, withLink, getShareUrlType]);
 
   useEffect(() => {
-    if (channelType === 0 && bc) {
+    if (channelType === PrivacyLevel.Public && broadcastChannel) {
       const prettyPrinted = utils.DecodePublicURL(window.location.href);
       const infoJson = JSON.parse(
         decoder.decode(utils.GetChannelJSON(prettyPrinted))
-      );
+      ) as Channel;
       setChannelPrettyPrint(prettyPrinted);
       setChannelInfoJson(infoJson);
     }
-  }, [bc, channelType, utils]);
+  }, [broadcastChannel, channelType, utils]);
 
   if (isLoading) {
     return (
@@ -97,8 +97,8 @@ const Join: NextPage = () => {
             channelInfo={channelInfoJson}
             url={window.location.href}
             onConfirm={() => {
-              if (channelPrettyPrint && bc) {
-                bc.postMessage({
+              if (channelPrettyPrint && broadcastChannel) {
+                broadcastChannel.postMessage({
                   prettyPrint: channelPrettyPrint
                 });
               }
@@ -167,4 +167,5 @@ const Join: NextPage = () => {
 };
 
 export default Join;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Join as any).skipDuplicateTabCheck = true;

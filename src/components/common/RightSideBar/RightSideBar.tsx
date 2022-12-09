@@ -1,3 +1,5 @@
+import { Message } from '@types';
+
 import { FC, useMemo, useState, useEffect, MouseEventHandler } from 'react';
 import { useSpring, a } from '@react-spring/web';
 import cn from 'classnames';
@@ -17,7 +19,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
     getNickName,
     messages
   } = useNetworkClient();
-  const [currentContributors, setCurrentContributors] = useState<any>([]);
+  const [currentContributors, setCurrentContributors] = useState<Message[]>([]);
 
   const currentChannelMessages = useMemo(() => messages.filter(
     m => m.channelId === (currentChannel?.id || '')
@@ -149,11 +151,11 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                 </span>
               </div>
 
-              {currentContributors.map((c: any) => {
+              {currentContributors.map((c) => {
                 if (c.codeName === codeName) {
                   return null;
                 } else {
-                  const cssColor = c?.color.replace('0x', '#');
+                  const cssColor = c?.color?.replace('0x', '#');
 
                   return (
                     <span
