@@ -17,7 +17,9 @@ const SettingsView: FC = () => {
           <h3 className='headline--sm'>Download logs</h3>
           <Download
             onClick={() => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const filename = (window as any).logFile?.Name();
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const data = (window as any).logFile?.GetFile();
               const file = new Blob([data], { type: 'text/plain' });
               const a = document.createElement('a'),

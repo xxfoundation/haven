@@ -23,4 +23,5 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Home as any).Layout = DefaultLayout;

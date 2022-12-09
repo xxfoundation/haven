@@ -1,13 +1,16 @@
+import type { WithChildren } from '@types';
+
 import { FC, useEffect } from 'react';
 import { XXDK_VERSION } from 'src/constants';
 
 import { useUtils } from 'src/contexts/utils-context';
 
-const WebAssemblyRunner: FC<{ children: any }> = ({ children }) => {
+const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
   const { setUtils, setUtilsLoaded, utilsLoaded } = useUtils();
 
   useEffect(() => {
     if (!utilsLoaded) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const go = new (window as any).Go();
       const binPath = `/integrations/assets/xxdk_${XXDK_VERSION}.wasm`;
       WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
@@ -39,6 +42,7 @@ const WebAssemblyRunner: FC<{ children: any }> = ({ children }) => {
             NewCmix,
             NewDummyTrafficManager,
             Purge
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } = (window as any) || {};
 
           setUtils({
@@ -72,6 +76,7 @@ const WebAssemblyRunner: FC<{ children: any }> = ({ children }) => {
           }
           
           const logFile = LogToFile(0, 'receiver.log', 5000000);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (window as any).logFile = logFile;
           setUtilsLoaded(true);
         }
