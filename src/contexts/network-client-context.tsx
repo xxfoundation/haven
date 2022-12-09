@@ -21,6 +21,12 @@ enum DBMessageType {
   Reaction = 3
 }
 
+enum DBMessageStatus {
+  Sending = 1,
+  Sent = 2,
+  Delivered = 3
+}
+
 export type DBMessage = {
   id: number;
   nickname: string;
@@ -29,7 +35,7 @@ export type DBMessage = {
   parent_message_id: null | string;
   timestamp: string;
   lease: number;
-  status: number;
+  status: DBMessageStatus;
   hidden: boolean,
   pinned: boolean;
   text: string;
@@ -793,7 +799,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   // Get all the reaction events related to a group of messages(DB-Events)
   const getDBReactionEvents = useCallback(async (events: DBMessage[]) => {
-    // message_id,parent_message_id
     if (db) {
       const eventsIds = events.map(e => e.message_id);
       const reactionEvents = await db
@@ -968,8 +973,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           }
         });
       }
-      // eslint-disable-next-line no-console
-      console.log('SETTING CMIX');
+      
       setNetwork(cmix);
     } catch (e) {
       console.error('Failed to load Cmix: ' + e);
