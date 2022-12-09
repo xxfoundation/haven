@@ -1,7 +1,6 @@
 import type { WithChildren } from '@types';
 
 import { FC, useEffect } from 'react';
-import { XXDK_VERSION } from 'src/constants';
 
 import { useUtils } from 'src/contexts/utils-context';
 
@@ -12,7 +11,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
     if (!utilsLoaded) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const go = new (window as any).Go();
-      const binPath = `/integrations/assets/xxdk_${XXDK_VERSION}.wasm`;
+      const binPath = '/integrations/assets/xxdk.wasm';
       WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
         async (result) => {
           go?.run(result?.instance);
