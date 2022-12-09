@@ -2,10 +2,10 @@ import { WithChildren } from '@types';
 
 import React, { FC, useCallback, useState } from 'react';
 import { ELIXXIR_USERS_TAGS, STATE_PATH } from '../constants';
-import { isClientSide } from 'src/utils';
 import { useUtils } from 'src/contexts/utils-context';
+import useLocalStorage from 'src/hooks/useLocalStorage';
 
-export const AuthenticationContext = React.createContext<{
+type AuthenticationContextType = {
   checkUser: (password: string) => Uint8Array | false;
   statePathExists: () => boolean;
   setStatePath: () => void;
@@ -13,27 +13,13 @@ export const AuthenticationContext = React.createContext<{
   addStorageTag: (tag: string) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (authenticated: boolean) => void;
-}>({
-  checkUser: () => false,
-  statePathExists: () => false,
-  setStatePath: () => {},
-  getStorageTag: () => null,
-  addStorageTag: () => {},
+};
+
+export const AuthenticationContext = React.createContext<AuthenticationContextType>({
   isAuthenticated: false,
-  setIsAuthenticated: () => {}
-});
+} as AuthenticationContextType);
 
 AuthenticationContext.displayName = 'AuthenticationContext';
-
-const isStatePathExisted = () => {
-  return isClientSide() && localStorage.getItem(STATE_PATH) !== null;
-};
-
-const setStatePath = () => {
-  if (isClientSide()) {
-    window.localStorage.setItem(STATE_PATH, 'Test');
-  }
-};
 
 const getStorageTag = () => {
   const usersStorageTags = JSON.parse(
@@ -57,6 +43,7 @@ const addStorageTag = (storageTag: string) => {
 export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const { utils } = useUtils();
+  const [statePath, setStatePath] = useLocalStorage(STATE_PATH, '');
 
   const checkUser = useCallback((password: string) => {
     try {
@@ -71,8 +58,8 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     <AuthenticationContext.Provider
       value={{
         checkUser,
-        statePathExists: isStatePathExisted,
-        setStatePath,
+        statePathExists: () => !!statePath,
+        setStatePath: () => setStatePath('true'),
         getStorageTag: getStorageTag,
         addStorageTag,
         isAuthenticated,
