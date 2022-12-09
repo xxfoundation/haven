@@ -21,29 +21,11 @@ export const AuthenticationContext = React.createContext<AuthenticationContextTy
 
 AuthenticationContext.displayName = 'AuthenticationContext';
 
-const getStorageTag = () => {
-  const usersStorageTags = JSON.parse(
-    window.localStorage.getItem(ELIXXIR_USERS_TAGS) || '[]'
-  );
-  return usersStorageTags.length ? usersStorageTags[0] : null;
-};
-
-const addStorageTag = (storageTag: string) => {
-  const existedUsersStorageTags = JSON.parse(
-    window.localStorage.getItem(ELIXXIR_USERS_TAGS) || '[]'
-  );
-
-  existedUsersStorageTags.push(storageTag);
-  window.localStorage.setItem(
-    ELIXXIR_USERS_TAGS,
-    JSON.stringify(existedUsersStorageTags)
-  );
-};
-
 export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const { utils } = useUtils();
   const [statePath, setStatePath] = useLocalStorage(STATE_PATH, '');
+  const [storageTags, setStorageTags] = useLocalStorage<string[]>(ELIXXIR_USERS_TAGS, []);
 
   const checkUser = useCallback((password: string) => {
     try {
@@ -60,8 +42,8 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
         checkUser,
         statePathExists: () => !!statePath,
         setStatePath: () => setStatePath('true'),
-        getStorageTag: getStorageTag,
-        addStorageTag,
+        getStorageTag: () => storageTags?.[0] || null,
+        addStorageTag: (tag: string) => setStorageTags((storageTags ?? []).concat(tag)),
         isAuthenticated,
         setIsAuthenticated
       }}

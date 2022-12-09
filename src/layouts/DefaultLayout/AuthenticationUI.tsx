@@ -22,11 +22,11 @@ const AuthenticationUI: FC = () => {
   const [importedIdentity, setImportedIdentity] = useState<Uint8Array>();
 
   const onSubmit = useCallback(async ({ identity, password }: IdentityVariables) =>  {
-    setLoading(true);
-    setIsReadyToRegister(false);
-    const imported = utils.ImportPrivateIdentity(password, encoder.encode(identity));
-    setImportedIdentity(imported);
-    await initiateCmix(password);
+      setLoading(true);
+      setIsReadyToRegister(false);
+      const imported = utils.ImportPrivateIdentity(password, encoder.encode(identity));
+      setImportedIdentity(imported);
+      await initiateCmix(password);
   }, [initiateCmix, setIsReadyToRegister, utils]);
 
   useEffect(() => {
@@ -42,11 +42,11 @@ const AuthenticationUI: FC = () => {
 
   useEffect(() => {
     if (readyProgress === 100) {
-      setLoading(false);
+      setLoading(false);  
       setReadyProgress(0);
       setIsReadyToRegister(true);
     }
-  }, [readyProgress, setIsReadyToRegister])
+  }, [readyProgress, setIsReadyToRegister]);
 
   if (loading) {
     return (

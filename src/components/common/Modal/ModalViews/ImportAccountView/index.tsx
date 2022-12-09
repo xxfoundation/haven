@@ -1,18 +1,17 @@
 import type { IdentityVariables } from './types';
 
-import React, { FC ,useEffect } from 'react';
+import React, { FC } from 'react';
 
 import { useUI } from '@contexts/ui-context';
 import Modal from 'src/components/common/Modal';
 import ImportAccountForm from './ImportAccountForm';
 
 type Props = {
-  onSubmit: (identityVariables: IdentityVariables) => void;
+  onSubmit: (identityVariables: IdentityVariables) => Promise<void>;
 }
 
 const ImportAccountModal: FC<Props> = ({ onSubmit }) => {
   const { closeModal } = useUI();
-  useEffect(() => {}, []);
 
   return (
     <Modal onClose={closeModal}>
