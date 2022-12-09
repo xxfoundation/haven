@@ -929,8 +929,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   // Used directly on Login
   const loadCmix = useCallback(async (statePassEncoded: Uint8Array) => {
-    // eslint-disable-next-line no-console
-    console.log('LOADING CMIX');
+
     let cmix;
     try {
       cmix = await utils.LoadCmix(
@@ -984,8 +983,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [utils]);
 
   const initiateCmix = useCallback(async (password: string) => {
-    // eslint-disable-next-line no-console
-    console.log('INITIATING');
     try {
       const statePassEncoded = utils.GetOrInitPassword(password);
       // Check if state exists

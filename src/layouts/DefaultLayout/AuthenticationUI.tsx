@@ -36,17 +36,13 @@ const AuthenticationUI: FC = () => {
         (isReadyInfo) => {
           setReadyProgress(Math.ceil((isReadyInfo?.HowClose || 0) * 100));
         }
-      );
+      ).then(() => {
+        setLoading(false);  
+        setReadyProgress(0);
+        setIsReadyToRegister(true);
+      });
     }
-  }, [checkRegistrationReadiness, cmix, importedIdentity])
-
-  useEffect(() => {
-    if (readyProgress === 100) {
-      setLoading(false);  
-      setReadyProgress(0);
-      setIsReadyToRegister(true);
-    }
-  }, [readyProgress, setIsReadyToRegister]);
+  }, [checkRegistrationReadiness, cmix, importedIdentity, setIsReadyToRegister])
 
   if (loading) {
     return (

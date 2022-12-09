@@ -118,9 +118,6 @@ const DefaultLayout: FC<WithChildren> = ({
     router
   ]);
 
-  // eslint-disable-next-line no-console
-  console.log({ utilsLoaded, cmix: !!cmix, isAuthenticated, tag: getStorageTag(), isReadyToRegister });
-
   return (
     <div className={cn(s.root)}>
       {utilsLoaded ? (
