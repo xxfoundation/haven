@@ -38,10 +38,10 @@ const LoginView: FC = ({}) => {
       setIsLoading(false);
     } else {
       setTimeout(async () => {
-        await loadCmix(statePassEncoded);
+        const cmix = await loadCmix(statePassEncoded);
         const tag = getStorageTag();
         if (tag) {
-          loadChannelManager(tag);
+          loadChannelManager(tag, cmix);
         }
         setIsLoading(false);
       }, 1000);
