@@ -6,7 +6,7 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import useInput from 'src/hooks/useInput';
 
-const CreateChannelView: FC = ({}) => {
+const CreateChannelView: FC = () => {
   const { createChannel } = useNetworkClient();
   const { closeModal } = useUI();
   const [channelName, onChannelNameChange, { set: setChannelName }] = useInput();
@@ -31,7 +31,9 @@ const CreateChannelView: FC = ({}) => {
       setChannelName('');
       setChannelDesc('');
       closeModal();
-    } catch {
+    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      console.error((e as any).message)
       setError('Something wrong happened, please check your details.');
     }
   }, [

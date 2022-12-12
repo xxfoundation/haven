@@ -5,7 +5,7 @@ import cn from 'classnames';
 import Cookies from 'js-cookie';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
-import { Channel, PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { ChannelJSON, PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
 import JoinChannelView from 'src/components/views/JoinChannel';
 import { ModalCtaButton } from 'src/components/common';
@@ -23,7 +23,7 @@ const Join: NextPage = () => {
   const [password, setPassword] = useState('');
   const [channelType, setChannelType] = useState<null | PrivacyLevel>(null);
   const { utils, utilsLoaded } = useUtils();
-  const [channelInfoJson, setChannelInfoJson] = useState<Channel>();
+  const [channelInfoJson, setChannelInfoJson] = useState<ChannelJSON>();
   const [channelPrettyPrint, setChannelPrettyPrint] = useState('');
   const broadcastChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('join_channel'), []);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,7 +65,7 @@ const Join: NextPage = () => {
       const prettyPrinted = utils.DecodePublicURL(window.location.href);
       const infoJson = JSON.parse(
         decoder.decode(utils.GetChannelJSON(prettyPrinted))
-      ) as Channel;
+      ) as ChannelJSON;
       setChannelPrettyPrint(prettyPrinted);
       setChannelInfoJson(infoJson);
     }

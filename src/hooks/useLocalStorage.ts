@@ -9,6 +9,7 @@ const useLocalStorage = <T = unknown>(keyName: string, defaultValue?: T): [value
         return JSON.parse(value);
       } else {
         window.localStorage.setItem(keyName, JSON.stringify(defaultValue));
+        window.dispatchEvent(new Event('storage'));
         return defaultValue;
       }
     } catch (err) {
@@ -26,8 +27,6 @@ const useLocalStorage = <T = unknown>(keyName: string, defaultValue?: T): [value
           // probably a string
           setStoredValue(value as unknown as T);
         }
-      } else {
-        setStoredValue(null);
       }
     }, [keyName]);
 

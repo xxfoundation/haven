@@ -19,6 +19,7 @@ const AuthenticationUI: FC = () => {
   const [loading, setLoading] = useState(false); 
   const [readyProgress, setReadyProgress] = useState<number>(0);
   const hasAccount = statePathExists() && getStorageTag();
+
   const [importedIdentity, setImportedIdentity] = useState<Uint8Array>();
 
   const onSubmit = useCallback(async ({ identity, password }: IdentityVariables) =>  {

@@ -20,7 +20,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             ConstructIdentity,
             DecodePrivateURL,
             DecodePublicURL,
-            GenerateChannel,
             GenerateChannelIdentity,
             GetChannelInfo,
             GetChannelJSON,
@@ -46,7 +45,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
 
           setUtils({
             NewCmix,
-            GenerateChannel,
             LoadCmix,
             GetChannelInfo,
             GenerateChannelIdentity,

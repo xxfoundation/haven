@@ -1,4 +1,4 @@
-import type { DummyTraffic } from 'src/contexts/utils-context';
+import type { ChannelJSON, DummyTraffic } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import { Dexie } from 'dexie';
@@ -112,7 +112,7 @@ export type ChannelManager = {
     message: string,
     messageValidityTimeoutMilliseconds: number,
     cmixParams: Uint8Array
-  ) => Uint8Array;
+  ) => Promise<Uint8Array>;
   SendReaction: (
     channelId: Uint8Array,
     reaction: string,
@@ -125,7 +125,8 @@ export type ChannelManager = {
     messageToReactTo: Uint8Array,
     messageValidityTimeoutMilliseconds: number,
     cmixParams: Uint8Array
-  ) => Uint8Array;
+  ) => Promise<Uint8Array>;
+  GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => string;
   GetStorageTag: () => string;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
   GetNickname: (channel: Uint8Array) => string;
@@ -223,10 +224,10 @@ const getPrettyPrint = (channelId: string) => {
   return prev[channelId];
 };
 
-const savePrettyPrint = (channelId: string, pp: string) => {
+const savePrettyPrint = (channelId: string, prettyPrint: string) => {
   const prev = JSON.parse(localStorage.getItem('prettyprints') || '{}');
 
-  prev[channelId] = pp;
+  prev[channelId] = prettyPrint;
 
   localStorage.setItem('prettyprints', JSON.stringify(prev));
 };
@@ -235,7 +236,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const {
     addStorageTag,
     setIsAuthenticated,
-    setStatePath,
     statePathExists
   } = useAuthentication();
   const { utils } = useUtils();
@@ -987,8 +987,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const statePassEncoded = utils.GetOrInitPassword(password);
       // Check if state exists
       if (!statePathExists()) {
+        // setStatePath('Test');
         utils.NewCmix(ndf, STATE_PATH, statePassEncoded, '');
-        setStatePath();
       }
 
       await loadCmix(statePassEncoded);
@@ -996,7 +996,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       console.error('Failed to load Cmix: ' + error);
       throw error;
     }
-  }, [statePathExists, loadCmix, setStatePath, utils]);
+  }, [utils, statePathExists, loadCmix]);
 
   useEffect(() => {
     if (!currentChannel && channels.length) {
@@ -1113,30 +1113,29 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const createChannel = useCallback((
     channelName: string,
     channelDescription: string,
-    privacyLevel: 0 | 2
+    privacyLevel: PrivacyLevel.Public | PrivacyLevel.Secret
   ) => {
-      if (network && channelName && utils?.GenerateChannel) {
-        const channelUnparsed = utils?.GenerateChannel(
-          network.GetID(),
+      if (network && channelName && channelManager) {
+        const channelPrettyPrint = channelManager?.GenerateChannel(
           channelName,
           channelDescription || '',
-          privacyLevel
+          privacyLevel,
         );
-        const channel = JSON.parse(decoder.decode(channelUnparsed));
-        const channelInfo = getChannelInfo(channel?.Channel || '');
-        const temp = {
+   
+        const channelInfo = getChannelInfo(channelPrettyPrint || '') as ChannelJSON;
+        const temp: Channel = {
           id: channelInfo?.ChannelID,
           name: channelInfo?.Name,
           description: channelInfo?.Description,
-          prettyPrint: channel?.Channel,
+          prettyPrint: channelPrettyPrint,
           isLoading: false
         };
-        joinChannel(channel?.Channel, false);
-        savePrettyPrint(temp.id, temp.prettyPrint);
+        joinChannel(channelPrettyPrint, false);
+        savePrettyPrint(temp.id, channelPrettyPrint);
         setCurrentChannel(temp);
         setChannels([...channels, temp]);
       }
-  }, [channels, getChannelInfo, joinChannel, network, utils]);
+  }, [channelManager, channels, getChannelInfo, joinChannel, network]);
 
   const shareChannel = () => {};
 

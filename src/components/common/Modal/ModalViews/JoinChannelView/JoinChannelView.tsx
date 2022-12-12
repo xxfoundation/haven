@@ -42,6 +42,8 @@ const JoinChannelView: FC = ({}) => {
           setUrl('');
           closeModal();
         } catch (e) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          console.error((e as any).message);
           setError('Something wrong happened, please check your details.');
         }
       } else if (res === 2) {
@@ -62,6 +64,8 @@ const JoinChannelView: FC = ({}) => {
           setPassword('');
           closeModal();
         } catch (e) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          console.error((e as any).message);
           setError('Something wrong happened, please check your details.');
         }
       }
