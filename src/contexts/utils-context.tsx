@@ -19,11 +19,13 @@ export type ChannelDbCipher = {
   Decrypt: (plaintext: Uint8Array) => Uint8Array;
 }
 
-export type Channel = {
+export type ChannelJSON = {
+  ChannelID: string;
   ReceptionID: string;
   Name: string;
   Description: string;
   Level: PrivacyLevel;
+  Channel: string;
 }
 
 type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
@@ -31,9 +33,7 @@ type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boo
 export type XXDKUtils = {
   NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => void;
   LoadCmix: (storageDirectory: string, password: Uint8Array, cmixParams: Uint8Array) => Promise<CMix>;
-  GetDefaultCMixParams: () => Uint8Array;
-  GenerateChannel: (cmixId: number, channelname: string, description: string, privacyLevel: PrivacyLevel) => Uint8Array;
-  GetChannelInfo: (prettyPrint: string) => Uint8Array;
+  GetDefaultCMixParams: () => Uint8Array;GetChannelInfo: (prettyPrint: string) => Uint8Array;
   Base64ToUint8Array: (base64: string) => Uint8Array;
   GenerateChannelIdentity: (cmixId: number) => Uint8Array;
   NewChannelsManagerWithIndexedDb: (

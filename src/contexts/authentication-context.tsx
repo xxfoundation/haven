@@ -8,7 +8,6 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 type AuthenticationContextType = {
   checkUser: (password: string) => Uint8Array | false;
   statePathExists: () => boolean;
-  setStatePath: () => void;
   getStorageTag: () => string | null;
   addStorageTag: (tag: string) => void;
   isAuthenticated: boolean;
@@ -21,10 +20,13 @@ export const AuthenticationContext = React.createContext<AuthenticationContextTy
 
 AuthenticationContext.displayName = 'AuthenticationContext';
 
+const statePathExists = () => {
+  return localStorage && localStorage.getItem(STATE_PATH) !== null;
+};
+
 export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const { utils } = useUtils();
-  const [statePath, setStatePath] = useLocalStorage(STATE_PATH, '');
   const [storageTags, setStorageTags] = useLocalStorage<string[]>(ELIXXIR_USERS_TAGS, []);
 
   const checkUser = useCallback((password: string) => {
@@ -40,8 +42,7 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     <AuthenticationContext.Provider
       value={{
         checkUser,
-        statePathExists: () => !!statePath,
-        setStatePath: () => setStatePath('Test'),
+        statePathExists,
         getStorageTag: () => storageTags?.[0] || null,
         addStorageTag: (tag: string) => setStorageTags((storageTags ?? []).concat(tag)),
         isAuthenticated,

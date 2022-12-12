@@ -39,7 +39,7 @@ const LogoutView: FC = ({}) => {
       <h2 className='mt-9 mb-4'>Logout</h2>
       <p className='mb-8'>
         Warning: By logging out, all of you current data will be deleted from
-        your browser. Please make sure you have a backup first. This can’t be
+        your browser. Please make sure you have a backup first. This can't be
         undone.
       </p>
       <input

@@ -1,4 +1,4 @@
-import type { Channel } from '@contexts/utils-context';
+import type { ChannelJSON } from '@contexts/utils-context';
 import { FC, useCallback, useState } from 'react';
 import { ModalCtaButton } from 'src/components/common';
 import cn from 'classnames';
@@ -7,7 +7,7 @@ import { WarningComponent } from 'src/pages/_app';
 import s from './JoinChannel.module.scss';
 
 const JoinChannelView: FC<{
-  channelInfo: Channel;
+  channelInfo: ChannelJSON;
   url: string;
   onConfirm: () => void;
 }> = ({ channelInfo, onConfirm, url }) => {
