@@ -179,7 +179,7 @@ type NetworkContext = {
   }[];
   connectNetwork: () => Promise<void>;
   initiateCmix: (password: string) => Promise<void>;
-  loadCmix: (statePassEncoded: Uint8Array) => Promise<void>;
+  loadCmix: (statePassEncoded: Uint8Array) => Promise<CMix>;
   createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
   handleInitialLoadData: (storageTag: string) => Promise<void>;
@@ -821,7 +821,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
     });
 
-    const fetchedChannels = await db.table('channels').toArray();
+    const fetchedChannels = await db.table<DBChannel>('channels').toArray();
+
     const channelsIds = fetchedChannels.map(ch => ch.id);
 
     const groupedMessages = await Promise.all(
@@ -830,8 +831,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           throw new Error('Dexie initialization error');
         }
 
-        // TODO check if this is optimized
-        return db.table('messages')
+        return db.table<DBMessage>('messages')
           .orderBy('timestamp')
           .reverse()
           .filter(m => {
@@ -929,7 +929,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   // Used directly on Login
   const loadCmix = useCallback(async (statePassEncoded: Uint8Array) => {
-
     let cmix;
     try {
       cmix = await utils.LoadCmix(
@@ -976,6 +975,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
       
       setNetwork(cmix);
+      return cmix;
     } catch (e) {
       console.error('Failed to load Cmix: ' + e);
       throw e;
