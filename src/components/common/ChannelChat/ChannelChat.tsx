@@ -1,3 +1,5 @@
+import type { Message, EmojiReaction } from 'src/types';
+
 import { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import cn from 'classnames';
@@ -5,7 +7,6 @@ import moment from 'moment';
 import _ from 'lodash';
 
 import UserTextArea from './components/UserTextArea/UserTextArea';
-import { Message, EmojiReaction } from 'src/types';
 import ChatMessage from './components/ChatMessage/ChatMessage';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
@@ -13,6 +14,8 @@ import { Tree } from 'src/components/icons';
 import { Spinner } from 'src/components/common';
 import { byEntryTimestamp } from 'src/utils/index';
 import { PrivacyLevel } from 'src/contexts/utils-context';
+import useToggle from 'src/hooks/useToggle';
+import MuteUserModal, { MuteUserAction } from '../Modal/MuteUser';
 
 import s from './ChannelChat.module.scss';
 
@@ -23,10 +26,12 @@ const privacyLevelLabels: Record<PrivacyLevel, string> = {
 };
 
 const ChannelChat: FC = () => {
+  const [muteUserModalOpen, muteUserModalToggle] = useToggle();
   const {
     channels,
     cmix,
     currentChannel,
+    deleteMessage,
     getShareURL,
     getShareUrlType,
     loadMoreChannelData,
@@ -129,8 +134,55 @@ const ChannelChat: FC = () => {
     }
   }, [cmix, openModal, sendReaction, setModalView]);
 
+  const handleReplyToMessage = useCallback((message: Message) => () => {
+    if (textAreaRef && textAreaRef.current) {
+      textAreaRef.current.focus();
+    }
+    setReplyToMessage(message);
+  }, []);
+
+  const [selectedMessageForDeletion, setSelectedMessageForDeletion] = useState<Message | null>(null);
+
+  const showMuteModal = useCallback((message: Message) => () => {
+    setSelectedMessageForDeletion(message);
+    muteUserModalToggle.toggleOn();
+  }, [muteUserModalToggle]);
+
+  const handleMuteUser = useCallback(async (action: MuteUserAction) => {
+    if (!selectedMessageForDeletion) {
+      return;
+    }
+
+    const promises: Promise<unknown>[] = [];
+
+    if (action === 'mute+delete' && selectedMessageForDeletion) {
+      promises.push(deleteMessage(selectedMessageForDeletion));
+    }
+
+    promises.push(muteUser(selectedMessageForDeletion.pubkey, true));
+
+    await Promise.all(promises);
+
+    muteUserModalToggle.toggleOff();
+  }, [
+    deleteMessage,
+    muteUser,
+    muteUserModalToggle,
+    selectedMessageForDeletion
+  ]);
+
+  const onMuteUserModalCancel = useCallback(() => {
+    setSelectedMessageForDeletion(null);
+    muteUserModalToggle.toggleOff();
+  }, [muteUserModalToggle])
+
   return (
     <div className={s.root}>
+      {muteUserModalOpen && (
+        <MuteUserModal
+          onConfirm={handleMuteUser}
+          onCancel={onMuteUserModalCancel} />
+      )}
       {currentChannel ? (
         <>
           <div className={s.channelHeader}>
@@ -185,16 +237,11 @@ const ChannelChat: FC = () => {
                             isAdmin={currentChannel?.isAdmin}
                             key={`${m.id}${m.status}${index}`}
                             message={m}
-                            onMuteUser={() => muteUser(m.pubkey, true)}
+                            onMuteUser={showMuteModal(m)}
                             onReactToMessage={(reaction: EmojiReaction) => {
                               handleReactToMessage(reaction, m);
                             }}
-                            onReplyClicked={() => {
-                              if (textAreaRef && textAreaRef.current) {
-                                textAreaRef.current.focus();
-                              }
-                              setReplyToMessage(m);
-                            }}
+                            onReplyClicked={handleReplyToMessage(m)}
                           />
                         );
                       })}
