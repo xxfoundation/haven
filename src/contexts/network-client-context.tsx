@@ -105,6 +105,12 @@ export type ChannelManager = {
     messageValidityTimeoutMilliseconds: number,
     cmixParams: Uint8Array
   ) => Promise<Uint8Array>;
+  DeleteMessage: (
+    channelId: Uint8Array,
+    messageId: Uint8Array,
+    undelete: boolean,
+    cmixParams: Uint8Array
+  ) => Promise<void>;
   SendReaction: (
     channelId: Uint8Array,
     reaction: string,
@@ -149,22 +155,28 @@ type Identity = {
 let db: Dexie | undefined;
 
 type NetworkContext = {
-  muteUser: (pubkey: string, muted: boolean) => void;
-  cmix?: CMix;
-  networkStatus: NetworkStatus;
-  setNetworkStatus: (status: NetworkStatus) => void;
-  setCmix: (cmix: CMix) => void;
-  currentChannel?: Channel;
+  // state
   channels: Channel[];
   messages: Message[];
-  setMessages: (messages: Message[]) => void;
-  setCurrentChannel: (channel: Channel) => void;
-  joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
+  cmix?: CMix;
+  currentChannel?: Channel;
+  isNetworkHealthy: boolean | undefined;
+  isReadyToRegister: boolean | undefined;
+  networkStatus: NetworkStatus;
+  // api
+  connectNetwork: () => Promise<void>;
   createChannel: (
     channelName: string,
     channelDescription: string,
     privacyLevel: 0 | 2
   ) => void;
+  deleteMessage: (message: Message) => Promise<void>;
+  muteUser: (pubkey: string, muted: boolean) => Promise<void>;
+  setNetworkStatus: (status: NetworkStatus) => void;
+  setCmix: (cmix: CMix) => void;
+  setMessages: (messages: Message[]) => void;
+  setCurrentChannel: (channel: Channel) => void;
+  joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
   shareChannel: () => void;
   sendMessage: (message: string) => void;
   leaveCurrentChannel: () => void;
@@ -172,7 +184,6 @@ type NetworkContext = {
     privateIdentity: Uint8Array;
     codeName: string;
   }[];
-  connectNetwork: () => Promise<void>;
   initiateCmix: (password: string) => Promise<void>;
   loadCmix: (statePassEncoded: Uint8Array) => Promise<CMix>;
   createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
@@ -192,8 +203,6 @@ type NetworkContext = {
   loadMoreChannelData: (channelId: string) => Promise<void>;
   exportPrivateIdentity: (password: string) => Uint8Array | false;
   getCodeNameAndColor: (publicKey: string, codeSet: number) => { codeName: string, color: string };
-  isNetworkHealthy: boolean | undefined;
-  isReadyToRegister: boolean | undefined;
   setIsReadyToRegister: (isReady: boolean | undefined) => void;
   checkRegistrationReadiness: (
     selectedPrivateIdentity: Uint8Array,
@@ -235,7 +244,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   } = useAuthentication();
   const { utils } = useUtils();
 
-  const [network, setNetwork] = useState<CMix | undefined>();
+  const [cmix, setNetwork] = useState<CMix | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
   );
@@ -285,23 +294,23 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager]);
 
   const connectNetwork = useCallback(async () => {
-    if (network) {
+    if (cmix) {
       setNetworkStatus(NetworkStatus.CONNECTING);
       try {
-        network.StartNetworkFollower(50000);
+        cmix.StartNetworkFollower(50000);
       } catch (error) {
         console.error('Error while StartNetworkFollower:', error);
       }
 
       try {
-        await network.WaitForNetwork(10 * 60 * 1000);
+        await cmix.WaitForNetwork(10 * 60 * 1000);
         setNetworkStatus(NetworkStatus.CONNECTED);
       } catch (e) {
         console.error('Timed out. Network is not healthy.');
         setNetworkStatus(NetworkStatus.FAILED);
       }
     }
-  }, [network]);
+  }, [cmix]);
   
   const joinChannel = useCallback((
     prettyPrint: string,
@@ -393,14 +402,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [bc, channelManager, joinChannel]);
 
   useEffect(() => {
-    if (network) {
+    if (cmix) {
       setIsAuthenticated(true);
     }
 
-    if (network && networkStatus !== NetworkStatus.CONNECTED) {
+    if (cmix && networkStatus !== NetworkStatus.CONNECTED) {
       connectNetwork();
     }
-  }, [connectNetwork, network, networkStatus, setIsAuthenticated]);
+  }, [connectNetwork, cmix, networkStatus, setIsAuthenticated]);
 
   const mapDbMessagesToMessages = useCallback(async (msgs: DBMessage[]) => {
     if (!db || !(cipherRef && cipherRef.current)) {
@@ -879,8 +888,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     utils
   ]);
 
-  const loadChannelManager = async (storageTag: string, cmix?: CMix) => {
-    const currentNetwork = network || cmix;
+  const loadChannelManager = async (storageTag: string, cmixFallback?: CMix) => {
+    const currentNetwork = cmix || cmixFallback;
 
     if (
       currentNetwork &&
@@ -903,13 +912,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
     if (
-      network &&
+      cmix &&
       cipherRef?.current &&
       utils &&
       utils.NewChannelsManagerWithIndexedDb
     ) {
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
-        network.GetID(),
+        cmix.GetID(),
         privateIdentity,
         onReceiveEvent,
         cipherRef?.current?.GetID()
@@ -923,16 +932,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [
     addStorageTag,
     handleInitialLoadData,
-    network,
+    cmix,
     onReceiveEvent,
     utils
   ]);
 
   // Used directly on Login
   const loadCmix = useCallback(async (statePassEncoded: Uint8Array) => {
-    let cmix;
+    let loadedCmix;
     try {
-      cmix = await utils.LoadCmix(
+      loadedCmix = await utils.LoadCmix(
         STATE_PATH,
         statePassEncoded,
         utils.GetDefaultCMixParams()
@@ -940,7 +949,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       try {
         dummyTrafficObjRef.current = utils.NewDummyTrafficManager(
-          cmix.GetID(),
+          loadedCmix.GetID(),
           3,
           15000,
           7000
@@ -950,14 +959,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
 
       const cipherObj = utils.NewChannelsDatabaseCipher(
-        cmix.GetID(),
+        loadedCmix.GetID(),
         statePassEncoded,
         725
       );
 
       cipherRef.current = cipherObj;
-      if (cmix?.AddHealthCallback) {
-        cmix.AddHealthCallback({
+      if (loadedCmix?.AddHealthCallback) {
+        loadedCmix.AddHealthCallback({
           Callback: (isHealthy: boolean) => {
             if (isHealthy) {
               setIsNetworkHealthy(true);
@@ -975,8 +984,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         });
       }
       
-      setNetwork(cmix);
-      return cmix;
+      setNetwork(loadedCmix);
+      return loadedCmix;
     } catch (e) {
       console.error('Failed to load Cmix: ' + e);
       throw e;
@@ -1058,7 +1067,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ]);
 
   const joinChannelFromURL = useCallback((url: string, password = '') => {
-    if (network && channelManager && channelManager.JoinChannelFromURL) {
+    if (cmix && channelManager && channelManager.JoinChannelFromURL) {
       try {
         const chanInfo = JSON.parse(
           decoder.decode(channelManager.JoinChannelFromURL(url, password))
@@ -1102,7 +1111,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     } else {
       return null;
     }
-  }, [channelManager, channels, network, utils]);
+  }, [channelManager, channels, cmix, utils]);
 
   const getChannelInfo = useCallback((prettyPrint: string) => {
     if (utils && utils.GetChannelInfo && prettyPrint.length) {
@@ -1117,7 +1126,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     channelDescription: string,
     privacyLevel: PrivacyLevel.Public | PrivacyLevel.Secret
   ) => {
-      if (network && channelName && channelManager) {
+      if (cmix && channelName && channelManager) {
         const channelPrettyPrint = channelManager?.GenerateChannel(
           channelName,
           channelDescription || '',
@@ -1138,7 +1147,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         setCurrentChannel(temp);
         setChannels([...channels, temp]);
       }
-  }, [channelManager, channels, getChannelInfo, joinChannel, network]);
+  }, [channelManager, channels, getChannelInfo, joinChannel, cmix]);
 
   const shareChannel = () => {};
 
@@ -1253,7 +1262,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const getShareURL = useCallback(() => {
     if (
-      network &&
+      cmix &&
       channelManager &&
       channelManager.GetShareURL &&
       utils &&
@@ -1263,7 +1272,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       try {
         const currentHostName = window.location.host;
         const res = channelManager.GetShareURL(
-          network?.GetID(),
+          cmix?.GetID(),
           `http://${currentHostName}/join`,
           0,
           utils.Base64ToUint8Array(currentChannel.id)
@@ -1276,7 +1285,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     } else {
       return null;
     }
-  }, [channelManager, currentChannel, network, utils]);
+  }, [channelManager, currentChannel, cmix, utils]);
 
   const getShareUrlType = useCallback((url: string) => {
     if (url && utils && utils.GetShareUrlType) {
@@ -1294,9 +1303,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
   // Identity object is combination of private identity and code name
   const generateIdentities = useCallback((amountOfIdentities: number) => {
     const identitiesObjects = [];
-    if (utils && utils.GenerateChannelIdentity && network) {
+    if (utils && utils.GenerateChannelIdentity && cmix) {
       for (let i = 0; i < amountOfIdentities; i++) {
-        const privateIdentity = utils.GenerateChannelIdentity(network?.GetID());
+        const privateIdentity = utils.GenerateChannelIdentity(cmix?.GetID());
         const publicIdentity = utils.GetPublicChannelIdentityFromPrivate(
           privateIdentity
         );
@@ -1306,7 +1315,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
     return identitiesObjects;
-  }, [network, utils])
+  }, [cmix, utils])
 
   const getVersion = useCallback(() => {
     if (utils && utils.GetVersion) {
@@ -1347,8 +1356,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ) => {
     return new Promise<void>((resolve) => {
       const intervalId = setInterval(() => {
-        if (network) {
-          const isReadyInfo = JSON.parse(decoder.decode(network?.IsReady(0.7))) as IsReadyInfo;
+        if (cmix) {
+          const isReadyInfo = JSON.parse(decoder.decode(cmix?.IsReady(0.7))) as IsReadyInfo;
 
           onIsReadyInfoChange(isReadyInfo);
           if (isReadyInfo.IsReady) {
@@ -1362,12 +1371,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }
       }, 1000);
     });
-  }, [createChannelManager, network]);
+  }, [createChannelManager, cmix]);
 
   const logout = useCallback((password: string) => {
-    if (utils && utils.Purge && network && network.StopNetworkFollower) {
+    if (utils && utils.Purge && cmix && cmix.StopNetworkFollower) {
       try {
-        network.StopNetworkFollower();
+        cmix.StopNetworkFollower();
         utils.Purge(STATE_PATH, password);
         window.localStorage.clear();
         Cookies.remove('userAuthenticated', { path: '/' });
@@ -1390,22 +1399,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
       } catch (error) {
         console.error(error);
         // If something wrong happened like wrong password then we should start network follower again
-        network.StartNetworkFollower(50000);
+        cmix.StartNetworkFollower(50000);
         return false;
       }
     } else {
       return false;
     }
-  }, [network, setIsAuthenticated, utils]);
+  }, [cmix, setIsAuthenticated, utils]);
 
   const muteUser = useCallback(async (pubkey: string, muted: boolean) => {
     if (currentChannel) {
-      console.error(
-        'LOGS',
-        currentChannel?.id,
-        pubkey,
-        muted
-      )
       await channelManager?.MuteUser(
         utils.Base64ToUint8Array(currentChannel?.id),
         utils.Base64ToUint8Array(pubkey),
@@ -1413,11 +1416,21 @@ export const NetworkProvider: FC<WithChildren> = props => {
         utils.GetDefaultCMixParams()
       )
     }
-  }, [channelManager, currentChannel, utils])
+  }, [channelManager, currentChannel, utils]);
+
+  const deleteMessage = useCallback(async ({ channelId, id }: Message) => {
+    await channelManager?.DeleteMessage(
+      utils.Base64ToUint8Array(channelId),
+      utils.Base64ToUint8Array(id),
+      false,
+      utils.GetDefaultCMixParams()
+    )
+  }, [channelManager, utils])
 
   const ctx: NetworkContext = {
     muteUser,
-    cmix: network,
+    cmix,
+    deleteMessage,
     setCmix: setNetwork,
     networkStatus,
     setNetworkStatus,
