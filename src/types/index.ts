@@ -18,6 +18,7 @@ export interface Message {
   status?: number;
   uuid: number;
   round: number;
+  pubkey: string;
 }
 
 export type WithChildren = {
