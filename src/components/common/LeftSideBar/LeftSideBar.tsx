@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 import s from './LeftSideBar.module.scss';
 import cn from 'classnames';
 import {
@@ -29,12 +29,17 @@ const LeftSideBar: FC<{
     color = color.replace('0x', '#');
   }
 
-  const onChannelChange = (chId: string) => {
+  const onChannelChange = useCallback((chId: string) => () => {
     const selectedChannel = channels.find(ch => ch.id === chId);
     if (selectedChannel) {
       setCurrentChannel(selectedChannel);
     }
-  };
+  }, [channels, setCurrentChannel]);
+
+  const openSettingsModal = useCallback(() => {
+    setModalView('SETTINGS');
+    openModal();
+  }, [openModal, setModalView])
 
   const collapseTitle = (
     <div className={cn('flex justify-between')}>
@@ -78,17 +83,16 @@ const LeftSideBar: FC<{
       <div className={s.content}>
         <Collapse title={collapseTitle} defaultActive>
           <div className='flex flex-col'>
-            {channels.map(ch => {
-              return (
+            {channels.map(ch => (
                 <div className='flex justify-between items-center' key={ch.id}>
                   <span
+                    style={{ color: ch.isAdmin ? 'gold' : 'inherit'}}
+                    title={ch.isAdmin ? 'You are admin in this channel' : undefined}
                     className={cn(s.channelPill, 'headline--xs', {
                       [s.channelPill__active]:
                         ch.id === (currentChannel?.id || '')
                     })}
-                    onClick={() => {
-                      onChannelChange(ch.id);
-                    }}
+                    onClick={onChannelChange(ch.id)}
                   >
                     {ch.name}
                   </span>
@@ -98,8 +102,8 @@ const LeftSideBar: FC<{
                     </span>
                   )}
                 </div>
-              );
-            })}
+              )
+            )}
           </div>
         </Collapse>
       </div>
@@ -121,10 +125,7 @@ const LeftSideBar: FC<{
           </div>
           <Settings
             style={{ cursor: 'pointer' }}
-            onClick={() => {
-              setModalView('SETTINGS');
-              openModal();
-            }}
+            onClick={openSettingsModal}
           />
         </div>
         <div className={cn(s.version)}>

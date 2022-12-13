@@ -31,6 +31,7 @@ const ChannelChat: FC = () => {
     getShareUrlType,
     loadMoreChannelData,
     messages,
+    muteUser,
     sendReaction
   } = useNetworkClient();
 
@@ -170,7 +171,7 @@ const ChannelChat: FC = () => {
                 <Spinner />
               </div>
             ) : (
-              sortedGroupedMessagesPerDay.map(([key, value]) => {
+              sortedGroupedMessagesPerDay.map(([key, message]) => {
                 return (
                   <div className={cn(s.dayMessagesWrapper)} key={key}>
                     <div className={s.separator}></div>
@@ -178,11 +179,13 @@ const ChannelChat: FC = () => {
                       {moment(key).format('dddd MMMM Do, YYYY')}
                     </span>
                     <div>
-                      {value.map((m, index) => {
+                      {message.map((m, index) => {
                         return (
                           <ChatMessage
+                            isAdmin={currentChannel?.isAdmin}
                             key={`${m.id}${m.status}${index}`}
                             message={m}
+                            onMuteUser={() => muteUser(m.pubkey, true)}
                             onReactToMessage={(reaction: EmojiReaction) => {
                               handleReactToMessage(reaction, m);
                             }}

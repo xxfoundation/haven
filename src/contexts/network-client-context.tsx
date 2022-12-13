@@ -92,21 +92,13 @@ export type DatabaseCipher = {
   Decrypt: (plaintext: Uint8Array) => Uint8Array;
 }
 
-type ChannelInfo = {
-  Name: string;
-  Description: string;
-  ChannelID: string;
-}
-
 export type ChannelManager = {
   GetChannels: () => Uint8Array;
   GetID: () => number;
   JoinChannel: (channelId: string) => Uint8Array;
   LeaveChannel: (channelId: Uint8Array) => void;
-  // RegisterReceiveHandler
-  // ReplayChannel: Function;
-  // SendAdminGeneric: Function;
-  // SendGeneric: Function;
+  GetMutedUsers: (channelId: Uint8Array) => Uint8Array;
+  MuteUser: (channelId: Uint8Array, publicKey: Uint8Array, mute: boolean, cmixParams?: Uint8Array) => Promise<void>;
   SendMessage: (
     channelId: Uint8Array,
     message: string,
@@ -126,6 +118,7 @@ export type ChannelManager = {
     messageValidityTimeoutMilliseconds: number,
     cmixParams: Uint8Array
   ) => Promise<Uint8Array>;
+  IsChannelAdmin: (channelId: Uint8Array) => boolean;
   GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => string;
   GetStorageTag: () => string;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
@@ -141,6 +134,7 @@ export interface Channel {
   name: string;
   id: string;
   description: string;
+  isAdmin: boolean;
   isLoading?: boolean;
   withMissedMessages?: boolean;
   currentMessagesBatch?: number;
@@ -155,6 +149,7 @@ type Identity = {
 let db: Dexie | undefined;
 
 type NetworkContext = {
+  muteUser: (pubkey: string, muted: boolean) => void;
   cmix?: CMix;
   networkStatus: NetworkStatus;
   setNetworkStatus: (status: NetworkStatus) => void;
@@ -182,7 +177,7 @@ type NetworkContext = {
   loadCmix: (statePassEncoded: Uint8Array) => Promise<CMix>;
   createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
-  handleInitialLoadData: (storageTag: string) => Promise<void>;
+  handleInitialLoadData: (storageTag: string, manager: ChannelManager) => Promise<void>;
   getNickName: () => string;
   setNickName: (nickname: string) => boolean;
   getIdentity: () => Identity | null;
@@ -267,7 +262,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     if (currentChannel) {
       currentChannelRef.current = currentChannel;
       setChannels(prev => {
-        return prev.map(ch => {
+        return prev.map((ch) => {
           if (ch?.id === currentChannel?.id) {
             return { ...ch, withMissedMessages: false };
           } else {
@@ -315,13 +310,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
     if (prettyPrint && channelManager && channelManager.JoinChannel) {
       const chanInfo = JSON.parse(
         decoder.decode(channelManager.JoinChannel(prettyPrint))
-      ) as ChannelInfo;
+      ) as ChannelJSON;
 
       if (appendToCurrent) {
-        const temp = {
+        const temp: Channel = {
           id: chanInfo?.ChannelID,
           name: chanInfo?.Name,
           description: chanInfo?.Description,
+          isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
           isLoading: true
         };
         setCurrentChannel(temp);
@@ -352,7 +348,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }, 5000);
       }
     }
-  }, [channelManager]);
+  }, [channelManager, utils]);
 
   const getCodeNameAndColor = useCallback((publicKey: string, codeset: number) => {
     try {
@@ -364,7 +360,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
             codeset
           )
         )
-      );
+      ) as Identity;
 
       return {
         codeName: identity.Codename,
@@ -460,6 +456,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
             status: m.status,
             uuid: m.id,
             round: m.round,
+            pubkey: m.pubkey,
             replyToMessage: {
               id: replyToMessage.message_id,
               body: decoder.decode(
@@ -474,7 +471,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
               channelId: replyToMessage.channel_id,
               status: replyToMessage.status,
               uuid: replyToMessage.id,
-              round: replyToMessage.round
+              round: replyToMessage.round,
+              pubkey: replyToMessage.pubkey
             }
           };
           mappedMessages.push(resolvedMessage);
@@ -496,7 +494,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
             channelId: m.channel_id,
             status: m.status,
             uuid: m.id,
-            round: m.round
+            round: m.round,
+            pubkey: m.pubkey
           };
           mappedMessages.push(resolvedMessage);
         }
@@ -813,7 +812,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, []);
 
-  const handleInitialLoadData = useCallback(async (storageTag: string) => {
+  const handleInitialLoadData = useCallback(async (storageTag: string, manager: ChannelManager) => {
     db = new Dexie(`${storageTag}_speakeasy`);
     db.version(0.1).stores({
       channels: '++id',
@@ -863,9 +862,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
     );
 
     setChannels(
-      mappedChannels.map((ch: Channel) => {
+      mappedChannels.map((ch: DBChannel) => {
         return {
           ...ch,
+          isAdmin: manager.IsChannelAdmin(utils.Base64ToUint8Array(ch.id)),
           currentMessagesBatch: 1
         };
       })
@@ -875,7 +875,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [
     bulkUpdateMessagesWithReactions,
     getDBReactionEvents,
-    mapInitialLoadDataToCurrentState
+    mapInitialLoadDataToCurrentState,
+    utils
   ]);
 
   const loadChannelManager = async (storageTag: string, cmix?: CMix) => {
@@ -896,7 +897,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         );
 
       setChannelManager(loadedChannelsManager);
-      handleInitialLoadData(storageTag);
+      handleInitialLoadData(storageTag, loadedChannelsManager);
     }
   };
 
@@ -917,7 +918,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       setChannelManager(createdChannelManager);
       const storageTag = createdChannelManager.GetStorageTag();
       addStorageTag(storageTag);
-      handleInitialLoadData(storageTag);
+      handleInitialLoadData(storageTag, createdChannelManager);
     }
   }, [
     addStorageTag,
@@ -1009,7 +1010,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const foundChannel = channels.find(ch => ch.id === chId);
       const currentChannelBatch = foundChannel?.currentMessagesBatch || 1;
       const newMessages = await db
-        .table('messages')
+        .table<DBMessage>('messages')
         .orderBy('timestamp')
         .reverse()
         .filter(m => {
@@ -1066,6 +1067,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           id: chanInfo?.ChannelID,
           name: chanInfo?.Name,
           description: chanInfo?.Description,
+          isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
           isLoading: true
         };
         setCurrentChannel(temp);
@@ -1100,7 +1102,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     } else {
       return null;
     }
-  }, [channelManager, channels, network]);
+  }, [channelManager, channels, network, utils]);
 
   const getChannelInfo = useCallback((prettyPrint: string) => {
     if (utils && utils.GetChannelInfo && prettyPrint.length) {
@@ -1126,6 +1128,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         const temp: Channel = {
           id: channelInfo?.ChannelID,
           name: channelInfo?.Name,
+          isAdmin: true,
           description: channelInfo?.Description,
           prettyPrint: channelPrettyPrint,
           isLoading: false
@@ -1142,7 +1145,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const leaveCurrentChannel = useCallback(async () => {
     if (currentChannel && channelManager && channelManager.LeaveChannel && utils) {
       try {
-        await channelManager.LeaveChannel(
+        channelManager.LeaveChannel(
           utils.Base64ToUint8Array(currentChannel.id)
         );
         const temp = currentChannel;
@@ -1395,7 +1398,25 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [network, setIsAuthenticated, utils]);
 
+  const muteUser = useCallback(async (pubkey: string, muted: boolean) => {
+    if (currentChannel) {
+      console.error(
+        'LOGS',
+        currentChannel?.id,
+        pubkey,
+        muted
+      )
+      await channelManager?.MuteUser(
+        utils.Base64ToUint8Array(currentChannel?.id),
+        utils.Base64ToUint8Array(pubkey),
+        muted,
+        utils.GetDefaultCMixParams()
+      )
+    }
+  }, [channelManager, currentChannel, utils])
+
   const ctx: NetworkContext = {
+    muteUser,
     cmix: network,
     setCmix: setNetwork,
     networkStatus,

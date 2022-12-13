@@ -8,7 +8,7 @@ import moment from 'moment';
 import { EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
 
 import { ToolTip } from 'src/components/common';
-import { Elixxir } from 'src/components/icons';
+import { Ban, Elixxir } from 'src/components/icons';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import DOMPurify from 'dompurify';
@@ -49,11 +49,15 @@ const MessageSenderHeader: FC<{ message: Message }> = ({ message }) => {
 type ActionsWrapperProps = {
   onReplyClicked: () => void;
   onReactToMessage: (e: EmojiReaction) => void;
+  onMuteUser: () => void;
   className?: string;
+  isAdmin: boolean;
 }
 
 const ActionsWrapper: FC<ActionsWrapperProps> = ({
   className,
+  isAdmin,
+  onMuteUser,
   onReactToMessage,
   onReplyClicked
 }) => {
@@ -113,15 +117,19 @@ const ActionsWrapper: FC<ActionsWrapperProps> = ({
 
   return (
     <div className={cn(s.actionsWrapper, className)}>
-      <div className='relative mr-1 inline-block'>
-        <div ref={pickerIconRef}>
-          <EmojisPickerIcon
-            onClick={() => {
-              setPickerVisible(!pickerVisible);
-            }}
-          />
-        </div>
-
+      {isAdmin && (
+        <Ban
+          onClick={onMuteUser}
+        />
+      )}
+      <div ref={pickerIconRef}>
+        <EmojisPickerIcon
+          onClick={() => {
+            setPickerVisible(!pickerVisible);
+          }}
+        />
+      </div>
+      <div className='relative inline-block'>
         {pickerVisible && (
           <div
             ref={pickerRef}
@@ -149,18 +157,24 @@ const ActionsWrapper: FC<ActionsWrapperProps> = ({
 const ChatMessage: FC<{
   message: Message;
 } & ActionsWrapperProps> = ({
+  isAdmin,
   message,
+  onMuteUser: onBanUser,
   onReactToMessage,
   onReplyClicked
 }) => {
   const [actionsWrapperVisible, setActionsWrapperVisible] = useState(false);
-  
+
   return (
     <div
       className={cn('flex items-center', s.root, {
-        [s.root__withReply]: !!message.replyToMessage
+        [s.root__withReply]: !!message.replyToMessage,
+        [s.active]: actionsWrapperVisible
       })}
       id={message.id}
+      onClick={() => {
+        setActionsWrapperVisible(true);
+      }}
       onMouseEnter={() => {
         setActionsWrapperVisible(true);
       }}
@@ -173,12 +187,13 @@ const ChatMessage: FC<{
     >
       {typeof message?.status !== 'undefined' &&
         [1, 2, 3].includes(message?.status) &&
-        actionsWrapperVisible && (
           <ActionsWrapper
+            isAdmin={isAdmin}
+            onMuteUser={onBanUser}
             onReactToMessage={onReactToMessage}
             onReplyClicked={onReplyClicked}
           />
-        )}
+        }
 
       <div className={cn('flex flex-col', s.messageWrapper)}>
         <div className={cn(s.header)}>
