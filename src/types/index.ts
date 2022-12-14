@@ -10,8 +10,8 @@ export interface Message {
   body: string;
   timestamp: string;
   color?: string;
-  codeName: string;
-  nickName?: string;
+  codename: string;
+  nickname?: string;
   emojisMap?: Map<EmojiReaction['emoji'], EmojiReaction['userName'][]>;
   replyToMessage?: Message;
   channelId: string;

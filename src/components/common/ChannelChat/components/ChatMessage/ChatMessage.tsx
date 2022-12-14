@@ -8,13 +8,13 @@ import moment from 'moment';
 import { EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
 
 import { ToolTip } from 'src/components/common';
-import { Ban, Elixxir } from 'src/components/icons';
+import { Ban } from 'src/components/icons';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import DOMPurify from 'dompurify';
 
-
 import s from './ChatMessage.module.scss';
+import Identity from '@components/common/Identity';
 
 const mapTextToHtmlWithAnchors = (text: string) => {
   const returnVal = text.replace(
@@ -25,25 +25,6 @@ const mapTextToHtmlWithAnchors = (text: string) => {
     ALLOWED_TAGS: ['a'],
     ALLOWED_ATTR: ['target', 'href']
   });
-};
-
-const MessageSenderHeader: FC<{ message: Message }> = ({ message }) => {
-  const color = (message?.color || '').replace('0x', '#');
-  return (
-    <span className={cn(s.sender)}>
-      {message.nickName && (
-        <span style={{ color: `${color}`, marginRight: '6px' }}>
-          {message.nickName}
-        </span>
-      )}
-      <Elixxir
-        style={message.nickName ? { fill: '#73767C' } : { fill: color }}
-      />
-      <span style={message.nickName ? { color: '#73767C' } : { color: color }}>
-        {message.codeName}
-      </span>
-    </span>
-  );
 };
 
 type ActionsWrapperProps = {
@@ -199,13 +180,13 @@ const ChatMessage: FC<{
         <div className={cn(s.header)}>
           {message.replyToMessage ? (
             <>
-              <MessageSenderHeader message={message} />
+              <Identity {...message} />
               <span className={cn(s.separator, 'mx-1')}>replied to</span>
 
-              <MessageSenderHeader message={message.replyToMessage} />
+              <Identity {...message.replyToMessage} />
             </>
           ) : (
-            <MessageSenderHeader message={message} />
+            <Identity {...message} />
           )}
 
           <span className={cn(s.messageTimestamp)}>
@@ -244,7 +225,7 @@ const ChatMessage: FC<{
                 }
               }}
             >
-              <MessageSenderHeader message={message.replyToMessage} />
+              <Identity {...message.replyToMessage} />
               <p
                 dangerouslySetInnerHTML={{
                   __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)

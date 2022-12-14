@@ -11,6 +11,8 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Elixxir } from 'src/components/icons';
 
 import s from './RightSideBar.module.scss';
+import useToggle from 'src/hooks/useToggle';
+import ViewBannedUsersModal from '../Modal/ViewBannedUsers';
 
 const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   const {
@@ -20,17 +22,23 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
     messages
   } = useNetworkClient();
   const [currentContributors, setCurrentContributors] = useState<Message[]>([]);
+  const [
+    showBannedUsers,
+    { toggleOff: hideBannedUsers, toggleOn: toggleBannedUsers }
+  ] = useToggle();
 
-  const currentChannelMessages = useMemo(() => messages.filter(
-    m => m.channelId === (currentChannel?.id || '')
-  ), [currentChannel?.id, messages]);
+  const currentChannelMessages = useMemo(
+    () => messages.filter(
+      m => m.channelId === (currentChannel?.id || '')
+    ), [currentChannel?.id, messages]
+  );
   const identity = useMemo(() => getIdentity(), [getIdentity]);
 
   useEffect(() => {
     const updated = [
       ...Array.from(
         new Map(
-          currentChannelMessages.map(item => [item.codeName, item])
+          currentChannelMessages.map(item => [item.codename, item])
         ).values()
       )
     ];
@@ -41,10 +49,8 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   const [isActive, setIsActive] = useState<boolean>(true);
 
   const codeName = identity?.Codename;
-  let color = identity?.Color;
-  if (color) {
-    color = color.replace('0x', '#');
-  }
+  const color = identity?.Color.replace('0x', '#');
+
   const nickName = getNickName();
 
   const animProps1 = useSpring({
@@ -84,6 +90,9 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
       className={cn(s.root, cssClasses, { [s.root__collapsed]: !isActive })}
       style={{ overflow: 'hidden', ...animProps1 }}
     >
+      {showBannedUsers && (
+        <ViewBannedUsersModal onCancel={hideBannedUsers} />
+      )}
       <div className={s.header}>
         <Icon
           onClick={() => toggleIsActive()}
@@ -104,6 +113,15 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
               >
                 Share
               </Button>
+              {currentChannel?.isAdmin && (
+                <Button
+                  cssClasses={cn('block mx-auto mb-4')}
+                  disabled={!currentChannel}
+                  onClick={toggleBannedUsers}
+                >
+                  View Banned Users
+                </Button>
+              )}
               <Button
                 cssClasses={cn('block mx-auto')}
                 onClick={() => {
@@ -152,7 +170,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
               </div>
 
               {currentContributors.map((c) => {
-                if (c.codeName === codeName) {
+                if (c.codename === codeName) {
                   return null;
                 } else {
                   const cssColor = c?.color?.replace('0x', '#');
@@ -160,17 +178,17 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                   return (
                     <span
                       className={cn(s.sender, 'flex items-center')}
-                      key={c.codeName}
+                      key={c.codename}
                       style={{
                         padding: '6px'
                       }}
                     >
-                      {c.nickName && (
+                      {c.nickname && (
                         <span
                           style={{ color: `${cssColor}`, marginRight: '6px' }}
                           className={cn('headline--xs', s.nickNameWrapper)}
                         >
-                          {c.nickName}
+                          {c.nickname}
                         </span>
                       )}
                       <span
@@ -178,16 +196,16 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                       >
                         <Elixxir
                           style={
-                            c.nickName ? { fill: '#73767C' } : { fill: cssColor }
+                            c.nickname ? { fill: '#73767C' } : { fill: cssColor }
                           }
                         />
                         <span
                           style={
-                            c.nickName ? { color: '#73767C' } : { color: cssColor }
+                            c.nickname ? { color: '#73767C' } : { color: cssColor }
                           }
                           className='headline--xs'
                         >
-                          {c.codeName}
+                          {c.codename}
                         </span>
                       </span>
                     </span>
