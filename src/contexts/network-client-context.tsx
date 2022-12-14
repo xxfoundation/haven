@@ -151,10 +151,12 @@ export interface Channel {
   currentMessagesBatch?: number;
 }
 
-type IdentityJSON = {
+export type IdentityJSON = {
+  PubKey: string;
   Codename: string;
   Color: string;
   Extension: string;
+  CodesetVersion: number;
 }
 
 let db: Dexie | undefined;
@@ -288,9 +290,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [currentChannel]);
 
-  const getIdentity = useCallback(() => {
+  const getIdentity = useCallback((mngr?: ChannelManager) => {
+    const manager = channelManager || mngr; 
     try {
-      const identity = decoder.decode(channelManager?.GetIdentity());
+      const identity = decoder.decode(manager?.GetIdentity());
+
 
       return JSON.parse(identity) as IdentityJSON;
     } catch (error) {
@@ -487,7 +491,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
               status: replyToMessage.status,
               uuid: replyToMessage.id,
               round: replyToMessage.round,
-              pubkey: replyToMessage.pubkey
+              pubkey: replyToMessage.pubkey,
             }
           };
           mappedMessages.push(resolvedMessage);
@@ -510,7 +514,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
             status: m.status,
             uuid: m.id,
             round: m.round,
-            pubkey: m.pubkey
+            pubkey: m.pubkey,
+            
           };
           mappedMessages.push(resolvedMessage);
         }
@@ -743,10 +748,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
       return { ...c }; // Find a way to get the pretty print for the returned channels
     });
 
+    mappedChannels.forEach(({ id  }) => {
+      joinChannel(getPrettyPrint(id));
+    });
+
     const mappedMessages = await mapDbMessagesToMessages(msgs);
 
     return { mappedChannels, mappedMessages };
-  }, [mapDbMessagesToMessages]);
+  }, [joinChannel, mapDbMessagesToMessages]);
 
   // A function that takes DB messages, extract all reaction events then apply them to the passed IMessage[]
   // and return the results as IMessage[]
@@ -1441,10 +1450,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       ))) as string[];
 
       const usersMap = (await db.table<DBMessage>('messages')
-        .where('pubkey')
-        .anyOf(bannedUserIds)
+        .filter((obj) => obj.channel_id === currentChannel.id && bannedUserIds.includes(obj.pubkey))
         .toArray() || []).reduce((acc, cur) => {
-          if (!acc.get(cur.pubkey)) {
+          if (bannedUserIds.includes(cur.pubkey) && !acc.get(cur.pubkey)) {
             const { codename: codename, color } = getCodeNameAndColor(cur.pubkey, cur.codeset_version);
             acc.set(
               cur.pubkey, {
@@ -1461,7 +1469,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
 
     return users;
-  }, [channelManager, currentChannel, getCodeNameAndColor, utils])
+  }, [channelManager, currentChannel, getCodeNameAndColor, utils]);
 
   const ctx: NetworkContext = {
     getBannedUsers,

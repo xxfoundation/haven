@@ -5,16 +5,16 @@ import React, { CSSProperties, FC, useCallback, useEffect, useRef, useState } fr
 import cn from 'classnames';
 import 'moment-timezone';
 import moment from 'moment';
-import { EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
-
-import { ToolTip } from 'src/components/common';
-import { Ban } from 'src/components/icons';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import DOMPurify from 'dompurify';
 
+import Identity from 'src/components/common/Identity';
+import { Delete, EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
+import { ToolTip } from 'src/components/common';
+import { Ban } from 'src/components/icons';
+
 import s from './ChatMessage.module.scss';
-import Identity from '@components/common/Identity';
 
 const mapTextToHtmlWithAnchors = (text: string) => {
   const returnVal = text.replace(
@@ -27,17 +27,22 @@ const mapTextToHtmlWithAnchors = (text: string) => {
   });
 };
 
-type ActionsWrapperProps = {
+type Props = {
   onReplyClicked: () => void;
   onReactToMessage: (e: EmojiReaction) => void;
+  onDeleteMessage: () => void;
   onMuteUser: () => void;
+  message: Message;
   className?: string;
   isAdmin: boolean;
+  isOwn: boolean;
 }
 
-const ActionsWrapper: FC<ActionsWrapperProps> = ({
+const ActionsWrapper: FC<Props> = ({
   className,
   isAdmin,
+  isOwn,
+  onDeleteMessage,
   onMuteUser,
   onReactToMessage,
   onReplyClicked
@@ -94,13 +99,18 @@ const ActionsWrapper: FC<ActionsWrapperProps> = ({
       emoji: e.native,
       userName: 'No one'
     });
-  }, [onReactToMessage])
+  }, [onReactToMessage]);
 
   return (
     <div className={cn(s.actionsWrapper, className)}>
-      {isAdmin && (
+      {isAdmin && !isOwn && (
         <Ban
           onClick={onMuteUser}
+        />
+      )}
+      {(isOwn || isAdmin) && (
+        <Delete
+          onClick={onDeleteMessage}
         />
       )}
       <div ref={pickerIconRef}>
@@ -135,15 +145,11 @@ const ActionsWrapper: FC<ActionsWrapperProps> = ({
   );
 };
 
-const ChatMessage: FC<{
-  message: Message;
-} & ActionsWrapperProps> = ({
-  isAdmin,
-  message,
-  onMuteUser: onBanUser,
-  onReactToMessage,
-  onReplyClicked
-}) => {
+const ChatMessage: FC<Props> = (props) => {
+  const {
+    message,
+    onReactToMessage,
+  } = props;
   const [actionsWrapperVisible, setActionsWrapperVisible] = useState(false);
 
   return (
@@ -168,12 +174,7 @@ const ChatMessage: FC<{
     >
       {typeof message?.status !== 'undefined' &&
         [1, 2, 3].includes(message?.status) &&
-          <ActionsWrapper
-            isAdmin={isAdmin}
-            onMuteUser={onBanUser}
-            onReactToMessage={onReactToMessage}
-            onReplyClicked={onReplyClicked}
-          />
+          <ActionsWrapper {...props} />
         }
 
       <div className={cn('flex flex-col', s.messageWrapper)}>

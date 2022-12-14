@@ -3,6 +3,7 @@ export { default as ArrowUp } from './ArrowUp';
 export { default as Ban } from './Ban';
 export { default as Chat } from './Chat';
 export { default as Close } from './Close';
+export { default as Delete } from './Delete';
 export { default as DoubleLeftArrows } from './DoubleLeftArrows';
 export { default as DoubleRightArrows } from './DoubleRightArrows';
 export { default as Download } from './Download';

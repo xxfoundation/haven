@@ -10,6 +10,7 @@ type Props = {
   nickname?: string;
   color?: string;
   codename: string;
+  muted?: boolean;
 }
 
 const Identity: FC<Props> = (props) => {
