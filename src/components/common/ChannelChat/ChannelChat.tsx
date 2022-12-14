@@ -8,7 +8,7 @@ import _ from 'lodash';
 
 import UserTextArea from './components/UserTextArea/UserTextArea';
 import ChatMessage from './components/ChatMessage/ChatMessage';
-import { useNetworkClient } from 'src/contexts/network-client-context';
+import { IdentityJSON, useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import { Tree } from 'src/components/icons';
 import { Spinner } from 'src/components/common';
@@ -18,6 +18,7 @@ import useToggle from 'src/hooks/useToggle';
 import MuteUserModal, { MuteUserAction } from '../Modal/MuteUser';
 
 import s from './ChannelChat.module.scss';
+import DeleteMessageModal from '../Modal/DeleteMessage';
 
 const privacyLevelLabels: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Private]: 'Private',
@@ -32,6 +33,7 @@ const ChannelChat: FC = () => {
     cmix,
     currentChannel,
     deleteMessage,
+    getIdentity,
     getShareURL,
     getShareUrlType,
     loadMoreChannelData,
@@ -39,15 +41,25 @@ const ChannelChat: FC = () => {
     muteUser,
     sendReaction
   } = useNetworkClient();
-
+  const [deleteMessageModalOpened, {
+    toggleOff: hideDeleteMessageModal,
+    toggleOn: showDeleteMessageModal
+  } ] = useToggle();
   const { openModal, setModalView } = useUI();
-
+  const [channelIdentity, setChannelIdentity] = useState<IdentityJSON | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
   const [currentChannelPrivacyLevel, setCurrentChannelPrivacyLevel] = useState<PrivacyLevel | null>(null);
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (currentChannel && !currentChannel?.isLoading) {
+      const identity = getIdentity();
+      setChannelIdentity(identity);
+    }
+  }, [currentChannel, getIdentity])
 
   useEffect(() => {
     setReplyToMessage(undefined);
@@ -148,6 +160,12 @@ const ChannelChat: FC = () => {
     muteUserModalToggle.toggleOn();
   }, [muteUserModalToggle]);
 
+  const deleteSelectedMessage = useCallback(async () => {
+    if (selectedMessageForDeletion) {
+      await deleteMessage(selectedMessageForDeletion);
+    }
+  }, [deleteMessage, selectedMessageForDeletion])
+
   const handleMuteUser = useCallback(async (action: MuteUserAction) => {
     if (!selectedMessageForDeletion) {
       return;
@@ -156,7 +174,7 @@ const ChannelChat: FC = () => {
     const promises: Promise<unknown>[] = [];
 
     if (action === 'mute+delete' && selectedMessageForDeletion) {
-      promises.push(deleteMessage(selectedMessageForDeletion));
+      promises.push(deleteSelectedMessage());
     }
 
     promises.push(muteUser(selectedMessageForDeletion.pubkey, true));
@@ -164,12 +182,12 @@ const ChannelChat: FC = () => {
     await Promise.all(promises);
 
     muteUserModalToggle.toggleOff();
-  }, [
-    deleteMessage,
-    muteUser,
-    muteUserModalToggle,
-    selectedMessageForDeletion
-  ]);
+  }, [deleteSelectedMessage, muteUser, muteUserModalToggle, selectedMessageForDeletion]);
+
+  const onDeleteMessage = useCallback((message: Message) => () => {
+    setSelectedMessageForDeletion(message);
+    showDeleteMessageModal();
+  }, [showDeleteMessageModal])
 
   const onMuteUserModalCancel = useCallback(() => {
     setSelectedMessageForDeletion(null);
@@ -182,6 +200,12 @@ const ChannelChat: FC = () => {
         <MuteUserModal
           onConfirm={handleMuteUser}
           onCancel={onMuteUserModalCancel} />
+      )}
+      {deleteMessageModalOpened && (
+        <DeleteMessageModal
+          onConfirm={deleteSelectedMessage}
+          onCancel={hideDeleteMessageModal}
+        />
       )}
       {currentChannel ? (
         <>
@@ -231,20 +255,20 @@ const ChannelChat: FC = () => {
                       {moment(key).format('dddd MMMM Do, YYYY')}
                     </span>
                     <div>
-                      {message.map((m, index) => {
-                        return (
-                          <ChatMessage
-                            isAdmin={currentChannel?.isAdmin}
-                            key={`${m.id}${m.status}${index}`}
-                            message={m}
-                            onMuteUser={showMuteModal(m)}
-                            onReactToMessage={(reaction: EmojiReaction) => {
-                              handleReactToMessage(reaction, m);
-                            }}
-                            onReplyClicked={handleReplyToMessage(m)}
-                          />
-                        );
-                      })}
+                      {message.map((m, index) => (
+                        <ChatMessage
+                          isOwn={channelIdentity?.PubKey === m.pubkey}
+                          isAdmin={currentChannel?.isAdmin}
+                          key={`${m.id}${m.status}${index}`}
+                          message={m}
+                          onDeleteMessage={onDeleteMessage(m)}
+                          onMuteUser={showMuteModal(m)}
+                          onReactToMessage={(reaction: EmojiReaction) => {
+                            handleReactToMessage(reaction, m);
+                          }}
+                          onReplyClicked={handleReplyToMessage(m)}
+                        />
+                      ))}
                     </div>
                   </div>
                 );
