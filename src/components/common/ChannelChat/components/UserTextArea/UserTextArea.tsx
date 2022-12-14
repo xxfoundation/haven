@@ -48,7 +48,7 @@ const UserTextArea: FC<Props> = ({
       {replyToMessage && (
         <div className={cn(s.replyContainer)}>
           <div className='flex flex-col flex-1'>
-            <span>Reply to {replyToMessage.codeName}</span>
+            <span>Reply to {replyToMessage.codename}</span>
             <p>{replyToMessage.body}</p>
           </div>
           <Close

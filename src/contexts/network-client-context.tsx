@@ -51,6 +51,12 @@ export type DBChannel = {
   description: string;
 }
 
+export type User = {
+  codename: string;
+  color: string;
+  pubkey: string;
+}
+
 export enum NetworkStatus {
   CONNECTED = 'connected',
   DISCONNECTED = 'disconnected',
@@ -68,7 +74,6 @@ export type IsReadyInfo = {
   IsReady: boolean;
   HowClose: number;
 }
-
 
 type ShareURL = {
   url: string;
@@ -146,7 +151,7 @@ export interface Channel {
   currentMessagesBatch?: number;
 }
 
-type Identity = {
+type IdentityJSON = {
   Codename: string;
   Color: string;
   Extension: string;
@@ -171,6 +176,7 @@ type NetworkContext = {
     privacyLevel: 0 | 2
   ) => void;
   deleteMessage: (message: Message) => Promise<void>;
+  getBannedUsers: () => Promise<User[]>;
   muteUser: (pubkey: string, muted: boolean) => Promise<void>;
   setNetworkStatus: (status: NetworkStatus) => void;
   setCmix: (cmix: CMix) => void;
@@ -182,7 +188,7 @@ type NetworkContext = {
   leaveCurrentChannel: () => void;
   generateIdentities: (amountOfIdentites: number) => {
     privateIdentity: Uint8Array;
-    codeName: string;
+    codename: string;
   }[];
   initiateCmix: (password: string) => Promise<void>;
   loadCmix: (statePassEncoded: Uint8Array) => Promise<CMix>;
@@ -191,7 +197,7 @@ type NetworkContext = {
   handleInitialLoadData: (storageTag: string, manager: ChannelManager) => Promise<void>;
   getNickName: () => string;
   setNickName: (nickname: string) => boolean;
-  getIdentity: () => Identity | null;
+  getIdentity: () => IdentityJSON | null;
   sendReply: (reply: string, replyToMessageId: string) => Promise<void>;
   sendReaction: (reaction: string, reactToMessageId: string) => Promise<void>;
   getPrettyPrint: (channelId: string) => string | undefined;
@@ -202,7 +208,7 @@ type NetworkContext = {
   getClientVersion: () => string | null;
   loadMoreChannelData: (channelId: string) => Promise<void>;
   exportPrivateIdentity: (password: string) => Uint8Array | false;
-  getCodeNameAndColor: (publicKey: string, codeSet: number) => { codeName: string, color: string };
+  getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   setIsReadyToRegister: (isReady: boolean | undefined) => void;
   checkRegistrationReadiness: (
     selectedPrivateIdentity: Uint8Array,
@@ -286,7 +292,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     try {
       const identity = decoder.decode(channelManager?.GetIdentity());
 
-      return JSON.parse(identity) as Identity;
+      return JSON.parse(identity) as IdentityJSON;
     } catch (error) {
       console.error(error);
       return null;
@@ -369,10 +375,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
             codeset
           )
         )
-      ) as Identity;
+      ) as IdentityJSON;
 
       return {
-        codeName: identity.Codename,
+        codename: identity.Codename,
         color: identity.Color
       };
     } catch (error) {
@@ -440,12 +446,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
           }
 
           const {
-            codeName: messageCodeName,
+            codename: messageCodeName,
             color: messageColor
           } = getCodeNameAndColor(m.pubkey, m.codeset_version);
 
           const {
-            codeName: replyToMessageCodeName,
+            codename: replyToMessageCodeName,
             color: replyToMessageColor
           } = getCodeNameAndColor(
             replyToMessage.pubkey,
@@ -458,8 +464,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
               cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(m.text))
             ),
             timestamp: m.timestamp,
-            codeName: messageCodeName,
-            nickName: m.nickname || '',
+            codename: messageCodeName,
+            nickname: m.nickname || '',
             color: messageColor,
             channelId: m.channel_id,
             status: m.status,
@@ -474,8 +480,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
                 )
               ),
               timestamp: replyToMessage.timestamp,
-              codeName: replyToMessageCodeName,
-              nickName: replyToMessage.nickname || '',
+              codename: replyToMessageCodeName,
+              nickname: replyToMessage.nickname || '',
               color: replyToMessageColor,
               channelId: replyToMessage.channel_id,
               status: replyToMessage.status,
@@ -488,7 +494,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         } else if (!m.parent_message_id) {
           // This is normal message
           const {
-            codeName: messageCodeName,
+            codename: messageCodeName,
             color: messageColor
           } = getCodeNameAndColor(m.pubkey, m.codeset_version);
           const resolvedMessage: Message = {
@@ -497,8 +503,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
               cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(m.text))
             ),
             timestamp: m.timestamp,
-            codeName: messageCodeName,
-            nickName: m.nickname || '',
+            codename: messageCodeName,
+            nickname: m.nickname || '',
             color: messageColor,
             channelId: m.channel_id,
             status: m.status,
@@ -524,7 +530,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(dbMessage.text))
         );
 
-        const { codeName } = getCodeNameAndColor(
+        const { codename } = getCodeNameAndColor(
           dbMessage.pubkey,
           dbMessage.codeset_version
         );
@@ -535,14 +541,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
         // If no key for this reaction set it with this username as the value
         if (!temp.emojisMap.has(emoji)) {
-          temp.emojisMap.set(emoji, [codeName]);
+          temp.emojisMap.set(emoji, [codename]);
         } else {
           const previousInteractedUsers = temp.emojisMap.get(emoji) || [];
           // If emojisMap has this same interaction for this user before then delete it
-          if (previousInteractedUsers?.includes(codeName)) {
+          if (previousInteractedUsers?.includes(codename)) {
           } else {
             //else add it to the array
-            previousInteractedUsers.push(codeName);
+            previousInteractedUsers.push(codename);
             temp.emojisMap.set(emoji, previousInteractedUsers);
           }
         }
@@ -759,12 +765,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
         cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(event.text))
       );
 
-      const { codeName  } = getCodeNameAndColor(
+      const { codename  } = getCodeNameAndColor(
         event.pubkey,
         event.codeset_version
       );
 
-      // const codeName = event.codename;
+      // const codename = event.codename;
       const destinationMessage = messagesCopy.find(
         m => m.id === event.parent_message_id
       );
@@ -784,14 +790,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
         // If no key for this reaction set it with this username as the value
         if (!temp.emojisMap.has(emoji)) {
-          temp.emojisMap.set(emoji, [codeName]);
+          temp.emojisMap.set(emoji, [codename]);
         } else {
           const previousInteractedUsers = temp.emojisMap.get(emoji) || [];
           // If emojisMap has this same interaction for this user before then delete it
-          if (previousInteractedUsers?.includes(codeName)) {
+          if (previousInteractedUsers?.includes(codename)) {
           } else {
             //else add it to the array
-            previousInteractedUsers.push(codeName);
+            previousInteractedUsers.push(codename);
             temp.emojisMap.set(emoji, previousInteractedUsers);
           }
         }
@@ -1309,9 +1315,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
         const publicIdentity = utils.GetPublicChannelIdentityFromPrivate(
           privateIdentity
         );
-        const identity = JSON.parse(decoder.decode(publicIdentity)) as Identity;
-        const codeName = identity.Codename;
-        identitiesObjects.push({ privateIdentity, codeName });
+        const identity = JSON.parse(decoder.decode(publicIdentity)) as IdentityJSON;
+        const codename = identity.Codename;
+        identitiesObjects.push({ privateIdentity, codename });
       }
     }
     return identitiesObjects;
@@ -1425,9 +1431,40 @@ export const NetworkProvider: FC<WithChildren> = props => {
       false,
       utils.GetDefaultCMixParams()
     )
-  }, [channelManager, utils])
+  }, [channelManager, utils]);
+
+  const getBannedUsers = useCallback(async () => {
+    let users: User[] = [];
+    if (currentChannel && channelManager && db) {
+      const bannedUserIds = JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
+        utils.Base64ToUint8Array(currentChannel.id)
+      ))) as string[];
+
+      const usersMap = (await db.table<DBMessage>('messages')
+        .where('pubkey')
+        .anyOf(bannedUserIds)
+        .toArray() || []).reduce((acc, cur) => {
+          if (!acc.get(cur.pubkey)) {
+            const { codename: codename, color } = getCodeNameAndColor(cur.pubkey, cur.codeset_version);
+            acc.set(
+              cur.pubkey, {
+                codename,
+                color,
+                pubkey: cur.pubkey
+              }
+            );
+          }
+          return acc;
+        }, new Map<string, User>()).values();
+      
+      users = Array.from(usersMap);
+    }
+
+    return users;
+  }, [channelManager, currentChannel, getCodeNameAndColor, utils])
 
   const ctx: NetworkContext = {
+    getBannedUsers,
     muteUser,
     cmix,
     deleteMessage,

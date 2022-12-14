@@ -23,11 +23,8 @@ const LeftSideBar: FC<{
     setCurrentChannel
   } = useNetworkClient();
 
-  const codeName = getIdentity()?.Codename;
-  let color = getIdentity()?.Color;
-  if (color) {
-    color = color.replace('0x', '#');
-  }
+  const codename = getIdentity()?.Codename;
+  const color = getIdentity()?.Color.replace('0x', '#');;
 
   const onChannelChange = useCallback((chId: string) => () => {
     const selectedChannel = channels.find(ch => ch.id === chId);
@@ -44,7 +41,6 @@ const LeftSideBar: FC<{
   const collapseTitle = (
     <div className={cn('flex justify-between')}>
       <span>JOINED</span>
-
       <div className='flex items-center'>
         <Plus
           className={cn('mr-1', s.plus, {})}
@@ -120,7 +116,7 @@ const LeftSideBar: FC<{
               <Elixxir
                 style={{ fill: color, width: '10px', marginTop: '-3px' }}
               />
-              {codeName}
+              {codename}
             </span>
           </div>
           <Settings
