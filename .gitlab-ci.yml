@@ -26,3 +26,11 @@ deploy_dev:
     - echo Redeployed http://dev.speakeasy.tech/
   only:
     - dev
+
+deploy_backdev:
+  stage: deploy
+  script:
+    - ssh -o StrictHostKeychecking=no maint@165.227.151.153 "sudo service speakeasy restart"
+    - echo Redeployed http://backdev.speakeasy.tech/
+  only:
+    - backend-dev
