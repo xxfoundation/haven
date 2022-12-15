@@ -1,6 +1,6 @@
 import { Message } from '@types';
 
-import { FC, useMemo, useState, useEffect, MouseEventHandler } from 'react';
+import { FC, useMemo, useState, useEffect, MouseEventHandler, useCallback } from 'react';
 import { useSpring, a } from '@react-spring/web';
 import cn from 'classnames';
 
@@ -14,7 +14,27 @@ import s from './RightSideBar.module.scss';
 import useToggle from 'src/hooks/useToggle';
 import ViewBannedUsersModal from '../Modals/ViewBannedUsers';
 
+type IconProps = {
+  cssClass?: string;
+  isActive: boolean;
+  onClick: MouseEventHandler<SVGSVGElement>;
+};
+
+const Icon: FC<IconProps> = ({
+  cssClass,
+  isActive,
+  onClick
+}) => {
+  return isActive ? (
+    <DoubleRightArrows onClick={onClick} className={cn(cssClass)} />
+  ) : (
+    <DoubleLeftArrows onClick={onClick} className={cn(cssClass)} />
+  );
+};
+
+
 const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
+  const { showPinned, togglePinned } = useUI();
   const {
     currentChannel,
     getIdentity,
@@ -69,22 +89,10 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
     return () => window?.removeEventListener('resize', adjustActiveState);
   }, []);
 
-  const toggleIsActive = () => {
+  const toggleIsActive = useCallback(() => {
     setIsActive(!isActive);
-  };
-  const Icon = ({
-    cssClass,
-    onClick
-  }: {
-    onClick: MouseEventHandler<SVGSVGElement>;
-    cssClass?: string;
-  }) => {
-    return isActive ? (
-      <DoubleRightArrows onClick={onClick} className={cn(cssClass)} />
-    ) : (
-      <DoubleLeftArrows onClick={onClick} className={cn(cssClass)} />
-    );
-  };
+  }, [isActive]);
+
   return (
     <a.div
       className={cn(s.root, cssClasses, { [s.root__collapsed]: !isActive })}
@@ -95,6 +103,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
       )}
       <div className={s.header}>
         <Icon
+          isActive={isActive}
           onClick={() => toggleIsActive()}
           cssClass={cn('cursor-pointer', s.icon)}
         />
@@ -122,6 +131,12 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                   View Banned Users
                 </Button>
               )}
+              <Button
+                cssClasses={cn('block mx-auto mb-4')}
+                onClick={togglePinned}
+              >
+                {showPinned ? 'View Chat Messages' : 'View Pinned Messages'}
+              </Button>
               <Button
                 cssClasses={cn('block mx-auto')}
                 onClick={() => {

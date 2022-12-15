@@ -177,6 +177,7 @@ type NetworkContext = {
   isReadyToRegister: boolean | undefined;
   networkStatus: NetworkStatus;
   // api
+  fetchPinnedMessages: () => Promise<Message[]>;
   connectNetwork: () => Promise<void>;
   createChannel: (
     channelName: string,
@@ -185,6 +186,7 @@ type NetworkContext = {
   ) => void;
   deleteMessage: (message: Message) => Promise<void>;
   getBannedUsers: () => Promise<User[]>;
+  mapDbMessagesToMessages: (messages: DBMessage[]) => Promise<Message[]>;
   muteUser: (pubkey: string, muted: boolean) => Promise<void>;
   setNetworkStatus: (status: NetworkStatus) => void;
   setCmix: (cmix: CMix) => void;
@@ -698,7 +700,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         const mappedMessages = await mapDbMessagesToMessages([receivedMessage]);
         if (mappedMessages.length) {
           const newMessage = mappedMessages[0];
-          setMessages(prev => {
+          setMessages((prev) => {
             // Sorting if needed
             if (prev.length === 0) {
               return [newMessage];
@@ -755,14 +757,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
       return { ...c }; // Find a way to get the pretty print for the returned channels
     });
 
-    mappedChannels.forEach(({ id  }) => {
-      joinChannel(getPrettyPrint(id));
-    });
-
     const mappedMessages = await mapDbMessagesToMessages(msgs);
 
     return { mappedChannels, mappedMessages };
-  }, [joinChannel, mapDbMessagesToMessages]);
+  }, [mapDbMessagesToMessages]);
 
   // A function that takes DB messages, extract all reaction events then apply them to the passed IMessage[]
   // and return the results as IMessage[]
@@ -1489,12 +1487,23 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils])
 
+  const fetchPinnedMessages = useCallback(async (): Promise<Message[]> => {
+    if (db && currentChannel) {
+      return db.table<DBMessage>('messages').where('pinned').equals('true')
+        .filter(({ channel_id, hidden }) => !hidden && channel_id === currentChannel.id)
+        .toArray()
+        .then(mapDbMessagesToMessages);
+    }
+    return [];
+  }, [currentChannel, mapDbMessagesToMessages]);
+
   const ctx: NetworkContext = {
     getBannedUsers,
     muteUser,
     cmix,
     deleteMessage,
     setCmix: setNetwork,
+    fetchPinnedMessages,
     networkStatus,
     setNetworkStatus,
     joinChannel,
@@ -1504,6 +1513,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     messages,
     setMessages,
     currentChannel,
+    mapDbMessagesToMessages,
     setCurrentChannel,
     sendMessage,
     leaveCurrentChannel,

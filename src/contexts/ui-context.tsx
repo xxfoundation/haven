@@ -1,6 +1,8 @@
 import { WithChildren } from '@types';
 import React, { FC, useCallback, useMemo } from 'react';
 
+import useToggle from 'src/hooks/useToggle';
+
 type ModalViews =
   | 'SHARE_CHANNEL'
   | 'CREATE_CHANNEL'
@@ -21,21 +23,21 @@ export interface State {
   modalView?: ModalViews;
   activeModals: object[];
   channelInviteLink: string;
+  showPinned: boolean;
+  togglePinned: () => void;
+  setShowPinned: (showPinned: boolean) => void;
   openModal: () => void;
   closeModal: () => void;
   setModalView: (view: ModalViews) => void;
   setChannelInviteLink: (link: string) => void;
 }
 
-const initialState: State = {
+const initialState = {
   displayModal: false,
   activeModals: [],
   channelInviteLink: '',
-  openModal: () => {},
-  closeModal: () => {},
-  setModalView: () => {},
-  setChannelInviteLink: () => {}
-};
+  showPinned: false,
+} as unknown as State;
 
 type Action =
   | {
@@ -108,15 +110,20 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
     [dispatch]
   );
 
+  const [showPinned, { set: setShowPinned, toggle: togglePinned }] = useToggle(false);
+
   const value = useMemo(
     () => ({
       ...state,
       openModal,
       closeModal,
       setModalView,
-      setChannelInviteLink
+      setChannelInviteLink,
+      showPinned,
+      setShowPinned,
+      togglePinned
     }),
-    [closeModal, openModal, setChannelInviteLink, setModalView, state]
+    [closeModal, openModal, setChannelInviteLink, setModalView, setShowPinned, showPinned, state, togglePinned]
   );
 
   return (

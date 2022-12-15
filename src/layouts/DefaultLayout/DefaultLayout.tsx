@@ -57,7 +57,6 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
       {modalView === 'LEAVE_CHANNEL_CONFIRMATION' && (
         <LeaveChannelConfirmationView />
       )}
-
       {modalView === 'SET_NICK_NAME' && currentChannel && <NickNameSetView />}
       {modalView === 'CHANNEL_ACTIONS' && <ChannelActionsView />}
       {modalView === 'SETTINGS' && <SettingsView />}
