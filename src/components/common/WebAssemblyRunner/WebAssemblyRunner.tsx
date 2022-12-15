@@ -4,6 +4,14 @@ import { FC, useEffect } from 'react';
 
 import { useUtils } from 'src/contexts/utils-context';
 
+type LogFile = { Name: () => string, GetFile: () => string };
+declare global {
+  interface Window {
+    LogToFile: (level: number, path: string, maxLogFileSizeBytes: number) => LogFile;
+    logFile?: LogFile;
+  }
+}
+
 const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
   const { setUtils, setUtilsLoaded, utilsLoaded } = useUtils();
 
@@ -34,14 +42,16 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             LoadChannelsManagerWithIndexedDb,
             LoadCmix,
             LogLevel,
-            LogToFile,
             NewChannelsDatabaseCipher,
             NewChannelsManagerWithIndexedDb,
             NewCmix,
             NewDummyTrafficManager,
-            Purge
+            Purge,
+            ValidForever
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } = (window as any) || {};
+
+          const { LogToFile } = window;
 
           setUtils({
             NewCmix,
@@ -65,7 +75,8 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             GetChannelJSON,
             NewDummyTrafficManager,
             NewChannelsDatabaseCipher,
-            Purge
+            Purge,
+            ValidForever
           });
 
           if (LogLevel) {
@@ -73,8 +84,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
           }
           
           const logFile = LogToFile(0, 'receiver.log', 5000000);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).logFile = logFile;
+          window.logFile = logFile;
           setUtilsLoaded(true);
         }
       );

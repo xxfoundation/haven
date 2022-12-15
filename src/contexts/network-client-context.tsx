@@ -11,7 +11,7 @@ import { decoder, exportDataToFile } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { ndf } from 'src/sdk-utils/ndf';
-import { STATE_PATH } from '../constants';
+import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH } from '../constants';
 
 const batchCount = 100;
 
@@ -114,12 +114,14 @@ export type ChannelManager = {
     channelId: Uint8Array,
     messageId: Uint8Array,
     unpin: boolean,
+    pinDurationInMilliseconds: number,
     cmixParams: Uint8Array,
   ) => Promise<Uint8Array>;
   DeleteMessage: (
     channelId: Uint8Array,
     messageId: Uint8Array,
     undelete: boolean,
+    deletionDurationInMilliseconds: number,
     cmixParams: Uint8Array
   ) => Promise<void>;
   SendReaction: (
@@ -1446,13 +1448,17 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, currentChannel, utils]);
 
   const deleteMessage = useCallback(async ({ channelId, id }: Message) => {
+    if (cmix) {
+
+    }
     await channelManager?.DeleteMessage(
       utils.Base64ToUint8Array(channelId),
       utils.Base64ToUint8Array(id),
       false,
+      utils.ValidForever(),
       utils.GetDefaultCMixParams()
     )
-  }, [channelManager, utils]);
+  }, [channelManager, cmix, utils]);
 
   const getBannedUsers = useCallback(async () => {
     let users: User[] = [];
@@ -1489,6 +1495,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         utils.Base64ToUint8Array(currentChannel?.id),
         utils.Base64ToUint8Array(id),
         unpin,
+        PIN_MESSAGE_LENGTH_MILLISECONDS,
         utils.GetDefaultCMixParams()
       )
     }
