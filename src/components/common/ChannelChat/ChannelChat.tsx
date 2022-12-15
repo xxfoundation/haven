@@ -116,7 +116,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
       typeof currentChannel.currentMessagesBatch !== 'undefined'
     ) {
       await loadMoreChannelData(currentChannel.id);
-      
+
       if (
         messagesContainerRef &&
         messagesContainerRef.current &&
@@ -174,7 +174,8 @@ const ChannelChat: FC<Props> = ({ messages }) => {
       await deleteMessage(selectedMessage);
     }
     setSelectedMessage(null);
-  }, [deleteMessage, selectedMessage])
+    hideDeleteMessageModal();
+  }, [deleteMessage, hideDeleteMessageModal, selectedMessage])
 
   const handleMuteUser = useCallback(async (action: MuteUserAction) => {
     if (!selectedMessage) {
@@ -199,10 +200,14 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     showDeleteMessageModal();
   }, [showDeleteMessageModal]);
 
-  const handlePinMessage = useCallback((message: Message) => () => {
-    setSelectedMessage(message);
-    showPinModal();
-  }, [showPinModal])
+  const handlePinMessage = useCallback((message: Message) => (unpin?: boolean) => {
+    if (unpin === true) {
+      pinMessage(message, unpin);
+    } else {
+      setSelectedMessage(message);
+      showPinModal();
+    }
+  }, [pinMessage, showPinModal])
 
   const pinSelectedMessage = useCallback(async () => {
     if (selectedMessage) {

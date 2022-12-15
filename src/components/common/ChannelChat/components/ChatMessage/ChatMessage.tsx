@@ -11,10 +11,11 @@ import DOMPurify from 'dompurify';
 
 import Identity from 'src/components/common/Identity';
 import { Delete, EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
-import { ToolTip } from 'src/components/common';
+import { Button, ToolTip } from 'src/components/common';
 import { Ban, Pin } from 'src/components/icons';
 
 import s from './ChatMessage.module.scss';
+import { useUI } from '@contexts/ui-context';
 
 const mapTextToHtmlWithAnchors = (text: string) => {
   const returnVal = text.replace(
@@ -32,7 +33,7 @@ type Props = {
   onReactToMessage: (e: EmojiReaction) => void;
   onDeleteMessage: () => void;
   onMuteUser: () => void;
-  onPinMessage: () => void;
+  onPinMessage: (unpin?: boolean) => void;
   message: Message;
   className?: string;
   isAdmin: boolean;
@@ -103,52 +104,63 @@ const ActionsWrapper: FC<Props> = ({
     });
   }, [onReactToMessage]);
 
+  const { showPinned } = useUI();
+
   return (
     <div className={cn(s.actionsWrapper, className)}>
-      {isAdmin && !isOwn && (
-        <Ban
-          onClick={onMuteUser}
-        />
-      )}
-      {(isAdmin) && (
-        <Pin
-          onClick={onPinMessage}
-        />
-      )}
-      {(isOwn || isAdmin) && (
-        <Delete
-          onClick={onDeleteMessage}
-        />
-      )}
-      <div ref={pickerIconRef}>
-        <EmojisPickerIcon
-          onClick={() => {
-            setPickerVisible(!pickerVisible);
-          }}
-        />
-      </div>
-      <div></div>
-      <div className='relative inline-block'>
-        {pickerVisible && (
-          <div
-            ref={pickerRef}
-            style={{ ...style }}
-            className={cn('absolute inline', s.emojisPickerWrapper)}
-          >
-            <Picker
-              data={data}
-              previewPosition='none'
-              
-              onEmojiSelect={onSelect}
+      {showPinned
+        ?
+        <>
+          {isAdmin && <Button onClick={() => onPinMessage(true)}>Unpin</Button>}
+        </>
+        : (
+        <>
+          {isAdmin && !isOwn && (
+            <Ban
+              onClick={onMuteUser}
+            />
+          )}
+          {(isAdmin) && (
+            <Pin
+              onClick={() => onPinMessage()}
+            />
+          )}
+          {(isOwn || isAdmin) && (
+            <Delete
+              onClick={onDeleteMessage}
+            />
+          )}
+          <div ref={pickerIconRef}>
+            <EmojisPickerIcon
+              onClick={() => {
+                setPickerVisible(!pickerVisible);
+              }}
             />
           </div>
-        )}
-      </div>
-      <Reply
-        onClick={() => {
-          onReplyClicked();
-        }}
-      />
+          <div></div>
+          <div className='relative inline-block'>
+            {pickerVisible && (
+              <div
+                ref={pickerRef}
+                style={{ ...style }}
+                className={cn('absolute inline', s.emojisPickerWrapper)}
+              >
+                <Picker
+                  data={data}
+                  previewPosition='none'
+                  
+                  onEmojiSelect={onSelect}
+                />
+              </div>
+            )}
+          </div>
+          <Reply
+            onClick={() => {
+              onReplyClicked();
+            }}
+          />
+        </>
+      )}
     </div>
   );
 };

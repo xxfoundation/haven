@@ -218,7 +218,7 @@ type NetworkContext = {
   getClientVersion: () => string | null;
   loadMoreChannelData: (channelId: string) => Promise<void>;
   exportPrivateIdentity: (password: string) => Uint8Array | false;
-  pinMessage: (message: Message) => Promise<void>;
+  pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
   getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   setIsReadyToRegister: (isReady: boolean | undefined) => void;
   checkRegistrationReadiness: (
@@ -442,6 +442,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         (await db.table<DBMessage>('messages')
           .where('message_id')
           .anyOf(messagesParentIds)
+          .filter(m => !m.hidden)
           .toArray()) || [];
 
       const mappedMessages: Message[] = [];
@@ -668,6 +669,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
     if (db) {
       const receivedMessage = await db.table<DBMessage>('messages').get(uuid);
 
+      if (receivedMessage?.hidden === true) {
+        return;
+      }
+
       if (isUpdate && receivedMessage) {
         if ([1, 2, 3].includes(receivedMessage.status)) {
           updateSenderMessageStatus(receivedMessage);
@@ -831,8 +836,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const eventsIds = events.map(e => e.message_id);
       const reactionEvents = await db
         .table('messages')
+        .where('parent_message_id')
+        .anyOf(eventsIds)
         .filter((e) => {
-          return eventsIds.includes(e.parent_message_id) && e.type === 3;
+          return !e.hidden && e.type === 3;
         })
         .toArray();
       return reactionEvents;
@@ -863,7 +870,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           .orderBy('timestamp')
           .reverse()
           .filter(m => {
-            return m.channel_id === chId && m.type === 1;
+            return !m.hidden && m.channel_id === chId && m.type === 1;
           })
           .limit(batchCount)
           .toArray();
@@ -1043,7 +1050,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         .orderBy('timestamp')
         .reverse()
         .filter(m => {
-          return m.channel_id === chId && m.type === 1;
+          return !m.hidden && m.channel_id === chId && m.type === 1;
         })
         .offset(currentChannelBatch * batchCount)
         .limit(batchCount)
