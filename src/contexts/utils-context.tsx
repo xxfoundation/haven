@@ -67,6 +67,7 @@ export type XXDKUtils = {
   ) => DummyTraffic;
   NewChannelsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => ChannelDbCipher;
   Purge: (storageDirectory: string, userPassword: string) => void;
+  ValidForever: () => number;
 }
 
 const initialUtils = {

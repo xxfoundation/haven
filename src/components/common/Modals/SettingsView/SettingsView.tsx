@@ -17,10 +17,12 @@ const SettingsView: FC = () => {
           <h3 className='headline--sm'>Download logs</h3>
           <Download
             onClick={() => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const filename = (window as any).logFile?.Name();
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const data = (window as any).logFile?.GetFile();
+              if (!window.logFile) {
+                throw new Error('Log file required')
+              }
+
+              const filename = window.logFile.Name();
+              const data = window.logFile.GetFile();
               const file = new Blob([data], { type: 'text/plain' });
               const a = document.createElement('a'),
                 url = URL.createObjectURL(file);
