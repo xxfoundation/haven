@@ -15,10 +15,11 @@ import { Spinner } from 'src/components/common';
 import { byEntryTimestamp } from 'src/utils/index';
 import { PrivacyLevel } from 'src/contexts/utils-context';
 import useToggle from 'src/hooks/useToggle';
-import MuteUserModal, { MuteUserAction } from '../Modal/MuteUser';
+import MuteUserModal, { MuteUserAction } from '../Modals/MuteUser';
+import DeleteMessageModal from '../Modals/DeleteMessage';
 
 import s from './ChannelChat.module.scss';
-import DeleteMessageModal from '../Modal/DeleteMessage';
+import PinMessageModal from '../Modals/PinMessageModal';
 
 const privacyLevelLabels: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Private]: 'Private',
@@ -28,6 +29,14 @@ const privacyLevelLabels: Record<PrivacyLevel, string> = {
 
 const ChannelChat: FC = () => {
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
+  const [deleteMessageModalOpened, {
+    toggleOff: hideDeleteMessageModal,
+    toggleOn: showDeleteMessageModal
+  } ] = useToggle();
+  const [pinMessageModalOpen, {
+    toggleOff: hidePinModal,
+    toggleOn: showPinModal
+  }] = useToggle();
   const {
     channels,
     cmix,
@@ -39,12 +48,9 @@ const ChannelChat: FC = () => {
     loadMoreChannelData,
     messages,
     muteUser,
+    pinMessage,
     sendReaction
   } = useNetworkClient();
-  const [deleteMessageModalOpened, {
-    toggleOff: hideDeleteMessageModal,
-    toggleOn: showDeleteMessageModal
-  } ] = useToggle();
   const { openModal, setModalView } = useUI();
   const [channelIdentity, setChannelIdentity] = useState<IdentityJSON | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -153,44 +159,58 @@ const ChannelChat: FC = () => {
     setReplyToMessage(message);
   }, []);
 
-  const [selectedMessageForDeletion, setSelectedMessageForDeletion] = useState<Message | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
   const showMuteModal = useCallback((message: Message) => () => {
-    setSelectedMessageForDeletion(message);
+    setSelectedMessage(message);
     muteUserModalToggle.toggleOn();
   }, [muteUserModalToggle]);
 
   const deleteSelectedMessage = useCallback(async () => {
-    if (selectedMessageForDeletion) {
-      await deleteMessage(selectedMessageForDeletion);
+    if (selectedMessage) {
+      await deleteMessage(selectedMessage);
     }
-  }, [deleteMessage, selectedMessageForDeletion])
+    setSelectedMessage(null);
+  }, [deleteMessage, selectedMessage])
 
   const handleMuteUser = useCallback(async (action: MuteUserAction) => {
-    if (!selectedMessageForDeletion) {
+    if (!selectedMessage) {
       return;
     }
 
     const promises: Promise<unknown>[] = [];
 
-    if (action === 'mute+delete' && selectedMessageForDeletion) {
+    if (action === 'mute+delete' && selectedMessage) {
       promises.push(deleteSelectedMessage());
     }
 
-    promises.push(muteUser(selectedMessageForDeletion.pubkey, true));
+    promises.push(muteUser(selectedMessage.pubkey, true));
 
     await Promise.all(promises);
 
     muteUserModalToggle.toggleOff();
-  }, [deleteSelectedMessage, muteUser, muteUserModalToggle, selectedMessageForDeletion]);
+  }, [deleteSelectedMessage, muteUser, muteUserModalToggle, selectedMessage]);
 
   const onDeleteMessage = useCallback((message: Message) => () => {
-    setSelectedMessageForDeletion(message);
+    setSelectedMessage(message);
     showDeleteMessageModal();
-  }, [showDeleteMessageModal])
+  }, [showDeleteMessageModal]);
+
+  const handlePinMessage = useCallback((message: Message) => () => {
+    setSelectedMessage(message);
+    showPinModal();
+  }, [showPinModal])
+
+  const pinSelectedMessage = useCallback(async () => {
+    if (selectedMessage) {
+      await pinMessage(selectedMessage);
+    }
+    setSelectedMessage(null);
+    hidePinModal();
+  }, [hidePinModal, pinMessage, selectedMessage]);
 
   const onMuteUserModalCancel = useCallback(() => {
-    setSelectedMessageForDeletion(null);
+    setSelectedMessage(null);
     muteUserModalToggle.toggleOff();
   }, [muteUserModalToggle])
 
@@ -204,8 +224,12 @@ const ChannelChat: FC = () => {
       {deleteMessageModalOpened && (
         <DeleteMessageModal
           onConfirm={deleteSelectedMessage}
-          onCancel={hideDeleteMessageModal}
-        />
+          onCancel={hideDeleteMessageModal} />
+      )}
+      {pinMessageModalOpen && (
+        <PinMessageModal
+          onConfirm={pinSelectedMessage}
+          onCancel={hidePinModal} />
       )}
       {currentChannel ? (
         <>
@@ -263,6 +287,7 @@ const ChannelChat: FC = () => {
                           message={m}
                           onDeleteMessage={onDeleteMessage(m)}
                           onMuteUser={showMuteModal(m)}
+                          onPinMessage={handlePinMessage(m)}
                           onReactToMessage={(reaction: EmojiReaction) => {
                             handleReactToMessage(reaction, m);
                           }}

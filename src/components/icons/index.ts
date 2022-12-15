@@ -17,6 +17,7 @@ export { default as NetworkStatusIcon } from './NetworkStatusIcon';
 export { default as NormalSpeakeasy } from './NormalSpeakeasy';
 export { default as NormalHash } from './NormalHash';
 export { default as OpenSource } from './OpenSource';
+export { default as Pin } from './Pin';
 export { default as Plus } from './Plus';
 export { default as Reply } from './Reply';
 export { default as RoadMap } from './RoadMap';

@@ -1,3 +1,4 @@
+export { default } from './Modal';
 export { default as CreateChannelView } from './CreateChannelView';
 export { default as JoinChannelView } from './JoinChannelView';
 export { default as ShareChannelView } from './ShareChannelView';

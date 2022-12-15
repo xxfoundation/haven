@@ -12,7 +12,7 @@ import DOMPurify from 'dompurify';
 import Identity from 'src/components/common/Identity';
 import { Delete, EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
 import { ToolTip } from 'src/components/common';
-import { Ban } from 'src/components/icons';
+import { Ban, Pin } from 'src/components/icons';
 
 import s from './ChatMessage.module.scss';
 
@@ -32,6 +32,7 @@ type Props = {
   onReactToMessage: (e: EmojiReaction) => void;
   onDeleteMessage: () => void;
   onMuteUser: () => void;
+  onPinMessage: () => void;
   message: Message;
   className?: string;
   isAdmin: boolean;
@@ -44,6 +45,7 @@ const ActionsWrapper: FC<Props> = ({
   isOwn,
   onDeleteMessage,
   onMuteUser,
+  onPinMessage,
   onReactToMessage,
   onReplyClicked
 }) => {
@@ -108,6 +110,11 @@ const ActionsWrapper: FC<Props> = ({
           onClick={onMuteUser}
         />
       )}
+      {(isAdmin) && (
+        <Pin
+          onClick={onPinMessage}
+        />
+      )}
       {(isOwn || isAdmin) && (
         <Delete
           onClick={onDeleteMessage}
@@ -120,6 +127,7 @@ const ActionsWrapper: FC<Props> = ({
           }}
         />
       </div>
+      <div></div>
       <div className='relative inline-block'>
         {pickerVisible && (
           <div

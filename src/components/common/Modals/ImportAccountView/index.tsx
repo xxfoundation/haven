@@ -3,7 +3,7 @@ import type { IdentityVariables } from './types';
 import React, { FC } from 'react';
 
 import { useUI } from '@contexts/ui-context';
-import Modal from 'src/components/common/Modal';
+import Modal from '@components/common/Modals';
 import ImportAccountForm from './ImportAccountForm';
 
 type Props = {

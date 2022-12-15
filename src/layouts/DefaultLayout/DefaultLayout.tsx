@@ -24,7 +24,7 @@ import {
   JoinChannelSuccessView,
   MessageLongView,
   LogoutView
-} from 'src/components/common/Modal/ModalViews';
+} from '@components/common/Modals';
 
 import s from './DefaultLayout.module.scss';
 

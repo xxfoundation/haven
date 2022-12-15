@@ -2,9 +2,9 @@ import { FC } from 'react';
 import cn from 'classnames';
 
 import { ModalCtaButton, Spinner } from 'src/components/common';
-import Modal from 'src/components/common/Modal';
+import Modal from '@components/common/Modals';
 
-import s from './DeleteMessage.module.scss';
+import s from './PinMessage.module.scss';
 import { useCallback, useState } from 'react';
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
   onCancel: () => void;
 }
 
-const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
+const PinMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
   const [loading, setLoading]  = useState(false);
 
   const handleConfirmation = useCallback(async () => {
@@ -29,13 +29,13 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
       >
         {loading ? <div className='my-32'><Spinner /></div> : (
           <>
-            <h2 className={cn('mt-9 mb-4')}>Warning</h2>
-            <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
-              ** Important to note that deleting messages cannot be undone. **
+            <h2 className={cn('mt-9 mb-4')}>Confirmation</h2>
+            <p className='mb-4'>
+            Pinned messages will remain for around 3 weeks, then it will get unpinned again
             </p>
             <div className={cn('mb-6', s.buttonGroup)}>
               <ModalCtaButton
-                buttonCopy='Delete'
+                buttonCopy='Confirm and Pin'
                 onClick={handleConfirmation}
               />
               <ModalCtaButton
@@ -51,4 +51,4 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
   );
 };
 
-export default DeleteMessageModal;
+export default PinMessageModal;

@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import s from './ChannelActionsView.module.scss';
 import { ModalCtaButton } from 'src/components/common';
 import cn from 'classnames';
 import { useNetworkClient } from 'src/contexts/network-client-context';
@@ -11,10 +10,9 @@ const ChannelActionsView: FC = () => {
 
   return (
     <div
-      className={cn('w-full flex flex-col justify-center items-center', s.root)}
+      className={cn('w-full flex flex-col justify-center items-center')}
     >
       <h2 className='mt-9 mb-4'>More Channel Actions</h2>
-
       <div className='mt-6 mb-8 flex items-center mx-auto'>
         <ModalCtaButton
           buttonCopy='Logout'
