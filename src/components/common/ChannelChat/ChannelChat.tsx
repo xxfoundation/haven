@@ -27,7 +27,11 @@ const privacyLevelLabels: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Secret]: 'Secret'
 };
 
-const ChannelChat: FC = () => {
+type Props = {
+  messages: Message[];
+}
+
+const ChannelChat: FC<Props> = ({ messages }) => {
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
   const [deleteMessageModalOpened, {
     toggleOff: hideDeleteMessageModal,
@@ -46,7 +50,6 @@ const ChannelChat: FC = () => {
     getShareURL,
     getShareUrlType,
     loadMoreChannelData,
-    messages,
     muteUser,
     pinMessage,
     sendReaction
@@ -109,16 +112,16 @@ const ChannelChat: FC = () => {
 
   const checkTop = useCallback(async () => {
     if (
-      messagesContainerRef &&
-      messagesContainerRef.current &&
-      messagesContainerRef.current.scrollTop === 0
+      currentChannel &&
+      typeof currentChannel.currentMessagesBatch !== 'undefined'
     ) {
+      await loadMoreChannelData(currentChannel.id);
+      
       if (
-        currentChannel &&
-        typeof currentChannel.currentMessagesBatch !== 'undefined'
+        messagesContainerRef &&
+        messagesContainerRef.current &&
+        messagesContainerRef.current.scrollTop === 0
       ) {
-        await loadMoreChannelData(currentChannel.id);
-
         messagesContainerRef.current.scrollTop = 20;
       }
     }
