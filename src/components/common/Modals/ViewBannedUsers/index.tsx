@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import cn from 'classnames';
 
 import { Spinner } from 'src/components/common';
-import Modal from 'src/components/common/Modal';
+import Modal from '@components/common/Modals';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import Identity from 'src/components/common/Identity';

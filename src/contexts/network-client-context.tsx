@@ -110,6 +110,12 @@ export type ChannelManager = {
     messageValidityTimeoutMilliseconds: number,
     cmixParams: Uint8Array
   ) => Promise<Uint8Array>;
+  PinMessage: (
+    channelId: Uint8Array,
+    messageId: Uint8Array,
+    unpin: boolean,
+    cmixParams: Uint8Array,
+  ) => Promise<Uint8Array>;
   DeleteMessage: (
     channelId: Uint8Array,
     messageId: Uint8Array,
@@ -210,6 +216,7 @@ type NetworkContext = {
   getClientVersion: () => string | null;
   loadMoreChannelData: (channelId: string) => Promise<void>;
   exportPrivateIdentity: (password: string) => Uint8Array | false;
+  pinMessage: (message: Message) => Promise<void>;
   getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   setIsReadyToRegister: (isReady: boolean | undefined) => void;
   checkRegistrationReadiness: (
@@ -1471,6 +1478,17 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return users;
   }, [channelManager, currentChannel, getCodeNameAndColor, utils]);
 
+  const pinMessage = useCallback(async ({ id }: Message, unpin = false) => {
+    if (currentChannel && channelManager) {
+      await channelManager.PinMessage(
+        utils.Base64ToUint8Array(currentChannel?.id),
+        utils.Base64ToUint8Array(id),
+        unpin,
+        utils.GetDefaultCMixParams()
+      )
+    }
+  }, [channelManager, currentChannel, utils])
+
   const ctx: NetworkContext = {
     getBannedUsers,
     muteUser,
@@ -1514,6 +1532,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     isReadyToRegister,
     setIsReadyToRegister,
     checkRegistrationReadiness,
+    pinMessage,
     logout
   }
 

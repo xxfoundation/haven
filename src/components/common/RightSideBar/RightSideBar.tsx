@@ -12,7 +12,7 @@ import { Elixxir } from 'src/components/icons';
 
 import s from './RightSideBar.module.scss';
 import useToggle from 'src/hooks/useToggle';
-import ViewBannedUsersModal from '../Modal/ViewBannedUsers';
+import ViewBannedUsersModal from '../Modals/ViewBannedUsers';
 
 const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   const {
