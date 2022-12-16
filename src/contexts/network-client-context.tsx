@@ -103,7 +103,12 @@ export type ChannelManager = {
   JoinChannel: (channelId: string) => Uint8Array;
   LeaveChannel: (channelId: Uint8Array) => void;
   GetMutedUsers: (channelId: Uint8Array) => Uint8Array;
-  MuteUser: (channelId: Uint8Array, publicKey: Uint8Array, mute: boolean, cmixParams?: Uint8Array) => Promise<void>;
+  MuteUser: (
+      channelId: Uint8Array,
+      publicKey: Uint8Array,
+      mute: boolean,
+      muteDurationInMilliseconds: number,
+      cmixParams?: Uint8Array) => Promise<void>;
   SendMessage: (
     channelId: Uint8Array,
     message: string,
@@ -121,7 +126,6 @@ export type ChannelManager = {
     channelId: Uint8Array,
     messageId: Uint8Array,
     undelete: boolean,
-    deletionDurationInMilliseconds: number,
     cmixParams: Uint8Array
   ) => Promise<void>;
   SendReaction: (
@@ -1442,6 +1446,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         utils.Base64ToUint8Array(currentChannel?.id),
         utils.Base64ToUint8Array(pubkey),
         muted,
+        utils.ValidForever(),
         utils.GetDefaultCMixParams()
       )
     }
@@ -1455,7 +1460,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       utils.Base64ToUint8Array(channelId),
       utils.Base64ToUint8Array(id),
       false,
-      utils.ValidForever(),
       utils.GetDefaultCMixParams()
     )
   }, [channelManager, cmix, utils]);
