@@ -11,7 +11,7 @@ import DOMPurify from 'dompurify';
 
 import Identity from 'src/components/common/Identity';
 import { Delete, EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
-import { Button, ToolTip } from 'src/components/common';
+import { Button, Spinner, ToolTip } from 'src/components/common';
 import { Ban, Pin } from 'src/components/icons';
 
 import s from './ChatMessage.module.scss';
@@ -33,7 +33,7 @@ type Props = {
   onReactToMessage: (e: EmojiReaction) => void;
   onDeleteMessage: () => void;
   onMuteUser: () => void;
-  onPinMessage: (unpin?: boolean) => void;
+  onPinMessage: (unpin?: boolean) => Promise<void>;
   message: Message;
   className?: string;
   isAdmin: boolean;
@@ -106,12 +106,18 @@ const ActionsWrapper: FC<Props> = ({
 
   const { showPinned } = useUI();
 
+  const [loading, setLoading] = useState(false);
+  const onUnpin = useCallback(async () => {
+    setLoading(true);
+    await onPinMessage(true).finally(() => setLoading(false));
+  }, [onPinMessage])
+
   return (
     <div className={cn(s.actionsWrapper, className)}>
       {showPinned
         ?
         <>
-          {isAdmin && <Button onClick={() => onPinMessage(true)}>Unpin</Button>}
+          {isAdmin && (loading ? <Spinner /> : <Button onClick={onUnpin}>Unpin</Button>)}
         </>
         : (
         <>

@@ -3,7 +3,7 @@ import React, { FC, useCallback, useMemo } from 'react';
 
 import useToggle from 'src/hooks/useToggle';
 
-type ModalViews =
+export type ModalViews =
   | 'SHARE_CHANNEL'
   | 'CREATE_CHANNEL'
   | 'JOIN_CHANNEL'
@@ -16,7 +16,8 @@ type ModalViews =
   | 'NETWORK_NOT_READY'
   | 'JOIN_CHANNEL_SUCCESS'
   | 'MESSAGE_LONG'
-  | 'LOGOUT';
+  | 'LOGOUT'
+  | 'USER_WAS_BANNED';
 
 export interface State {
   displayModal: boolean;

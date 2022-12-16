@@ -188,7 +188,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
       promises.push(deleteSelectedMessage());
     }
 
-    promises.push(muteUser(selectedMessage.pubkey, true));
+    promises.push(muteUser(selectedMessage.pubkey, false));
 
     await Promise.all(promises);
 
@@ -200,9 +200,9 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     showDeleteMessageModal();
   }, [showDeleteMessageModal]);
 
-  const handlePinMessage = useCallback((message: Message) => (unpin?: boolean) => {
+  const handlePinMessage = useCallback((message: Message) => async (unpin?: boolean) => {
     if (unpin === true) {
-      pinMessage(message, unpin);
+      await pinMessage(message, unpin);
     } else {
       setSelectedMessage(message);
       showPinModal();

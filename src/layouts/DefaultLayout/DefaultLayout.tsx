@@ -4,7 +4,7 @@ import React, { FC, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 import { LeftSideBar, RightSideBar, Modal } from 'src/components/common';
-import { useUI } from 'src/contexts/ui-context';
+import { ModalViews, useUI } from 'src/contexts/ui-context';
 import { useNetworkClient, Channel } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
@@ -23,7 +23,8 @@ import {
   NetworkNotReadyView,
   JoinChannelSuccessView,
   MessageLongView,
-  LogoutView
+  LogoutView,
+  UserWasBanned
 } from '@components/common/Modals';
 
 import s from './DefaultLayout.module.scss';
@@ -34,7 +35,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   const { closeModal, displayModal, modalView = '' } = useUI();
   const classes = modalView?.toLowerCase().replace(/_/g, '-');
 
-  const allModals = [
+  const allModals: ModalViews[] = [
     'SHARE_CHANNEL',
     'CREATE_CHANNEL',
     'JOIN_CHANNEL',
@@ -46,10 +47,11 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     'NETWORK_NOT_READY',
     'JOIN_CHANNEL_SUCCESS',
     'MESSAGE_LONG',
-    'LOGOUT'
+    'LOGOUT',
+    'USER_WAS_BANNED'
   ];
 
-  return displayModal && allModals.includes(modalView) ? (
+  return displayModal && modalView && allModals.includes(modalView) ? (
     <Modal className={classes} onClose={closeModal}>
       {modalView === 'SHARE_CHANNEL' && <ShareChannelView />}
       {modalView === 'CREATE_CHANNEL' && <CreateChannelView />}
@@ -65,6 +67,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
       {modalView === 'JOIN_CHANNEL_SUCCESS' && <JoinChannelSuccessView />}
       {modalView === 'MESSAGE_LONG' && <MessageLongView />}
       {modalView === 'LOGOUT' && <LogoutView />}
+      {modalView === 'USER_WAS_BANNED' && <UserWasBanned />}
     </Modal>
   ) : null;
 };

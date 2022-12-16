@@ -25,6 +25,7 @@ const UserTextArea: FC<Props> = ({
   const {
     cmix,
     currentChannel,
+    getMuted,
     sendMessage,
     sendReply
   } = useNetworkClient();
@@ -77,6 +78,12 @@ const UserTextArea: FC<Props> = ({
               setModalView('NETWORK_NOT_READY');
               openModal();
             } else {
+              const muted = getMuted();
+              if (muted) {
+                setModalView('USER_WAS_BANNED');
+                openModal();
+                return;
+              }
               if (replyToMessage) {
                 if (checkMessageLength()) {
                   sendReply(messageBody.trim(), replyToMessage.id);
@@ -104,6 +111,12 @@ const UserTextArea: FC<Props> = ({
               setModalView('NETWORK_NOT_READY');
               openModal();
             } else {
+              const muted = getMuted();
+              if (muted) {
+                setModalView('USER_WAS_BANNED');
+                openModal();
+                return;
+              }
               if (replyToMessage) {
                 if (checkMessageLength()) {
                   sendReply(messageBody.trim(), replyToMessage.id);
