@@ -1209,7 +1209,7 @@ export const NetworkProvider: FC<any> = props => {
         const currentHostName = window.location.host;
         const res = chanManager.GetShareURL(
           network?.GetID(),
-          `http://${currentHostName}/join`,
+          `https://${currentHostName}/join`,
           0,
           utils.Base64ToUint8Array(currentChannel.id)
         );
