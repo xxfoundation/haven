@@ -19,6 +19,8 @@ export interface Message {
   uuid: number;
   round: number;
   pubkey: string;
+  pinned: boolean;
+  hidden: boolean;
 }
 
 export type WithChildren = {

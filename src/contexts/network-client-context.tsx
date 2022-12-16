@@ -103,12 +103,14 @@ export type ChannelManager = {
   JoinChannel: (channelId: string) => Uint8Array;
   LeaveChannel: (channelId: Uint8Array) => void;
   GetMutedUsers: (channelId: Uint8Array) => Uint8Array;
+  Muted: (channelId: Uint8Array) => boolean;
   MuteUser: (
-      channelId: Uint8Array,
-      publicKey: Uint8Array,
-      mute: boolean,
-      muteDurationInMilliseconds: number,
-      cmixParams?: Uint8Array) => Promise<void>;
+    channelId: Uint8Array,
+    publicKey: Uint8Array,
+    mute: boolean,
+    messageValidityTimeoutMilliseconds: number,
+    cmixParams?: Uint8Array
+  ) => Promise<void>;
   SendMessage: (
     channelId: Uint8Array,
     message: string,
@@ -193,7 +195,8 @@ type NetworkContext = {
   deleteMessage: (message: Message) => Promise<void>;
   getBannedUsers: () => Promise<User[]>;
   mapDbMessagesToMessages: (messages: DBMessage[]) => Promise<Message[]>;
-  muteUser: (pubkey: string, muted: boolean) => Promise<void>;
+  getMuted: () => boolean;
+  muteUser: (pubkey: string, unmute: boolean) => Promise<void>;
   setNetworkStatus: (status: NetworkStatus) => void;
   setCmix: (cmix: CMix) => void;
   setMessages: (messages: Message[]) => void;
@@ -492,6 +495,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
             uuid: m.id,
             round: m.round,
             pubkey: m.pubkey,
+            pinned: m.pinned,
+            hidden: m.hidden,
             replyToMessage: {
               id: replyToMessage.message_id,
               body: decoder.decode(
@@ -508,6 +513,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
               uuid: replyToMessage.id,
               round: replyToMessage.round,
               pubkey: replyToMessage.pubkey,
+              pinned: replyToMessage.pinned,
+              hidden: replyToMessage.hidden
             }
           };
           mappedMessages.push(resolvedMessage);
@@ -531,7 +538,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
             uuid: m.id,
             round: m.round,
             pubkey: m.pubkey,
-            
+            pinned: m.pinned,
+            hidden: m.hidden,
           };
           mappedMessages.push(resolvedMessage);
         }
@@ -1453,16 +1461,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, currentChannel, utils]);
 
   const deleteMessage = useCallback(async ({ channelId, id }: Message) => {
-    if (cmix) {
-
-    }
     await channelManager?.DeleteMessage(
       utils.Base64ToUint8Array(channelId),
       utils.Base64ToUint8Array(id),
       false,
       utils.GetDefaultCMixParams()
-    )
-  }, [channelManager, cmix, utils]);
+    );
+
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+  }, [channelManager, utils]);
 
   const getBannedUsers = useCallback(async () => {
     let users: User[] = [];
@@ -1503,21 +1510,29 @@ export const NetworkProvider: FC<WithChildren> = props => {
         utils.GetDefaultCMixParams()
       )
     }
-  }, [channelManager, currentChannel, utils])
+  }, [channelManager, currentChannel, utils]);
 
   const fetchPinnedMessages = useCallback(async (): Promise<Message[]> => {
     if (db && currentChannel) {
-      return db.table<DBMessage>('messages').where('pinned').equals('true')
-        .filter(({ channel_id, hidden }) => !hidden && channel_id === currentChannel.id)
+      return db.table<DBMessage>('messages')
+        .filter(({ channel_id, hidden, pinned }) => pinned && !hidden && channel_id === currentChannel.id)
         .toArray()
         .then(mapDbMessagesToMessages);
     }
     return [];
   }, [currentChannel, mapDbMessagesToMessages]);
 
+  const getMuted = useCallback(() => {
+    if (currentChannel && channelManager) {
+      return channelManager?.Muted(utils.Base64ToUint8Array(currentChannel.id))
+    }
+    return false;
+  }, [channelManager, currentChannel, utils])
+
   const ctx: NetworkContext = {
     getBannedUsers,
     muteUser,
+    getMuted,
     cmix,
     deleteMessage,
     setCmix: setNetwork,
