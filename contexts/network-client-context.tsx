@@ -1210,7 +1210,7 @@ export const NetworkProvider: FC<any> = props => {
         const protocol = window.location.protocol;
         const res = chanManager.GetShareURL(
           network?.GetID(),
-          `${protocol}://${currentHostName}/join`,
+          `${protocol}//${currentHostName}/join`,
           0,
           utils.Base64ToUint8Array(currentChannel.id)
         );
