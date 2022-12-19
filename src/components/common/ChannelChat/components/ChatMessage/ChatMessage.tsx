@@ -143,7 +143,6 @@ const ActionsWrapper: FC<Props> = ({
               }}
             />
           </div>
-          <div></div>
           <div className='relative inline-block'>
             {pickerVisible && (
               <div

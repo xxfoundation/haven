@@ -72,16 +72,16 @@ const CodenameRegistration: FC = () => {
             {identities.map((i) => {
               return (
                 <div
-                  key={i.codeName}
-                  className={cn(s.codeName, {
-                    [s.codeName__selected]: i.codeName === selectedCodeName
+                  key={i.codename}
+                  className={cn(s.codename, {
+                    [s.codeName__selected]: i.codename === selectedCodeName
                   })}
                   onClick={() => {
-                    setSelectedCodeName(i.codeName);
+                    setSelectedCodeName(i.codename);
                     setSelectedPrivateIdentity(i.privateIdentity);
                   }}
                 >
-                  <span>{i.codeName}</span>
+                  <span>{i.codename}</span>
                 </div>
               );
             })}

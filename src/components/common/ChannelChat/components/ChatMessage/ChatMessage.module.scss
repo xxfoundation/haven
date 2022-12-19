@@ -58,12 +58,13 @@
     border-radius: 4px;
     padding: 4px 8px;
     background-color: var(--dark-5);
+
     &.show {
       display: flex;
     }
 
-    & > div {
-      padding: 0 2px;
+    & > div, & > svg {
+      margin: 0 4px;
     }
 
     .emojisPickerWrapper {
