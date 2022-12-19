@@ -49,35 +49,8 @@
     }
   }
 
-  .actionsWrapper {
-    display: none;
-    align-items: center;
-    position: absolute;
-    right: 20px;
-    top: 2px;
-    border-radius: 4px;
-    padding: 4px 8px;
-    background-color: var(--dark-5);
-
-    &.show {
-      display: flex;
-    }
-
-    & > div, & > svg {
-      margin: 0 4px;
-    }
-
-    .emojisPickerWrapper {
-      z-index: 1;
-      right: 40px;
-    }
-  }
-
-  &:hover, &.active {
+  &:hover {
     background-color: var(--dark-6);
-    .actionsWrapper {
-      display: flex;
-    }
   }
 
   .sender {
@@ -171,4 +144,11 @@
 
 .sender {
   white-space: nowrap;
+}
+
+.actionsWrapperPosition {
+  position: absolute;
+  right: 20px;
+  top: 2px;
+  z-index: 2;
 }

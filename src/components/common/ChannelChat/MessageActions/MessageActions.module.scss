@@ -1,0 +1,15 @@
+.root {
+  align-items: center;
+  border-radius: 4px;
+  padding: 0.25rem 0.25rem;
+  background-color: var(--dark-5);
+
+  & > div, & > svg {
+    margin: 0 4px;
+  }
+}
+
+.emojisPickerWrapper {
+  position: absolute;
+  z-index: 1;
+}

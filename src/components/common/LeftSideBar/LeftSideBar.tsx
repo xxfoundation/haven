@@ -1,4 +1,4 @@
-import { FC, useCallback } from 'react';
+import { FC, useCallback, useMemo } from 'react';
 import s from './LeftSideBar.module.scss';
 import cn from 'classnames';
 import {
@@ -38,7 +38,7 @@ const LeftSideBar: FC<{
     openModal();
   }, [openModal, setModalView])
 
-  const collapseTitle = (
+  const collapseTitle = useMemo(() => (
     <div className={cn('flex justify-between')}>
       <span>JOINED</span>
       <div className='flex items-center'>
@@ -66,7 +66,7 @@ const LeftSideBar: FC<{
         />
       </div>
     </div>
-  );
+  ), [openModal, setModalView]);
 
   return (
     <div className={cn(s.root, cssClasses)}>
@@ -82,7 +82,6 @@ const LeftSideBar: FC<{
             {channels.map(ch => (
                 <div className='flex justify-between items-center' key={ch.id}>
                   <span
-                    style={{ color: ch.isAdmin ? 'gold' : 'inherit'}}
                     title={ch.isAdmin ? 'You are admin in this channel' : undefined}
                     className={cn(s.channelPill, 'headline--xs', {
                       [s.channelPill__active]:

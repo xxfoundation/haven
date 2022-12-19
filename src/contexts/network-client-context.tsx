@@ -184,6 +184,7 @@ type NetworkContext = {
   isNetworkHealthy: boolean | undefined;
   isReadyToRegister: boolean | undefined;
   networkStatus: NetworkStatus;
+  channelIdentity: IdentityJSON | null;
   // api
   fetchPinnedMessages: () => Promise<Message[]>;
   connectNetwork: () => Promise<void>;
@@ -282,6 +283,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const [isNetworkHealthy, setIsNetworkHealthy] = useState<boolean | undefined>(
     undefined
   );
+  const [channelIdentity, setChannelIdentity] = useState<IdentityJSON | null>(null);
+  
   const [isReadyToRegister, setIsReadyToRegister] = useState<
     boolean | undefined
   >(undefined);
@@ -289,7 +292,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const [blockedEvents, setBlockedEvents] = useState<DBMessage[]>([]);
   const currentCodeNameRef = useRef<string>('');
   const currentChannelRef = useRef<Channel>();
-
   const dummyTrafficObjRef = useRef<DummyTraffic>();
   const cipherRef = useRef<DatabaseCipher>();
 
@@ -320,6 +322,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
       return null;
     }
   }, [channelManager]);
+
+
+  useEffect(() => {
+    if (currentChannel && !currentChannel?.isLoading) {
+      const identity = getIdentity();
+      setChannelIdentity(identity);
+    }
+  }, [currentChannel, getIdentity]);
 
   const connectNetwork = useCallback(async () => {
     if (cmix) {
@@ -1530,6 +1540,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, currentChannel, utils])
 
   const ctx: NetworkContext = {
+    channelIdentity,
     getBannedUsers,
     muteUser,
     getMuted,
