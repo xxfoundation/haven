@@ -6,6 +6,7 @@ class MyDocument extends Document {
     return (
       <Html lang='en-US'>
         <Head />
+        <div id='emoji-portal'/>
         <body className='loading'>
           <Main />
           <NextScript />

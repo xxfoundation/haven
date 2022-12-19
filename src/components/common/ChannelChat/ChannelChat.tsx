@@ -1,4 +1,4 @@
-import type { Message, EmojiReaction } from 'src/types';
+import type { Message } from 'src/types';
 
 import { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
@@ -6,20 +6,16 @@ import cn from 'classnames';
 import moment from 'moment';
 import _ from 'lodash';
 
-import UserTextArea from './components/UserTextArea/UserTextArea';
-import ChatMessage from './components/ChatMessage/ChatMessage';
-import { IdentityJSON, useNetworkClient } from 'src/contexts/network-client-context';
-import { useUI } from 'src/contexts/ui-context';
+import UserTextArea from './UserTextArea/UserTextArea';
+import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Tree } from 'src/components/icons';
 import { Spinner } from 'src/components/common';
 import { byEntryTimestamp } from 'src/utils/index';
 import { PrivacyLevel } from 'src/contexts/utils-context';
-import useToggle from 'src/hooks/useToggle';
-import MuteUserModal, { MuteUserAction } from '../Modals/MuteUser';
-import DeleteMessageModal from '../Modals/DeleteMessage';
 
 import s from './ChannelChat.module.scss';
-import PinMessageModal from '../Modals/PinMessageModal';
+import MessageContainer from './MessageContainer';
+import { useUI } from '@contexts/ui-context';
 
 const privacyLevelLabels: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Private]: 'Private',
@@ -32,43 +28,20 @@ type Props = {
 }
 
 const ChannelChat: FC<Props> = ({ messages }) => {
-  const [muteUserModalOpen, muteUserModalToggle] = useToggle();
-  const [deleteMessageModalOpened, {
-    toggleOff: hideDeleteMessageModal,
-    toggleOn: showDeleteMessageModal
-  } ] = useToggle();
-  const [pinMessageModalOpen, {
-    toggleOff: hidePinModal,
-    toggleOn: showPinModal
-  }] = useToggle();
   const {
     channels,
     cmix,
     currentChannel,
-    deleteMessage,
-    getIdentity,
     getShareURL,
     getShareUrlType,
     loadMoreChannelData,
-    muteUser,
-    pinMessage,
     sendReaction
   } = useNetworkClient();
   const { openModal, setModalView } = useUI();
-  const [channelIdentity, setChannelIdentity] = useState<IdentityJSON | null>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null); 
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
   const [currentChannelPrivacyLevel, setCurrentChannelPrivacyLevel] = useState<PrivacyLevel | null>(null);
-
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (currentChannel && !currentChannel?.isLoading) {
-      const identity = getIdentity();
-      setChannelIdentity(identity);
-    }
-  }, [currentChannel, getIdentity])
 
   useEffect(() => {
     setReplyToMessage(undefined);
@@ -99,6 +72,15 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     return Object.entries(groupedMessagesPerDay)
       .sort(byEntryTimestamp);
   }, [currentChannelMessages])
+
+  const onEmojiReaction = useCallback((emoji: string, messageId: string) =>  {
+    if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
+      setModalView('NETWORK_NOT_READY');
+      openModal();
+    } else {
+      sendReaction(emoji, messageId);
+    }
+  }, [cmix, openModal, sendReaction, setModalView]);
 
   const checkBottom = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
@@ -141,104 +123,9 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     }
   }, [currentChannelMessages, autoScrollToEnd, scrollToEnd]);
 
-  const handleReactToMessage = useCallback((
-    reaction: EmojiReaction,
-    message: Message
-  ) => {
-    if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
-      setModalView('NETWORK_NOT_READY');
-      openModal();
-    } else {
-      if (message.id) {
-        sendReaction(reaction.emoji, message.id);
-      }
-    }
-  }, [cmix, openModal, sendReaction, setModalView]);
-
-  const handleReplyToMessage = useCallback((message: Message) => () => {
-    if (textAreaRef && textAreaRef.current) {
-      textAreaRef.current.focus();
-    }
-    setReplyToMessage(message);
-  }, []);
-
-  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-
-  const showMuteModal = useCallback((message: Message) => () => {
-    setSelectedMessage(message);
-    muteUserModalToggle.toggleOn();
-  }, [muteUserModalToggle]);
-
-  const deleteSelectedMessage = useCallback(async () => {
-    if (selectedMessage) {
-      await deleteMessage(selectedMessage);
-    }
-    setSelectedMessage(null);
-    hideDeleteMessageModal();
-  }, [deleteMessage, hideDeleteMessageModal, selectedMessage])
-
-  const handleMuteUser = useCallback(async (action: MuteUserAction) => {
-    if (!selectedMessage) {
-      return;
-    }
-
-    const promises: Promise<unknown>[] = [];
-
-    if (action === 'mute+delete' && selectedMessage) {
-      promises.push(deleteSelectedMessage());
-    }
-
-    promises.push(muteUser(selectedMessage.pubkey, false));
-
-    await Promise.all(promises);
-
-    muteUserModalToggle.toggleOff();
-  }, [deleteSelectedMessage, muteUser, muteUserModalToggle, selectedMessage]);
-
-  const onDeleteMessage = useCallback((message: Message) => () => {
-    setSelectedMessage(message);
-    showDeleteMessageModal();
-  }, [showDeleteMessageModal]);
-
-  const handlePinMessage = useCallback((message: Message) => async (unpin?: boolean) => {
-    if (unpin === true) {
-      await pinMessage(message, unpin);
-    } else {
-      setSelectedMessage(message);
-      showPinModal();
-    }
-  }, [pinMessage, showPinModal])
-
-  const pinSelectedMessage = useCallback(async () => {
-    if (selectedMessage) {
-      await pinMessage(selectedMessage);
-    }
-    setSelectedMessage(null);
-    hidePinModal();
-  }, [hidePinModal, pinMessage, selectedMessage]);
-
-  const onMuteUserModalCancel = useCallback(() => {
-    setSelectedMessage(null);
-    muteUserModalToggle.toggleOff();
-  }, [muteUserModalToggle])
 
   return (
     <div className={s.root}>
-      {muteUserModalOpen && (
-        <MuteUserModal
-          onConfirm={handleMuteUser}
-          onCancel={onMuteUserModalCancel} />
-      )}
-      {deleteMessageModalOpened && (
-        <DeleteMessageModal
-          onConfirm={deleteSelectedMessage}
-          onCancel={hideDeleteMessageModal} />
-      )}
-      {pinMessageModalOpen && (
-        <PinMessageModal
-          onConfirm={pinSelectedMessage}
-          onCancel={hidePinModal} />
-      )}
       {currentChannel ? (
         <>
           <div className={s.channelHeader}>
@@ -279,40 +166,32 @@ const ChannelChat: FC<Props> = ({ messages }) => {
                 <Spinner />
               </div>
             ) : (
-              sortedGroupedMessagesPerDay.map(([key, message]) => {
+              <>
+              {sortedGroupedMessagesPerDay.map(([key, message]) => {
                 return (
                   <div className={cn(s.dayMessagesWrapper)} key={key}>
                     <div className={s.separator}></div>
                     <span className={cn(s.currentDay)}>
                       {moment(key).format('dddd MMMM Do, YYYY')}
                     </span>
-                    <div>
-                      {message.map((m, index) => (
-                        <ChatMessage
-                          isOwn={channelIdentity?.PubKey === m.pubkey}
-                          isAdmin={currentChannel?.isAdmin}
-                          key={`${m.id}${m.status}${index}`}
-                          message={m}
-                          onDeleteMessage={onDeleteMessage(m)}
-                          onMuteUser={showMuteModal(m)}
-                          onPinMessage={handlePinMessage(m)}
-                          onReactToMessage={(reaction: EmojiReaction) => {
-                            handleReactToMessage(reaction, m);
-                          }}
-                          onReplyClicked={handleReplyToMessage(m)}
-                        />
-                      ))}
-                    </div>
+                    {message.map((m) => (
+                      <MessageContainer
+                        onEmojiReaction={onEmojiReaction}
+                        handleReplyToMessage={setReplyToMessage}
+                        message={m} />
+                    ))}
                   </div>
                 );
-              })
+              })}
+              </>
             )}
           </div>
+          
           <UserTextArea
-            setAutoScrollToEnd={setAutoScrollToEnd}
-            replyToMessage={replyToMessage}
-            setReplyToMessage={setReplyToMessage}
-          />
+              setAutoScrollToEnd={setAutoScrollToEnd}
+              replyToMessage={replyToMessage}
+              setReplyToMessage={setReplyToMessage}
+            />
         </>
       ) : channels.length ? (
         <div className={s.channelHeader}></div>

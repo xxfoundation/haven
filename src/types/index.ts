@@ -1,10 +1,5 @@
 import type { ReactNode } from 'react';
 
-export interface EmojiReaction {
-  emoji: string;
-  userName: string;
-}
-
 export interface Message {
   id: string;
   body: string;
@@ -12,7 +7,7 @@ export interface Message {
   color?: string;
   codename: string;
   nickname?: string;
-  emojisMap?: Map<EmojiReaction['emoji'], EmojiReaction['userName'][]>;
+  emojisMap?: Map<string, string[]>;
   replyToMessage?: Message;
   channelId: string;
   status?: number;
