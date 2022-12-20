@@ -3,7 +3,7 @@ import s from './ShareChannelView.module.scss';
 import cn from 'classnames';
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
-import copy from 'copy-to-clipboard';
+import useCopyClipboard from 'src/hooks/useCopyToClipboard';
 
 interface ICredentials {
   url: string;
@@ -17,6 +17,7 @@ const ShareChannelView: FC = () => {
     password: ''
   });
   const credentialsDivRef = useRef<HTMLDivElement>(null);
+  const [copied, copy] = useCopyClipboard(700);
 
   useEffect(() => {
     const resultCredential = getShareURL();
@@ -62,15 +63,20 @@ const ShareChannelView: FC = () => {
           )}
         </div>
       </div>
-      <ModalCtaButton
-        buttonCopy='Copy'
-        cssClass={cn('mb-7 mt-16', s.button)}
-        onClick={() => {
-          if (credentialsDivRef?.current) {
-            copy(credentialsDivRef?.current.innerText);
-          }
-        }}
-      />
+      <div className='mb-7 mt-8' style={{ textAlign: 'center'}}>
+        <div className='mb-5' style={{ color: 'var(--green)', opacity: copied ? 1 : 0, transition: 'all 0.2s ease-out' }}>
+          Copied!
+        </div>
+        <ModalCtaButton
+          buttonCopy='Copy'
+          cssClass={cn(s.button)}
+          onClick={() => {
+            if (credentialsDivRef?.current) {
+              copy(credentialsDivRef?.current.innerText);
+            }
+          }}
+        />
+      </div>
       <p
         className={cn('mb-8 text text--xs', s.warn)}
         style={{ color: 'var(--cyan)', lineHeight: '13px' }}

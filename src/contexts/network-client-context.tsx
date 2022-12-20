@@ -174,9 +174,26 @@ export type IdentityJSON = {
 }
 
 let db: Dexie | undefined;
+let storageTag: string;
+
+const initDb = (tag = storageTag) => {
+  if (!tag) { return; }
+  storageTag = tag;
+  db = new Dexie(`${tag}_speakeasy`);
+  db.version(0.1).stores({
+    channels: '++id',
+    messages:
+      '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
+  });
+
+  return db;
+}
 
 type NetworkContext = {
   // state
+  bannedUsers: User[] | undefined;
+  userIsBanned: (pubkey: string) => boolean;
+  setBannedUsers: React.Dispatch<React.SetStateAction<User[] | undefined>>;
   channels: Channel[];
   messages: Message[];
   cmix?: CMix;
@@ -270,7 +287,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     statePathExists
   } = useAuthentication();
   const { utils } = useUtils();
-
+  const [bannedUsers, setBannedUsers] = useState<User[]>();
   const [cmix, setNetwork] = useState<CMix | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
@@ -450,6 +467,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [connectNetwork, cmix, networkStatus, setIsAuthenticated]);
 
   const mapDbMessagesToMessages = useCallback(async (msgs: DBMessage[]) => {
+    initDb();
+
     if (!db || !(cipherRef && cipherRef.current)) {
       return [];
     } else {
@@ -872,13 +891,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, []);
 
-  const handleInitialLoadData = useCallback(async (storageTag: string, manager: ChannelManager) => {
-    db = new Dexie(`${storageTag}_speakeasy`);
-    db.version(0.1).stores({
-      channels: '++id',
-      messages:
-        '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
-    });
+  const handleInitialLoadData = useCallback(async (tag: string, manager: ChannelManager) => {
+    db = initDb(tag);
+
+    assert(db);
 
     const fetchedChannels = await db.table<DBChannel>('channels').toArray();
 
@@ -939,7 +955,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     utils
   ]);
 
-  const loadChannelManager = async (storageTag: string, cmixFallback?: CMix) => {
+  const loadChannelManager = async (tag: string, cmixFallback?: CMix) => {
     const currentNetwork = cmix || cmixFallback;
 
     if (
@@ -951,13 +967,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const loadedChannelsManager = await utils
         .LoadChannelsManagerWithIndexedDb(
           currentNetwork.GetID(),
-          storageTag,
+          tag,
           onReceiveEvent,
           cipherRef?.current?.GetID()
         );
 
       setChannelManager(loadedChannelsManager);
-      handleInitialLoadData(storageTag, loadedChannelsManager);
+      handleInitialLoadData(tag, loadedChannelsManager);
     }
   };
 
@@ -976,9 +992,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       );
       
       setChannelManager(createdChannelManager);
-      const storageTag = createdChannelManager.GetStorageTag();
-      addStorageTag(storageTag);
-      handleInitialLoadData(storageTag, createdChannelManager);
+      const tag = createdChannelManager.GetStorageTag();
+      addStorageTag(tag);
+      handleInitialLoadData(tag, createdChannelManager);
     }
   }, [
     addStorageTag,
@@ -1482,7 +1498,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, utils]);
 
   const getBannedUsers = useCallback(async () => {
+    initDb();
     let users: User[] = [];
+
     if (currentChannel && channelManager && db) {
       const bannedUserIds = JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
         utils.Base64ToUint8Array(currentChannel.id)
@@ -1505,10 +1523,20 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }, new Map<string, User>()).values();
       
       users = Array.from(usersMap);
+      setBannedUsers(users);
     }
 
     return users;
   }, [channelManager, currentChannel, getCodeNameAndColor, utils]);
+
+  useEffect(() => {
+    getBannedUsers();
+  }, [currentChannel, getBannedUsers]);
+
+  const userIsBanned = useCallback(
+    (pubkey: string) => !!bannedUsers?.find((u) => u.pubkey === pubkey),
+    [bannedUsers]
+  );
 
   const pinMessage = useCallback(async ({ id }: Message, unpin = false) => {
     if (currentChannel && channelManager) {
@@ -1524,10 +1552,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const fetchPinnedMessages = useCallback(async (): Promise<Message[]> => {
     if (db && currentChannel) {
-      return db.table<DBMessage>('messages')
-        .filter(({ channel_id, hidden, pinned }) => pinned && !hidden && channel_id === currentChannel.id)
+      const pinnedMessages = await db.table<DBMessage>('messages')
+        .filter((m) => m.pinned && !m.hidden && m.channel_id === currentChannel.id)
         .toArray()
         .then(mapDbMessagesToMessages);
+
+      return pinnedMessages;
     }
     return [];
   }, [currentChannel, mapDbMessagesToMessages]);
@@ -1542,6 +1572,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const ctx: NetworkContext = {
     channelIdentity,
     getBannedUsers,
+    bannedUsers,
+    userIsBanned,
+    setBannedUsers,
     muteUser,
     getMuted,
     cmix,

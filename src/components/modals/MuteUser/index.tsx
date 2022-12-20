@@ -2,7 +2,7 @@ import { FC } from 'react';
 import cn from 'classnames';
 
 import { ModalCtaButton, Spinner } from 'src/components/common';
-import Modal from '@components/common/Modals';
+import Modal from 'src/components/modals';
 
 import s from './MuteUser.module.scss';
 import { useCallback, useState } from 'react';

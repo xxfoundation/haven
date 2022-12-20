@@ -3,19 +3,14 @@ import type { Message } from 'src/types';
 import { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import cn from 'classnames';
-import moment from 'moment';
-import _ from 'lodash';
 
 import UserTextArea from './UserTextArea/UserTextArea';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Tree } from 'src/components/icons';
-import { Spinner } from 'src/components/common';
-import { byEntryTimestamp } from 'src/utils/index';
 import { PrivacyLevel } from 'src/contexts/utils-context';
 
 import s from './ChannelChat.module.scss';
-import MessageContainer from './MessageContainer';
-import { useUI } from '@contexts/ui-context';
+import MessagesContainer from './MessagesContainer';
 
 const privacyLevelLabels: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Private]: 'Private',
@@ -30,18 +25,21 @@ type Props = {
 const ChannelChat: FC<Props> = ({ messages }) => {
   const {
     channels,
-    cmix,
     currentChannel,
     getShareURL,
     getShareUrlType,
-    loadMoreChannelData,
-    sendReaction
-  } = useNetworkClient();
-  const { openModal, setModalView } = useUI();
+    loadMoreChannelData
+  } = useNetworkClient()
   const messagesContainerRef = useRef<HTMLDivElement>(null); 
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
   const [currentChannelPrivacyLevel, setCurrentChannelPrivacyLevel] = useState<PrivacyLevel | null>(null);
+
+
+  const currentChannelMessages = useMemo(
+    () => messages.filter(m =>  m.channelId === currentChannel?.id),
+    [currentChannel?.id, messages]
+  );
 
   useEffect(() => {
     setReplyToMessage(undefined);
@@ -55,32 +53,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     }
   }, [currentChannel?.id, getShareURL, getShareUrlType]);
 
-  const currentChannelMessages = useMemo(
-    () => messages.filter(m =>  m.channelId === currentChannel?.id),
-    [currentChannel?.id, messages]
-  );
-
-  const sortedGroupedMessagesPerDay = useMemo(() => {
-    const groupedMessagesPerDay = _.groupBy(
-      currentChannelMessages,
-      (message) => moment(
-        moment(message.timestamp),
-        'DD/MM/YYYY'
-      ).startOf('day')
-    );
-
-    return Object.entries(groupedMessagesPerDay)
-      .sort(byEntryTimestamp);
-  }, [currentChannelMessages])
-
-  const onEmojiReaction = useCallback((emoji: string, messageId: string) =>  {
-    if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
-      setModalView('NETWORK_NOT_READY');
-      openModal();
-    } else {
-      sendReaction(emoji, messageId);
-    }
-  }, [cmix, openModal, sendReaction, setModalView]);
 
   const checkBottom = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
@@ -121,7 +93,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     if (!document.querySelector('.emoji-picker-react') && autoScrollToEnd) {
       scrollToEnd();
     }
-  }, [currentChannelMessages, autoScrollToEnd, scrollToEnd]);
+  }, [autoScrollToEnd, scrollToEnd]);
 
 
   return (
@@ -148,45 +120,11 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             </div>
             <p className={'text mt-2'}>{currentChannel?.description}</p>
           </div>
-          <div
-            id={'messagesContainer'}
-            className={cn(s.messagesContainer)}
-            ref={messagesContainerRef}
-            onScroll={() => {
-              checkTop();
-              if (checkBottom()) {
-                setAutoScrollToEnd(true);
-              } else {
-                setAutoScrollToEnd(false);
-              }
-            }}
-          >
-            {currentChannel.isLoading ? (
-              <div className='m-auto flex w-full h-full justify-center items-center'>
-                <Spinner />
-              </div>
-            ) : (
-              <>
-              {sortedGroupedMessagesPerDay.map(([key, message]) => {
-                return (
-                  <div className={cn(s.dayMessagesWrapper)} key={key}>
-                    <div className={s.separator}></div>
-                    <span className={cn(s.currentDay)}>
-                      {moment(key).format('dddd MMMM Do, YYYY')}
-                    </span>
-                    {message.map((m) => (
-                      <MessageContainer
-                        onEmojiReaction={onEmojiReaction}
-                        handleReplyToMessage={setReplyToMessage}
-                        message={m} />
-                    ))}
-                  </div>
-                );
-              })}
-              </>
-            )}
+          <div ref={messagesContainerRef}>
+            <MessagesContainer
+              messages={currentChannelMessages}
+              handleReplyToMessage={setReplyToMessage} />
           </div>
-          
           <UserTextArea
               setAutoScrollToEnd={setAutoScrollToEnd}
               replyToMessage={replyToMessage}

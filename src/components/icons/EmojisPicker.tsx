@@ -12,6 +12,7 @@ const EmojisPicker = (props: SVGProps<SVGSVGElement>) => (
     className={s.root}
     {...props}
   >
+    <title>React</title>
     <g id='🔍-Product-Icons' fillRule='evenodd'>
       <g id='ic_fluent_emoji_add_24_regular' fill='#212121' color='var(--cyan)'>
         <path

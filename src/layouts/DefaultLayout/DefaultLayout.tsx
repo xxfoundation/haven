@@ -3,7 +3,8 @@ import cn from 'classnames';
 import React, { FC, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
-import { LeftSideBar, RightSideBar, Modal } from 'src/components/common';
+import { LeftSideBar, RightSideBar } from 'src/components/common';
+import Modal from 'src/components/modals/Modal';
 import { ModalViews, useUI } from 'src/contexts/ui-context';
 import { useNetworkClient, Channel } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
@@ -25,9 +26,10 @@ import {
   MessageLongView,
   LogoutView,
   UserWasBanned
-} from '@components/common/Modals';
+} from 'src/components/modals';
 
 import s from './DefaultLayout.module.scss';
+import ViewPinnedMessages from '@components/modals/ViewPinnedMessages';
 
 const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   currentChannel
@@ -48,7 +50,8 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     'JOIN_CHANNEL_SUCCESS',
     'MESSAGE_LONG',
     'LOGOUT',
-    'USER_WAS_BANNED'
+    'USER_WAS_BANNED',
+    'VIEW_PINNED_MESSAGES'
   ];
 
   return displayModal && modalView && allModals.includes(modalView) ? (
@@ -68,6 +71,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
       {modalView === 'MESSAGE_LONG' && <MessageLongView />}
       {modalView === 'LOGOUT' && <LogoutView />}
       {modalView === 'USER_WAS_BANNED' && <UserWasBanned />}
+      {modalView === 'VIEW_PINNED_MESSAGES'  && <ViewPinnedMessages />}
     </Modal>
   ) : null;
 };

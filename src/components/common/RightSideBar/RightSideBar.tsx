@@ -12,7 +12,8 @@ import { Elixxir } from 'src/components/icons';
 
 import s from './RightSideBar.module.scss';
 import useToggle from 'src/hooks/useToggle';
-import ViewBannedUsersModal from '../Modals/ViewBannedUsers';
+import ViewBannedUsersModal from 'src/components/modals/ViewBannedUsers';
+import Identity from '../Identity';
 
 type IconProps = {
   cssClass?: string;
@@ -34,7 +35,6 @@ const Icon: FC<IconProps> = ({
 
 
 const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
-  const { showPinned, togglePinned } = useUI();
   const {
     currentChannel,
     getIdentity,
@@ -93,6 +93,11 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
     setIsActive(!isActive);
   }, [isActive]);
 
+  const showPinnedMessages = useCallback(() => {
+    setModalView('VIEW_PINNED_MESSAGES');
+    openModal();
+  }, [openModal, setModalView])
+
   return (
     <a.div
       className={cn(s.root, cssClasses, { [s.root__collapsed]: !isActive })}
@@ -133,9 +138,9 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
               )}
               <Button
                 cssClasses={cn('block mx-auto mb-4')}
-                onClick={togglePinned}
+                onClick={showPinnedMessages}
               >
-                {showPinned ? 'View Chat Messages' : 'View Pinned Messages'}
+                View Pinned Messages
               </Button>
               <Button
                 cssClasses={cn('block mx-auto')}
@@ -188,42 +193,8 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                 if (c.codename === codeName) {
                   return null;
                 } else {
-                  const cssColor = c?.color?.replace('0x', '#');
-
                   return (
-                    <span
-                      className={cn(s.sender, 'flex items-center')}
-                      key={c.codename}
-                      style={{
-                        padding: '6px'
-                      }}
-                    >
-                      {c.nickname && (
-                        <span
-                          style={{ color: `${cssColor}`, marginRight: '6px' }}
-                          className={cn('headline--xs', s.nickNameWrapper)}
-                        >
-                          {c.nickname}
-                        </span>
-                      )}
-                      <span
-                        className={cn('flex items-center', s.codeNameWrapper)}
-                      >
-                        <Elixxir
-                          style={
-                            c.nickname ? { fill: '#73767C' } : { fill: cssColor }
-                          }
-                        />
-                        <span
-                          style={
-                            c.nickname ? { color: '#73767C' } : { color: cssColor }
-                          }
-                          className='headline--xs'
-                        >
-                          {c.codename}
-                        </span>
-                      </span>
-                    </span>
+                    <Identity {...c} />
                   );
                 }
               })}
