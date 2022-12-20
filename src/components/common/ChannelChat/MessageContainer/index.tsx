@@ -1,5 +1,5 @@
 import type { Message } from 'src/types';
-import type { FC } from 'react';
+import type{ FC } from 'react';
 
 import { useCallback, useState } from 'react';
 import cn from 'classnames';
@@ -8,10 +8,12 @@ import MessageActions from '../MessageActions';
 import ChatMessage from '../ChatMessage/ChatMessage';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import useToggle from 'src/hooks/useToggle';
-import PinMessageModal from 'src/components/common/Modals/PinMessageModal';
-import MuteUserModal, { MuteUserAction } from 'src/components/common/Modals/MuteUser';
-import DeleteMessageModal from 'src/components/common/Modals/DeleteMessage';
+import PinMessageModal from 'src/components/modals/PinMessageModal';
+import MuteUserModal, { MuteUserAction } from 'src/components/modals/MuteUser';
+import DeleteMessageModal from 'src/components/modals/DeleteMessage';
+
 import classes from './MessageContainer.module.scss';
+import delay from 'delay';
 
 type Props = {
   message: Message;
@@ -27,7 +29,9 @@ const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiRea
     deleteMessage,
     muteUser,
     pinMessage,
+    userIsBanned
   } = useNetworkClient();
+
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
   const [deleteMessageModalOpened, {
     toggleOff: hideDeleteMessageModal,
@@ -56,6 +60,8 @@ const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiRea
 
     promises.push(muteUser(message.pubkey, false));
 
+    promises.push(delay(5000));  // delay to let the nodes propagate
+
     await Promise.all(promises);
 
     muteUserModalToggle.toggleOff();
@@ -63,20 +69,26 @@ const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiRea
 
   const handlePinMessage = useCallback(async (unpin?: boolean) => {
     if (unpin === true) {
-      await pinMessage(message, unpin);
+      await Promise.all([
+        pinMessage(message, unpin),
+        delay(5000) // delay to let the nodes propagate
+      ]);
     } else {
       showPinModal();
     }
   }, [message, pinMessage, showPinModal])
 
   const pinSelectedMessage = useCallback(async () => {
-    await pinMessage(message);
+    await Promise.all([
+      pinMessage(message),
+      delay(5000) // delay to let the nodes propagate
+    ]);
     hidePinModal();
   }, [hidePinModal, message, pinMessage]);
 
   const handleEmojiReaction = useCallback((emoji: string) => {
     onEmojiReaction(emoji, message.id);
-  }, [message.id, onEmojiReaction])
+  }, [message.id, onEmojiReaction]);
   
   return (
     <>
@@ -102,6 +114,7 @@ const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiRea
           className={cn(classes.actions, {
             [classes.show]: showActionsWrapper
           })}
+          isBanned={userIsBanned(message.pubkey)}
           onMuteUser={muteUserModalToggle.toggleOn}
           onPinMessage={handlePinMessage}
           onReactToMessage={handleEmojiReaction}

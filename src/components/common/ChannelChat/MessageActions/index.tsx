@@ -1,6 +1,6 @@
 import type { BaseEmoji } from 'emoji-mart';
 
-import { FC, CSSProperties, useCallback, useEffect, useRef, useState, HTMLAttributes, useMemo } from 'react';
+import { FC, useCallback, useEffect, useRef, useState, HTMLAttributes, CSSProperties } from 'react';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import cn from 'classnames';
@@ -14,6 +14,7 @@ import classes from './MessageActions.module.scss';
 import { createPortal } from 'react-dom';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
+  isBanned: boolean;
   isAdmin: boolean;
   isOwn: boolean;
   onReplyClicked: () => void;
@@ -25,6 +26,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 
 const MessageActions: FC<Props> = ({
   isAdmin,
+  isBanned,
   isOwn,
   onDeleteMessage,
   onMuteUser,
@@ -36,7 +38,7 @@ const MessageActions: FC<Props> = ({
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerIconRef = useRef<HTMLDivElement>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
-  const [style, setStyle] = useState({});
+  const [style, setStyle] = useState<CSSProperties>({});
 
   const listener = useCallback<(event: MouseEvent | TouchEvent) => void>((event) => {
     if (
@@ -59,7 +61,6 @@ const MessageActions: FC<Props> = ({
       document.removeEventListener('touchstart', listener);
     };
   }, [listener]);
-
 
   const onEmojiSelect = useCallback((e: BaseEmoji) => {
     onReactToMessage(e.native);
@@ -86,7 +87,7 @@ const MessageActions: FC<Props> = ({
 
   const onOpenEmojiMart = useCallback(() => {
     adjustPickerPosition();
-    setPickerVisible(true);
+    setPickerVisible((visibile) => !visibile);
   }, [adjustPickerPosition])
 
   const emojiPortalElement = document.getElementById('emoji-portal');
@@ -100,7 +101,7 @@ const MessageActions: FC<Props> = ({
         </>
         : (
         <>
-          {isAdmin && !isOwn && (
+          {isAdmin && !isOwn && !isBanned && (
             <Ban
               onClick={onMuteUser}
             />
@@ -117,6 +118,7 @@ const MessageActions: FC<Props> = ({
           )}
           <div ref={pickerIconRef}>
             <EmojisPickerIcon
+            
               onClick={onOpenEmojiMart}
             />
           </div>
@@ -135,7 +137,6 @@ const MessageActions: FC<Props> = ({
               </div>,
               emojiPortalElement
             )
-            
           }
           <Reply
             onClick={() => {

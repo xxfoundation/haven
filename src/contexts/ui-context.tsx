@@ -1,8 +1,6 @@
 import { WithChildren } from '@types';
 import React, { FC, useCallback, useMemo } from 'react';
 
-import useToggle from 'src/hooks/useToggle';
-
 export type ModalViews =
   | 'SHARE_CHANNEL'
   | 'CREATE_CHANNEL'
@@ -17,7 +15,8 @@ export type ModalViews =
   | 'JOIN_CHANNEL_SUCCESS'
   | 'MESSAGE_LONG'
   | 'LOGOUT'
-  | 'USER_WAS_BANNED';
+  | 'USER_WAS_BANNED'
+  | 'VIEW_PINNED_MESSAGES';
 
 export interface State {
   displayModal: boolean;
@@ -111,20 +110,15 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
     [dispatch]
   );
 
-  const [showPinned, { set: setShowPinned, toggle: togglePinned }] = useToggle(false);
-
   const value = useMemo(
     () => ({
       ...state,
       openModal,
       closeModal,
       setModalView,
-      setChannelInviteLink,
-      showPinned,
-      setShowPinned,
-      togglePinned
+      setChannelInviteLink
     }),
-    [closeModal, openModal, setChannelInviteLink, setModalView, setShowPinned, showPinned, state, togglePinned]
+    [closeModal, openModal, setChannelInviteLink, setModalView, state]
   );
 
   return (

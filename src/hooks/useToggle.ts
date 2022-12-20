@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import useIsMountedRef from './useIsMountedRef';
-
 type UseToggle = [
   boolean,
   {
@@ -13,22 +11,17 @@ type UseToggle = [
 ];
 
 const useToggle = (defaultValue = false, onToggle?: (isActive: boolean) => void): UseToggle => {
-  const mountedRef = useIsMountedRef();
   const [isActive, setActive] = useState(defaultValue);
 
   const toggle = useCallback((): void => {
-    if (mountedRef.current) {
-      setActive((active) => !active);
-    }
-  }, [mountedRef]);
+    setActive((active) => !active);
+  }, []);
 
   const set = useCallback(
     (active: boolean): void => {
-      if (mountedRef.current) {
-        setActive(active);
-      }
+      setActive(active);
     },
-    [mountedRef]
+    []
   );
 
   const toggleOn = useCallback(() => set(true), [set]);
