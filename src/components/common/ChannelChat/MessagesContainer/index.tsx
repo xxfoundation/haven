@@ -1,6 +1,6 @@
 
 import type { Message } from '@types';
-import type { FC, HTMLAttributes } from 'react';
+import type { FC, HTMLAttributes, LegacyRef } from 'react';
 
 import React, { useCallback, useMemo } from 'react';
 import moment from 'moment';
@@ -16,11 +16,13 @@ import { useUI } from '@contexts/ui-context';
 import s from './MessagesContainer.module.scss';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
+  readonly?: boolean;
   messages: Message[];
-  handleReplyToMessage: (message: Message) => void;
+  handleReplyToMessage?: (message: Message) => void;
+  scrollRef?: LegacyRef<HTMLDivElement>
 }
 
-const MessagesContainer: FC<Props> = ({ handleReplyToMessage, messages, ...props }) => {
+const MessagesContainer: FC<Props> = ({ readonly = false, handleReplyToMessage = () => {}, messages, scrollRef, ...props }) => {
   const { cmix, currentChannel, sendReaction } = useNetworkClient();
   const { openModal, setModalView } = useUI();
   
@@ -48,7 +50,7 @@ const MessagesContainer: FC<Props> = ({ handleReplyToMessage, messages, ...props
   }, [cmix, openModal, sendReaction, setModalView]);
 
   return (
-    <div {...props}>
+    <div ref={scrollRef} {...props}>
       {!currentChannel || currentChannel.isLoading ? (
         <div className='m-auto flex w-full h-full justify-center items-center'>
           <Spinner />
@@ -64,6 +66,8 @@ const MessagesContainer: FC<Props> = ({ handleReplyToMessage, messages, ...props
               </span>
               {message.map((m) => (
                 <MessageContainer
+                  readonly={readonly}
+                  key={m.id}
                   onEmojiReaction={onEmojiReaction}
                   handleReplyToMessage={handleReplyToMessage}
                   message={m} />
@@ -73,6 +77,7 @@ const MessagesContainer: FC<Props> = ({ handleReplyToMessage, messages, ...props
         })}
         </>
       )}
+      {props.children}
     </div>
   );
 }

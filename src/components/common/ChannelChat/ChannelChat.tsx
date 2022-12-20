@@ -1,8 +1,8 @@
 import type { Message } from 'src/types';
 
 import { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
-
 import cn from 'classnames';
+import { debounce } from 'lodash';
 
 import UserTextArea from './UserTextArea/UserTextArea';
 import { useNetworkClient } from 'src/contexts/network-client-context';
@@ -29,7 +29,8 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     getShareURL,
     getShareUrlType,
     loadMoreChannelData
-  } = useNetworkClient()
+  } = useNetworkClient();
+  const debouncedDataLoader = useMemo(() => debounce(loadMoreChannelData, 1000), [loadMoreChannelData]);
   const messagesContainerRef = useRef<HTMLDivElement>(null); 
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
@@ -53,7 +54,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     }
   }, [currentChannel?.id, getShareURL, getShareUrlType]);
 
-
   const checkBottom = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
       const { clientHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
@@ -69,7 +69,8 @@ const ChannelChat: FC<Props> = ({ messages }) => {
       currentChannel &&
       typeof currentChannel.currentMessagesBatch !== 'undefined'
     ) {
-      await loadMoreChannelData(currentChannel.id);
+      
+      await debouncedDataLoader(currentChannel.id);
 
       if (
         messagesContainerRef &&
@@ -79,7 +80,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
         messagesContainerRef.current.scrollTop = 20;
       }
     }
-  }, [currentChannel, loadMoreChannelData]);
+  }, [currentChannel, debouncedDataLoader]);
 
   const scrollToEnd = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
@@ -93,7 +94,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     if (!document.querySelector('.emoji-picker-react') && autoScrollToEnd) {
       scrollToEnd();
     }
-  }, [autoScrollToEnd, scrollToEnd]);
+  }, [autoScrollToEnd, scrollToEnd, messages]);
 
 
   return (
@@ -120,16 +121,25 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             </div>
             <p className={'text mt-2'}>{currentChannel?.description}</p>
           </div>
-          <div ref={messagesContainerRef}>
-            <MessagesContainer
-              messages={currentChannelMessages}
-              handleReplyToMessage={setReplyToMessage} />
-          </div>
+          <MessagesContainer
+            id={'messagesContainer'}
+            className={cn(s.messagesContainer)}
+            scrollRef={messagesContainerRef}
+            onScroll={() => {
+              checkTop();
+              if (checkBottom()) {
+                setAutoScrollToEnd(true);
+              } else {
+                setAutoScrollToEnd(false);
+              }
+            }}
+            messages={currentChannelMessages}
+            handleReplyToMessage={setReplyToMessage} />
           <UserTextArea
-              setAutoScrollToEnd={setAutoScrollToEnd}
-              replyToMessage={replyToMessage}
-              setReplyToMessage={setReplyToMessage}
-            />
+            scrollToEnd={() => setAutoScrollToEnd(true)}
+            replyToMessage={replyToMessage}
+            setReplyToMessage={setReplyToMessage}
+          />
         </>
       ) : channels.length ? (
         <div className={s.channelHeader}></div>

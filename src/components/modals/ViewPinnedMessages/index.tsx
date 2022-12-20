@@ -3,13 +3,13 @@ import type { Message } from '@types';
 import { FC, useEffect, useState } from 'react';
 import cn from 'classnames';
 
-import { ChannelChat, Spinner } from 'src/components/common';
+import { Spinner } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import useAsync from 'src/hooks/useAsync';
 import delay from 'delay';
+import MessagesContainer from '@components/common/ChannelChat/MessagesContainer';
 
 export type MuteUserAction = 'mute' | 'mute+delete';
-
 
 const ViewPinnedMessages: FC= () => {
   const { fetchPinnedMessages, pinMessage } = useNetworkClient();
@@ -30,20 +30,15 @@ const ViewPinnedMessages: FC= () => {
   }, [execute]);
 
   return (
-      <div
-        className={cn('w-full p-8 flex flex-col justify-center items-center')}
-      >
+      <div>
         {status === 'pending' || unpin.status === 'pending' ? <div className='my-32'><Spinner /></div> : (
           <>
-            <h2 className={cn('mt-9 mb-4')}>Warning</h2>
-            <p className='mb-4'>
-              Unbanning a user will enable them to send messages again.
-            </p>
-            <div className='px-4 mt-4' style={{ maxHeight: '12rem', overflow: 'auto' }}>
+            <h2 className={cn('mt-9 mb-8 text-center')}>Pinned Messages</h2>
+            <div className='px-4 mt-4 mb-4'>
               {pinnedMessages?.length === 0 && <p style={{ color: 'var(--cyan)'}}>
                 [There are currently no pinned messages in this channel]
               </p>}
-              {pinnedMessages && <ChannelChat messages={pinnedMessages}/>}
+              {pinnedMessages && <MessagesContainer messages={pinnedMessages}/>}
             </div>
           </>
         )}

@@ -35,7 +35,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   currentChannel
 }) => {
   const { closeModal, displayModal, modalView = '' } = useUI();
-  const classes = modalView?.toLowerCase().replace(/_/g, '-');
+  const modalClass = modalView?.toLowerCase().replace(/_/g, '-');
 
   const allModals: ModalViews[] = [
     'SHARE_CHANNEL',
@@ -55,7 +55,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   ];
 
   return displayModal && modalView && allModals.includes(modalView) ? (
-    <Modal className={classes} onClose={closeModal}>
+    <Modal className={s[modalClass]} onClose={closeModal}>
       {modalView === 'SHARE_CHANNEL' && <ShareChannelView />}
       {modalView === 'CREATE_CHANNEL' && <CreateChannelView />}
       {modalView === 'JOIN_CHANNEL' && <JoinChannelView />}
