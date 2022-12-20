@@ -9,14 +9,13 @@ import s from './UserTextArea.module.scss';
 import SendButton from '../SendButton';
 
 type Props = {
-  setAutoScrollToEnd: (scrollToEnd: boolean) => void;
+  scrollToEnd: () => void;
   replyToMessage: Message | null | undefined;
   setReplyToMessage: (msg: Message | null) => void;
 };
 
 const UserTextArea: FC<Props> = ({
   replyToMessage,
-  setAutoScrollToEnd,
   setReplyToMessage
 }) => {
   const [messageBody, setMessageBody] = useState<string>('');
@@ -97,7 +96,6 @@ const UserTextArea: FC<Props> = ({
               }
             }
 
-            setAutoScrollToEnd(true);
             setReplyToMessage(null);
           }
         }}
@@ -130,7 +128,6 @@ const UserTextArea: FC<Props> = ({
               }
             }
 
-            setAutoScrollToEnd(true);
             setReplyToMessage(null);
           }}
         />

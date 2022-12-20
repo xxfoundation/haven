@@ -16,12 +16,13 @@ import classes from './MessageContainer.module.scss';
 import delay from 'delay';
 
 type Props = {
+  readonly?: boolean;
   message: Message;
   handleReplyToMessage: (message: Message) => void;
   onEmojiReaction: (emoji: string, messageId: string) => void;
 }
 
-const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiReaction }) => {
+const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiReaction, readonly }) => {
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
   const {
     channelIdentity,
@@ -91,39 +92,43 @@ const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiRea
   }, [message.id, onEmojiReaction]);
   
   return (
-    <>
-      {muteUserModalOpen && (
-        <MuteUserModal
-          onConfirm={handleMuteUser}
-          onCancel={muteUserModalToggle.toggleOff} />
-      )}
-      {deleteMessageModalOpened && (
-        <DeleteMessageModal
-          onConfirm={handleDeleteMessage}
-          onCancel={hideDeleteMessageModal} />
-      )}
-      {pinMessageModalOpen && (
-        <PinMessageModal
-          onConfirm={pinSelectedMessage}
-          onCancel={hidePinModal} />
-      )}
-      <div className={classes.container}>
-        <MessageActions
-          onMouseEnter={() => setShowActionsWrapper(true)}
-          onMouseLeave={() => setShowActionsWrapper(false)}
-          className={cn(classes.actions, {
-            [classes.show]: showActionsWrapper
-          })}
-          isBanned={userIsBanned(message.pubkey)}
-          onMuteUser={muteUserModalToggle.toggleOn}
-          onPinMessage={handlePinMessage}
-          onReactToMessage={handleEmojiReaction}
-          onReplyClicked={onReplyMessage}
-          isAdmin={currentChannel?.isAdmin ?? false}
-          isOwn={channelIdentity?.PubKey === message.pubkey}
-          onDeleteMessage={showDeleteMessageModal}
-        />
-      </div>
+    <>{!readonly && (
+      <>
+        {muteUserModalOpen && (
+          <MuteUserModal
+            onConfirm={handleMuteUser}
+            onCancel={muteUserModalToggle.toggleOff} />
+        )}
+        {deleteMessageModalOpened && (
+          <DeleteMessageModal
+            onConfirm={handleDeleteMessage}
+            onCancel={hideDeleteMessageModal} />
+        )}
+        {pinMessageModalOpen && (
+          <PinMessageModal
+            onConfirm={pinSelectedMessage}
+            onCancel={hidePinModal} />
+        )}
+        <div className={classes.container}>
+          <MessageActions
+            onMouseEnter={() => setShowActionsWrapper(true)}
+            onMouseLeave={() => setShowActionsWrapper(false)}
+            className={cn(classes.actions, {
+              [classes.show]: showActionsWrapper
+            })}
+            isBanned={userIsBanned(message.pubkey)}
+            onMuteUser={muteUserModalToggle.toggleOn}
+            onPinMessage={handlePinMessage}
+            onReactToMessage={handleEmojiReaction}
+            onReplyClicked={onReplyMessage}
+            isAdmin={currentChannel?.isAdmin ?? false}
+            isOwn={channelIdentity?.PubKey === message.pubkey}
+            onDeleteMessage={showDeleteMessageModal}
+          />
+        </div>
+      </>
+    )}
+      
       <ChatMessage
         onMouseEnter={() => setShowActionsWrapper(true)}
         onMouseLeave={() => setShowActionsWrapper(false)}
