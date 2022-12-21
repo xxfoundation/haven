@@ -19,10 +19,17 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   readonly?: boolean;
   messages: Message[];
   handleReplyToMessage?: (message: Message) => void;
-  scrollRef?: LegacyRef<HTMLDivElement>
+  scrollRef?: LegacyRef<HTMLDivElement>;
 }
 
-const MessagesContainer: FC<Props> = ({ readonly = false, handleReplyToMessage = () => {}, messages, scrollRef, ...props }) => {
+const MessagesContainer: FC<Props> = ({
+  readonly = false,
+  handleReplyToMessage = () => {},
+  messages,
+  scrollRef,
+  ...props
+}) => {
+  
   const { cmix, currentChannel, sendReaction } = useNetworkClient();
   const { openModal, setModalView } = useUI();
   

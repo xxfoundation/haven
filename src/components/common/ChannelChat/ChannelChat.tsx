@@ -11,6 +11,7 @@ import { PrivacyLevel } from 'src/contexts/utils-context';
 
 import s from './ChannelChat.module.scss';
 import MessagesContainer from './MessagesContainer';
+import PinnedMessage from './PinnedMessage';
 
 const privacyLevelLabels: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Private]: 'Private',
@@ -20,6 +21,7 @@ const privacyLevelLabels: Record<PrivacyLevel, string> = {
 
 type Props = {
   messages: Message[];
+  isPinnedMessages?: boolean;
 }
 
 const ChannelChat: FC<Props> = ({ messages }) => {
@@ -121,6 +123,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             </div>
             <p className={'text mt-2'}>{currentChannel?.description}</p>
           </div>
+          <PinnedMessage />
           <MessagesContainer
             id={'messagesContainer'}
             className={cn(s.messagesContainer)}
