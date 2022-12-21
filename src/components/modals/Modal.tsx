@@ -23,11 +23,11 @@ const Modal: FC<WithChildren & ModalProps & HTMLProps<HTMLDivElement>> = ({
     <div {...props} className={cn(s.root)}>
       <div className={cn(s.modal, className)} role='dialog' ref={ref}>
         <Close
-          onClick={() => onClose()}
+          onClick={onClose}
           aria-label='Close panel'
           className={s.close}
         />
-        <div className='w-full h-full'>{children}</div>
+        <div className='w-full'>{children}</div>
       </div>
     </div>
   );

@@ -28,15 +28,16 @@ type EmojiReactions = {
 }
 
 type Props = HTMLAttributes<HTMLDivElement> & {
-  onEmojiReaction: (emoji: string, messageId: string) => void;
+  onEmojiReaction?: (emoji: string, messageId: string) => void;
   message: Message;
 }
 
 const ChatMessage: FC<Props> = ({
     message,
-    onEmojiReaction,
+    onEmojiReaction = () => {},
     ...props
   }) => {
+
   const emojiReactions = useMemo<EmojiReactions[] | undefined>(
     () => message.emojisMap && Array.from(message.emojisMap.entries())
       .map(([emoji, users]) => ({ emoji, users})),
@@ -45,11 +46,17 @@ const ChatMessage: FC<Props> = ({
   
   return (
     <div
-      className={cn(props.className, 'flex items-center', s.root, {
-        [s.root__withReply]: !!message.replyToMessage
-      })}
+    {...props}
+      className={cn(
+        props.className,
+        'flex items-center',
+        s.root,
+        {
+          [s.root__withReply]: !!message.replyToMessage
+        },
+        props.className
+      )}
       id={message.id}
-      {...props}
     >
 
       <div className={cn('flex flex-col', s.messageWrapper)}>

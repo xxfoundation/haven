@@ -95,56 +95,57 @@ const MessageActions: FC<Props> = ({
   return (
     <div  {...props} className={cn(props.className, classes.root)}>
       {showPinned
-        ?
-        <>
-          {isAdmin && (loading ? <Spinner /> : <Button onClick={onUnpin}>Unpin</Button>)}
-        </>
-        : (
-        <>
-          {isAdmin && !isOwn && !isBanned && (
-            <Ban
-              onClick={onMuteUser}
+        ? (
+          <>
+            {isAdmin && (loading ? <Spinner /> : <Button onClick={onUnpin}>Unpin</Button>)}
+          </>
+        ) : (
+          <>
+            {isAdmin && !isOwn && !isBanned && (
+              <Ban
+                onClick={onMuteUser}
+              />
+            )}
+            {(isAdmin) && (
+              <Pin
+                onClick={() => onPinMessage()}
+              />
+            )}
+            {(isOwn || isAdmin) && (
+              <Delete
+                onClick={onDeleteMessage}
+              />
+            )}
+            <div ref={pickerIconRef}>
+              <EmojisPickerIcon
+              
+                onClick={onOpenEmojiMart}
+              />
+            </div>
+            {pickerVisible && emojiPortalElement &&
+              createPortal(
+                <div
+                  ref={pickerRef}
+                  style={style}
+                  className={cn(classes.emojisPickerWrapper)}
+                >
+                  <Picker
+                    data={data}
+                    previewPosition='none'
+                    onEmojiSelect={onEmojiSelect}
+                  />
+                </div>,
+                emojiPortalElement
+              )
+            }
+            <Reply
+              onClick={() => {
+                onReplyClicked();
+              }}
             />
-          )}
-          {(isAdmin) && (
-            <Pin
-              onClick={() => onPinMessage()}
-            />
-          )}
-          {(isOwn || isAdmin) && (
-            <Delete
-              onClick={onDeleteMessage}
-            />
-          )}
-          <div ref={pickerIconRef}>
-            <EmojisPickerIcon
-            
-              onClick={onOpenEmojiMart}
-            />
-          </div>
-          {pickerVisible && emojiPortalElement &&
-            createPortal(
-              <div
-                ref={pickerRef}
-                style={style}
-                className={cn(classes.emojisPickerWrapper)}
-              >
-                <Picker
-                  data={data}
-                  previewPosition='none'
-                  onEmojiSelect={onEmojiSelect}
-                />
-              </div>,
-              emojiPortalElement
-            )
-          }
-          <Reply
-            onClick={() => {
-              onReplyClicked();
-            }}
-          />
-        </>
-      )}
+          </>
+        )
+      }
     </div>
   );
 };

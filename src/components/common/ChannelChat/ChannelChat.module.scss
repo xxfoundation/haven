@@ -36,35 +36,6 @@
   }
 }
 
-.dayMessagesWrapper {
-  position: relative;
-
-  .separator {
-    position: absolute;
-    top: 15px;
-    height: 1px;
-    width: 100%;
-    background-color: var(--secondary);
-  }
-
-  .currentDay {
-    display: inline-block;
-    height: 31px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    border-radius: 30px;
-    border: 1px solid var(--secondary);
-    position: sticky;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--dark-5);
-    color: var(--text-secondary);
-    z-index: 1;
-  }
-}
-
 .channelType {
   padding: 4px 8px;
   background-color: var(--cyan);

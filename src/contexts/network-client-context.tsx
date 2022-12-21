@@ -202,7 +202,9 @@ type NetworkContext = {
   isReadyToRegister: boolean | undefined;
   networkStatus: NetworkStatus;
   channelIdentity: IdentityJSON | null;
+  pinnedMessages?: Message[];
   // api
+  setPinnedMessages: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
   fetchPinnedMessages: () => Promise<Message[]>;
   connectNetwork: () => Promise<void>;
   createChannel: (
@@ -1567,7 +1569,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       return channelManager?.Muted(utils.Base64ToUint8Array(currentChannel.id))
     }
     return false;
-  }, [channelManager, currentChannel, utils])
+  }, [channelManager, currentChannel, utils]);
+
+  const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
 
   const ctx: NetworkContext = {
     channelIdentity,
@@ -1610,6 +1614,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     getShareURL,
     getShareUrlType,
     joinChannelFromURL,
+    pinnedMessages,
+    setPinnedMessages,
     getVersion,
     getClientVersion,
     loadMoreChannelData,

@@ -27,11 +27,14 @@ const PinMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
       <div
         className={cn('w-full flex flex-col justify-center items-center')}
       >
-        {loading ? <div className='my-32'><Spinner /></div> : (
+        {loading ? (<div className='my-32'><Spinner /></div>) : (
           <>
-            <h2 className={cn('mt-9 mb-4')}>Confirmation</h2>
+            <h2 className={cn('mt-9 mb-4')}>
+              Confirmation
+            </h2>
             <p className='mb-4'>
-            Pinned messages will remain for around 3 weeks, then it will get unpinned again
+              Pinned messages will remain for around 3 weeks, then it will
+              get unpinned again
             </p>
             <div className={cn('mb-6', s.buttonGroup)}>
               <ModalCtaButton

@@ -3,7 +3,7 @@ import type { User } from '@contexts/network-client-context';
 import { FC, useCallback } from 'react';
 import cn from 'classnames';
 
-import { Spinner } from 'src/components/common';
+import { Button, Spinner } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import Identity from 'src/components/common/Identity';
@@ -48,9 +48,9 @@ const ViewBannedUsersModal: FC<Props> = ({ onCancel }) =>  {
                 <div key={user.pubkey} className='flex items-center justify-between mb-3'>
                   <Identity disableMuteStyles {...user} />
                   <div className='pr-6' />
-                  <button style={{ borderRadius: '0.25rem', border: '1px solid var(--cyan)', borderStyle: 'solid', padding: '0.1rem 0.75rem' }} onClick={unbanUser(user)}>
+                  <Button size='sm' onClick={unbanUser(user)}>
                     Unban
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
