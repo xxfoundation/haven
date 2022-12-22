@@ -12,4 +12,12 @@
   path {
     fill: var(--orange);
   }
+
+  &[disabled] {
+    color: var(--red);
+    svg,
+    path {
+      fill: var(--red);
+    }
+  }
 }

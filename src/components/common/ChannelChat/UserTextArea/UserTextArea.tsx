@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useRef, useCallback } from 'react';
+import React, { FC, useEffect, useRef, useCallback } from 'react';
 import cn from 'classnames';
 
 import { Message } from 'src/types';
@@ -12,13 +12,18 @@ type Props = {
   scrollToEnd: () => void;
   replyToMessage: Message | null | undefined;
   setReplyToMessage: (msg: Message | null) => void;
+  messageBody: string;
+  setMessageBody: React.Dispatch<React.SetStateAction<string>>
 };
 
+const MESSAGE_MAX_SIZE = 700;
+
 const UserTextArea: FC<Props> = ({
+  messageBody,
   replyToMessage,
-  setReplyToMessage
+  setMessageBody,
+  setReplyToMessage,
 }) => {
-  const [messageBody, setMessageBody] = useState<string>('');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { openModal, setModalView } = useUI();
   const {
@@ -30,21 +35,18 @@ const UserTextArea: FC<Props> = ({
   } = useNetworkClient();
 
   useEffect(() => {
-    setMessageBody('');
-  }, [currentChannel?.id]);
-
-  const checkMessageLength = useCallback(() => {
-    if (messageBody.trim().length > 700) {
-      setModalView('MESSAGE_LONG');
-      openModal();
-      return false;
-    } else {
-      return true;
+    if (currentChannel?.id) {
+      setMessageBody('');
     }
-  }, [messageBody, openModal, setModalView]);
+  }, [currentChannel?.id, setMessageBody]);
+
+  const checkMessageLength = useCallback(
+    () => messageBody.trim().length > MESSAGE_MAX_SIZE,
+    [messageBody]
+  );
 
   return (
-    <div className={s.textArea}>
+    <div className={cn('relative', s.textArea)}>
       {replyToMessage && (
         <div className={cn(s.replyContainer)}>
           <div className='flex flex-col flex-1'>
@@ -101,9 +103,16 @@ const UserTextArea: FC<Props> = ({
         }}
       />
 
+      <span style={{
+        fontSize: 12,
+        color: messageBody.trim().length > MESSAGE_MAX_SIZE ? 'var(--red)' : 'var(--dark-9)' }} className='absolute left-0 bottom-0 p-2'>
+          {messageBody.trim().length ?? 0}/700
+      </span>
+
       <div className={s.buttonsWrapper}>
         <SendButton
-          cssClass={s.button}
+          disabled={messageBody.trim().length > MESSAGE_MAX_SIZE}
+          className={s.button}
           onClick={async () => {
             if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
               setModalView('NETWORK_NOT_READY');

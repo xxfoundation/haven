@@ -23,7 +23,6 @@ import {
   ExportCodenameView,
   NetworkNotReadyView,
   JoinChannelSuccessView,
-  MessageLongView,
   LogoutView,
   UserWasBanned
 } from 'src/components/modals';
@@ -48,7 +47,6 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     'EXPORT_CODENAME',
     'NETWORK_NOT_READY',
     'JOIN_CHANNEL_SUCCESS',
-    'MESSAGE_LONG',
     'LOGOUT',
     'USER_WAS_BANNED',
     'VIEW_PINNED_MESSAGES'
@@ -68,7 +66,6 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
       {modalView === 'EXPORT_CODENAME' && <ExportCodenameView />}
       {modalView === 'NETWORK_NOT_READY' && <NetworkNotReadyView />}
       {modalView === 'JOIN_CHANNEL_SUCCESS' && <JoinChannelSuccessView />}
-      {modalView === 'MESSAGE_LONG' && <MessageLongView />}
       {modalView === 'LOGOUT' && <LogoutView />}
       {modalView === 'USER_WAS_BANNED' && <UserWasBanned />}
       {modalView === 'VIEW_PINNED_MESSAGES'  && <ViewPinnedMessages />}
