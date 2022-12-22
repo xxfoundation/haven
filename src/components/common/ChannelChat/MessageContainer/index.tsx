@@ -16,13 +16,14 @@ import classes from './MessageContainer.module.scss';
 import delay from 'delay';
 
 type Props = {
+  className?: string;
   readonly?: boolean;
   message: Message;
   handleReplyToMessage: (message: Message) => void;
   onEmojiReaction: (emoji: string, messageId: string) => void;
 }
 
-const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiReaction, readonly }) => {
+const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message, onEmojiReaction, readonly }) => {
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
   const {
     channelIdentity,
@@ -128,13 +129,13 @@ const MessageContainer: FC<Props> = ({ handleReplyToMessage, message, onEmojiRea
         </div>
       </>
     )}
-      
-      <ChatMessage
-        onMouseEnter={() => setShowActionsWrapper(true)}
-        onMouseLeave={() => setShowActionsWrapper(false)}
-        onTouchEnd={() => setShowActionsWrapper(true)}
-        message={message}
-        onEmojiReaction={onEmojiReaction} />
+    <ChatMessage
+      className={className}
+      onMouseEnter={() => setShowActionsWrapper(true)}
+      onMouseLeave={() => setShowActionsWrapper(false)}
+      onTouchEnd={() => setShowActionsWrapper(true)}
+      message={message}
+      onEmojiReaction={onEmojiReaction} />
     </>
   );
 }

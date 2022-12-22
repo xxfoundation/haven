@@ -2,7 +2,7 @@
 import type { Message } from '@types';
 import type { FC, HTMLAttributes, LegacyRef } from 'react';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import moment from 'moment';
 import _ from 'lodash';
 import cn from 'classnames';
@@ -11,7 +11,6 @@ import MessageContainer from '../MessageContainer';
 import { Spinner } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { byEntryTimestamp } from 'src/utils/index';
-import { useUI } from '@contexts/ui-context';
 
 import s from './MessagesContainer.module.scss';
 
@@ -20,6 +19,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   messages: Message[];
   handleReplyToMessage?: (message: Message) => void;
   scrollRef?: LegacyRef<HTMLDivElement>;
+  onEmojiReaction: (emoji: string, messageId: string) => void;
 }
 
 const MessagesContainer: FC<Props> = ({
@@ -27,11 +27,10 @@ const MessagesContainer: FC<Props> = ({
   handleReplyToMessage = () => {},
   messages,
   scrollRef,
+  onEmojiReaction,
   ...props
 }) => {
-  
-  const { cmix, currentChannel, sendReaction } = useNetworkClient();
-  const { openModal, setModalView } = useUI();
+  const { currentChannel, } = useNetworkClient();
   
   const sortedGroupedMessagesPerDay = useMemo(() => {
     const groupedMessagesPerDay = _.groupBy(
@@ -46,15 +45,6 @@ const MessagesContainer: FC<Props> = ({
       .sort(byEntryTimestamp);
   }, [messages]);
 
-
-  const onEmojiReaction = useCallback((emoji: string, messageId: string) =>  {
-    if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
-      setModalView('NETWORK_NOT_READY');
-      openModal();
-    } else {
-      sendReaction(emoji, messageId);
-    }
-  }, [cmix, openModal, sendReaction, setModalView]);
 
   return (
     <div ref={scrollRef} {...props}>

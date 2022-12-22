@@ -1,17 +1,15 @@
-import { FC } from 'react';
+import { ButtonHTMLAttributes, FC } from 'react';
 import s from './SendButton.module.scss';
 import { Elixxir } from 'src/components/icons';
 import cn from 'classnames';
 
-const SendButton: FC<{ cssClass?: string; onClick: () => void }> = ({
-  cssClass,
-  onClick
-}) => {
+
+const SendButton: FC<ButtonHTMLAttributes<HTMLButtonElement>> = (props) => {
   return (
-    <div className={cn(s.root, cssClass)} onClick={onClick}>
+    <button disabled  {...props} className={cn(props.className, s.root)}>
       <span className='mr-1'>Send</span>
       <Elixxir />
-    </div>
+    </button>
   );
 };
 

@@ -12,6 +12,7 @@ import { PrivacyLevel } from 'src/contexts/utils-context';
 import s from './ChannelChat.module.scss';
 import MessagesContainer from './MessagesContainer';
 import PinnedMessage from './PinnedMessage';
+import { useUI } from '@contexts/ui-context';
 
 const privacyLevelLabels: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Private]: 'Private',
@@ -25,19 +26,22 @@ type Props = {
 }
 
 const ChannelChat: FC<Props> = ({ messages }) => {
+  const { openModal, setModalView } = useUI();
   const {
     channels,
+    cmix,
     currentChannel,
     getShareURL,
     getShareUrlType,
-    loadMoreChannelData
+    loadMoreChannelData,
+    sendReaction
   } = useNetworkClient();
   const debouncedDataLoader = useMemo(() => debounce(loadMoreChannelData, 1000), [loadMoreChannelData]);
   const messagesContainerRef = useRef<HTMLDivElement>(null); 
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
   const [currentChannelPrivacyLevel, setCurrentChannelPrivacyLevel] = useState<PrivacyLevel | null>(null);
-
+  const [messageBody, setMessageBody] = useState<string>('');
 
   const currentChannelMessages = useMemo(
     () => messages.filter(m =>  m.channelId === currentChannel?.id),
@@ -99,6 +103,16 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   }, [autoScrollToEnd, scrollToEnd, messages]);
 
 
+  const onEmojiReaction = useCallback((emoji: string, messageId: string) =>  {
+    if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
+      setModalView('NETWORK_NOT_READY');
+      openModal();
+    } else {
+      sendReaction(emoji, messageId);
+    }
+  }, [cmix, openModal, sendReaction, setModalView]);
+
+
   return (
     <div className={s.root}>
       {currentChannel ? (
@@ -123,11 +137,15 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             </div>
             <p className={'text mt-2'}>{currentChannel?.description}</p>
           </div>
-          <PinnedMessage />
+          <PinnedMessage 
+            handleReplyToMessage={setReplyToMessage}
+            onEmojiReaction={onEmojiReaction}
+          />
           <MessagesContainer
             id={'messagesContainer'}
             className={cn(s.messagesContainer)}
             scrollRef={messagesContainerRef}
+            onEmojiReaction={onEmojiReaction}
             onScroll={() => {
               checkTop();
               if (checkBottom()) {
@@ -139,6 +157,8 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             messages={currentChannelMessages}
             handleReplyToMessage={setReplyToMessage} />
           <UserTextArea
+            messageBody={messageBody}
+            setMessageBody={setMessageBody}
             scrollToEnd={() => setAutoScrollToEnd(true)}
             replyToMessage={replyToMessage}
             setReplyToMessage={setReplyToMessage}

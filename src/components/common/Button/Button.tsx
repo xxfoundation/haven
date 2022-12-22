@@ -24,13 +24,14 @@ const Button: FC<ButtonProps> = ({
       className={cn(s.root, cssClasses, rest.className)}
       style={{
         width,
+        ...style,
         ...(size === 'sm' && {
           borderRadius: '0.25rem',
           border: '1px solid var(--cyan)',
           borderStyle: 'solid',
-          padding: '0.1rem 0.75rem'
-        }),
-        ...style
+          padding: '0.1rem 0.75rem',
+          minWidth:'unset'
+        })
       }}
       {...rest}
     >

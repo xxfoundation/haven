@@ -1,13 +1,16 @@
-import { FC, useCallback, useMemo } from 'react';
-import s from './LeftSideBar.module.scss';
+import { FC, useCallback, useMemo, useRef } from 'react';
 import cn from 'classnames';
+import { useOnClickOutside } from 'usehooks-ts';
 import {
   Collapse,
 } from 'src/components/common';
 
-import { Elixxir, SpeakEasy, Settings, Plus, Join, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
+import { Elixxir, SpeakEasy, Settings, Plus, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
+import useToggle from 'src/hooks/useToggle';
+
+import s from './LeftSideBar.module.scss';
 
 const LeftSideBar: FC<{
   cssClasses?: string;
@@ -36,7 +39,11 @@ const LeftSideBar: FC<{
   const openSettingsModal = useCallback(() => {
     setModalView('SETTINGS');
     openModal();
-  }, [openModal, setModalView])
+  }, [openModal, setModalView]);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showCreateNewChannel, { toggle: toggleChannelCreationMenu, toggleOff: hideMenu }] = useToggle();
+  useOnClickOutside(dropdownRef, hideMenu);
 
   const collapseTitle = useMemo(() => (
     <div className={cn('flex justify-between')}>
@@ -49,24 +56,13 @@ const LeftSideBar: FC<{
               e.stopPropagation();
             }
 
-            setModalView('CREATE_CHANNEL');
-            openModal();
-            // }
+            toggleChannelCreationMenu();
           }}
         />
-        <Join
-          className={cn(s.join, {})}
-          onClick={(e) => {
-            if (e && e.stopPropagation) {
-              e.stopPropagation();
-            }
-            setModalView('JOIN_CHANNEL');
-            openModal();
-          }}
-        />
+        
       </div>
     </div>
-  ), [openModal, setModalView]);
+  ), [toggleChannelCreationMenu]);
 
   return (
     <div className={cn(s.root, cssClasses)}>
@@ -76,7 +72,31 @@ const LeftSideBar: FC<{
         </div>
         <NetworkStatusIcon />
       </div>
-      <div className={s.content}>
+      <div className={cn(s.content, 'relative')}>
+        {showCreateNewChannel && (
+          <div ref={dropdownRef} className='absolute p-2 w-full  left-0 mt-6'>
+            <ul style={{ backgroundColor: 'var(--dark-2)', zIndex: 2 }} className='text-right w-full rounded-lg p-2 bold'>
+              <li className='px-2 py-1'>
+                <button onClick={() => {
+                  setModalView('CREATE_CHANNEL');
+                  openModal();
+                  hideMenu();
+                }}>
+                  Create new
+                </button>
+              </li>
+              <li className='px-2 py-1'>
+                <button onClick={() => {
+                  setModalView('JOIN_CHANNEL');
+                  openModal();
+                  hideMenu();
+                }}>
+                  From url
+                </button>
+              </li>
+            </ul>
+          </div>
+        )}
         <Collapse title={collapseTitle} defaultActive>
           <div className='flex flex-col'>
             {channels.map(ch => (
