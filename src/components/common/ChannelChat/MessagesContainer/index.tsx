@@ -19,7 +19,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   messages: Message[];
   handleReplyToMessage?: (message: Message) => void;
   scrollRef?: LegacyRef<HTMLDivElement>;
-  onEmojiReaction: (emoji: string, messageId: string) => void;
+  onEmojiReaction?: (emoji: string, messageId: string) => void;
 }
 
 const MessagesContainer: FC<Props> = ({
@@ -27,7 +27,7 @@ const MessagesContainer: FC<Props> = ({
   handleReplyToMessage = () => {},
   messages,
   scrollRef,
-  onEmojiReaction,
+  onEmojiReaction = () => {},
   ...props
 }) => {
   const { currentChannel, } = useNetworkClient();
