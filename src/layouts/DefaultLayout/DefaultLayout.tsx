@@ -1,4 +1,5 @@
 import type { WithChildren } from 'src/types';
+
 import cn from 'classnames';
 import React, { FC, useEffect } from 'react';
 import { useRouter } from 'next/router';
@@ -24,11 +25,11 @@ import {
   NetworkNotReadyView,
   JoinChannelSuccessView,
   LogoutView,
-  UserWasBanned
+  UserWasBanned,
+  ViewPinnedMessages
 } from 'src/components/modals';
 
 import s from './DefaultLayout.module.scss';
-import ViewPinnedMessages from '@components/modals/ViewPinnedMessages';
 
 const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   currentChannel

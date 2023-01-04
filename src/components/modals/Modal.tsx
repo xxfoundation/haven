@@ -21,7 +21,7 @@ const Modal: FC<WithChildren & ModalProps & HTMLProps<HTMLDivElement>> = ({
 
   return (
     <div {...props} className={cn(s.root)}>
-      <div className={cn(s.modal, className)} role='dialog' ref={ref}>
+      <div className={cn('drop-shadow-xl', s.modal, className)} role='dialog' ref={ref}>
         <Close
           onClick={onClose}
           aria-label='Close panel'
