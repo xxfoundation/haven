@@ -1,4 +1,4 @@
-import type { ChannelJSON, DummyTraffic } from 'src/contexts/utils-context';
+import { ChannelJSON, DummyTraffic, MessageReceivedCallback } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import { Dexie } from 'dexie';
@@ -12,6 +12,7 @@ import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { ndf } from 'src/sdk-utils/ndf';
 import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH } from '../constants';
+import useNotification from 'src/hooks/useNotification';
 
 const batchCount = 100;
 
@@ -173,6 +174,8 @@ export type IdentityJSON = {
   CodesetVersion: number;
 }
 
+type MessageEvent = { id: string; handled: boolean; isUpdate: boolean };
+
 let db: Dexie | undefined;
 let storageTag: string;
 
@@ -288,12 +291,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setIsAuthenticated,
     statePathExists
   } = useAuthentication();
+  const { messageReplied } = useNotification();
   const { utils } = useUtils();
   const [bannedUsers, setBannedUsers] = useState<User[]>();
   const [cmix, setNetwork] = useState<CMix | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
   );
+  const [messageQueue, setMessageQueue] = useState<MessageEvent[]>([]);
   const [currentChannel, setCurrentChannel] = useState<Channel | undefined>();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -706,13 +711,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [blockedEvents, resolveBlockedEvent]);
 
-  const onReceiveEvent = useCallback(async (
-    uuid: string,
-    _channelID: Uint8Array,
-    isUpdate: boolean
-  ) => {
+  const addEventToQueue = useCallback<MessageReceivedCallback>((id, _channel, update) => {
+    setMessageQueue((msgs) => msgs.concat({ id, isUpdate: update, handled: false }))
+  }, []);
+
+  const handleMessageEvent = useCallback(async ({ id, isUpdate }: MessageEvent) => {
     if (db) {
-      const receivedMessage = await db.table<DBMessage>('messages').get(uuid);
+      const receivedMessage = await db.table<DBMessage>('messages').get(id);
 
       if (receivedMessage?.hidden === true) {
         return;
@@ -722,6 +727,17 @@ export const NetworkProvider: FC<WithChildren> = props => {
         if ([1, 2, 3].includes(receivedMessage.status)) {
           updateSenderMessageStatus(receivedMessage);
           return;
+        }
+      }
+
+      if (receivedMessage?.parent_message_id
+          && receivedMessage?.pubkey !== channelIdentity?.PubKey) {
+        const replyingTo = await db.table<DBMessage>('messages').where('message_id').equals(receivedMessage?.parent_message_id).first();
+        if (replyingTo?.pubkey === channelIdentity?.PubKey) {
+          const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
+          messageReplied(receivedMessage.nickname || codename, decoder.decode(
+            cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(receivedMessage.text))
+          ))
         }
       }
 
@@ -793,11 +809,23 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
   }, [
+    channelIdentity?.PubKey,
     checkIfWillResolveBlockedEvent,
     handleReactionReceived,
     mapDbMessagesToMessages,
-    updateSenderMessageStatus
+    messageReplied,
+    updateSenderMessageStatus,
+    utils
   ]);
+
+  useEffect(() => {
+    const event = messageQueue[messageQueue.length - 1];
+    if (event) {
+      setMessageQueue((events) => events.filter((e) => e.id !== event.id));
+      handleMessageEvent(event);
+    }
+    
+  }, [handleMessageEvent, messageQueue])
 
   const mapInitialLoadDataToCurrentState = useCallback(async (
     channs: DBChannel[],
@@ -970,7 +998,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         .LoadChannelsManagerWithIndexedDb(
           currentNetwork.GetID(),
           tag,
-          onReceiveEvent,
+          addEventToQueue,
           cipherRef?.current?.GetID()
         );
 
@@ -989,7 +1017,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
         cmix.GetID(),
         privateIdentity,
-        onReceiveEvent,
+        addEventToQueue,
         cipherRef?.current?.GetID()
       );
       
@@ -1002,7 +1030,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     addStorageTag,
     handleInitialLoadData,
     cmix,
-    onReceiveEvent,
+    addEventToQueue,
     utils
   ]);
 
@@ -1251,12 +1279,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
       utils.Base64ToUint8Array &&
       currentChannel
     ) {
-      await channelManager.SendMessage(
-        utils.Base64ToUint8Array(currentChannel.id),
-        message,
-        30000,
-        new Uint8Array()
-      );
+      try {
+        await channelManager.SendMessage(
+          utils.Base64ToUint8Array(currentChannel.id),
+          message,
+          30000,
+          new Uint8Array()
+        );
+      } catch (e) {
+        console.error('Error sending message', e);
+      }
     }
   }, [channelManager, currentChannel, utils]);
 

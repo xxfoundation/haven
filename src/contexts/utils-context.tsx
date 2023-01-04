@@ -28,7 +28,7 @@ export type ChannelJSON = {
   Channel: string;
 }
 
-type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
+export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
 
 export type XXDKUtils = {
   NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => void;
