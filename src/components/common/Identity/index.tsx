@@ -40,11 +40,13 @@ const Identity: FC<Props> = ({ codename, color = '', disableMuteStyles, nickname
           &nbsp;
         </>
       )}
-      <Elixxir
-        style={{ fill: codenameColor }}
-      />
-      <span className='codename' style={{ color: codenameColor }}>
-        {codename}
+      <span style={{ whiteSpace: 'nowrap' }}>
+        <Elixxir
+          style={{ fill: codenameColor }}
+        />
+        <span className='codename' style={{ color: codenameColor }}>
+          {codename}
+        </span>
       </span>
       {isBanned && (
         <>

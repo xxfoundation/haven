@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useCallback } from 'react';
+import React, { FC, useEffect, useRef, useCallback, useMemo } from 'react';
 import cn from 'classnames';
 
 import { Message } from 'src/types';
@@ -34,16 +34,53 @@ const UserTextArea: FC<Props> = ({
     sendReply
   } = useNetworkClient();
 
+  const messageIsValid = useMemo(() => messageBody.trim().length < MESSAGE_MAX_SIZE, [messageBody])
+
   useEffect(() => {
     if (currentChannel?.id) {
       setMessageBody('');
     }
   }, [currentChannel?.id, setMessageBody]);
 
-  const checkMessageLength = useCallback(
-    () => messageBody.trim().length > MESSAGE_MAX_SIZE,
-    [messageBody]
-  );
+  const sendCurrentMessage = useCallback(() => {
+    if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
+      setModalView('NETWORK_NOT_READY');
+      openModal();
+    } else {
+      const muted = getMuted();
+      if (muted) {
+        setModalView('USER_WAS_BANNED');
+        openModal();
+        return;
+      }
+
+      if (replyToMessage) {
+        if (messageIsValid) {
+          sendReply(messageBody.trim(), replyToMessage.id);
+          setMessageBody('');
+        }
+      } else {
+        if (messageIsValid) {
+          sendMessage(messageBody.trim());
+          setMessageBody('');
+        }
+      }
+    }
+
+    setReplyToMessage(null);
+  }, [
+    cmix,
+    getMuted,
+    messageBody,
+    messageIsValid,
+    openModal,
+    replyToMessage,
+    sendMessage,
+    sendReply,
+    setMessageBody,
+    setModalView,
+    setReplyToMessage
+  ]);
 
   return (
     <div className={cn('relative', s.textArea)}>
@@ -72,40 +109,16 @@ const UserTextArea: FC<Props> = ({
         onChange={e => {
           setMessageBody(e.target.value);
         }}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (e.keyCode === 13 && !e.shiftKey) {
-            e.preventDefault();
-            if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
-              setModalView('NETWORK_NOT_READY');
-              openModal();
-            } else {
-              const muted = getMuted();
-              if (muted) {
-                setModalView('USER_WAS_BANNED');
-                openModal();
-                return;
-              }
-              if (replyToMessage) {
-                if (checkMessageLength()) {
-                  sendReply(messageBody.trim(), replyToMessage.id);
-                  setMessageBody('');
-                }
-              } else {
-                if (checkMessageLength()) {
-                  sendMessage(messageBody.trim());
-                  setMessageBody('');
-                }
-              }
-            }
-
-            setReplyToMessage(null);
+            sendCurrentMessage();
           }
         }}
       />
 
       <span style={{
         fontSize: 12,
-        color: messageBody.trim().length > MESSAGE_MAX_SIZE ? 'var(--red)' : 'var(--dark-9)' }} className='absolute left-0 bottom-0 p-2'>
+        color: messageIsValid ? 'var(--dark-9)' : 'var(--red)'}} className='absolute left-0 bottom-0 p-2'>
           {messageBody.trim().length ?? 0}/700
       </span>
 
@@ -113,32 +126,7 @@ const UserTextArea: FC<Props> = ({
         <SendButton
           disabled={messageBody.trim().length > MESSAGE_MAX_SIZE}
           className={s.button}
-          onClick={async () => {
-            if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
-              setModalView('NETWORK_NOT_READY');
-              openModal();
-            } else {
-              const muted = getMuted();
-              if (muted) {
-                setModalView('USER_WAS_BANNED');
-                openModal();
-                return;
-              }
-              if (replyToMessage) {
-                if (checkMessageLength()) {
-                  sendReply(messageBody.trim(), replyToMessage.id);
-                  setMessageBody('');
-                }
-              } else {
-                if (checkMessageLength()) {
-                  sendMessage(messageBody.trim());
-                  setMessageBody('');
-                }
-              }
-            }
-
-            setReplyToMessage(null);
-          }}
+          onClick={sendCurrentMessage}
         />
       </div>
     </div>
