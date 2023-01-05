@@ -89,7 +89,7 @@ const CodenameRegistration: FC = () => {
         ) : (
           <div className={s.loading}>
             <div className='w-full h-full flex justify-center items-center'>
-              <Spinner />
+              <Spinner size='lg' />
             </div>
           </div>
         )}
