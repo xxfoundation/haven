@@ -208,8 +208,10 @@ type NetworkContext = {
   channelIdentity: IdentityJSON | null;
   pinnedMessages?: Message[];
   // api
-  setPinnedMessages: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
-  fetchPinnedMessages: () => Promise<Message[]>;
+  checkRegistrationReadiness: (
+    selectedPrivateIdentity: Uint8Array,
+    onIsReadyInfoChange: (readinessInfo: IsReadyInfo) => void
+  ) => Promise<void>;
   connectNetwork: () => Promise<void>;
   createChannel: (
     channelName: string,
@@ -217,22 +219,25 @@ type NetworkContext = {
     privacyLevel: 0 | 2
   ) => void;
   deleteMessage: (message: Message) => Promise<void>;
-  getBannedUsers: () => Promise<User[]>;
-  mapDbMessagesToMessages: (messages: DBMessage[]) => Promise<Message[]>;
-  getMuted: () => boolean;
-  muteUser: (pubkey: string, unmute: boolean) => Promise<void>;
-  setNetworkStatus: (status: NetworkStatus) => void;
-  setCmix: (cmix: CMix) => void;
-  setMessages: (messages: Message[]) => void;
-  setCurrentChannel: (channel: Channel) => void;
-  joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
-  shareChannel: () => void;
-  sendMessage: (message: string) => void;
-  leaveCurrentChannel: () => void;
+  getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   generateIdentities: (amountOfIdentites: number) => {
     privateIdentity: Uint8Array;
     codename: string;
   }[];
+  getMuted: () => boolean;
+  joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
+  setPinnedMessages: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
+  fetchPinnedMessages: () => Promise<Message[]>;
+  getBannedUsers: () => Promise<User[]>;
+  mapDbMessagesToMessages: (messages: DBMessage[]) => Promise<Message[]>;
+  muteUser: (pubkey: string, unmute: boolean) => Promise<void>;
+  setMessages: (messages: Message[]) => void;
+  setNetworkStatus: (status: NetworkStatus) => void;
+  setCmix: (cmix: CMix) => void;
+  setCurrentChannel: (channel: Channel) => void;
+  shareChannel: () => void;
+  sendMessage: (message: string) => void;
+  leaveCurrentChannel: () => void;
   initiateCmix: (password: string) => Promise<void>;
   loadCmix: (statePassEncoded: Uint8Array) => Promise<CMix>;
   createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
@@ -252,12 +257,7 @@ type NetworkContext = {
   loadMoreChannelData: (channelId: string) => Promise<void>;
   exportPrivateIdentity: (password: string) => Uint8Array | false;
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
-  getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   setIsReadyToRegister: (isReady: boolean | undefined) => void;
-  checkRegistrationReadiness: (
-    selectedPrivateIdentity: Uint8Array,
-    onIsReadyInfoChange: (readinessInfo: IsReadyInfo) => void
-  ) => Promise<void>;
   logout: (password: string) => boolean;
 };
 
