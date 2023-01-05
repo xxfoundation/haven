@@ -34,7 +34,7 @@ const UserTextArea: FC<Props> = ({
     sendReply
   } = useNetworkClient();
 
-  const messageIsValid = useMemo(() => messageBody.trim().length < MESSAGE_MAX_SIZE, [messageBody])
+  const messageIsValid = useMemo(() => messageBody.trim().length <= MESSAGE_MAX_SIZE, [messageBody])
 
   useEffect(() => {
     if (currentChannel?.id) {

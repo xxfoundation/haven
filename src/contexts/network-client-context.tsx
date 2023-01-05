@@ -13,6 +13,7 @@ import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { ndf } from 'src/sdk-utils/ndf';
 import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH } from '../constants';
 import useNotification from 'src/hooks/useNotification';
+import usePrevious from 'src/hooks/usePrevious';
 
 const batchCount = 100;
 
@@ -291,7 +292,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setIsAuthenticated,
     statePathExists
   } = useAuthentication();
-  const { messageReplied } = useNotification();
+  const { messagePinned, messageReplied } = useNotification();
   const { utils } = useUtils();
   const [bannedUsers, setBannedUsers] = useState<User[]>();
   const [cmix, setNetwork] = useState<CMix | undefined>();
@@ -811,6 +812,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [
     channelIdentity?.PubKey,
     checkIfWillResolveBlockedEvent,
+    getCodeNameAndColor,
     handleReactionReceived,
     mapDbMessagesToMessages,
     messageReplied,
@@ -1584,14 +1586,18 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils]);
 
+  const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
+
   const fetchPinnedMessages = useCallback(async (): Promise<Message[]> => {
     if (db && currentChannel) {
-      const pinnedMessages = await db.table<DBMessage>('messages')
+      const fetchedPinnedMessages = await db.table<DBMessage>('messages')
         .filter((m) => m.pinned && !m.hidden && m.channel_id === currentChannel.id)
         .toArray()
         .then(mapDbMessagesToMessages);
+      
+        setPinnedMessages(fetchedPinnedMessages);
 
-      return pinnedMessages;
+      return fetchedPinnedMessages;
     }
     return [];
   }, [currentChannel, mapDbMessagesToMessages]);
@@ -1603,7 +1609,52 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return false;
   }, [channelManager, currentChannel, utils]);
 
-  const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
+  const previouslyPinned = usePrevious(pinnedMessages);
+  const previousChannel = usePrevious(currentChannel);
+  const [notified, setNotified] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (currentChannel) {
+      setPinnedMessages(undefined);
+      fetchPinnedMessages();
+    }
+  }, [currentChannel, fetchPinnedMessages]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchPinnedMessages();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [fetchPinnedMessages]);
+
+
+  useEffect(() => {
+    const notInitialLoad = previouslyPinned !== undefined;
+
+    if (notInitialLoad && pinnedMessages) {
+      const previouslyPinnedIds = previouslyPinned?.map((message) => message.id);
+      const newPinnedMessages = pinnedMessages
+        .filter(({ id }) => !previouslyPinnedIds.includes(id) && !notified.includes(id));
+      if (newPinnedMessages.length > 0) {
+        setNotified((notifieds) => notifieds.concat(newPinnedMessages.map((m) => m.id)))
+        newPinnedMessages.forEach((m) => {
+          const foundChannel = channels.find((c) => c.id === m.channelId);
+          if (foundChannel) {
+            messagePinned(m.body, foundChannel.name);
+          }
+        });
+      }
+    }
+  }, [
+    channels,
+    currentChannel,
+    messagePinned,
+    notified,
+    pinnedMessages,
+    previousChannel?.id,
+    previouslyPinned
+  ]);
 
   const ctx: NetworkContext = {
     channelIdentity,

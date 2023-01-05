@@ -46,7 +46,7 @@ const PinnedMessage: FC<Props> = (props) => {
           onClick={openPinnedMessagesModal}
           size='sm'
           className={s.button}>
-          View {pinnedMessages.length - 1} more...
+          View all ({pinnedMessages.length})
         </Button>
       </div>
     </div>
