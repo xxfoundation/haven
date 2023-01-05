@@ -44,7 +44,7 @@ const ViewPinnedMessages: FC= () => {
 
   return (
       <>
-        {status === 'pending' || unpin.status === 'pending' ? <div className='my-32'><Spinner /></div> : (
+        {status === 'pending' || unpin.status === 'pending' ? <div className='my-32'><Spinner size='md' /></div> : (
           <>
             <h2 className={cn('mb-8 text-center')}>Pinned Messages</h2>
             <div className='mt-4 pt-8'>
