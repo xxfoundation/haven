@@ -81,7 +81,6 @@ const LoginView: FC = ({}) => {
           </div>
           <div className='col-span-3 pl-3'>
             <h2 className='mb-2'>Login</h2>
-
             <p
               className='mb-8 text'
               style={{ color: '#5B5D62', lineHeight: '17px' }}
