@@ -97,10 +97,10 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   }, []);
 
   useEffect(() => {
-    if (!document.querySelector('.emoji-picker-react') && autoScrollToEnd) {
+    if (autoScrollToEnd) {
       scrollToEnd();
     }
-  }, [autoScrollToEnd, scrollToEnd, messages]);
+  }, [autoScrollToEnd, scrollToEnd, messages, currentChannel]);
 
 
   const onEmojiReaction = useCallback((emoji: string, messageId: string) =>  {

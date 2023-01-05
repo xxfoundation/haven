@@ -18,8 +18,8 @@ const useNotification = () => {
     });
   }, [notify]);
 
-  const messagePinned = useCallback((username: string) => {
-    notify(`${username} pinned your message`, { icon });
+  const messagePinned = useCallback((message: string, channelName: string) => {
+    notify(`New message pinned in ${channelName}`, { icon, body: message });
   }, [notify])
 
   const close = useCallback(() => {
