@@ -7,18 +7,22 @@ $speed: 3s;
 @keyframes draw {
   from {
     fill: $light-color;
+    transform: translate(0, 0);
   }
 
   33% {
     fill: $dark-color;
+    transform: translate(-1px, -1px);
   }
 
   66% {
     fill: $light-color;
+    transform: translate(0, 0);
   }
 
   to {
     fill: $light-color;
+    transform: translate(0, 0);
   }
 }
 

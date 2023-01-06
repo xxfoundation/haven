@@ -118,7 +118,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
       {currentChannel ? (
         <>
           <div className={s.channelHeader}>
-            <div className={'headline--sm flex items-center'}>
+            <div className={'headline--sm flex flex-wrap items-center'}>
               {currentChannelPrivacyLevel !== null && (
                 <span
                   className={cn(s.channelType, {
@@ -131,7 +131,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
               <span className={cn('mr-2', s.channelName)}>
                 {currentChannel?.name}{' '}
               </span>
-              <span className={cn('headline--xs', s.channelId)}>
+              <span className={cn('headline--xs break-all', s.channelId)}>
                 (id: {currentChannel?.id})
               </span>
             </div>

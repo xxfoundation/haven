@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useCallback, useState } from 'react';
 import s from './NickNameSetView.module.scss';
 import cn from 'classnames';
 import { ModalCtaButton } from 'src/components/common';
@@ -10,6 +10,16 @@ const NickNameSetView: FC = () => {
   const [nickName, setnickName] = useState(getNickName() || '');
   const [error, setError] = useState('');
   const { closeModal } = useUI();
+
+  const onSubmit = useCallback(() => {
+    setError('');
+    const success = setNickName(nickName);
+    if (success) {
+      closeModal();
+    } else {
+      setError('Invalid nickname');
+    }
+  }, [closeModal, nickName, setNickName]);
 
   return (
     <div
@@ -24,6 +34,12 @@ const NickNameSetView: FC = () => {
         placeholder='Enter your nickname'
         className='mt-1'
         value={nickName}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            onSubmit();
+          }
+        }}
         onChange={e => {
           setnickName(e.target.value);
         }}
@@ -36,15 +52,7 @@ const NickNameSetView: FC = () => {
       <ModalCtaButton
         buttonCopy='Save'
         cssClass='my-7'
-        onClick={() => {
-          setError('');
-          const success = setNickName(nickName);
-          if (success) {
-            closeModal();
-          } else {
-            setError('Invalid nickname');
-          }
-        }}
+        onClick={onSubmit}
       />
     </div>
   );
