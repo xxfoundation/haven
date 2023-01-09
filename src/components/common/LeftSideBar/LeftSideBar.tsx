@@ -77,7 +77,7 @@ const LeftSideBar: FC<{
           <div ref={dropdownRef} className='absolute p-2 w-full  left-0 mt-6'>
             <ul style={{ backgroundColor: 'var(--dark-2)', zIndex: 2 }} className='text-right w-full rounded-lg p-2 bold'>
               <li className='px-2 py-1'>
-                <button onClick={() => {
+                <button className='underline' onClick={() => {
                   setModalView('CREATE_CHANNEL');
                   openModal();
                   hideMenu();
@@ -86,12 +86,12 @@ const LeftSideBar: FC<{
                 </button>
               </li>
               <li className='px-2 py-1'>
-                <button onClick={() => {
+                <button className='underline' onClick={() => {
                   setModalView('JOIN_CHANNEL');
                   openModal();
                   hideMenu();
                 }}>
-                  From url
+                  Join existing by url
                 </button>
               </li>
             </ul>

@@ -1,9 +1,10 @@
 .dayMessagesWrapper {
   position: relative;
+  padding-top: 1rem;
 
   .separator {
     position: absolute;
-    top: 15px;
+    top: 33px;
     height: 1px;
     width: 100%;
     background-color: var(--secondary);
