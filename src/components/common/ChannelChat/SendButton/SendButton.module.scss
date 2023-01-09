@@ -1,0 +1,23 @@
+.root {
+  cursor: pointer;
+  outline: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  color: var(--orange);
+  font-size: 16px;
+  font-weight: 700;
+
+  svg,
+  path {
+    fill: var(--orange);
+  }
+
+  &[disabled] {
+    color: var(--red);
+    svg,
+    path {
+      fill: var(--red);
+    }
+  }
+}
