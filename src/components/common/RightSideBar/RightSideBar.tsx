@@ -137,12 +137,6 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                 </Button>
               )}
               <Button
-                cssClasses={cn('block mx-auto mb-4')}
-                onClick={showPinnedMessages}
-              >
-                View Pinned Messages
-              </Button>
-              <Button
                 cssClasses={cn('block mx-auto')}
                 onClick={() => {
                   setModalView('CHANNEL_ACTIONS');

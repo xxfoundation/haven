@@ -4,6 +4,7 @@ import type { Message } from 'src/types';
 import { Pin } from 'src/components/icons';
 import { useNetworkClient } from '@contexts/network-client-context';
 import React, { useCallback, useEffect } from 'react';
+import cn from 'classnames';
 import useAsync from 'src/hooks/useAsync';
 
 import s from './PinnedMessage.module.scss';
@@ -36,7 +37,7 @@ const PinnedMessage: FC<Props> = (props) => {
   }, [openModal, setModalView])
 
   return pinnedMessages && pinnedMessages.length > 0 ? (
-    <div className={s.pinnedMessageContainer}>
+    <div className={cn(s.pinnedMessageContainer, 'shadow-xl mb-2')}>
       <div className={s.scrollContainer}>
         <Pin className={s.pin}/>
         <MessageContainer {...props} className={s.message} message={pinnedMessages[pinnedMessages.length - 1]} />
