@@ -1,7 +1,8 @@
-/** @type {import('next').NextConfig} */
+const nextBuildId = require('next-build-id')
+
 const nextConfig = {
   reactStrictMode: false,
-  swcMinify: true
+  generateBuildId: () => nextBuildId({ dir: __dirname })
 };
 
 module.exports = nextConfig;
