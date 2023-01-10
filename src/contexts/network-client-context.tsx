@@ -1074,7 +1074,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
                 dummyTrafficObjRef.current &&
                 !dummyTrafficObjRef?.current?.GetStatus()
               ) {
-                dummyTrafficObjRef?.current?.SetStatus(true);
+                dummyTrafficObjRef?.current?.Start();
               }
             } else {
               setIsNetworkHealthy(false);

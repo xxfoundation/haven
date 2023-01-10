@@ -10,8 +10,9 @@ export enum PrivacyLevel {
 }
 
 export type DummyTraffic = {
+  Pause: () => void;
+  Start: () => void;
   GetStatus: () => boolean;
-  SetStatus: (status: boolean) => void;
 }
 
 export type ChannelDbCipher = {
