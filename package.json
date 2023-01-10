@@ -30,6 +30,7 @@
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.37",
     "next": "12.2.5",
+    "next-build-id": "^3.0.0",
     "next-seo": "^5.11.1",
     "postcss": "^8.4.16",
     "react": "18.2.0",
