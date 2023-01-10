@@ -15,7 +15,9 @@ export type ModalViews =
   | 'JOIN_CHANNEL_SUCCESS'
   | 'LOGOUT'
   | 'USER_WAS_BANNED'
-  | 'VIEW_PINNED_MESSAGES';
+  | 'VIEW_PINNED_MESSAGES'
+  | 'EXPORT_ADMIN_KEYS'
+  | 'CLAIM_ADMIN_KEYS';
 
 export interface State {
   displayModal: boolean;

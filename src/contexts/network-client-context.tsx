@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
 import assert from 'assert';
 
 import { Message, WithChildren } from 'src/types';
-import { decoder, exportDataToFile } from 'src/utils';
+import { decoder, encoder, exportDataToFile } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { ndf } from 'src/sdk-utils/ndf';
@@ -149,11 +149,13 @@ export type ChannelManager = {
   GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => string;
   GetStorageTag: () => string;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
-  GetNickname: (channel: Uint8Array) => string;
+  GetNickname: (channelId: Uint8Array) => string;
   GetIdentity: () => Uint8Array;
   GetShareURL: (cmixId: number, host: string, maxUses: number, channelId: Uint8Array) => Uint8Array;
   JoinChannelFromURL: (url: string, password: string) => Uint8Array;
   ExportPrivateIdentity: (password: string) => Uint8Array;
+  ExportChannelAdminKey: (channelId: Uint8Array, encryptionPassword: string) => Uint8Array;
+  ImportChannelAdminKey: (channelId: Uint8Array, encryptionPassword: string, privateKey: Uint8Array) => void;
 }
 
 export interface Channel {
@@ -218,7 +220,9 @@ type NetworkContext = {
     channelDescription: string,
     privacyLevel: 0 | 2
   ) => void;
+  upgradeAdmin: () => void;
   deleteMessage: (message: Message) => Promise<void>;
+  exportChannelAdminKeys: (encryptionPassword: string) => string;
   getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   generateIdentities: (amountOfIdentites: number) => {
     privateIdentity: Uint8Array;
@@ -226,6 +230,7 @@ type NetworkContext = {
   }[];
   getMuted: () => boolean;
   joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
+  importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
   setPinnedMessages: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
   fetchPinnedMessages: () => Promise<Message[]>;
   getBannedUsers: () => Promise<User[]>;
@@ -334,6 +339,24 @@ export const NetworkProvider: FC<WithChildren> = props => {
       });
     }
   }, [currentChannel]);
+
+  const upgradeAdmin = useCallback(() => {
+    if (currentChannel) {
+      setCurrentChannel(ch => ch && ({
+        ...ch,
+        isAdmin: true,
+      }))
+      setChannels(prev => {
+        return prev.map((ch) => {
+          if (ch?.id === currentChannel?.id) {
+            return { ...ch, isAdmin: true };
+          } else {
+            return ch;
+          }
+        });
+      });
+    }
+  }, [currentChannel])
 
   const getIdentity = useCallback((mngr?: ChannelManager) => {
     const manager = channelManager || mngr; 
@@ -1656,10 +1679,35 @@ export const NetworkProvider: FC<WithChildren> = props => {
     previouslyPinned
   ]);
 
+  const exportChannelAdminKeys = useCallback((encryptionPassword: string) => {
+    if (channelManager && currentChannel) {
+      return decoder.decode(channelManager.ExportChannelAdminKey(
+        utils.Base64ToUint8Array(currentChannel.id),
+        encryptionPassword
+      ));
+    }
+    throw Error('Channel manager and current channel required.');
+  }, [channelManager, currentChannel, utils]);
+
+
+  const importChannelAdminKeys = useCallback((encryptionPassword: string, privateKey: string) => {
+    if (channelManager && currentChannel) {
+      channelManager.ImportChannelAdminKey(
+        utils.Base64ToUint8Array(currentChannel.id),
+        encryptionPassword,
+        encoder.encode(privateKey)
+      );
+    } else {
+      throw Error('Channel manager and current channel required.');
+    }
+  }, [channelManager, currentChannel, utils]);
+
   const ctx: NetworkContext = {
     channelIdentity,
     getBannedUsers,
     bannedUsers,
+    exportChannelAdminKeys,
+    importChannelAdminKeys,
     userIsBanned,
     setBannedUsers,
     muteUser,
@@ -1709,7 +1757,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setIsReadyToRegister,
     checkRegistrationReadiness,
     pinMessage,
-    logout
+    logout,
+    upgradeAdmin
   }
 
   return (

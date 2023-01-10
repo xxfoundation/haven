@@ -1,6 +1,8 @@
 export { default } from './Modal';
 export { default as CreateChannelView } from './CreateChannelView';
+export { default as ExportAdminKeys } from './ExportAdminKeys';
 export { default as JoinChannelView } from './JoinChannelView';
+export { default as ClaimAdminKeys } from './ClaimAdminKeys';
 export { default as ShareChannelView } from './ShareChannelView';
 export { default as LeaveChannelConfirmationView } from './LeaveChannelConfirmationView';
 export { default as NickNameSetView } from './NickNameSetView';
