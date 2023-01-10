@@ -31,7 +31,7 @@ export type ChannelJSON = {
 export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
 
 export type XXDKUtils = {
-  NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => void;
+  NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => Promise<void>;
   LoadCmix: (storageDirectory: string, password: Uint8Array, cmixParams: Uint8Array) => Promise<CMix>;
   GetDefaultCMixParams: () => Uint8Array;GetChannelInfo: (prettyPrint: string) => Uint8Array;
   Base64ToUint8Array: (base64: string) => Uint8Array;
