@@ -52,7 +52,7 @@ const ViewPinnedMessages: FC= () => {
                 [There are currently no pinned messages in this channel]
               </p>}
               {pinnedMessages && <MessagesContainer messages={pinnedMessages}/>}
-            </div>
+              </div>
           </>
         )}
       </>

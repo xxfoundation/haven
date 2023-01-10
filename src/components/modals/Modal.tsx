@@ -27,7 +27,7 @@ const Modal: FC<WithChildren & ModalProps & HTMLProps<HTMLDivElement>> = ({
           aria-label='Close panel'
           className={s.close}
         />
-        <div className='w-full'>{children}</div>
+        <div className='w-full overflow-auto'>{children}</div>
       </div>
     </div>
   );
