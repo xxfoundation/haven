@@ -1,0 +1,66 @@
+
+$primary: #259cdb;
+$light-color: lighten(#259cdb, 30%);
+$dark-color:#259cdb;
+$speed: 3s;
+
+@keyframes draw {
+  from {
+    fill: $light-color;
+    transform: translate(0, 0);
+  }
+
+  33% {
+    fill: $dark-color;
+    transform: translate(-1px, -1px);
+  }
+
+  66% {
+    fill: $light-color;
+    transform: translate(0, 0);
+  }
+
+  to {
+    fill: $light-color;
+    transform: translate(0, 0);
+  }
+}
+
+
+.stroke-1, .stroke-2, .stroke-3 {
+  animation-duration: 1.5s;
+  animation-name: draw;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in;
+  fill: $light-color;
+}
+
+.stroke-1, .stroke-2, .stroke-3 {
+  animation-name: draw;
+  fill: $light-color;
+}
+
+.stroke-1 {
+  animation-delay: 0.5s;
+}
+.stroke-3 {
+  animation-delay: 1s;
+}
+
+.spinner {
+  margin: 0.5rem auto;
+  text-align: center;
+  width: 30px;
+
+  &.sm {
+    width: 30px;
+  }
+
+  &.md {
+    width: 90px;
+  }
+
+  &.lg {
+    width: 135px;
+  }
+}
