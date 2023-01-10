@@ -1038,6 +1038,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   // Used directly on Login
   const loadCmix = useCallback(async (statePassEncoded: Uint8Array) => {
+    console.log('*** [JONO] LoadCmix')
     let loadedCmix;
     try {
       loadedCmix = await utils.LoadCmix(
@@ -1093,6 +1094,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const initiateCmix = useCallback(async (password: string) => {
     try {
+      console.log('*** [JONO] NewCmix')
       const statePassEncoded = utils.GetOrInitPassword(password);
       // Check if state exists
       if (!statePathExists()) {
