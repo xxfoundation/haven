@@ -128,6 +128,8 @@ const DefaultLayout: FC<WithChildren> = ({
     router
   ]);
 
+  console.log({ cmix: !!cmix, isAuthenticated, tag: getStorageTag(), isReadyToRegister })
+
   return (
     <div className={cn(s.root)}>
       {utilsLoaded ? (
