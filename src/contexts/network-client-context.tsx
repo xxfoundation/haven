@@ -129,7 +129,6 @@ export type ChannelManager = {
   DeleteMessage: (
     channelId: Uint8Array,
     messageId: Uint8Array,
-    undelete: boolean,
     cmixParams: Uint8Array
   ) => Promise<void>;
   SendReaction: (
@@ -1549,7 +1548,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     await channelManager?.DeleteMessage(
       utils.Base64ToUint8Array(channelId),
       utils.Base64ToUint8Array(id),
-      false,
       utils.GetDefaultCMixParams()
     );
 
