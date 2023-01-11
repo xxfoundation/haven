@@ -1,4 +1,4 @@
-image: ubuntu:20.04
+image: node:16
 
 before_script:
   - apt update
@@ -14,6 +14,8 @@ stages:
 deploy_preprod:
   stage: deploy
   script:
+    - npm install
+    - npm run build
     - ssh -o StrictHostKeychecking=no maint@142.93.100.204 "sudo service speakeasy restart"
     - echo Redeployed http://stg.speakeasy.tech/
   only:
@@ -22,7 +24,19 @@ deploy_preprod:
 deploy_dev:
   stage: deploy
   script:
+    - npm install
+    - npm run build
     - ssh -o StrictHostKeychecking=no maint@167.71.42.39 "sudo service speakeasy restart"
     - echo Redeployed http://dev.speakeasy.tech/
   only:
     - dev
+
+deploy_backdev:
+  stage: deploy
+  script:
+    - npm install
+    - npm run build
+    - ssh -o StrictHostKeychecking=no maint@165.227.151.153 "sudo service speakeasy restart"
+    - echo Redeployed http://backdev.speakeasy.tech/
+  only:
+    - backend-dev
