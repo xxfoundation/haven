@@ -1,9 +1,11 @@
 import icon from 'src/assets/images/logo.svg';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { useSessionStorage } from 'usehooks-ts';
 
 const useNotification = () => {
   const [isPermissionGranted, setIsPermissionGranted] = useState<boolean>(Notification?.permission === 'granted');
   const notification = useRef<Notification | null>(null);
+  const [permissionIgnored, setPermissionIgnored] = useSessionStorage('notifications_ignored', false);
 
   const notify = useCallback((title: string, options?: NotificationOptions) => {
     if (isPermissionGranted) {
@@ -26,16 +28,18 @@ const useNotification = () => {
     notification.current?.close();
   }, []);
 
-  useEffect(() => {
-    if (!isPermissionGranted) {
-      Notification.requestPermission().then((permission) => setIsPermissionGranted(permission === 'granted'));
-    }
-  }, [isPermissionGranted]);
+  const request = useCallback(() => {
+    Notification.requestPermission().then((permission) => setIsPermissionGranted(permission === 'granted'));
+  }, [])
 
   return {
+    isPermissionGranted,
+    permissionIgnored,
+    setPermissionIgnored,
     messagePinned,
     messageReplied,
     close,
+    request,
   };
 };
 

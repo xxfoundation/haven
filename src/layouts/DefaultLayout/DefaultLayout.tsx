@@ -12,6 +12,7 @@ import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { Loading } from 'src/components/common';
 import AuthenticationUI from './AuthenticationUI';
+import NotificationBanner from 'src/components/common/NotificationBanner';
 
 import {
   CreateChannelView,
@@ -128,10 +129,10 @@ const DefaultLayout: FC<WithChildren> = ({
     router
   ]);
 
-  console.log({ cmix: !!cmix, isAuthenticated, tag: getStorageTag(), isReadyToRegister })
-
   return (
-    <div className={cn(s.root)}>
+    <>
+      <NotificationBanner />
+      <div className={cn(s.root)}>
       {utilsLoaded ? (
         cmix && isAuthenticated && getStorageTag() && isReadyToRegister ? (
           <>
@@ -149,6 +150,8 @@ const DefaultLayout: FC<WithChildren> = ({
         <Loading />
       )}
     </div>
+    </>
+    
   );
 };
 
