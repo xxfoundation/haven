@@ -5,9 +5,10 @@ import { Dexie } from 'dexie';
 import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
+import EventEmitter from 'events';
 
 import { Message, WithChildren } from 'src/types';
-import { decoder, exportDataToFile } from 'src/utils';
+import { decoder, encoder, exportDataToFile } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { ndf } from 'src/sdk-utils/ndf';
@@ -129,7 +130,6 @@ export type ChannelManager = {
   DeleteMessage: (
     channelId: Uint8Array,
     messageId: Uint8Array,
-    undelete: boolean,
     cmixParams: Uint8Array
   ) => Promise<void>;
   SendReaction: (
@@ -149,11 +149,13 @@ export type ChannelManager = {
   GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => Promise<string>;
   GetStorageTag: () => string;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
-  GetNickname: (channel: Uint8Array) => string;
+  GetNickname: (channelId: Uint8Array) => string;
   GetIdentity: () => Uint8Array;
   GetShareURL: (cmixId: number, host: string, maxUses: number, channelId: Uint8Array) => Uint8Array;
   JoinChannelFromURL: (url: string, password: string) => Uint8Array;
   ExportPrivateIdentity: (password: string) => Uint8Array;
+  ExportChannelAdminKey: (channelId: Uint8Array, encryptionPassword: string) => Uint8Array;
+  ImportChannelAdminKey: (channelId: Uint8Array, encryptionPassword: string, privateKey: Uint8Array) => void;
 }
 
 export interface Channel {
@@ -218,7 +220,9 @@ type NetworkContext = {
     channelDescription: string,
     privacyLevel: 0 | 2
   ) => void;
+  upgradeAdmin: () => void;
   deleteMessage: (message: Message) => Promise<void>;
+  exportChannelAdminKeys: (encryptionPassword: string) => string;
   getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   generateIdentities: (amountOfIdentites: number) => {
     privateIdentity: Uint8Array;
@@ -226,6 +230,7 @@ type NetworkContext = {
   }[];
   getMuted: () => boolean;
   joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
+  importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
   setPinnedMessages: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
   fetchPinnedMessages: () => Promise<Message[]>;
   getBannedUsers: () => Promise<User[]>;
@@ -286,6 +291,8 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
   localStorage.setItem('prettyprints', JSON.stringify(prev));
 };
 
+const mutedEventBus = new EventEmitter();
+
 export const NetworkProvider: FC<WithChildren> = props => {
   const {
     addStorageTag,
@@ -319,6 +326,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const currentChannelRef = useRef<Channel>();
   const dummyTrafficObjRef = useRef<DummyTraffic>();
   const cipherRef = useRef<DatabaseCipher>();
+  const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
 
   useEffect(() => {
     if (currentChannel) {
@@ -334,6 +342,24 @@ export const NetworkProvider: FC<WithChildren> = props => {
       });
     }
   }, [currentChannel]);
+
+  const upgradeAdmin = useCallback(() => {
+    if (currentChannel) {
+      setCurrentChannel(ch => ch && ({
+        ...ch,
+        isAdmin: true,
+      }))
+      setChannels(prev => {
+        return prev.map((ch) => {
+          if (ch?.id === currentChannel?.id) {
+            return { ...ch, isAdmin: true };
+          } else {
+            return ch;
+          }
+        });
+      });
+    }
+  }, [currentChannel])
 
   const getIdentity = useCallback((mngr?: ChannelManager) => {
     const manager = channelManager || mngr; 
@@ -987,6 +1013,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
     utils
   ]);
 
+  const onMessageDelete = useCallback((msgId: Uint8Array) => {
+    const messageId = Buffer.from(msgId).toString('base64');
+    setMessages((msgs) => msgs.filter(({ id }) => id !== messageId));
+    setPinnedMessages((msgs) => msgs?.filter(({ id }) => id !== messageId))
+  }, []);
+
+  const onMutedUser = useCallback((channelId: Uint8Array, pubkey: string, unmute: boolean) => {
+    mutedEventBus.emit('muted', { channelId, pubkey, unmute });
+  }, [])
+
   const loadChannelManager = async (tag: string, cmixFallback?: CMix) => {
     const currentNetwork = cmix || cmixFallback;
 
@@ -1001,6 +1037,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
           currentNetwork.GetID(),
           tag,
           addEventToQueue,
+          onMessageDelete,
+          onMutedUser,
           cipherRef?.current?.GetID()
         );
 
@@ -1008,6 +1046,48 @@ export const NetworkProvider: FC<WithChildren> = props => {
       handleInitialLoadData(tag, loadedChannelsManager);
     }
   };
+
+  const getBannedUsers = useCallback(async () => {
+    initDb();
+    let users: User[] = [];
+
+    if (currentChannel && channelManager && db) {
+      const bannedUserIds = JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
+        utils.Base64ToUint8Array(currentChannel.id)
+      ))) as string[];
+
+      const usersMap = (await db.table<DBMessage>('messages')
+        .filter((obj) => obj.channel_id === currentChannel.id && bannedUserIds.includes(obj.pubkey))
+        .toArray() || []).reduce((acc, cur) => {
+          if (bannedUserIds.includes(cur.pubkey) && !acc.get(cur.pubkey)) {
+            const { codename: codename, color } = getCodeNameAndColor(cur.pubkey, cur.codeset_version);
+            acc.set(
+              cur.pubkey, {
+                codename,
+                color,
+                pubkey: cur.pubkey
+              }
+            );
+          }
+          return acc;
+        }, new Map<string, User>()).values();
+      
+      users = Array.from(usersMap);
+      setBannedUsers(users);
+    }
+
+    return users;
+  }, [channelManager, currentChannel, getCodeNameAndColor, utils]);
+
+  useEffect(() => {
+    const listener = () => {
+      console.error('RECEIVING EVENT');
+      getBannedUsers();
+    }
+    mutedEventBus.addListener('muted', listener);
+
+    return () => { mutedEventBus.removeListener('muted', listener); };
+  }, [getBannedUsers])
 
   const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
     if (
@@ -1020,6 +1100,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         cmix.GetID(),
         privateIdentity,
         addEventToQueue,
+        onMessageDelete,
+        onMutedUser,
         cipherRef?.current?.GetID()
       );
       
@@ -1029,11 +1111,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
       handleInitialLoadData(tag, createdChannelManager);
     }
   }, [
-    addStorageTag,
-    handleInitialLoadData,
     cmix,
+    utils,
     addEventToQueue,
-    utils
+    onMessageDelete,
+    onMutedUser,
+    addStorageTag,
+    handleInitialLoadData
   ]);
 
   // Used directly on Login
@@ -1526,44 +1610,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
     await channelManager?.DeleteMessage(
       utils.Base64ToUint8Array(channelId),
       utils.Base64ToUint8Array(id),
-      false,
       utils.GetDefaultCMixParams()
     );
 
     setMessages((prev) => prev.filter((m) => m.id !== id));
   }, [channelManager, utils]);
-
-  const getBannedUsers = useCallback(async () => {
-    initDb();
-    let users: User[] = [];
-
-    if (currentChannel && channelManager && db) {
-      const bannedUserIds = JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
-        utils.Base64ToUint8Array(currentChannel.id)
-      ))) as string[];
-
-      const usersMap = (await db.table<DBMessage>('messages')
-        .filter((obj) => obj.channel_id === currentChannel.id && bannedUserIds.includes(obj.pubkey))
-        .toArray() || []).reduce((acc, cur) => {
-          if (bannedUserIds.includes(cur.pubkey) && !acc.get(cur.pubkey)) {
-            const { codename: codename, color } = getCodeNameAndColor(cur.pubkey, cur.codeset_version);
-            acc.set(
-              cur.pubkey, {
-                codename,
-                color,
-                pubkey: cur.pubkey
-              }
-            );
-          }
-          return acc;
-        }, new Map<string, User>()).values();
-      
-      users = Array.from(usersMap);
-      setBannedUsers(users);
-    }
-
-    return users;
-  }, [channelManager, currentChannel, getCodeNameAndColor, utils]);
 
   useEffect(() => {
     getBannedUsers();
@@ -1585,8 +1636,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       )
     }
   }, [channelManager, currentChannel, utils]);
-
-  const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
 
   const fetchPinnedMessages = useCallback(async (): Promise<Message[]> => {
     if (db && currentChannel) {
@@ -1656,10 +1705,35 @@ export const NetworkProvider: FC<WithChildren> = props => {
     previouslyPinned
   ]);
 
+  const exportChannelAdminKeys = useCallback((encryptionPassword: string) => {
+    if (channelManager && currentChannel) {
+      return decoder.decode(channelManager.ExportChannelAdminKey(
+        utils.Base64ToUint8Array(currentChannel.id),
+        encryptionPassword
+      ));
+    }
+    throw Error('Channel manager and current channel required.');
+  }, [channelManager, currentChannel, utils]);
+
+
+  const importChannelAdminKeys = useCallback((encryptionPassword: string, privateKey: string) => {
+    if (channelManager && currentChannel) {
+      channelManager.ImportChannelAdminKey(
+        utils.Base64ToUint8Array(currentChannel.id),
+        encryptionPassword,
+        encoder.encode(privateKey)
+      );
+    } else {
+      throw Error('Channel manager and current channel required.');
+    }
+  }, [channelManager, currentChannel, utils]);
+
   const ctx: NetworkContext = {
     channelIdentity,
     getBannedUsers,
     bannedUsers,
+    exportChannelAdminKeys,
+    importChannelAdminKeys,
     userIsBanned,
     setBannedUsers,
     muteUser,
@@ -1709,7 +1783,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setIsReadyToRegister,
     checkRegistrationReadiness,
     pinMessage,
-    logout
+    logout,
+    upgradeAdmin
   }
 
   return (
