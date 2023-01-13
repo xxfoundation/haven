@@ -93,6 +93,11 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
     setIsActive(!isActive);
   }, [isActive]);
 
+  // const showPinnedMessages = useCallback(() => {
+  //   setModalView('VIEW_PINNED_MESSAGES');
+  //   openModal();
+  // }, [openModal, setModalView])
+
   return (
     <a.div
       className={cn(s.root, cssClasses, { [s.root__collapsed]: !isActive })}
