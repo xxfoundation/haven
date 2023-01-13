@@ -74,7 +74,7 @@ const CodenameRegistration: FC = () => {
                 <div
                   key={i.codename}
                   className={cn(s.codename, {
-                    [s.codeName__selected]: i.codename === selectedCodeName
+                    [s.selected]: i.codename === selectedCodeName
                   })}
                   onClick={() => {
                     setSelectedCodeName(i.codename);
@@ -104,6 +104,7 @@ const CodenameRegistration: FC = () => {
               borderColor: 'var(--orange)'
             }}
             onClick={() => {
+              setSelectedCodeName('');
               setIdentites(generateIdentities(20));
             }}
             disabled={!cmix}

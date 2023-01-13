@@ -17,7 +17,7 @@ type Props = {
 }
 
 const ViewBannedUsersModal: FC<Props> = ({ onCancel }) =>  {
-  const { bannedUsers, getBannedUsers, muteUser, setBannedUsers } = useNetworkClient();
+  const { bannedUsers, getBannedUsers, muteUser } = useNetworkClient();
   const getBanned = useAsync(getBannedUsers);
   const muting = useAsync((...args: Parameters<typeof muteUser>) => Promise.all([
     delay(5000),  // delay to let the nodes propagate
@@ -26,8 +26,7 @@ const ViewBannedUsersModal: FC<Props> = ({ onCancel }) =>  {
 
   const unbanUser = useCallback((user: User) => async () => {
     await muting.execute(user.pubkey, true);
-    setBannedUsers((prev) => prev?.filter((u) => u.pubkey !== user.pubkey));
-  }, [muting, setBannedUsers])
+  }, [muting])
 
   return (
     <Modal className='pb-8' onClose={onCancel}>

@@ -13,19 +13,41 @@ const ChannelActionsView: FC = () => {
       className={cn('w-full flex flex-col justify-center items-center')}
     >
       <h2 className='mt-9 mb-4'>More Channel Actions</h2>
-      <div className='mt-6 mb-8 flex items-center mx-auto'>
+      <div className='mt-6 mb-8 flex flex-wrap justify-center items-center mx-auto'>
         <ModalCtaButton
+          cssClass='m-2'
           buttonCopy='Logout'
-          cssClass='mr-8'
           style={{ borderColor: 'var(--red)' }}
           onClick={() => {
             setModalView('LOGOUT');
             openModal();
           }}
         />
+        {currentChannel?.isAdmin ? (
+          <ModalCtaButton
+            cssClass='m-2'
+            buttonCopy='Export Admin Keys'
+            style={{ borderColor: 'var(--red)' }}
+            onClick={() => {
+              setModalView('EXPORT_ADMIN_KEYS');
+              openModal();
+            }}
+          />
+        ) : (
+          <ModalCtaButton
+            cssClass='m-2'
+            buttonCopy='Claim Admin Keys'
+            style={{ borderColor: 'var(--red)' }}
+            onClick={() => {
+              setModalView('CLAIM_ADMIN_KEYS');
+              openModal();
+            }}
+          />
+        )}
+        
         <ModalCtaButton
+          cssClass='m-2'
           buttonCopy='Leave'
-          cssClass=''
           style={{ borderColor: 'var(--red)' }}
           disabled={!currentChannel}
           onClick={() => {

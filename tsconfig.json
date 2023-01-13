@@ -28,6 +28,6 @@
       "@sdk/*": ["sdk-utils/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/common/ChannelChat/MessageActions"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

@@ -12,9 +12,11 @@ import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { Loading } from 'src/components/common';
 import AuthenticationUI from './AuthenticationUI';
+import NotificationBanner from 'src/components/common/NotificationBanner';
 
 import {
   CreateChannelView,
+  ClaimAdminKeys,
   JoinChannelView,
   ShareChannelView,
   LeaveChannelConfirmationView,
@@ -26,7 +28,8 @@ import {
   JoinChannelSuccessView,
   LogoutView,
   UserWasBanned,
-  ViewPinnedMessages
+  ViewPinnedMessages,
+  ExportAdminKeys
 } from 'src/components/modals';
 
 import s from './DefaultLayout.module.scss';
@@ -50,7 +53,9 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     'JOIN_CHANNEL_SUCCESS',
     'LOGOUT',
     'USER_WAS_BANNED',
-    'VIEW_PINNED_MESSAGES'
+    'VIEW_PINNED_MESSAGES',
+    'EXPORT_ADMIN_KEYS',
+    'CLAIM_ADMIN_KEYS'
   ];
 
   return displayModal && modalView && allModals.includes(modalView) ? (
@@ -70,6 +75,8 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
       {modalView === 'LOGOUT' && <LogoutView />}
       {modalView === 'USER_WAS_BANNED' && <UserWasBanned />}
       {modalView === 'VIEW_PINNED_MESSAGES'  && <ViewPinnedMessages />}
+      {modalView === 'EXPORT_ADMIN_KEYS' && <ExportAdminKeys />}
+      {modalView === 'CLAIM_ADMIN_KEYS' && <ClaimAdminKeys />}
     </Modal>
   ) : null;
 };
@@ -123,7 +130,9 @@ const DefaultLayout: FC<WithChildren> = ({
   ]);
 
   return (
-    <div className={cn(s.root)}>
+    <>
+      <NotificationBanner />
+      <div className={cn(s.root)}>
       {utilsLoaded ? (
         cmix && isAuthenticated && getStorageTag() && isReadyToRegister ? (
           <>
@@ -141,6 +150,8 @@ const DefaultLayout: FC<WithChildren> = ({
         <Loading />
       )}
     </div>
+    </>
+    
   );
 };
 

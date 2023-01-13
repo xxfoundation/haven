@@ -42,7 +42,7 @@
       cursor: pointer;
     }
 
-    &__selected {
+    &.selected {
       background-color: var(--cyan);
       outline: 2px solid var(--white);
     }
