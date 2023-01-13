@@ -5,6 +5,7 @@ import { Dexie } from 'dexie';
 import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
+import EventEmitter from 'events';
 
 import { Message, WithChildren } from 'src/types';
 import { decoder, encoder, exportDataToFile } from 'src/utils';
@@ -290,6 +291,8 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
   localStorage.setItem('prettyprints', JSON.stringify(prev));
 };
 
+const mutedEventBus = new EventEmitter();
+
 export const NetworkProvider: FC<WithChildren> = props => {
   const {
     addStorageTag,
@@ -323,6 +326,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const currentChannelRef = useRef<Channel>();
   const dummyTrafficObjRef = useRef<DummyTraffic>();
   const cipherRef = useRef<DatabaseCipher>();
+  const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
 
   useEffect(() => {
     if (currentChannel) {
@@ -1009,6 +1013,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
     utils
   ]);
 
+  const onMessageDelete = useCallback((msgId: Uint8Array) => {
+    const messageId = Buffer.from(msgId).toString('base64');
+    setMessages((msgs) => msgs.filter(({ id }) => id !== messageId));
+    setPinnedMessages((msgs) => msgs?.filter(({ id }) => id !== messageId))
+  }, []);
+
+  const onMutedUser = useCallback((channelId: Uint8Array, pubkey: string, unmute: boolean) => {
+    mutedEventBus.emit('muted', { channelId, pubkey, unmute });
+  }, [])
+
   const loadChannelManager = async (tag: string, cmixFallback?: CMix) => {
     const currentNetwork = cmix || cmixFallback;
 
@@ -1023,6 +1037,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
           currentNetwork.GetID(),
           tag,
           addEventToQueue,
+          onMessageDelete,
+          onMutedUser,
           cipherRef?.current?.GetID()
         );
 
@@ -1030,6 +1046,48 @@ export const NetworkProvider: FC<WithChildren> = props => {
       handleInitialLoadData(tag, loadedChannelsManager);
     }
   };
+
+  const getBannedUsers = useCallback(async () => {
+    initDb();
+    let users: User[] = [];
+
+    if (currentChannel && channelManager && db) {
+      const bannedUserIds = JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
+        utils.Base64ToUint8Array(currentChannel.id)
+      ))) as string[];
+
+      const usersMap = (await db.table<DBMessage>('messages')
+        .filter((obj) => obj.channel_id === currentChannel.id && bannedUserIds.includes(obj.pubkey))
+        .toArray() || []).reduce((acc, cur) => {
+          if (bannedUserIds.includes(cur.pubkey) && !acc.get(cur.pubkey)) {
+            const { codename: codename, color } = getCodeNameAndColor(cur.pubkey, cur.codeset_version);
+            acc.set(
+              cur.pubkey, {
+                codename,
+                color,
+                pubkey: cur.pubkey
+              }
+            );
+          }
+          return acc;
+        }, new Map<string, User>()).values();
+      
+      users = Array.from(usersMap);
+      setBannedUsers(users);
+    }
+
+    return users;
+  }, [channelManager, currentChannel, getCodeNameAndColor, utils]);
+
+  useEffect(() => {
+    const listener = () => {
+      console.error('RECEIVING EVENT');
+      getBannedUsers();
+    }
+    mutedEventBus.addListener('muted', listener);
+
+    return () => { mutedEventBus.removeListener('muted', listener); };
+  }, [getBannedUsers])
 
   const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
     if (
@@ -1042,6 +1100,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         cmix.GetID(),
         privateIdentity,
         addEventToQueue,
+        onMessageDelete,
+        onMutedUser,
         cipherRef?.current?.GetID()
       );
       
@@ -1051,11 +1111,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
       handleInitialLoadData(tag, createdChannelManager);
     }
   }, [
-    addStorageTag,
-    handleInitialLoadData,
     cmix,
+    utils,
     addEventToQueue,
-    utils
+    onMessageDelete,
+    onMutedUser,
+    addStorageTag,
+    handleInitialLoadData
   ]);
 
   // Used directly on Login
@@ -1554,38 +1616,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setMessages((prev) => prev.filter((m) => m.id !== id));
   }, [channelManager, utils]);
 
-  const getBannedUsers = useCallback(async () => {
-    initDb();
-    let users: User[] = [];
-
-    if (currentChannel && channelManager && db) {
-      const bannedUserIds = JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
-        utils.Base64ToUint8Array(currentChannel.id)
-      ))) as string[];
-
-      const usersMap = (await db.table<DBMessage>('messages')
-        .filter((obj) => obj.channel_id === currentChannel.id && bannedUserIds.includes(obj.pubkey))
-        .toArray() || []).reduce((acc, cur) => {
-          if (bannedUserIds.includes(cur.pubkey) && !acc.get(cur.pubkey)) {
-            const { codename: codename, color } = getCodeNameAndColor(cur.pubkey, cur.codeset_version);
-            acc.set(
-              cur.pubkey, {
-                codename,
-                color,
-                pubkey: cur.pubkey
-              }
-            );
-          }
-          return acc;
-        }, new Map<string, User>()).values();
-      
-      users = Array.from(usersMap);
-      setBannedUsers(users);
-    }
-
-    return users;
-  }, [channelManager, currentChannel, getCodeNameAndColor, utils]);
-
   useEffect(() => {
     getBannedUsers();
   }, [currentChannel, getBannedUsers]);
@@ -1606,8 +1636,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       )
     }
   }, [channelManager, currentChannel, utils]);
-
-  const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
 
   const fetchPinnedMessages = useCallback(async (): Promise<Message[]> => {
     if (db && currentChannel) {
