@@ -164,6 +164,7 @@ export interface Channel {
   id: string;
   description: string;
   isAdmin: boolean;
+  privacyLevel: PrivacyLevel | null;
   isLoading?: boolean;
   withMissedMessages?: boolean;
   currentMessagesBatch?: number;
@@ -366,7 +367,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     try {
       const identity = decoder.decode(manager?.GetIdentity());
 
-
       return JSON.parse(identity) as IdentityJSON;
     } catch (error) {
       console.error(error);
@@ -400,6 +400,61 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
   }, [cmix]);
+
+
+  const getShareURL = useCallback((
+    channelId = currentChannel?.id,
+    channManager?: ChannelManager,
+    fallbackCmix?: CMix
+  ) => {
+    const manager = channManager || channelManager;
+    const network = cmix || fallbackCmix;
+
+    if (
+      network &&
+      manager &&
+      utils &&
+      utils.Base64ToUint8Array &&
+      channelId
+    ) {
+      try {
+        const currentHostName = window.location.host;
+        const res = manager.GetShareURL(
+          network?.GetID(),
+          `http://${currentHostName}/join`,
+          0,
+          utils.Base64ToUint8Array(channelId)
+        );
+        
+        return JSON.parse(decoder.decode(res)) as ShareURL;
+      } catch (error) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }, [channelManager, currentChannel, cmix, utils]);
+
+  const getShareUrlType = useCallback((url?: string) => {
+    if (url && utils && utils.GetShareUrlType) {
+      try {
+        const res = utils.GetShareUrlType(url);
+        return res;
+      } catch (error) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }, [utils]);
+
+  const getPrivacyLevel = useCallback(
+    (channelId: string, channManager?: ChannelManager, cmixFb?: CMix) => {
+      const network = cmix || cmixFb;
+      return getShareUrlType(getShareURL(channelId, channManager, network)?.url)
+    },
+    [cmix, getShareURL, getShareUrlType]
+  );
   
   const joinChannel = useCallback((
     prettyPrint: string,
@@ -412,9 +467,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       if (appendToCurrent) {
         const temp: Channel = {
-          id: chanInfo?.ChannelID,
-          name: chanInfo?.Name,
-          description: chanInfo?.Description,
+          id: chanInfo.ChannelID,
+          name: chanInfo.Name,
+          privacyLevel: getPrivacyLevel(chanInfo.ChannelID),
+          description: chanInfo.Description,
           isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
           isLoading: true
         };
@@ -446,7 +502,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }, 5000);
       }
     }
-  }, [channelManager, utils]);
+  }, [channelManager, getPrivacyLevel, utils]);
 
   const getCodeNameAndColor = useCallback((publicKey: string, codeset: number) => {
     try {
@@ -949,7 +1005,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, []);
 
-  const handleInitialLoadData = useCallback(async (tag: string, manager: ChannelManager) => {
+  const handleInitialLoadData = useCallback(async (tag: string, manager: ChannelManager, cmixFallback?: CMix) => {
+    const currentNetwork = cmix || cmixFallback;
     db = initDb(tag);
 
     assert(db);
@@ -999,6 +1056,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       mappedChannels.map((ch: DBChannel) => {
         return {
           ...ch,
+          privacyLevel: getPrivacyLevel(ch.id, manager, currentNetwork),
           isAdmin: manager.IsChannelAdmin(utils.Base64ToUint8Array(ch.id)),
           currentMessagesBatch: 1
         };
@@ -1008,7 +1066,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setMessages(messagesWithReactions);
   }, [
     bulkUpdateMessagesWithReactions,
+    cmix,
     getDBReactionEvents,
+    getPrivacyLevel,
     mapInitialLoadDataToCurrentState,
     utils
   ]);
@@ -1043,7 +1103,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         );
 
       setChannelManager(loadedChannelsManager);
-      handleInitialLoadData(tag, loadedChannelsManager);
+      handleInitialLoadData(tag, loadedChannelsManager, currentNetwork);
     }
   };
 
@@ -1081,7 +1141,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   useEffect(() => {
     const listener = () => {
-      console.error('RECEIVING EVENT');
       getBannedUsers();
     }
     mutedEventBus.addListener('muted', listener);
@@ -1255,10 +1314,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
         const chanInfo = JSON.parse(
           decoder.decode(channelManager.JoinChannelFromURL(url, password))
         );
-        const temp = {
+
+        const temp: Channel = {
           id: chanInfo?.ChannelID,
           name: chanInfo?.Name,
           description: chanInfo?.Description,
+          privacyLevel: getPrivacyLevel(chanInfo?.ChannelID),
           isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
           isLoading: true
         };
@@ -1294,7 +1355,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     } else {
       return null;
     }
-  }, [channelManager, channels, cmix, utils]);
+  }, [channelManager, channels, cmix, getPrivacyLevel, utils]);
 
   const getChannelInfo = useCallback((prettyPrint: string) => {
     if (utils && utils.GetChannelInfo && prettyPrint.length) {
@@ -1302,7 +1363,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
     return {};
   }, [utils]);
-
 
   const createChannel = useCallback(async (
     channelName: string,
@@ -1317,10 +1377,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
         );
    
         const channelInfo = getChannelInfo(channelPrettyPrint || '') as ChannelJSON;
+
         const temp: Channel = {
           id: channelInfo?.ChannelID,
           name: channelInfo?.Name,
           isAdmin: true,
+          privacyLevel,
           description: channelInfo?.Description,
           prettyPrint: channelPrettyPrint,
           isLoading: false
@@ -1330,7 +1392,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
         setCurrentChannel(temp);
         setChannels([...channels, temp]);
       }
-  }, [channelManager, channels, getChannelInfo, joinChannel, cmix]);
+  }, [
+    cmix,
+    channelManager,
+    getChannelInfo,
+    joinChannel,
+    channels
+  ]);
 
   const shareChannel = () => {};
 
@@ -1446,46 +1514,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
     return nickName;
   }, [channelManager, currentChannel, utils]);
-
-  const getShareURL = useCallback(() => {
-    if (
-      cmix &&
-      channelManager &&
-      channelManager.GetShareURL &&
-      utils &&
-      utils.Base64ToUint8Array &&
-      currentChannel
-    ) {
-      try {
-        const currentHostName = window.location.host;
-        const res = channelManager.GetShareURL(
-          cmix?.GetID(),
-          `http://${currentHostName}/join`,
-          0,
-          utils.Base64ToUint8Array(currentChannel.id)
-        );
-        
-        return JSON.parse(decoder.decode(res)) as ShareURL;
-      } catch (error) {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  }, [channelManager, currentChannel, cmix, utils]);
-
-  const getShareUrlType = useCallback((url: string) => {
-    if (url && utils && utils.GetShareUrlType) {
-      try {
-        const res = utils.GetShareUrlType(url);
-        return res;
-      } catch (error) {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  }, [utils]);
 
   // Identity object is combination of private identity and code name
   const generateIdentities = useCallback((amountOfIdentities: number) => {

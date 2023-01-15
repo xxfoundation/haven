@@ -7,18 +7,12 @@ import { debounce } from 'lodash';
 import UserTextArea from './UserTextArea/UserTextArea';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Tree } from 'src/components/icons';
-import { PrivacyLevel } from 'src/contexts/utils-context';
 
 import s from './ChannelChat.module.scss';
 import MessagesContainer from './MessagesContainer';
 import PinnedMessage from './PinnedMessage';
 import { useUI } from '@contexts/ui-context';
-
-const privacyLevelLabels: Record<PrivacyLevel, string> = {
-  [PrivacyLevel.Private]: 'Private',
-  [PrivacyLevel.Public]: 'Public',
-  [PrivacyLevel.Secret]: 'Secret'
-};
+import ChannelHeader from '../ChannelHeader';
 
 type Props = {
   messages: Message[];
@@ -31,8 +25,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     channels,
     cmix,
     currentChannel,
-    getShareURL,
-    getShareUrlType,
     loadMoreChannelData,
     sendReaction
   } = useNetworkClient();
@@ -40,7 +32,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null); 
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
-  const [currentChannelPrivacyLevel, setCurrentChannelPrivacyLevel] = useState<PrivacyLevel | null>(null);
   const [messageBody, setMessageBody] = useState<string>('');
 
   const currentChannelMessages = useMemo(
@@ -50,15 +41,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
 
   useEffect(() => {
     setReplyToMessage(undefined);
-    if (currentChannel?.id) {
-      const shareUrl = getShareURL();
-
-      if (shareUrl) {
-        const type = getShareUrlType(shareUrl?.url || '');
-        setCurrentChannelPrivacyLevel(type);
-      }
-    }
-  }, [currentChannel?.id, getShareURL, getShareUrlType]);
+  }, [currentChannel?.id]);
 
   const checkBottom = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
@@ -117,26 +100,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     <div className={s.root}>
       {currentChannel ? (
         <>
-          <div className={s.channelHeader}>
-            <div className={'headline--sm flex flex-wrap items-center'}>
-              {currentChannelPrivacyLevel !== null && (
-                <span
-                  className={cn(s.channelType, {
-                    [s.channelType__gold]: currentChannelPrivacyLevel === PrivacyLevel.Public
-                  })}
-                >
-                  {privacyLevelLabels[currentChannelPrivacyLevel]}
-                </span>
-              )}
-              <span className={cn('mr-2', s.channelName)}>
-                {currentChannel?.name}{' '}
-              </span>
-              <span className={cn('headline--xs break-all', s.channelId)}>
-                (id: {currentChannel?.id})
-              </span>
-            </div>
-            <p className={'text mt-2'}>{currentChannel?.description}</p>
-          </div>
+          <ChannelHeader {...currentChannel} />
           <PinnedMessage 
             handleReplyToMessage={setReplyToMessage}
             onEmojiReaction={onEmojiReaction}

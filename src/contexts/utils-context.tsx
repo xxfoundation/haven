@@ -22,11 +22,8 @@ export type ChannelDbCipher = {
 
 export type ChannelJSON = {
   ChannelID: string;
-  ReceptionID: string;
   Name: string;
   Description: string;
-  Level: PrivacyLevel;
-  Channel: string;
 }
 
 export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
