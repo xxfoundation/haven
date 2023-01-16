@@ -16,9 +16,9 @@ type Props = {
   onCancel: () => void;
 }
 
-const ViewBannedUsersModal: FC<Props> = ({ onCancel }) =>  {
-  const { bannedUsers, getBannedUsers, muteUser } = useNetworkClient();
-  const getBanned = useAsync(getBannedUsers);
+const ViewMutedUsersModal: FC<Props> = ({ onCancel }) =>  {
+  const { getMutedUsers, muteUser, mutedUsers } = useNetworkClient();
+  const getBanned = useAsync(getMutedUsers);
   const muting = useAsync((...args: Parameters<typeof muteUser>) => Promise.all([
     delay(5000),  // delay to let the nodes propagate
     muteUser(...args)
@@ -37,18 +37,18 @@ const ViewBannedUsersModal: FC<Props> = ({ onCancel }) =>  {
           <>
             <h2 className={cn('mt-9 mb-4')}>Warning</h2>
             <p className='mb-4'>
-              Unbanning a user will enable them to send messages again.
+              Unmuting a user will enable them to send messages again.
             </p>
             <div className='px-4 mt-4' style={{ maxHeight: '12rem', overflow: 'auto' }}>
-              {bannedUsers?.length === 0 && <p style={{ color: 'var(--cyan)'}}>
-                [There are currently no banned users in this channel]
+              {mutedUsers?.length === 0 && <p style={{ color: 'var(--cyan)'}}>
+                [There are currently no muted users in this channel]
               </p>}
-              {bannedUsers?.map((user) => (
+              {mutedUsers?.map((user) => (
                 <div key={user.pubkey} className='flex items-center justify-between mb-3'>
                   <Identity disableMuteStyles {...user} />
                   <div className='pr-6' />
                   <Button size='sm' onClick={unbanUser(user)}>
-                    Unban
+                    Unmute
                   </Button>
                 </div>
               ))}
@@ -60,4 +60,4 @@ const ViewBannedUsersModal: FC<Props> = ({ onCancel }) =>  {
   );
 };
 
-export default ViewBannedUsersModal;
+export default ViewMutedUsersModal;

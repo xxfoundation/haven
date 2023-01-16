@@ -198,9 +198,9 @@ const initDb = (tag = storageTag) => {
 
 type NetworkContext = {
   // state
-  bannedUsers: User[] | undefined;
-  userIsBanned: (pubkey: string) => boolean;
-  setBannedUsers: React.Dispatch<React.SetStateAction<User[] | undefined>>;
+  mutedUsers: User[] | undefined;
+  userIsMuted: (pubkey: string) => boolean;
+  setMutedUsers: React.Dispatch<React.SetStateAction<User[] | undefined>>;
   channels: Channel[];
   messages: Message[];
   cmix?: CMix;
@@ -234,7 +234,7 @@ type NetworkContext = {
   importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
   setPinnedMessages: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
   fetchPinnedMessages: () => Promise<Message[]>;
-  getBannedUsers: () => Promise<User[]>;
+  getMutedUsers: () => Promise<User[]>;
   mapDbMessagesToMessages: (messages: DBMessage[]) => Promise<Message[]>;
   muteUser: (pubkey: string, unmute: boolean) => Promise<void>;
   setMessages: (messages: Message[]) => void;
@@ -924,31 +924,45 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return { mappedChannels, mappedMessages };
   }, [mapDbMessagesToMessages]);
 
-  // A function that takes DB messages, extract all reaction events then apply them to the passed IMessage[]
-  // and return the results as IMessage[]
-  const bulkUpdateMessagesWithReactions = useCallback((
-    dbEvents: DBMessage[],
+
+
+  // Get all the reaction events related to a group of messages(DB-Events)
+  const getDBReactionEvents = useCallback(async (ids: string[]) => {
+    if (db) {
+      const reactionEvents = await db
+        .table<DBMessage>('messages')
+        .where('parent_message_id')
+        .anyOf(ids)
+        .filter((e) => {
+          return !e.hidden && e.type === 3;
+        })
+        .toArray();
+      return reactionEvents;
+    } else {
+      return [];
+    }
+  }, []);
+
+  const fetchMessageReactions = useCallback(async (
     msgs: Message[]
-  ) => {
-    const reactionEvents = dbEvents.filter(event => {
-      return event.type === 3;
-    });
+  ): Promise<Message[]> => {
+    const reactions = await getDBReactionEvents(msgs.map((m) => m.id));
 
     const messagesCopy = [...msgs];
 
-    reactionEvents.forEach(event => {
+    reactions.forEach((reaction) => {
       const emoji = decoder.decode(
-        cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(event.text))
+        cipherRef?.current?.Decrypt(utils.Base64ToUint8Array(reaction.text))
       );
 
       const { codename  } = getCodeNameAndColor(
-        event.pubkey,
-        event.codeset_version
+        reaction.pubkey,
+        reaction.codeset_version
       );
 
       // const codename = event.codename;
       const destinationMessage = messagesCopy.find(
-        m => m.id === event.parent_message_id
+        m => m.id === reaction.parent_message_id
       );
       let destinationMessageIndex = -1;
       if (destinationMessage) {
@@ -984,26 +998,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }
       }
     });
+    
     return messagesCopy;
-  }, [getCodeNameAndColor, utils]);
-
-  // Get all the reaction events related to a group of messages(DB-Events)
-  const getDBReactionEvents = useCallback(async (events: DBMessage[]) => {
-    if (db) {
-      const eventsIds = events.map(e => e.message_id);
-      const reactionEvents = await db
-        .table('messages')
-        .where('parent_message_id')
-        .anyOf(eventsIds)
-        .filter((e) => {
-          return !e.hidden && e.type === 3;
-        })
-        .toArray();
-      return reactionEvents;
-    } else {
-      return [];
-    }
-  }, []);
+  }, [getCodeNameAndColor, getDBReactionEvents, utils]);
 
   const handleInitialLoadData = useCallback(async (tag: string, manager: ChannelManager, cmixFallback?: CMix) => {
     const currentNetwork = cmix || cmixFallback;
@@ -1045,10 +1042,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     const mappedMessages = result.mappedMessages;
     const mappedChannels = result.mappedChannels;
 
-    const reactionEvents = await getDBReactionEvents(msgs);
-
-    const messagesWithReactions = bulkUpdateMessagesWithReactions(
-      reactionEvents,
+    const messagesWithReactions = await fetchMessageReactions(
       mappedMessages
     );
 
@@ -1065,9 +1059,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
     setMessages(messagesWithReactions);
   }, [
-    bulkUpdateMessagesWithReactions,
     cmix,
-    getDBReactionEvents,
+    fetchMessageReactions,
     getPrivacyLevel,
     mapInitialLoadDataToCurrentState,
     utils
@@ -1107,19 +1100,19 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   };
 
-  const getBannedUsers = useCallback(async () => {
+  const getMutedUsers = useCallback(async () => {
     initDb();
     let users: User[] = [];
 
     if (currentChannel && channelManager && db) {
-      const bannedUserIds = JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
+      const mutedUserIds = JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
         utils.Base64ToUint8Array(currentChannel.id)
       ))) as string[];
 
       const usersMap = (await db.table<DBMessage>('messages')
-        .filter((obj) => obj.channel_id === currentChannel.id && bannedUserIds.includes(obj.pubkey))
+        .filter((obj) => obj.channel_id === currentChannel.id && mutedUserIds.includes(obj.pubkey))
         .toArray() || []).reduce((acc, cur) => {
-          if (bannedUserIds.includes(cur.pubkey) && !acc.get(cur.pubkey)) {
+          if (mutedUserIds.includes(cur.pubkey) && !acc.get(cur.pubkey)) {
             const { codename: codename, color } = getCodeNameAndColor(cur.pubkey, cur.codeset_version);
             acc.set(
               cur.pubkey, {
@@ -1141,12 +1134,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   useEffect(() => {
     const listener = () => {
-      getBannedUsers();
+      getMutedUsers();
     }
     mutedEventBus.addListener('muted', listener);
 
     return () => { mutedEventBus.removeListener('muted', listener); };
-  }, [getBannedUsers])
+  }, [getMutedUsers])
 
   const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
     if (
@@ -1273,14 +1266,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       const result = await mapInitialLoadDataToCurrentState([], newMessages);
       // Here we should apply the reactions then change the state
-      const mappedMessages = result.mappedMessages;
+      const { mappedMessages } = result;
 
-      const reactionEvents = await getDBReactionEvents(newMessages);
-
-      const messagesWithReactions = bulkUpdateMessagesWithReactions(
-        reactionEvents,
-        mappedMessages
-      );
+      const messagesWithReactions = await fetchMessageReactions(mappedMessages);
 
       if (messagesWithReactions.length) {
         setMessages(prev => {
@@ -1302,9 +1290,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
   }, [
-    bulkUpdateMessagesWithReactions,
+    fetchMessageReactions,
     channels,
-    getDBReactionEvents,
     mapInitialLoadDataToCurrentState
   ]);
 
@@ -1645,8 +1632,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, utils]);
 
   useEffect(() => {
-    getBannedUsers();
-  }, [currentChannel, getBannedUsers]);
+    getMutedUsers();
+  }, [currentChannel, getMutedUsers]);
 
   const userIsBanned = useCallback(
     (pubkey: string) => !!bannedUsers?.find((u) => u.pubkey === pubkey),
@@ -1671,13 +1658,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
         .filter((m) => m.pinned && !m.hidden && m.channel_id === currentChannel.id)
         .toArray()
         .then(mapDbMessagesToMessages);
+
+      const pinnedMessagesWithReactions = await fetchMessageReactions(fetchedPinnedMessages);
+
       
-        setPinnedMessages(fetchedPinnedMessages);
+      setPinnedMessages(pinnedMessagesWithReactions);
 
       return fetchedPinnedMessages;
     }
     return [];
-  }, [currentChannel, mapDbMessagesToMessages]);
+  }, [currentChannel, fetchMessageReactions, mapDbMessagesToMessages]);
 
   const getMuted = useCallback(() => {
     if (currentChannel && channelManager) {
@@ -1758,12 +1748,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const ctx: NetworkContext = {
     channelIdentity,
-    getBannedUsers,
-    bannedUsers,
+    getMutedUsers: getMutedUsers,
+    mutedUsers: bannedUsers,
     exportChannelAdminKeys,
     importChannelAdminKeys,
-    userIsBanned,
-    setBannedUsers,
+    userIsMuted: userIsBanned,
+    setMutedUsers: setBannedUsers,
     muteUser,
     getMuted,
     cmix,

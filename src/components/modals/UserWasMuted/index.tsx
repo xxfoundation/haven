@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import cn from 'classnames';
 
-const UserWasBanned: FC = () => {
+const UserWasMuted: FC = () => {
   return (
     <div className={cn('w-full flex flex-col justify-center items-center')}>
       <h2 className='my-10'>
@@ -14,4 +14,4 @@ const UserWasBanned: FC = () => {
   );
 };
 
-export default UserWasBanned;
+export default UserWasMuted;

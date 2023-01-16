@@ -1,15 +1,15 @@
 import type { Message } from 'src/types';
 
-import React, { FC, HTMLAttributes, useMemo } from 'react';
+import React, { FC, HTMLAttributes } from 'react';
 import cn from 'classnames';
 import 'moment-timezone';
 import moment from 'moment';
 import DOMPurify from 'dompurify';
 
 import Identity from 'src/components/common/Identity';
-import { ToolTip } from 'src/components/common';
 
 import s from './ChatMessage.module.scss';
+import ChatReactions from '../ChatReactions';
 
 const mapTextToHtmlWithAnchors = (text: string) => {
   const returnVal = text.replace(
@@ -22,28 +22,14 @@ const mapTextToHtmlWithAnchors = (text: string) => {
   });
 };
 
-type EmojiReactions = {
-  emoji: string;
-  users: string[];
-}
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   onEmojiReaction?: (emoji: string, messageId: string) => void;
   message: Message;
 }
 
-const ChatMessage: FC<Props> = ({
-    message,
-    onEmojiReaction = () => {},
-    ...props
-  }) => {
-
-  const emojiReactions = useMemo<EmojiReactions[] | undefined>(
-    () => message.emojisMap && Array.from(message.emojisMap.entries())
-      .map(([emoji, users]) => ({ emoji, users})),
-    [message.emojisMap]
-  );
-  
+const ChatMessage: FC<Props> = (props) => {
+  const { message } = props;
   return (
     <div
     {...props}
@@ -125,52 +111,7 @@ const ChatMessage: FC<Props> = ({
             }}
           ></p>
         </div>
-        {message.emojisMap && (
-          <div className={cn(s.footer)}>
-            <div className={cn(s.emojisWrapper)}>
-              {Array.from(message.emojisMap.keys()).map(emoji => {
-                return (
-                  <div
-                    key={`${message.id}-${emoji}`}
-                    data-tip
-                    data-for={`${message.id}-${emoji}-emojis-users-reactions`}
-                    className={cn(s.emoji)}
-                    onClick={() => onEmojiReaction(emoji, message.id)}
-                  >
-                    <span className='mr-1'>{emoji}</span>
-                    <span className={cn(s.emojiCount)}>
-                      {message.emojisMap?.get(emoji)?.length}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            {emojiReactions?.map(({ emoji, users }) =>  (
-              <ToolTip
-                key={emoji}
-                tooltipProps={{
-                  id: `${message.id}-${emoji}-emojis-users-reactions`,
-                  effect: 'solid',
-                  place: 'top',
-                  className: s.emojisTooltip
-                }}
-              >
-                <div className={cn(s.emojiIcon)}>{emoji}</div>
-                <p>
-                  {users.length === 1
-                    ? users[0] + ' reacted with '
-                    : users.length === 2
-                    ? `${users[0]} and ${users[1]} reacted with `
-                    : users.slice(0, users.length - 1).join(', ') +
-                      ` and ${users[users.length - 1]} reacted with `}
-                  <span style={{ fontSize: '18px', marginLeft: '4px' }}>
-                    {emoji}
-                  </span>
-                </p>
-              </ToolTip>
-            ))}
-          </div>
-        )}
+        <ChatReactions {...props} />
       </div>
     </div>
   );

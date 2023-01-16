@@ -18,13 +18,13 @@ type Props = {
 
 const Identity: FC<Props> = ({ codename, color = '', disableMuteStyles, nickname, pubkey }) => {
 
-  const { userIsBanned } = useNetworkClient();
-  const isBanned = useMemo(
-    () => !disableMuteStyles && userIsBanned(pubkey),
-    [disableMuteStyles, pubkey, userIsBanned]
+  const { userIsMuted } = useNetworkClient();
+  const isMuted = useMemo(
+    () => !disableMuteStyles && userIsMuted(pubkey),
+    [disableMuteStyles, pubkey, userIsMuted]
   );
-  const colorHex = isBanned ? 'var(--dark-2)' : color.replace('0x', '#');
-  const codenameColor = isBanned
+  const colorHex = isMuted ? 'var(--dark-2)' : color.replace('0x', '#');
+  const codenameColor = isMuted
     ? 'var(--dark-2)'
     : (nickname
       ? '#73767C'
@@ -48,10 +48,10 @@ const Identity: FC<Props> = ({ codename, color = '', disableMuteStyles, nickname
           {codename}
         </span>
       </span>
-      {isBanned && (
+      {isMuted && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>(banned)</span>
+          <span style={{ color: 'var(--red)'}}>(muted)</span>
         </>
       )}
     </span>

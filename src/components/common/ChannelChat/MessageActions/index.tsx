@@ -14,7 +14,7 @@ import classes from './MessageActions.module.scss';
 import { createPortal } from 'react-dom';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
-  isBanned: boolean;
+  isMuted: boolean;
   isAdmin: boolean;
   isOwn: boolean;
   onReplyClicked: () => void;
@@ -26,7 +26,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 
 const MessageActions: FC<Props> = ({
   isAdmin,
-  isBanned,
+  isMuted,
   isOwn,
   onDeleteMessage,
   onMuteUser,
@@ -101,7 +101,7 @@ const MessageActions: FC<Props> = ({
           </>
         ) : (
           <>
-            {isAdmin && !isOwn && !isBanned && (
+            {isAdmin && !isOwn && !isMuted && (
               <Ban
                 onClick={onMuteUser}
               />

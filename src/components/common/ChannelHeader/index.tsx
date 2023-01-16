@@ -12,6 +12,12 @@ const privacyLevelLabels: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Secret]: 'Secret'
 };
 
+const privacyLevelDescriptions: Record<PrivacyLevel, string> = {
+  [PrivacyLevel.Private]: '',
+  [PrivacyLevel.Public]: 'Anyone can join this channel',
+  [PrivacyLevel.Secret]: 'Only people with a password can join this channel'
+};
+
 const ChannelHeader: FC<Channel> = ({
   description,
   id,
@@ -21,18 +27,17 @@ const ChannelHeader: FC<Channel> = ({
 }) => (
   <div className={s.root}>
     <div className={'headline--sm flex flex-wrap items-center'}>
-      {privacyLevel=== null ? 'HEY' : ''}
       {privacyLevel !== null && (
         <span
           className={cn(s.badge, {
             [s.gold]: privacyLevel === PrivacyLevel.Public
           })}
+          title={privacyLevelDescriptions[privacyLevel]}
         >
           {privacyLevelLabels[privacyLevel]}
         </span>
       )}
       {isAdmin && (
-
         <span
           className={cn(s.badge, s.gold, s.outlined)}
           title='You have admin privileges in this channel'
