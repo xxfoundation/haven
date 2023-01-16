@@ -41,9 +41,7 @@ const Identity: FC<Props> = ({ codename, color = '', disableMuteStyles, nickname
         </>
       )}
       <span style={{ whiteSpace: 'nowrap' }}>
-        <Elixxir
-          style={{ fill: codenameColor }}
-        />
+        <Elixxir style={{ fill: codenameColor }} />
         <span className='codename' style={{ color: codenameColor }}>
           {codename}
         </span>

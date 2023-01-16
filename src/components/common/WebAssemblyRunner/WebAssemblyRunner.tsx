@@ -5,6 +5,7 @@ import { FC, useEffect } from 'react';
 import { useUtils } from 'src/contexts/utils-context';
 
 type LogFile = { Name: () => string, GetFile: () => string };
+
 declare global {
   interface Window {
     LogToFile: (level: number, path: string, maxLogFileSizeBytes: number) => LogFile;

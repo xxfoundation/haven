@@ -206,6 +206,7 @@ type NetworkContext = {
   }[];
   initialize: (password: string) => Promise<void>;
   getMuted: () => boolean;
+  isMuted: boolean;
   joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
   importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
   setPinnedMessages: React.Dispatch<React.SetStateAction<Message[] | undefined>>;
@@ -1528,6 +1529,18 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils]);
 
+  const [isMuted, setIsMuted] = useState(false);
+  useEffect(() => {
+    const checkMuted = () => setIsMuted(getMuted);
+    if (currentChannel?.id) {
+      checkMuted();
+    }
+
+    events.bus.addListener(events.USER_MUTED, checkMuted);
+
+    return () => { events.bus.removeListener(events.USER_MUTED, checkMuted); }
+  }, [currentChannel?.id, getMuted]);
+
 
   const ctx: NetworkContext = {
     channelIdentity,
@@ -1535,6 +1548,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     getMutedUsers,
     initialize,
     mutedUsers,
+    isMuted,
     exportChannelAdminKeys,
     importChannelAdminKeys,
     userIsMuted: userIsBanned,

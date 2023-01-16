@@ -37,14 +37,16 @@ const PinnedMessage: FC<Props> = (props) => {
   }, [openModal, setModalView])
 
   return pinnedMessages && pinnedMessages.length > 0 ? (
-    <div className={cn(s.pinnedMessageContainer, 'shadow-xl mb-2')}>
+    <div className={cn(s.pinnedMessageContainer, 'shadow-xl mb-2 relative')}>
       <Pin className={s.pin}/>
-      <MessageContainer {...props} clamped={true} className={s.message} message={pinnedMessages[pinnedMessages.length - 1]} />
-      <div className=''>
+      <div className='grow'>
+        <MessageContainer {...props} clamped={true} className={s.message} message={pinnedMessages[pinnedMessages.length - 1]} />
+      </div>
+      <div className='flex items-end p-2'>
         <Button
           onClick={openPinnedMessagesModal}
           size='sm'
-          className={cn(s.button, 'p-2')}>
+          className={cn(s.button, 'whitespace-nowrap')}>
           View all ({pinnedMessages.length})
         </Button>
       </div>

@@ -29,12 +29,18 @@ const UserTextArea: FC<Props> = ({
   const {
     cmix,
     currentChannel,
-    getMuted,
+    isMuted,
     sendMessage,
     sendReply
   } = useNetworkClient();
 
   const messageIsValid = useMemo(() => messageBody.trim().length <= MESSAGE_MAX_SIZE, [messageBody])
+  const placeholder = useMemo(
+    () => isMuted
+      ? 'You can\'t send messages to this channel because you are muted by an admin of this channel.'
+      : 'Type your message here...',
+    [isMuted]
+  );
 
   useEffect(() => {
     if (currentChannel?.id) {
@@ -47,8 +53,7 @@ const UserTextArea: FC<Props> = ({
       setModalView('NETWORK_NOT_READY');
       openModal();
     } else {
-      const muted = getMuted();
-      if (muted) {
+      if (isMuted) {
         setModalView('USER_WAS_MUTED');
         openModal();
         return;
@@ -70,7 +75,7 @@ const UserTextArea: FC<Props> = ({
     setReplyToMessage(null);
   }, [
     cmix,
-    getMuted,
+    isMuted,
     messageBody,
     messageIsValid,
     openModal,
@@ -102,9 +107,10 @@ const UserTextArea: FC<Props> = ({
       )}
 
       <textarea
+        className={cn({ [s.muted]: isMuted })}
         ref={textAreaRef}
         name=''
-        placeholder='Type your message here...'
+        placeholder={placeholder}
         value={messageBody}
         onChange={e => {
           setMessageBody(e.target.value);
@@ -118,13 +124,13 @@ const UserTextArea: FC<Props> = ({
 
       <span style={{
         fontSize: 12,
-        color: messageIsValid ? 'var(--dark-9)' : 'var(--red)'}} className='absolute left-0 bottom-0 p-2'>
+        color: messageIsValid || isMuted ? 'var(--dark-9)' : 'var(--red)'}} className='absolute left-0 bottom-0 p-2'>
           {messageBody.trim().length ?? 0}/700
       </span>
 
       <div className={s.buttonsWrapper}>
         <SendButton
-          disabled={messageBody.trim().length > MESSAGE_MAX_SIZE}
+          disabled={!messageIsValid || isMuted}
           className={s.button}
           onClick={sendCurrentMessage}
         />

@@ -11,8 +11,6 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Elixxir } from 'src/components/icons';
 
 import s from './RightSideBar.module.scss';
-import useToggle from 'src/hooks/useToggle';
-import ViewMutedUsersModal from '@components/modals/ViewMutedUsers';
 import Identity from '../Identity';
 
 type IconProps = {
@@ -42,10 +40,6 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
     messages
   } = useNetworkClient();
   const [currentContributors, setCurrentContributors] = useState<Message[]>([]);
-  const [
-    showMutedUsersModal,
-    { toggleOff: hideMutedUsersModal, toggleOn: toggleMutedUsersModal }
-  ] = useToggle();
 
   const currentChannelMessages = useMemo(
     () => messages.filter(
@@ -98,9 +92,6 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
       className={cn(s.root, cssClasses, { [s.root__collapsed]: !isActive })}
       style={{ overflow: 'hidden', ...animProps1 }}
     >
-      {showMutedUsersModal && (
-        <ViewMutedUsersModal onCancel={hideMutedUsersModal} />
-      )}
       <div className={s.header}>
         <Icon
           isActive={isActive}
@@ -122,15 +113,6 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
               >
                 Share
               </Button>
-              {currentChannel?.isAdmin && (
-                <Button
-                  cssClasses={cn('block mx-auto mb-4')}
-                  disabled={!currentChannel}
-                  onClick={toggleMutedUsersModal}
-                >
-                  View Muted Users
-                </Button>
-              )}
               <Button
                 cssClasses={cn('block mx-auto')}
                 onClick={() => {
@@ -144,7 +126,6 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
           )}
         </div>
       </div>
-
       <div className={s.content}>
         {currentChannel && (
           <Collapse title='Recent Contributors' defaultActive>

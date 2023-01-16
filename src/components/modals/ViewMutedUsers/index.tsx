@@ -4,7 +4,6 @@ import { FC, useCallback } from 'react';
 import cn from 'classnames';
 
 import { Button, Spinner } from 'src/components/common';
-import Modal from 'src/components/modals/Modal';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import Identity from 'src/components/common/Identity';
 import useAsync from 'src/hooks/useAsync';
@@ -12,12 +11,8 @@ import delay from 'delay';
 
 export type MuteUserAction = 'mute' | 'mute+delete';
 
-type Props = {
-  onCancel: () => void;
-}
-
-const ViewMutedUsersModal: FC<Props> = ({ onCancel }) =>  {
-  const { getMutedUsers, muteUser, mutedUsers } = useNetworkClient();
+const ViewMutedUsers: FC = () =>  {
+  const { currentChannel, getMutedUsers, muteUser, mutedUsers } = useNetworkClient();
   const getBanned = useAsync(getMutedUsers);
   const muting = useAsync((...args: Parameters<typeof muteUser>) => Promise.all([
     delay(5000),  // delay to let the nodes propagate
@@ -29,35 +24,35 @@ const ViewMutedUsersModal: FC<Props> = ({ onCancel }) =>  {
   }, [muting])
 
   return (
-    <Modal className='pb-8' onClose={onCancel}>
-      <div
-        className={cn('w-full flex flex-col justify-center items-center')}
-      >
-        {getBanned.status === 'pending' || muting.status === 'pending' ? <div className='my-32'><Spinner /></div> : (
-          <>
-            <h2 className={cn('mt-9 mb-4')}>Warning</h2>
-            <p className='mb-4'>
-              Unmuting a user will enable them to send messages again.
+    <div
+      className={cn('w-full flex flex-col justify-center items-center pb-8')}
+    >
+      {getBanned.status === 'pending' || muting.status === 'pending' ? <div className='my-32'><Spinner /></div> : (
+        <>
+          <h2 className={cn('mt-9 mb-4')}>Muted Users</h2>
+          {currentChannel?.isAdmin && (
+            <p className='mb-4 text-center'>
+              Warning: Unmuting a user will enable them to send messages again.
             </p>
-            <div className='px-4 mt-4' style={{ maxHeight: '12rem', overflow: 'auto' }}>
-              {mutedUsers?.length === 0 && <p style={{ color: 'var(--cyan)'}}>
-                [There are currently no muted users in this channel]
-              </p>}
-              {mutedUsers?.map((user) => (
-                <div key={user.pubkey} className='flex items-center justify-between mb-3'>
-                  <Identity disableMuteStyles {...user} />
-                  <div className='pr-6' />
-                  <Button size='sm' onClick={unbanUser(user)}>
-                    Unmute
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </Modal>
+          )}
+          <div className='px-4 mt-4' style={{ maxHeight: '12rem', overflow: 'auto' }}>
+            {mutedUsers?.length === 0 && <p style={{ color: 'var(--cyan)'}}>
+              [There are currently no muted users in this channel]
+            </p>}
+            {mutedUsers?.map((user) => (
+              <div key={user.pubkey} className='flex items-center justify-between mb-3'>
+                <Identity disableMuteStyles {...user} />
+                <div className='pr-6' />
+                <Button size='sm' onClick={unbanUser(user)}>
+                  Unmute
+                </Button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 
-export default ViewMutedUsersModal;
+export default ViewMutedUsers;
