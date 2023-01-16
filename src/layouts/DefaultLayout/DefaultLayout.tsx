@@ -27,7 +27,7 @@ import {
   NetworkNotReadyView,
   JoinChannelSuccessView,
   LogoutView,
-  UserWasBanned,
+  UserWasMuted,
   ViewPinnedMessages,
   ExportAdminKeys
 } from 'src/components/modals';
@@ -52,7 +52,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     'NETWORK_NOT_READY',
     'JOIN_CHANNEL_SUCCESS',
     'LOGOUT',
-    'USER_WAS_BANNED',
+    'USER_WAS_MUTED',
     'VIEW_PINNED_MESSAGES',
     'EXPORT_ADMIN_KEYS',
     'CLAIM_ADMIN_KEYS'
@@ -73,7 +73,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
       {modalView === 'NETWORK_NOT_READY' && <NetworkNotReadyView />}
       {modalView === 'JOIN_CHANNEL_SUCCESS' && <JoinChannelSuccessView />}
       {modalView === 'LOGOUT' && <LogoutView />}
-      {modalView === 'USER_WAS_BANNED' && <UserWasBanned />}
+      {modalView === 'USER_WAS_BANNED' && <UserWasMuted />}
       {modalView === 'VIEW_PINNED_MESSAGES'  && <ViewPinnedMessages />}
       {modalView === 'EXPORT_ADMIN_KEYS' && <ExportAdminKeys />}
       {modalView === 'CLAIM_ADMIN_KEYS' && <ClaimAdminKeys />}

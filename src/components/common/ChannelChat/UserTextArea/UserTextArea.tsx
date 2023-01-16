@@ -49,7 +49,7 @@ const UserTextArea: FC<Props> = ({
     } else {
       const muted = getMuted();
       if (muted) {
-        setModalView('USER_WAS_BANNED');
+        setModalView('USER_WAS_MUTED');
         openModal();
         return;
       }

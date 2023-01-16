@@ -12,7 +12,8 @@ const NotificationBanner = () => {
   return showBanner ? (
     <div className={cn(s.root, 'drop-shadow-xl')}>
       <span>
-        Speakeasy uses desktop notifications. <button onClick={request}>Enable?</button>
+        Speakeasy uses desktop notifications.
+        <button onClick={request}>Enable?</button>
       </span>
       <Close
         onClick={() => setPermissionIgnored(true)}

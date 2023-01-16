@@ -12,7 +12,7 @@ import { Elixxir } from 'src/components/icons';
 
 import s from './RightSideBar.module.scss';
 import useToggle from 'src/hooks/useToggle';
-import ViewBannedUsersModal from 'src/components/modals/ViewBannedUsers';
+import ViewMutedUsersModal from '@components/modals/ViewMutedUsers';
 import Identity from '../Identity';
 
 type IconProps = {
@@ -43,8 +43,8 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   } = useNetworkClient();
   const [currentContributors, setCurrentContributors] = useState<Message[]>([]);
   const [
-    showBannedUsers,
-    { toggleOff: hideBannedUsers, toggleOn: toggleBannedUsers }
+    showMutedUsersModal,
+    { toggleOff: hideMutedUsersModal, toggleOn: toggleMutedUsersModal }
   ] = useToggle();
 
   const currentChannelMessages = useMemo(
@@ -98,8 +98,8 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
       className={cn(s.root, cssClasses, { [s.root__collapsed]: !isActive })}
       style={{ overflow: 'hidden', ...animProps1 }}
     >
-      {showBannedUsers && (
-        <ViewBannedUsersModal onCancel={hideBannedUsers} />
+      {showMutedUsersModal && (
+        <ViewMutedUsersModal onCancel={hideMutedUsersModal} />
       )}
       <div className={s.header}>
         <Icon
@@ -126,9 +126,9 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                 <Button
                   cssClasses={cn('block mx-auto mb-4')}
                   disabled={!currentChannel}
-                  onClick={toggleBannedUsers}
+                  onClick={toggleMutedUsersModal}
                 >
-                  View Banned Users
+                  View Muted Users
                 </Button>
               )}
               <Button

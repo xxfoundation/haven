@@ -31,7 +31,7 @@ const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message,
     deleteMessage,
     muteUser,
     pinMessage,
-    userIsBanned
+    userIsMuted
   } = useNetworkClient();
 
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
@@ -117,7 +117,7 @@ const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message,
             className={cn(classes.actions, {
               [classes.show]: showActionsWrapper
             })}
-            isBanned={userIsBanned(message.pubkey)}
+            isMuted={userIsMuted(message.pubkey)}
             onMuteUser={muteUserModalToggle.toggleOn}
             onPinMessage={handlePinMessage}
             onReactToMessage={handleEmojiReaction}
