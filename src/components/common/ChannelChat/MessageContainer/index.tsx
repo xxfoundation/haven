@@ -118,6 +118,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
             className={cn(classes.actions, {
               [classes.show]: showActionsWrapper
             })}
+            isPinned={message.pinned}
             isMuted={userIsMuted(message.pubkey)}
             onMuteUser={muteUserModalToggle.toggleOn}
             onPinMessage={handlePinMessage}

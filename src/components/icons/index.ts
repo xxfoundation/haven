@@ -24,4 +24,5 @@ export { default as RoadMap } from './RoadMap';
 export { default as Settings } from './Settings';
 export { default as SpeakEasy } from './SpeakEasy';
 export { default as Tree } from './Tree';
+export { default as Unpin } from './Unpin';
 export { default as Upload } from './Upload';

@@ -1,7 +1,7 @@
 import type { WithChildren } from 'src/types';
 
 import cn from 'classnames';
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 
 import { LeftSideBar, RightSideBar } from 'src/components/common';
@@ -33,6 +33,9 @@ import {
 } from 'src/components/modals';
 
 import s from './DefaultLayout.module.scss';
+import ViewMutedUsers from '@components/modals/ViewMutedUsers';
+
+type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
 const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   currentChannel
@@ -40,43 +43,28 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
   const { closeModal, displayModal, modalView = '' } = useUI();
   const modalClass = modalView?.toLowerCase().replace(/_/g, '-');
 
-  const allModals: ModalViews[] = [
-    'SHARE_CHANNEL',
-    'CREATE_CHANNEL',
-    'JOIN_CHANNEL',
-    'LEAVE_CHANNEL_CONFIRMATION',
-    'SET_NICK_NAME',
-    'CHANNEL_ACTIONS',
-    'SETTINGS',
-    'EXPORT_CODENAME',
-    'NETWORK_NOT_READY',
-    'JOIN_CHANNEL_SUCCESS',
-    'LOGOUT',
-    'USER_WAS_MUTED',
-    'VIEW_PINNED_MESSAGES',
-    'EXPORT_ADMIN_KEYS',
-    'CLAIM_ADMIN_KEYS'
-  ];
+  const modals = useMemo<ModalMap>(() => ({
+    CLAIM_ADMIN_KEYS: <ClaimAdminKeys />,
+    EXPORT_CODENAME:  <ExportCodenameView />,
+    EXPORT_ADMIN_KEYS: <ExportAdminKeys />,
+    SHARE_CHANNEL: <ShareChannelView />,
+    CREATE_CHANNEL: <CreateChannelView />,
+    JOIN_CHANNEL: <JoinChannelView />,
+    LOGOUT: <LogoutView />,
+    LEAVE_CHANNEL_CONFIRMATION: <LeaveChannelConfirmationView />,
+    SET_NICK_NAME: currentChannel && <NickNameSetView />,
+    CHANNEL_ACTIONS: <ChannelActionsView />,
+    SETTINGS: <SettingsView />,
+    NETWORK_NOT_READY: <NetworkNotReadyView />,
+    JOIN_CHANNEL_SUCCESS: <JoinChannelSuccessView />,
+    USER_WAS_MUTED: <UserWasMuted />,
+    VIEW_MUTED_USERS: <ViewMutedUsers />,
+    VIEW_PINNED_MESSAGES: <ViewPinnedMessages />
+  }), [currentChannel]);
 
-  return displayModal && modalView && allModals.includes(modalView) ? (
+  return displayModal && modalView && modalView !== 'IMPORT_CODENAME' ? (
     <Modal className={s[modalClass]} onClose={closeModal}>
-      {modalView === 'SHARE_CHANNEL' && <ShareChannelView />}
-      {modalView === 'CREATE_CHANNEL' && <CreateChannelView />}
-      {modalView === 'JOIN_CHANNEL' && <JoinChannelView />}
-      {modalView === 'LEAVE_CHANNEL_CONFIRMATION' && (
-        <LeaveChannelConfirmationView />
-      )}
-      {modalView === 'SET_NICK_NAME' && currentChannel && <NickNameSetView />}
-      {modalView === 'CHANNEL_ACTIONS' && <ChannelActionsView />}
-      {modalView === 'SETTINGS' && <SettingsView />}
-      {modalView === 'EXPORT_CODENAME' && <ExportCodenameView />}
-      {modalView === 'NETWORK_NOT_READY' && <NetworkNotReadyView />}
-      {modalView === 'JOIN_CHANNEL_SUCCESS' && <JoinChannelSuccessView />}
-      {modalView === 'LOGOUT' && <LogoutView />}
-      {modalView === 'USER_WAS_MUTED' && <UserWasMuted />}
-      {modalView === 'VIEW_PINNED_MESSAGES'  && <ViewPinnedMessages />}
-      {modalView === 'EXPORT_ADMIN_KEYS' && <ExportAdminKeys />}
-      {modalView === 'CLAIM_ADMIN_KEYS' && <ClaimAdminKeys />}
+      {modals[modalView]}
     </Modal>
   ) : null;
 };

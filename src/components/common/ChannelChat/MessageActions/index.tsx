@@ -7,16 +7,18 @@ import cn from 'classnames';
 
 import { Delete, EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
 import { Button, Spinner } from 'src/components/common';
-import { Ban, Pin } from 'src/components/icons';
+import { Ban, Pin, Unpin } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 
 import classes from './MessageActions.module.scss';
 import { createPortal } from 'react-dom';
+import { useNetworkClient } from '@contexts/network-client-context';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
   isAdmin: boolean;
   isOwn: boolean;
+  isPinned: boolean;
   onReplyClicked: () => void;
   onReactToMessage: (emoji: string) => void;
   onDeleteMessage: () => void;
@@ -28,6 +30,7 @@ const MessageActions: FC<Props> = ({
   isAdmin,
   isMuted,
   isOwn,
+  isPinned,
   onDeleteMessage,
   onMuteUser,
   onPinMessage,
@@ -35,6 +38,7 @@ const MessageActions: FC<Props> = ({
   onReplyClicked,
   ...props
 }) => {
+  const { isMuted: userIsMuted } = useNetworkClient();
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerIconRef = useRef<HTMLDivElement>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -88,7 +92,7 @@ const MessageActions: FC<Props> = ({
   const onOpenEmojiMart = useCallback(() => {
     adjustPickerPosition();
     setPickerVisible((visibile) => !visibile);
-  }, [adjustPickerPosition])
+  }, [adjustPickerPosition]);
 
   const emojiPortalElement = document.getElementById('emoji-portal');
 
@@ -97,7 +101,11 @@ const MessageActions: FC<Props> = ({
       {showPinned
         ? (
           <>
-            {isAdmin && (loading ? <Spinner /> : <Button onClick={onUnpin}>Unpin</Button>)}
+            {isAdmin && (
+              loading
+                ? <Spinner />
+                : <Button onClick={onUnpin}>Unpin</Button>
+            )}
           </>
         ) : (
           <>
@@ -106,19 +114,22 @@ const MessageActions: FC<Props> = ({
                 onClick={onMuteUser}
               />
             )}
-            {(isAdmin) && (
+            {(isAdmin && !isPinned) && (
               <Pin
                 onClick={() => onPinMessage()}
               />
             )}
-            {(isOwn || isAdmin) && (
+            {(isAdmin && isPinned) && (
+              <Unpin onClick={onUnpin}/>
+            )}
+
+            {(isOwn || isAdmin) && !isPinned && !userIsMuted && (
               <Delete
                 onClick={onDeleteMessage}
               />
             )}
             <div ref={pickerIconRef}>
               <EmojisPickerIcon
-              
                 onClick={onOpenEmojiMart}
               />
             </div>
