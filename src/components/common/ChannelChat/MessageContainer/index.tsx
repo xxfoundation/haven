@@ -17,13 +17,14 @@ import delay from 'delay';
 
 type Props = {
   className?: string;
+  clamped?: boolean;
   readonly?: boolean;
   message: Message;
   handleReplyToMessage: (message: Message) => void;
   onEmojiReaction: (emoji: string, messageId: string) => void;
 }
 
-const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message, onEmojiReaction, readonly }) => {
+const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, onEmojiReaction, readonly }) => {
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
   const {
     channelIdentity,
@@ -131,6 +132,7 @@ const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message,
     )}
     <ChatMessage
       className={className}
+      clamped={clamped}
       onMouseEnter={() => setShowActionsWrapper(true)}
       onMouseLeave={() => setShowActionsWrapper(false)}
       onTouchEnd={() => setShowActionsWrapper(true)}

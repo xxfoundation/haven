@@ -832,11 +832,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return { mappedChannels, mappedMessages };
   }, [mapDbMessagesToMessages]);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log(messageReactions);
-  }, [messageReactions])
-
   const fetchReactions = useCallback(async () => {
     const allReactionMessages = await db?.table<DBMessage>('messages')
       .filter((e) => {

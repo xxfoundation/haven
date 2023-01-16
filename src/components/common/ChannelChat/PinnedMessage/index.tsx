@@ -38,15 +38,13 @@ const PinnedMessage: FC<Props> = (props) => {
 
   return pinnedMessages && pinnedMessages.length > 0 ? (
     <div className={cn(s.pinnedMessageContainer, 'shadow-xl mb-2')}>
-      <div className={s.scrollContainer}>
-        <Pin className={s.pin}/>
-        <MessageContainer {...props} className={s.message} message={pinnedMessages[pinnedMessages.length - 1]} />
-      </div>
-      <div className='text-right px-4 pb-2 pt-1'>
+      <Pin className={s.pin}/>
+      <MessageContainer {...props} clamped={true} className={s.message} message={pinnedMessages[pinnedMessages.length - 1]} />
+      <div className=''>
         <Button
           onClick={openPinnedMessagesModal}
           size='sm'
-          className={s.button}>
+          className={cn(s.button, 'p-2')}>
           View all ({pinnedMessages.length})
         </Button>
       </div>
