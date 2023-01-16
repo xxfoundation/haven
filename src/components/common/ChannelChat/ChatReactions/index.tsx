@@ -1,14 +1,11 @@
 import type { Message } from '@types';
 
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import cn from 'classnames';
 
 import s from './styles.module.scss';
 import { ToolTip } from 'src/components/common';
-import { DBMessage, useDb } from '@contexts/db-context';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { useNetworkClient } from '@contexts/network-client-context';
-import { uniq } from 'lodash';
 
 type Props = {
   onEmojiReaction?: (emoji: string, messageId: string) => void;
@@ -16,38 +13,18 @@ type Props = {
 }
 
 const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
-  const db = useDb();
-  const { decryptMessageContent, getCodeNameAndColor } = useNetworkClient();
+  const { messageReactions } = useNetworkClient();
 
-  const reactions = useLiveQuery(async () => {
-    const reactionMessages = await db?.table<DBMessage>('messages')
-        .where('parent_message_id')
-        .equals(message.id)
-        .filter((e) => {
-          return !e.hidden && e.type === 3;
-        })
-        .toArray() ?? [];
-      
-    const reactionsDecrypted = reactionMessages?.map((reaction) => ({
-      emoji: decryptMessageContent(reaction.text),
-      codename: getCodeNameAndColor(reaction.pubkey, reaction.codeset_version).codename
-    }));
-
-    const mapped = reactionsDecrypted?.reduce((map, { codename, emoji }) => {
-      return {
-        ...map,
-        [emoji]: uniq(map[emoji].concat(codename)) ?? [codename],
-      };
-    }, {} as Record<string, string[]>);
-
-    return Object.entries(mapped ?? {})
-      .sort((a, b) => a[1].length - b[1].length);
-  }, [db, decryptMessageContent, getCodeNameAndColor, message.id]);
+  const reactions = useMemo(
+    () => Object.entries(messageReactions?.[message.id] ?? {})
+      .sort((a, b) => b[1].length - a[1].length),
+    [message.id, messageReactions]
+  );
   
   return (
     <>
       <div className={cn(s.wrapper)}>
-        {reactions?.map(([emoji]) => (
+        {reactions?.map(([emoji, users]) => (
           <div
             key={`${message.id}-${emoji}`}
             data-tip
@@ -57,7 +34,7 @@ const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
           >
             <span className='mr-1'>{emoji}</span>
             <span className={cn(s.count)}>
-              {message.emojisMap?.get(emoji)?.length}
+              {users.length}
             </span>
           </div>
         ))}
