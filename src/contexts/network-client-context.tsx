@@ -1,7 +1,6 @@
 import { ChannelJSON, DummyTraffic, MessageReceivedCallback } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
-import { Dexie } from 'dexie';
 import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
@@ -15,6 +14,7 @@ import { ndf } from 'src/sdk-utils/ndf';
 import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH } from '../constants';
 import useNotification from 'src/hooks/useNotification';
 import usePrevious from 'src/hooks/usePrevious';
+import { useDb } from './db-context';
 
 const batchCount = 100;
 
@@ -180,22 +180,6 @@ export type IdentityJSON = {
 
 type MessageEvent = { id: string; handled: boolean; isUpdate: boolean };
 
-let db: Dexie | undefined;
-let storageTag: string;
-
-const initDb = (tag = storageTag) => {
-  if (!tag) { return; }
-  storageTag = tag;
-  db = new Dexie(`${tag}_speakeasy`);
-  db.version(0.1).stores({
-    channels: '++id',
-    messages:
-      '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
-  });
-
-  return db;
-}
-
 type NetworkContext = {
   // state
   mutedUsers: User[] | undefined;
@@ -295,6 +279,7 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
 const mutedEventBus = new EventEmitter();
 
 export const NetworkProvider: FC<WithChildren> = props => {
+  const db = useDb();
   const {
     addStorageTag,
     setIsAuthenticated,
@@ -302,7 +287,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   } = useAuthentication();
   const { messagePinned, messageReplied } = useNotification();
   const { utils } = useUtils();
-  const [bannedUsers, setBannedUsers] = useState<User[]>();
+  const [mutedUsers, setBannedUsers] = useState<User[]>();
   const [cmix, setNetwork] = useState<CMix | undefined>();
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
     NetworkStatus.DISCONNECTED
@@ -557,8 +542,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [connectNetwork, cmix, networkStatus, setIsAuthenticated]);
 
   const mapDbMessagesToMessages = useCallback(async (msgs: DBMessage[]) => {
-    initDb();
-
     if (!db || !(cipherRef && cipherRef.current)) {
       return [];
     } else {
@@ -665,7 +648,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       });
       return mappedMessages;
     }
-  }, [getCodeNameAndColor, utils]);
+  }, [db, getCodeNameAndColor, utils]);
 
   const handleReactionReceived = useCallback((dbMessage: DBMessage) => {
     setMessages((prevMessages) => {
@@ -894,6 +877,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [
     channelIdentity?.PubKey,
     checkIfWillResolveBlockedEvent,
+    db,
     getCodeNameAndColor,
     handleReactionReceived,
     mapDbMessagesToMessages,
@@ -941,7 +925,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     } else {
       return [];
     }
-  }, []);
+  }, [db]);
 
   const fetchMessageReactions = useCallback(async (
     msgs: Message[]
@@ -1004,7 +988,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const handleInitialLoadData = useCallback(async (tag: string, manager: ChannelManager, cmixFallback?: CMix) => {
     const currentNetwork = cmix || cmixFallback;
-    db = initDb(tag);
 
     assert(db);
 
@@ -1060,6 +1043,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setMessages(messagesWithReactions);
   }, [
     cmix,
+    db,
     fetchMessageReactions,
     getPrivacyLevel,
     mapInitialLoadDataToCurrentState,
@@ -1101,7 +1085,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
   };
 
   const getMutedUsers = useCallback(async () => {
-    initDb();
     let users: User[] = [];
 
     if (currentChannel && channelManager && db) {
@@ -1130,7 +1113,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
 
     return users;
-  }, [channelManager, currentChannel, getCodeNameAndColor, utils]);
+  }, [channelManager, currentChannel, db, getCodeNameAndColor, utils]);
 
   useEffect(() => {
     const listener = () => {
@@ -1290,6 +1273,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
   }, [
+    db,
     fetchMessageReactions,
     channels,
     mapInitialLoadDataToCurrentState
@@ -1636,8 +1620,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [currentChannel, getMutedUsers]);
 
   const userIsBanned = useCallback(
-    (pubkey: string) => !!bannedUsers?.find((u) => u.pubkey === pubkey),
-    [bannedUsers]
+    (pubkey: string) => !!mutedUsers?.find((u) => u.pubkey === pubkey),
+    [mutedUsers]
   );
 
   const pinMessage = useCallback(async ({ id }: Message, unpin = false) => {
@@ -1667,7 +1651,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       return fetchedPinnedMessages;
     }
     return [];
-  }, [currentChannel, fetchMessageReactions, mapDbMessagesToMessages]);
+  }, [currentChannel, db, fetchMessageReactions, mapDbMessagesToMessages]);
 
   const getMuted = useCallback(() => {
     if (currentChannel && channelManager) {
@@ -1748,8 +1732,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const ctx: NetworkContext = {
     channelIdentity,
-    getMutedUsers: getMutedUsers,
-    mutedUsers: bannedUsers,
+    getMutedUsers,
+    mutedUsers,
     exportChannelAdminKeys,
     importChannelAdminKeys,
     userIsMuted: userIsBanned,
