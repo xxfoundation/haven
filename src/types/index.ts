@@ -7,7 +7,6 @@ export interface Message {
   color?: string;
   codename: string;
   nickname?: string;
-  emojisMap?: Map<string, string[]>;
   replyToMessage?: Message;
   channelId: string;
   status?: number;
@@ -20,4 +19,22 @@ export interface Message {
 
 export type WithChildren = {
   children?: ReactNode;
+}
+
+type HealthCallback = { Callback: (healthy: boolean) => void }
+
+export type CMix = {
+  AddHealthCallback: (callback: HealthCallback) => number;
+  GetID: () => number;
+  IsReady: (threshold: number) => Uint8Array;
+  ReadyToSend: () => boolean,
+  StartNetworkFollower: (timeoutMilliseconds: number) => void;
+  StopNetworkFollower: () => void;
+  WaitForNetwork: (timeoutMilliseconds: number) => Promise<void>;
+}
+
+export type DummyTraffic = {
+  GetStatus: () => boolean;
+  Pause: () => void;
+  Start: () => void;
 }

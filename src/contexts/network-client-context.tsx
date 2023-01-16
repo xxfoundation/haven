@@ -1,20 +1,22 @@
-import { ChannelJSON, DummyTraffic, MessageReceivedCallback } from 'src/contexts/utils-context';
+import type { CMix } from 'src/types';
+import { ChannelJSON } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
-import EventEmitter from 'events';
+import { uniq } from 'lodash';
 
+import * as events from 'src/events';
 import { Message, WithChildren } from 'src/types';
 import { decoder, encoder, exportDataToFile } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
-import { ndf } from 'src/sdk-utils/ndf';
 import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH } from '../constants';
 import useNotification from 'src/hooks/useNotification';
 import usePrevious from 'src/hooks/usePrevious';
 import { useDb } from './db-context';
+import useCmix from 'src/hooks/useCmix';
 
 const batchCount = 100;
 
@@ -81,18 +83,6 @@ export type IsReadyInfo = {
 type ShareURL = {
   url: string;
   password: string;
-}
-
-type HealthCallback = { Callback: (healthy: boolean) => void }
-
-export type CMix = {
-  AddHealthCallback: (callback: HealthCallback) => number;
-  GetID: () => number;
-  IsReady: (threshold: number) => Uint8Array;
-  ReadyToSend: () => boolean,
-  StartNetworkFollower: (timeoutMilliseconds: number) => void;
-  StopNetworkFollower: () => void;
-  WaitForNetwork: (timeoutMilliseconds: number) => Promise<void>;
 }
 
 export type DatabaseCipher = {
@@ -177,8 +167,8 @@ export type IdentityJSON = {
   Extension: string;
   CodesetVersion: number;
 }
-
-type MessageEvent = { id: string; handled: boolean; isUpdate: boolean };
+// { [messageId]: { [emoji]: codename[] } }
+type EmojiReactions =  Record<string, Record<string, string[]>>;
 
 type NetworkContext = {
   // state
@@ -191,21 +181,21 @@ type NetworkContext = {
   currentChannel?: Channel;
   isNetworkHealthy: boolean | undefined;
   isReadyToRegister: boolean | undefined;
-  networkStatus: NetworkStatus;
   channelIdentity: IdentityJSON | null;
   pinnedMessages?: Message[];
+  messageReactions?: EmojiReactions;
+  setMessageReactions: React.Dispatch<React.SetStateAction<EmojiReactions | undefined>>;
   // api
   checkRegistrationReadiness: (
     selectedPrivateIdentity: Uint8Array,
     onIsReadyInfoChange: (readinessInfo: IsReadyInfo) => void
   ) => Promise<void>;
-  connectNetwork: () => Promise<void>;
   createChannel: (
     channelName: string,
     channelDescription: string,
     privacyLevel: 0 | 2
   ) => void;
-  decryptMessageContent: (text: string) => string;
+  decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
   deleteMessage: (message: Message) => Promise<void>;
   exportChannelAdminKeys: (encryptionPassword: string) => string;
@@ -214,6 +204,7 @@ type NetworkContext = {
     privateIdentity: Uint8Array;
     codename: string;
   }[];
+  initialize: (password: string) => Promise<void>;
   getMuted: () => boolean;
   joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
   importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
@@ -223,14 +214,10 @@ type NetworkContext = {
   mapDbMessagesToMessages: (messages: DBMessage[]) => Promise<Message[]>;
   muteUser: (pubkey: string, unmute: boolean) => Promise<void>;
   setMessages: (messages: Message[]) => void;
-  setNetworkStatus: (status: NetworkStatus) => void;
-  setCmix: (cmix: CMix) => void;
   setCurrentChannel: (channel: Channel) => void;
   shareChannel: () => void;
   sendMessage: (message: string) => void;
   leaveCurrentChannel: () => void;
-  initiateCmix: (password: string) => Promise<void>;
-  loadCmix: (statePassEncoded: Uint8Array) => Promise<CMix>;
   createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
   handleInitialLoadData: () => Promise<void>;
@@ -277,28 +264,23 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
   localStorage.setItem('prettyprints', JSON.stringify(prev));
 };
 
-const mutedEventBus = new EventEmitter();
-
 export const NetworkProvider: FC<WithChildren> = props => {
   const db = useDb();
   const {
     addStorageTag,
+    checkUser,
     setIsAuthenticated,
-    statePathExists
+    storageTag,
   } = useAuthentication();
   const { messagePinned, messageReplied } = useNotification();
   const { utils } = useUtils();
   const [mutedUsers, setBannedUsers] = useState<User[]>();
-  const [cmix, setNetwork] = useState<CMix | undefined>();
-  const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
-    NetworkStatus.DISCONNECTED
-  );
-  const [messageQueue, setMessageQueue] = useState<MessageEvent[]>([]);
+  const { cipher, cmix, initializeCmix } = useCmix();
   const [currentChannel, setCurrentChannel] = useState<Channel | undefined>();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
-
+  const [messageReactions, setMessageReactions] = useState<EmojiReactions>();
   const [isNetworkHealthy, setIsNetworkHealthy] = useState<boolean | undefined>(
     undefined
   );
@@ -311,18 +293,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const [blockedEvents, setBlockedEvents] = useState<DBMessage[]>([]);
   const currentCodeNameRef = useRef<string>('');
   const currentChannelRef = useRef<Channel>();
-  const dummyTrafficObjRef = useRef<DummyTraffic>();
-  const [cipher, setCipher] = useState<DatabaseCipher>();
   const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
-
-  const decryptMessageContent = useCallback(
-    (text: string) => decoder.decode(
-      cipher?.Decrypt(
-        utils.Base64ToUint8Array(text)
-      )
-    ),
-    [cipher, utils]
-  );
 
   useEffect(() => {
     if (currentChannel) {
@@ -338,6 +309,22 @@ export const NetworkProvider: FC<WithChildren> = props => {
       });
     }
   }, [currentChannel]);
+
+  const initialize = useCallback(async (password: string) => {
+    const statePassEncoded = checkUser(password);
+    if (!statePassEncoded) {
+      throw new Error('Incorrect password');
+    } else {
+      await initializeCmix(statePassEncoded);
+    }
+  }, [checkUser, initializeCmix]);
+
+  useEffect(() => {
+    if (cmix) {
+      setIsAuthenticated(true);
+    }
+  }, [cmix, setIsAuthenticated]);
+
 
   const upgradeAdmin = useCallback(() => {
     if (currentChannel) {
@@ -376,26 +363,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       setChannelIdentity(identity);
     }
   }, [currentChannel, getIdentity]);
-
-  const connectNetwork = useCallback(async () => {
-    if (cmix) {
-      setNetworkStatus(NetworkStatus.CONNECTING);
-      try {
-        cmix.StartNetworkFollower(50000);
-      } catch (error) {
-        console.error('Error while StartNetworkFollower:', error);
-      }
-
-      try {
-        await cmix.WaitForNetwork(10 * 60 * 1000);
-        setNetworkStatus(NetworkStatus.CONNECTED);
-      } catch (e) {
-        console.error('Timed out. Network is not healthy.');
-        setNetworkStatus(NetworkStatus.FAILED);
-      }
-    }
-  }, [cmix]);
-
 
   const getShareURL = useCallback((
     channelId = currentChannel?.id,
@@ -535,16 +502,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     };
   }, [bc, channelManager, joinChannel]);
 
-  useEffect(() => {
-    if (cmix) {
-      setIsAuthenticated(true);
-    }
-
-    if (cmix && networkStatus !== NetworkStatus.CONNECTED) {
-      connectNetwork();
-    }
-  }, [connectNetwork, cmix, networkStatus, setIsAuthenticated]);
-
   const mapDbMessagesToMessages = useCallback(async (msgs: DBMessage[]) => {
     if (!db || !cipher) {
       return [];
@@ -589,7 +546,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
           const resolvedMessage: Message = {
             id: m.message_id,
-            body: decryptMessageContent(m.text),
+            body: cipher.decrypt(m.text),
             timestamp: m.timestamp,
             codename: messageCodeName,
             nickname: m.nickname || '',
@@ -603,7 +560,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
             hidden: m.hidden,
             replyToMessage: {
               id: replyToMessage.message_id,
-              body: decryptMessageContent(replyToMessage.text),
+              body: cipher.decrypt(replyToMessage.text),
               timestamp: replyToMessage.timestamp,
               codename: replyToMessageCodeName,
               nickname: replyToMessage.nickname || '',
@@ -626,7 +583,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           } = getCodeNameAndColor(m.pubkey, m.codeset_version);
           const resolvedMessage: Message = {
             id: m.message_id,
-            body: decryptMessageContent(m.text),
+            body: cipher.decrypt(m.text),
             timestamp: m.timestamp,
             codename: messageCodeName,
             nickname: m.nickname || '',
@@ -644,50 +601,29 @@ export const NetworkProvider: FC<WithChildren> = props => {
       });
       return mappedMessages;
     }
-  }, [cipher, db, decryptMessageContent, getCodeNameAndColor]);
+  }, [cipher, db, getCodeNameAndColor]);
+
+
+  const dbMessageToReaction = useCallback((reaction: DBMessage) => {
+    assert(cipher, 'Cipher required');
+    return ({
+      reactingTo: reaction.parent_message_id as string,
+      emoji: cipher.decrypt(reaction.text) ?? '',
+      codename: getCodeNameAndColor(reaction.pubkey, reaction.codeset_version).codename
+    })
+  }, [cipher, getCodeNameAndColor]);
 
   const handleReactionReceived = useCallback((dbMessage: DBMessage) => {
-    setMessages((prevMessages) => {
-      const destinationMessage = prevMessages.find(
-        (m) => m.id === dbMessage.parent_message_id
-      );
-      if (destinationMessage) {
-        const temp = destinationMessage;
-        const emoji = decryptMessageContent(dbMessage.text);
-
-        const { codename } = getCodeNameAndColor(
-          dbMessage.pubkey,
-          dbMessage.codeset_version
-        );
-        // If no emojis map set it.
-        if (!temp.emojisMap) {
-          temp.emojisMap = new Map();
-        }
-
-        // If no key for this reaction set it with this username as the value
-        if (!temp.emojisMap.has(emoji)) {
-          temp.emojisMap.set(emoji, [codename]);
-        } else {
-          const previousInteractedUsers = temp.emojisMap.get(emoji) || [];
-          // If emojisMap has this same interaction for this user before then delete it
-          if (previousInteractedUsers?.includes(codename)) {
-          } else {
-            //else add it to the array
-            previousInteractedUsers.push(codename);
-            temp.emojisMap.set(emoji, previousInteractedUsers);
-          }
-        }
-        return prevMessages.map(
-          (m) => m.id === destinationMessage.id ? temp : m
-        );
-        
-      } else {
-        setBlockedEvents((e) => e.concat(dbMessage));
-
-        return prevMessages;
+    const { codename, emoji, reactingTo } = dbMessageToReaction(dbMessage);
+    setMessageReactions((reactions) => ({
+      ...reactions,
+      [reactingTo]: {
+        ...reactions?.[reactingTo],
+        [emoji]: uniq(reactions?.[reactingTo]?.[emoji]?.concat(codename) ?? [codename])
       }
-    });
-  }, [decryptMessageContent, getCodeNameAndColor]);
+    }));
+    
+  }, [dbMessageToReaction]);
 
   const updateSenderMessageStatus = useCallback((message: DBMessage) => {
     setMessages(prevMessages => {
@@ -760,7 +696,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
     if (blockedEventsToResolve?.length) {
       setBlockedEvents(
-        (events) => events.filter(
+        (evts) => evts.filter(
           (e) => e.parent_message_id !== 
             blockedEventsToResolve[0].parent_message_id
         )
@@ -771,19 +707,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [blockedEvents, resolveBlockedEvent]);
 
-  const addEventToQueue = useCallback<MessageReceivedCallback>((id, _channel, update) => {
-    setMessageQueue((msgs) => msgs.concat({ id, isUpdate: update, handled: false }))
-  }, []);
-
-  const handleMessageEvent = useCallback(async ({ id, isUpdate }: MessageEvent) => {
-    if (db) {
-      const receivedMessage = await db.table<DBMessage>('messages').get(id);
+  const handleMessageEvent = useCallback(async ({ messageId, update }: events.MessageReceivedEvent) => {
+    if (db && cipher?.decrypt) {
+      const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
 
       if (receivedMessage?.hidden === true) {
         return;
       }
 
-      if (isUpdate && receivedMessage) {
+      if (update && receivedMessage) {
         if ([1, 2, 3].includes(receivedMessage.status)) {
           updateSenderMessageStatus(receivedMessage);
           return;
@@ -797,7 +729,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
           messageReplied(
             receivedMessage.nickname || codename,
-            decryptMessageContent(receivedMessage.text)
+            cipher.decrypt(receivedMessage.text)
           )
         }
       }
@@ -872,7 +804,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [
     channelIdentity?.PubKey,
     checkIfWillResolveBlockedEvent,
-    decryptMessageContent,
+    cipher,
     db,
     getCodeNameAndColor,
     handleReactionReceived,
@@ -882,13 +814,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ]);
 
   useEffect(() => {
-    const event = messageQueue[messageQueue.length - 1];
-    if (event) {
-      setMessageQueue((events) => events.filter((e) => e.id !== event.id));
-      handleMessageEvent(event);
-    }
-    
-  }, [handleMessageEvent, messageQueue])
+    events.bus.addListener(events.RECEIVED_MESSAGE, handleMessageEvent);
+
+    return () => { events.bus.removeListener('message', handleMessageEvent) };
+  }, [handleMessageEvent])
 
   const mapInitialLoadDataToCurrentState = useCallback(async (
     channs: DBChannel[],
@@ -903,79 +832,34 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return { mappedChannels, mappedMessages };
   }, [mapDbMessagesToMessages]);
 
-  // Get all the reaction events related to a group of messages(DB-Events)
-  const getDBReactionEvents = useCallback(async (ids: string[]) => {
-    if (db) {
-      const reactionEvents = await db
-        .table<DBMessage>('messages')
-        .where('parent_message_id')
-        .anyOf(ids)
-        .filter((e) => {
-          return !e.hidden && e.type === 3;
-        })
-        .toArray();
-      return reactionEvents;
-    } else {
-      return [];
-    }
-  }, [db]);
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log(messageReactions);
+  }, [messageReactions])
 
-  const fetchMessageReactions = useCallback(async (
-    msgs: Message[]
-  ): Promise<Message[]> => {
-    const reactions = await getDBReactionEvents(msgs.map((m) => m.id));
+  const fetchReactions = useCallback(async () => {
+    const allReactionMessages = await db?.table<DBMessage>('messages')
+      .filter((e) => {
+        return !e.hidden && e.type === 3;
+      })
+      .toArray() ?? [];
+      
+    const reactionsDecrypted = allReactionMessages?.filter((r) => r.parent_message_id !== null)
+      .map(dbMessageToReaction);
 
-    const messagesCopy = [...msgs];
-
-    reactions.forEach((reaction) => {
-      const emoji = decryptMessageContent(reaction.text);
-
-      const { codename  } = getCodeNameAndColor(
-        reaction.pubkey,
-        reaction.codeset_version
-      );
-
-      // const codename = event.codename;
-      const destinationMessage = messagesCopy.find(
-        m => m.id === reaction.parent_message_id
-      );
-      let destinationMessageIndex = -1;
-      if (destinationMessage) {
-        destinationMessageIndex = messagesCopy
-          .map(i => i.id)
-          .indexOf(destinationMessage.id);
-      }
-
-      if (destinationMessage) {
-        const temp = destinationMessage;
-        // If no emojis map set it.
-        if (!temp.emojisMap) {
-          temp.emojisMap = new Map();
+    const mapped = reactionsDecrypted?.reduce((map, { codename, emoji, reactingTo }) => {
+      return {
+        ...map,
+        [reactingTo]: {
+          ...map[reactingTo],
+          [emoji]: uniq(map[reactingTo]?.[emoji]?.concat(codename) ?? [codename]),
         }
+        
+      };
+    }, {} as EmojiReactions);
 
-        // If no key for this reaction set it with this username as the value
-        if (!temp.emojisMap.has(emoji)) {
-          temp.emojisMap.set(emoji, [codename]);
-        } else {
-          const previousInteractedUsers = temp.emojisMap.get(emoji) || [];
-          // If emojisMap has this same interaction for this user before then delete it
-          if (previousInteractedUsers?.includes(codename)) {
-          } else {
-            //else add it to the array
-            previousInteractedUsers.push(codename);
-            temp.emojisMap.set(emoji, previousInteractedUsers);
-          }
-        }
-
-        // Replace the old version in messagesCopy
-        if (destinationMessageIndex > -1) {
-          messagesCopy[destinationMessageIndex] = temp;
-        }
-      }
-    });
-    
-    return messagesCopy;
-  }, [decryptMessageContent, getCodeNameAndColor, getDBReactionEvents]);
+    setMessageReactions(mapped);
+  }, [db, dbMessageToReaction]);
 
   const handleInitialLoadData = useCallback(async () => {
     assert(db);
@@ -1016,10 +900,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     const mappedMessages = result.mappedMessages;
     const mappedChannels = result.mappedChannels;
 
-    const messagesWithReactions = await fetchMessageReactions(
-      mappedMessages
-    );
-
     setChannels(
       mappedChannels.map((ch: DBChannel) => {
         return {
@@ -1031,56 +911,54 @@ export const NetworkProvider: FC<WithChildren> = props => {
       })
     );
 
-    setMessages(messagesWithReactions);
+    setMessages(mappedMessages);
   }, [
     channelManager,
     cmix,
     db,
-    fetchMessageReactions,
     getPrivacyLevel,
     mapInitialLoadDataToCurrentState,
     utils
   ]);
 
   useEffect(() => {
+    if (messages && cipher && channelManager) {
+      fetchReactions();
+    }
+  }, [channelManager, cipher, fetchReactions, messages])
+
+  useEffect(() => {
     if (db && channelManager && cmix) {
-      console.log('HANDLING DATA LOAD');
       handleInitialLoadData();
     }
   }, [channelManager, cmix, db, handleInitialLoadData])
 
-  const onMessageDelete = useCallback((msgId: Uint8Array) => {
-    const messageId = Buffer.from(msgId).toString('base64');
-    setMessages((msgs) => msgs.filter(({ id }) => id !== messageId));
-    setPinnedMessages((msgs) => msgs?.filter(({ id }) => id !== messageId))
-  }, []);
-
-  const onMutedUser = useCallback((channelId: Uint8Array, pubkey: string, unmute: boolean) => {
-    mutedEventBus.emit('muted', { channelId, pubkey, unmute });
-  }, [])
-
-  const loadChannelManager = async (tag: string, cmixFallback?: CMix) => {
-    const currentNetwork = cmix || cmixFallback;
-
+  const loadChannelManager = useCallback(async () => {
     if (
-      currentNetwork &&
+      cmix &&
       cipher &&
       utils &&
-      utils.LoadChannelsManagerWithIndexedDb
+      storageTag
     ) {
       const loadedChannelsManager = await utils
         .LoadChannelsManagerWithIndexedDb(
-          currentNetwork.GetID(),
-          tag,
-          addEventToQueue,
-          onMessageDelete,
-          onMutedUser,
-          cipher.GetID()
+          cmix.GetID(),
+          storageTag,
+          events.onMessageReceived,
+          events.onMessageDelete,
+          events.onMutedUser,
+          cipher?.id
         );
 
       setChannelManager(loadedChannelsManager);
     }
-  };
+  }, [cipher, cmix, storageTag, utils]);
+
+  useEffect(() => {
+    if (cmix && cipher && utils && storageTag) {
+      loadChannelManager();
+    }
+  }, [cipher, cmix, loadChannelManager, storageTag, utils]);
 
   const getMutedUsers = useCallback(async () => {
     let users: User[] = [];
@@ -1117,10 +995,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
     const listener = () => {
       getMutedUsers();
     }
-    mutedEventBus.addListener('muted', listener);
+    events.bus.addListener(events.USER_MUTED, listener);
 
-    return () => { mutedEventBus.removeListener('muted', listener); };
-  }, [getMutedUsers])
+    return () => { events.bus.removeListener(events.USER_MUTED, listener); };
+  }, [getMutedUsers]);
 
   const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
     if (
@@ -1132,10 +1010,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
         cmix.GetID(),
         privateIdentity,
-        addEventToQueue,
-        onMessageDelete,
-        onMutedUser,
-        cipher.GetID()
+        events.onMessageReceived,
+        events.onMessageDelete,
+        events.onMutedUser,
+        cipher.id
       );
       
       setChannelManager(createdChannelManager);
@@ -1146,83 +1024,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     cipher,
     cmix,
     utils,
-    addEventToQueue,
-    onMessageDelete,
-    onMutedUser,
     addStorageTag
   ]);
-
-  // Used directly on Login
-  const loadCmix = useCallback(async (statePassEncoded: Uint8Array) => {
-    let loadedCmix;
-    try {
-      loadedCmix = await utils.LoadCmix(
-        STATE_PATH,
-        statePassEncoded,
-        utils.GetDefaultCMixParams()
-      );
-
-      try {
-        dummyTrafficObjRef.current = utils.NewDummyTrafficManager(
-          loadedCmix.GetID(),
-          3,
-          15000,
-          7000
-        );
-      } catch (error) {
-        console.error('error while creating the Dummy Traffic Object:', error);
-      }
-
-      const cipherObj = utils.NewChannelsDatabaseCipher(
-        loadedCmix.GetID(),
-        statePassEncoded,
-        725
-      );
-
-      setCipher(cipherObj);
-
-      if (loadedCmix?.AddHealthCallback) {
-        loadedCmix.AddHealthCallback({
-          Callback: (isHealthy: boolean) => {
-            if (isHealthy) {
-              setIsNetworkHealthy(true);
-              if (
-                dummyTrafficObjRef &&
-                dummyTrafficObjRef.current &&
-                !dummyTrafficObjRef?.current?.GetStatus()
-              ) {
-                dummyTrafficObjRef?.current?.Start();
-              }
-            } else {
-              setIsNetworkHealthy(false);
-            }
-          }
-        });
-      }
-      
-      setNetwork(loadedCmix);
-      return loadedCmix;
-    } catch (e) {
-      console.error('Failed to load Cmix: ' + e);
-      throw e;
-    }
-  }, [utils]);
-
-  const initiateCmix = useCallback(async (password: string) => {
-    try {
-      const statePassEncoded = utils.GetOrInitPassword(password);
-      // Check if state exists
-      if (!statePathExists()) {
-        // setStatePath('Test');
-        await utils.NewCmix(ndf, STATE_PATH, statePassEncoded, '');
-      }
-
-      await loadCmix(statePassEncoded);
-    } catch (error) {
-      console.error('Failed to load Cmix: ' + error);
-      throw error;
-    }
-  }, [utils, statePathExists, loadCmix]);
 
   useEffect(() => {
     if (!currentChannel && channels.length) {
@@ -1249,11 +1052,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       // Here we should apply the reactions then change the state
       const { mappedMessages } = result;
 
-      const messagesWithReactions = await fetchMessageReactions(mappedMessages);
-
-      if (messagesWithReactions.length) {
+      if (mappedMessages.length) {
         setMessages(prev => {
-          return [..._.reverse(messagesWithReactions), ...prev];
+          return [..._.reverse(mappedMessages), ...prev];
         });
 
         setChannels((prevChannels: Channel[]) => {
@@ -1272,7 +1073,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [
     db,
-    fetchMessageReactions,
     channels,
     mapInitialLoadDataToCurrentState
   ]);
@@ -1565,8 +1365,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
         window.localStorage.clear();
         Cookies.remove('userAuthenticated', { path: '/' });
         setIsAuthenticated(false);
-        setNetworkStatus(NetworkStatus.DISCONNECTED);
-        setNetwork(undefined);
         setIsReadyToRegister(undefined);
         setIsNetworkHealthy(undefined);
         setChannels([]);
@@ -1576,8 +1374,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
         setBlockedEvents([]);
         currentCodeNameRef.current = '';
         currentChannelRef.current = undefined;
-        dummyTrafficObjRef.current = undefined;
-        setCipher(undefined);
 
         return true;
       } catch (error) {
@@ -1614,6 +1410,17 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, utils]);
 
   useEffect(() => {
+    const listener = (evt: events.MessageDeletedEvent) => {
+      setMessages((msgs) => msgs.filter((msg) => msg.id !== evt.messageId));
+      setPinnedMessages((msgs) => msgs?.filter((msg) => msg.id !== evt.messageId));
+    };
+
+    events.bus.addListener(events.MESSAGE_DELETED, listener);
+
+    return () => { events.bus.removeListener(events.MESSAGE_DELETED, listener); }
+  }, [])
+
+  useEffect(() => {
     getMutedUsers();
   }, [currentChannel, getMutedUsers]);
 
@@ -1641,15 +1448,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
         .toArray()
         .then(mapDbMessagesToMessages);
 
-      const pinnedMessagesWithReactions = await fetchMessageReactions(fetchedPinnedMessages);
-
       
-      setPinnedMessages(pinnedMessagesWithReactions);
+      setPinnedMessages(fetchedPinnedMessages);
 
       return fetchedPinnedMessages;
     }
     return [];
-  }, [currentChannel, db, fetchMessageReactions, mapDbMessagesToMessages]);
+  }, [currentChannel, db, mapDbMessagesToMessages]);
 
   const getMuted = useCallback(() => {
     if (currentChannel && channelManager) {
@@ -1728,10 +1533,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils]);
 
+
   const ctx: NetworkContext = {
     channelIdentity,
-    decryptMessageContent,
+    decryptMessageContent: cipher?.decrypt,
     getMutedUsers,
+    initialize,
     mutedUsers,
     exportChannelAdminKeys,
     importChannelAdminKeys,
@@ -1741,14 +1548,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
     getMuted,
     cmix,
     deleteMessage,
-    setCmix: setNetwork,
     fetchPinnedMessages,
-    networkStatus,
-    setNetworkStatus,
     joinChannel,
     createChannel,
     shareChannel,
     channels,
+    messageReactions,
+    setMessageReactions,
     messages,
     setMessages,
     currentChannel,
@@ -1757,9 +1563,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     sendMessage,
     leaveCurrentChannel,
     generateIdentities: generateIdentities,
-    connectNetwork,
-    initiateCmix,
-    loadCmix,
     createChannelManager,
     loadChannelManager,
     handleInitialLoadData,

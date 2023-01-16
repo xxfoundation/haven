@@ -73,7 +73,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
       {modalView === 'NETWORK_NOT_READY' && <NetworkNotReadyView />}
       {modalView === 'JOIN_CHANNEL_SUCCESS' && <JoinChannelSuccessView />}
       {modalView === 'LOGOUT' && <LogoutView />}
-      {modalView === 'USER_WAS_BANNED' && <UserWasMuted />}
+      {modalView === 'USER_WAS_MUTED' && <UserWasMuted />}
       {modalView === 'VIEW_PINNED_MESSAGES'  && <ViewPinnedMessages />}
       {modalView === 'EXPORT_ADMIN_KEYS' && <ExportAdminKeys />}
       {modalView === 'CLAIM_ADMIN_KEYS' && <ClaimAdminKeys />}
@@ -85,7 +85,7 @@ const DefaultLayout: FC<WithChildren> = ({
   children,
 }) => {
   const router = useRouter();
-  const { getStorageTag: getStorageTag, isAuthenticated } = useAuthentication();
+  const { isAuthenticated, storageTag } = useAuthentication();
   const { utilsLoaded } = useUtils();
   const {
     cmix,
@@ -103,7 +103,7 @@ const DefaultLayout: FC<WithChildren> = ({
       cmix &&
       isNetworkHealthy &&
       isAuthenticated &&
-      getStorageTag() &&
+      storageTag &&
       isReadyToRegister &&
       window.location.search &&
       [
@@ -121,7 +121,7 @@ const DefaultLayout: FC<WithChildren> = ({
     isAuthenticated,
     isReadyToRegister,
     isNetworkHealthy,
-    getStorageTag,
+    storageTag,
     getShareUrlType,
     setChannelInviteLink,
     setModalView,
@@ -134,7 +134,7 @@ const DefaultLayout: FC<WithChildren> = ({
       <NotificationBanner />
       <div className={cn(s.root)}>
       {utilsLoaded ? (
-        cmix && isAuthenticated && getStorageTag() && isReadyToRegister ? (
+        cmix && isAuthenticated && storageTag && isReadyToRegister ? (
           <>
             <LeftSideBar cssClasses={s.leftSideBar} />
             <main className=''>{children}</main>

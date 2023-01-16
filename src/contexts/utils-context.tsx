@@ -1,18 +1,12 @@
+import type { CMix, DummyTraffic, WithChildren } from '@types';
 import type { ChannelManager } from './network-client-context'
+
 import React, { FC, useState } from 'react';
-import { CMix } from './network-client-context';
-import { WithChildren } from '@types';
 
 export enum PrivacyLevel {
   Public = 0,
   Private = 1,
   Secret = 2
-}
-
-export type DummyTraffic = {
-  GetStatus: () => boolean;
-  Pause: () => void;
-  Start: () => void;
 }
 
 export type ChannelDbCipher = {
