@@ -37,6 +37,7 @@
     "react-dom": "18.2.0",
     "react-error-boundary": "^3.1.4",
     "react-moment": "^1.1.2",
+    "react-multiline-clamp": "^2.0.0",
     "react-spring": "^9.5.2",
     "react-tooltip": "^4.2.21",
     "react-use-measure": "^2.1.1",

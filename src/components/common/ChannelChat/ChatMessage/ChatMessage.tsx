@@ -5,6 +5,7 @@ import cn from 'classnames';
 import 'moment-timezone';
 import moment from 'moment';
 import DOMPurify from 'dompurify';
+import Clamp from 'react-multiline-clamp';
 
 import Identity from 'src/components/common/Identity';
 
@@ -24,12 +25,13 @@ const mapTextToHtmlWithAnchors = (text: string) => {
 
 
 type Props = HTMLAttributes<HTMLDivElement> & {
+  clamped: boolean;
   onEmojiReaction?: (emoji: string, messageId: string) => void;
   message: Message;
 }
 
 const ChatMessage: FC<Props> = (props) => {
-  const { message } = props;
+  const { clamped, message } = props;
   return (
     <div
     {...props}
@@ -95,21 +97,25 @@ const ChatMessage: FC<Props> = (props) => {
               }}
             >
               <Identity {...message.replyToMessage} />
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)
-                }}
-              ></p>
+              <Clamp lines={3}>
+                <p
+                  dangerouslySetInnerHTML={{
+                    __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)
+                  }}
+                ></p>
+              </Clamp>
             </p>
           )}
-          <p
-            className={cn(s.messageBody, {
-              [s.messageBody__failed]: message.status === 3
-            })}
-            dangerouslySetInnerHTML={{
-              __html: mapTextToHtmlWithAnchors(message.body)
-            }}
-          ></p>
+          <Clamp withToggle={clamped} lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
+            <p
+              className={cn(s.messageBody, {
+                [s.messageBody__failed]: message.status === 3
+              })}
+              dangerouslySetInnerHTML={{
+                __html: mapTextToHtmlWithAnchors(message.body)
+              }}
+            ></p>
+          </Clamp>
         </div>
         <ChatReactions {...props} />
       </div>

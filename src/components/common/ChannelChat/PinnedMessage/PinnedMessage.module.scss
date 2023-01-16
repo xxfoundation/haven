@@ -1,14 +1,10 @@
 .pinnedMessageContainer {
+  display: flex;
   position: relative;
   box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.25);
   border-width: 0;
   border-style: solid;
   border-color: #e5e7eb;
-
-  .scrollContainer {
-    max-height: 6rem;
-    overflow: auto;
-  }
 
   .message {
     min-height: 5.5rem;
@@ -17,13 +13,10 @@
 
   .pin {
     width: 2.75rem;
-    margin-top:1.5rem;
+    margin-top: 1.5rem;
     position: absolute;
     left: 5px;
     top: 5px;
     z-index: 2;
-  }
-
-  .button {
   }
 }
