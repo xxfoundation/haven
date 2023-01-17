@@ -9,6 +9,7 @@ export type ModalViews =
   | 'SET_NICK_NAME'
   | 'CHANNEL_ACTIONS'
   | 'SETTINGS'
+  | 'LOADING'
   | 'EXPORT_CODENAME'
   | 'IMPORT_CODENAME'
   | 'NETWORK_NOT_READY'

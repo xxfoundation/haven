@@ -74,7 +74,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     if (unpin === true) {
       await Promise.all([
         pinMessage(message, unpin),
-        delay(5000) // delay to let the nodes propagate
+        delay(8000) // delay to let the nodes propagate
       ]);
     } else {
       showPinModal();
@@ -84,7 +84,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
       pinMessage(message),
-      delay(5000) // delay to let the nodes propagate
+      delay(8000) // delay to let the nodes propagate
     ]);
     hidePinModal();
   }, [hidePinModal, message, pinMessage]);

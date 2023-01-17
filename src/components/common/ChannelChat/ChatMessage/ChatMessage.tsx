@@ -70,6 +70,7 @@ const ChatMessage: FC<Props> = (props) => {
             rel='noreferrer'
             className='text text--xs ml-2'
             style={{
+              whiteSpace: 'nowrap',
               fontSize: '9px',
               color: 'var(--text-secondary)',
               textDecoration: 'underline',
