@@ -1408,14 +1408,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
     if (utils && utils.GetWasmSemanticVersion) {
       const version = JSON.parse(decoder.decode(utils.GetWasmSemanticVersion())) as VersionJSON;
       const isUpdate = version.Updated;
-
-      if (isUpdate) {
-        const [currentMajor, currentMinor] = version.Current.split('.').map((i) => parseInt(i, 10));
-        const [oldMajor, oldMinor] = version.Old.split('.').map((i) => parseInt(i, 10));
-        if (currentMajor > oldMajor || (currentMajor === oldMajor && currentMinor > oldMinor)) {
-          window.localStorage.clear();
-          Cookies.remove('userAuthenticated', { path: '/' });
-        }
+      const outdatedVersion = '0.1.8';
+      const [outdatedMajor, outdatedMinor] = outdatedVersion.split('.').map((i) => parseInt(i, 10));
+      const [oldMajor, oldMinor] = version.Old.split('.').map((i) => parseInt(i, 10));
+      
+      if (isUpdate && oldMinor <= outdatedMinor && oldMajor === outdatedMajor) {
+        window.localStorage.clear();
+        Cookies.remove('userAuthenticated', { path: '/' });
       }
     }
           
