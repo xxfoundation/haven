@@ -60,17 +60,17 @@ const UserTextArea: FC<Props> = ({
         return;
       }
 
-      if (replyToMessage) {
-        if (messageIsValid) {
-          sendReply(messageBody.trim(), replyToMessage.id);
-          setMessageBody('');
-        }
-      } else {
-        if (messageIsValid) {
-          sendMessage(messageBody.trim());
-          setMessageBody('');
-        }
+      if (!messageIsValid) {
+        return;
       }
+
+      if (replyToMessage) {
+        sendReply(messageBody.trim(), replyToMessage.id);
+      } else {
+        sendMessage(messageBody.trim());
+      }
+
+      setMessageBody('');
     }
 
     setReplyToMessage(null);
@@ -83,8 +83,8 @@ const UserTextArea: FC<Props> = ({
     replyToMessage,
     sendMessage,
     sendReply,
-    setMessageBody,
     setModalView,
+    setMessageBody,
     setReplyToMessage
   ]);
 
@@ -117,8 +117,9 @@ const UserTextArea: FC<Props> = ({
           setMessageBody(e.target.value);
         }}
         onKeyDown={(e) => {
-          if (e.keyCode === 13 && !e.shiftKey) {
+          if (e.key === 'Enter' && !e.shiftKey) {
             sendCurrentMessage();
+            e.preventDefault();
           }
         }}
       />
