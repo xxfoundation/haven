@@ -5,15 +5,15 @@ import CodeNameRegistration from '../CodeNameRegistration';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 
 const Register: FC = ({}) => {
-  const { initiateCmix } = useNetworkClient();
+  const { initialize } = useNetworkClient();
 
   const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (password.length) {
-      initiateCmix(password);
+      initialize(password);
     }
-  }, [initiateCmix, password]);
+  }, [initialize, password]);
 
   return password.length === 0 ? (
     <Registration onPasswordConfirmation={setPassword}></Registration>

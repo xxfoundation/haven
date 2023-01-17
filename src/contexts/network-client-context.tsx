@@ -1,5 +1,5 @@
 import type { CMix } from 'src/types';
-import { ChannelJSON } from 'src/contexts/utils-context';
+import { ChannelJSON, VersionJSON } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import _ from 'lodash';
@@ -1402,6 +1402,24 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
     return () => { events.bus.removeListener(events.USER_MUTED, checkMuted); }
   }, [currentChannel?.id, getMuted]);
+
+
+  useEffect(() => {
+    if (utils && utils.GetWasmSemanticVersion) {
+      const version = JSON.parse(decoder.decode(utils.GetWasmSemanticVersion())) as VersionJSON;
+      const isUpdate = version.Updated;
+
+      if (isUpdate) {
+        const [currentMajor, currentMinor] = version.Current.split('.').map((i) => parseInt(i, 10));
+        const [oldMajor, oldMinor] = version.Old.split('.').map((i) => parseInt(i, 10));
+        if (currentMajor > oldMajor || (currentMajor === oldMajor && currentMinor > oldMinor)) {
+          window.localStorage.clear();
+          Cookies.remove('userAuthenticated', { path: '/' });
+        }
+      }
+    }
+          
+  }, [utils]);
 
 
   const ctx: NetworkContext = {

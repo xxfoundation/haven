@@ -15,9 +15,16 @@ export type ChannelDbCipher = {
 }
 
 export type ChannelJSON = {
+  ReceptionID?: string;
   ChannelID: string;
   Name: string;
   Description: string;
+}
+
+export type VersionJSON = {
+  Current: string;
+  Updated: boolean;
+  Old: string;
 }
 
 export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
@@ -63,6 +70,7 @@ export type XXDKUtils = {
     durationToWaitBetweenSendsMilliseconds: number,
     upperBoundIntervalBetweenCyclesMilliseconds: number
   ) => DummyTraffic;
+  GetWasmSemanticVersion: () => Uint8Array;
   NewChannelsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => ChannelDbCipher;
   Purge: (storageDirectory: string, userPassword: string) => void;
   ValidForever: () => number;
