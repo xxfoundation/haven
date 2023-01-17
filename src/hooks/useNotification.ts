@@ -1,9 +1,9 @@
 import icon from 'src/assets/images/logo.svg';
-import { useState, useRef, useCallback } from 'react';
-import { useSessionStorage } from 'usehooks-ts';
+import { useRef, useCallback } from 'react';
+import { useLocalStorage, useSessionStorage } from 'usehooks-ts';
 
 const useNotification = () => {
-  const [isPermissionGranted, setIsPermissionGranted] = useState<boolean>(Notification?.permission === 'granted');
+  const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>('notification-permission', Notification?.permission === 'granted');
   const notification = useRef<Notification | null>(null);
   const [permissionIgnored, setPermissionIgnored] = useSessionStorage('notifications_ignored', false);
 
@@ -30,12 +30,13 @@ const useNotification = () => {
 
   const request = useCallback(() => {
     Notification.requestPermission().then((permission) => setIsPermissionGranted(permission === 'granted'));
-  }, [])
+  }, [setIsPermissionGranted])
 
   return {
     isPermissionGranted,
     permissionIgnored,
     setPermissionIgnored,
+    setIsPermissionGranted,
     messagePinned,
     messageReplied,
     close,

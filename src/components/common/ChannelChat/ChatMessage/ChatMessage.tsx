@@ -6,7 +6,6 @@ import 'moment-timezone';
 import moment from 'moment';
 import DOMPurify from 'dompurify';
 import Clamp from 'react-multiline-clamp';
-import { pick } from 'lodash';
 import Identity from 'src/components/common/Identity';
 
 import s from './ChatMessage.module.scss';
@@ -116,7 +115,6 @@ const ChatMessage: FC<Props> = (props) => {
               )}
             </p>
           )}
-          <p>{JSON.stringify(pick(message, ['id', 'repliedTo', 'uuid', 'status']))}</p>
           <Clamp withToggle={clamped} lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
             <p
               className={cn(s.messageBody, {
