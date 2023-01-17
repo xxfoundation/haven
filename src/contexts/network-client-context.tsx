@@ -1407,11 +1407,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
   useEffect(() => {
     if (utils && utils.GetWasmSemanticVersion) {
       const version = JSON.parse(decoder.decode(utils.GetWasmSemanticVersion())) as VersionJSON;
-      const isUpdate = version.Updated;
+      const isUpdate = version.updated;
       const outdatedVersion = '0.1.8';
-      console.log(version);
+
       const [outdatedMajor, outdatedMinor] = outdatedVersion.split('.').map((i) => parseInt(i, 10));
-      const [oldMajor, oldMinor] = version.Old.split('.').map((i) => parseInt(i, 10));
+      const [oldMajor, oldMinor] = version.old.split('.').map((i) => parseInt(i, 10));
       
       if (isUpdate && oldMinor <= outdatedMinor && oldMajor === outdatedMajor) {
         window.localStorage.clear();
