@@ -97,11 +97,12 @@ const MessageActions: FC<Props> = ({
     if (loading) {
       setModalView('LOADING');
       openModal();
-    } else {
-      closeModal();
+      setTimeout(() => {
+        closeModal();
+      }, 5000)
     }
 
-    return () => closeModal();
+    return () => {  };
   }, [closeModal, loading, openModal, setModalView])
 
   const onOpenEmojiMart = useCallback(() => {

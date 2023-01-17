@@ -103,11 +103,12 @@ const useCmix = () => {
   }, [cmix]);
 
   const disconnect = useCallback(() => {
+    dummyTraffic?.Pause();
     setDummyTrafficManager(undefined);
     cmix?.StopNetworkFollower();
     setStatus(NetworkStatus.DISCONNECTED);
     setCmix(undefined);
-  }, [cmix])
+  }, [cmix, dummyTraffic])
 
   useEffect(() => {
     if (cmix) {
