@@ -23,7 +23,7 @@ const CreateChannelView: FC = () => {
 
   const onCreate = useCallback(async () => {
     if (channelName.includes(' ')) {
-      setError('Name can’t contain spaces');
+      setError('Name can\'t contain spaces');
       return;
     }
     try {
