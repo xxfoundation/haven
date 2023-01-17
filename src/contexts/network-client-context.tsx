@@ -1415,6 +1415,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       if (isUpdate && oldMinor <= outdatedMinor && oldMajor === outdatedMajor) {
         window.localStorage.clear();
         Cookies.remove('userAuthenticated', { path: '/' });
+        window.location.reload();
       }
     }
           
