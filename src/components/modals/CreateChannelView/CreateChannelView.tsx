@@ -22,8 +22,8 @@ const CreateChannelView: FC = () => {
   );
 
   const onCreate = useCallback(async () => {
-    if (channelName.includes(' ')) {
-      setError('Name can\'t contain spaces');
+    if (!/[^\p{L}0-9_$]{3,24}/.test(channelName)) {
+      setError('The name must be between 3 and 24 characters inclusive. It can only include upper and lowercase Unicode letters, digits 0 through 9, and underscores (_).');
       return;
     }
     try {
@@ -51,6 +51,12 @@ const CreateChannelView: FC = () => {
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
       <h2 className='mt-9 mb-4'>Create a new Speakeasy</h2>
+
+      {error && (
+        <div className={'text text--xs text-center mt-2 mb-4'} style={{ color: 'var(--red)' }}>
+          {error}
+        </div>
+      )}
       <input
         type='text'
         placeholder='Name'
@@ -95,11 +101,6 @@ const CreateChannelView: FC = () => {
           ? 'Public Speakeasies are accessible by anyone with just the link. No passphrase is needed to join. You can assume everyone knows when your codename is in a public speakeasy.'
           : 'Secret speakeasies hide everything: Speakeasy name, description, members, messages, and more. No one knows anything about the Speakeasy unless they are invited.'}
       </p>
-      {error && (
-        <div className={'text text--xs mt-2'} style={{ color: 'var(--red)' }}>
-          {error}
-        </div>
-      )}
       <ModalCtaButton
         buttonCopy='Create'
         cssClass={cn('mt-5 mb-8', s.button)}
