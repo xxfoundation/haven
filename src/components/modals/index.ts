@@ -14,5 +14,5 @@ export { default as NetworkNotReadyView } from './NetworkNotReadyView';
 export { default as JoinChannelSuccessView } from './JoinChannelSuccessView';
 export { default as LogoutView } from './LogoutView';
 export { default as UserWasMuted } from './UserWasMuted';
-export { default as ViewBannedUsers } from './ViewMutedUsers';
+export { default as ViewMutedUsers } from './ViewMutedUsers';
 export { default as ViewPinnedMessages } from './ViewPinnedMessages';

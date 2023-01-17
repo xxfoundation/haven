@@ -1,6 +1,6 @@
 export { default as ArrowDown } from './ArrowDown';
 export { default as ArrowUp } from './ArrowUp';
-export { default as Ban } from './Ban';
+export { default as Mute } from './Mute';
 export { default as Chat } from './Chat';
 export { default as Close } from './Close';
 export { default as Delete } from './Delete';

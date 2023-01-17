@@ -33,21 +33,20 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
           <>
             <h2 className={cn('mt-9 mb-4')}>Warning</h2>
             <p className='mb-4'>
-              Banning a user will mute them and they won't
-              be able to send messages anymore unless unbanned.
-              However they can still read messages
+              Muting a user will revoke their ability to send messages.
+              They will, however, still be able to view messages.
             </p>
             <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
               ** Important to note that deleting messages cannot be undone. **
             </p>
             <div className={cn('mb-6', s.buttonGroup)}>
               <ModalCtaButton
-                buttonCopy='Ban and delete the last message'
+                buttonCopy='Mute and delete the last message'
                 style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)'  }}
                 onClick={handleConfirmation('mute+delete')}
               />
               <ModalCtaButton
-                buttonCopy='Just Ban'
+                buttonCopy='Just Mute'
                 onClick={handleConfirmation('mute')}
               />
               <ModalCtaButton

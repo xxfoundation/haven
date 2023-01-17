@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useRef, useCallback, useMemo } from 'react';
 import cn from 'classnames';
+import Clamp from 'react-multiline-clamp';
 
 import { Message } from 'src/types';
 import { Close } from 'src/components/icons';
@@ -93,7 +94,7 @@ const UserTextArea: FC<Props> = ({
         <div className={cn(s.replyContainer)}>
           <div className='flex flex-col flex-1'>
             <span>Reply to {replyToMessage.codename}</span>
-            <p>{replyToMessage.body}</p>
+            <Clamp lines={1}><p>{replyToMessage.body}</p></Clamp>
           </div>
           <Close
             width={14}

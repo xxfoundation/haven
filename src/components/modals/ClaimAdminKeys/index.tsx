@@ -69,8 +69,7 @@ const ExportCodenameView: FC = () => {
       ) : (
         <>
           <p className='mb-4'>
-            By being and admin, you can pin messages, delete messages, ban users
-            and view list of banned users
+            By being and admin, you can pin messages, delete messages, mute users.
           </p>
           <form onSubmit={onImport}>
             {error && (

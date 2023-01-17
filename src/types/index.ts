@@ -1,9 +1,12 @@
+import { MessageType } from '@contexts/network-client-context';
 import type { ReactNode } from 'react';
 
 export interface Message {
   id: string;
   body: string;
   timestamp: string;
+  repliedTo: string | null;
+  type: MessageType;
   color?: string;
   codename: string;
   nickname?: string;

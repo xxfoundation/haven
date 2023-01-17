@@ -8,7 +8,7 @@ const UserWasMuted: FC = () => {
         Error
       </h2>
       <p className='mb-12'>
-        You were banned from this channel and cannot send messages.
+        You were muted from this channel and cannot send messages.
       </p>
     </div>
   );

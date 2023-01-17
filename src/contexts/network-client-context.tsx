@@ -20,13 +20,13 @@ import useCmix from 'src/hooks/useCmix';
 
 const batchCount = 100;
 
-enum DBMessageType {
+export enum MessageType {
   Normal = 1,
   Reply = 2,
   Reaction = 3
 }
 
-enum DBMessageStatus {
+enum MessageStatus {
   Sending = 1,
   Sent = 2,
   Delivered = 3
@@ -40,11 +40,11 @@ export type DBMessage = {
   parent_message_id: null | string;
   timestamp: string;
   lease: number;
-  status: DBMessageStatus;
+  status: MessageStatus;
   hidden: boolean,
   pinned: boolean;
   text: string;
-  type: DBMessageType;
+  type: MessageType;
   round: number;
   pubkey: string;
   codeset_version: number;
@@ -67,12 +67,6 @@ export enum NetworkStatus {
   DISCONNECTED = 'disconnected',
   CONNECTING = 'connecting',
   FAILED = 'failed'
-}
-
-export enum MessageType {
-  Text = 1,
-  AdminText = 2,
-  Reaction = 3
 }
 
 export type IsReadyInfo = {
@@ -275,23 +269,19 @@ export const NetworkProvider: FC<WithChildren> = props => {
   } = useAuthentication();
   const { messagePinned, messageReplied } = useNotification();
   const { utils } = useUtils();
-  const [mutedUsers, setBannedUsers] = useState<User[]>();
-  const { cipher, cmix, initializeCmix } = useCmix();
+  const [mutedUsers, setMutedUsers] = useState<User[]>();
+  const { cipher, cmix, initializeCmix, status: cmixStatus } = useCmix();
   const [currentChannel, setCurrentChannel] = useState<Channel | undefined>();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
   const [messageReactions, setMessageReactions] = useState<EmojiReactions>();
-  const [isNetworkHealthy, setIsNetworkHealthy] = useState<boolean | undefined>(
-    undefined
-  );
   const [channelIdentity, setChannelIdentity] = useState<IdentityJSON | null>(null);
   
   const [isReadyToRegister, setIsReadyToRegister] = useState<
     boolean | undefined
   >(undefined);
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
-  const [blockedEvents, setBlockedEvents] = useState<DBMessage[]>([]);
   const currentCodeNameRef = useRef<string>('');
   const currentChannelRef = useRef<Channel>();
   const [pinnedMessages, setPinnedMessages] = useState<Message[]>();
@@ -503,6 +493,27 @@ export const NetworkProvider: FC<WithChildren> = props => {
     };
   }, [bc, channelManager, joinChannel]);
 
+
+  const dbMessageMapper = useCallback((dbMsg: DBMessage): Message => {
+    assert(cipher, 'Cipher required');
+    return {
+      ...getCodeNameAndColor(dbMsg.pubkey, dbMsg.codeset_version),
+      id: dbMsg.message_id,
+      body: cipher.decrypt(dbMsg.text) ?? undefined,
+      repliedTo: dbMsg.parent_message_id,
+      type: dbMsg.type,
+      timestamp: dbMsg.timestamp,
+      nickname: dbMsg.nickname || '',
+      channelId: dbMsg.channel_id,
+      status: dbMsg.status,
+      uuid: dbMsg.id,
+      round: dbMsg.round,
+      pubkey: dbMsg.pubkey,
+      pinned: dbMsg.pinned,
+      hidden: dbMsg.hidden,
+    }
+  }, [cipher, getCodeNameAndColor]);
+
   const mapDbMessagesToMessages = useCallback(async (msgs: DBMessage[]) => {
     if (!db || !cipher) {
       return [];
@@ -518,91 +529,17 @@ export const NetworkProvider: FC<WithChildren> = props => {
           .filter(m => !m.hidden)
           .toArray()) || [];
 
-      const mappedMessages: Message[] = [];
+      return msgs.filter((m) => m.type === MessageType.Normal).map((message) => {
+        const replyToMessage = relatedMessages.find(
+          ms => ms.message_id === message.parent_message_id && !ms.hidden
+        );
 
-      msgs.forEach((m) => {
-        if (m.parent_message_id && m.type === 1) {
-          const replyToMessage = relatedMessages.find(
-            ms => ms.message_id === m.parent_message_id
-          );
-
-          // If there is no replyTo message then it is not yet received
-          if (!replyToMessage) {
-            setBlockedEvents((e) => e.concat(m));
-            return;
-          }
-
-          const {
-            codename: messageCodeName,
-            color: messageColor
-          } = getCodeNameAndColor(m.pubkey, m.codeset_version);
-
-          const {
-            codename: replyToMessageCodeName,
-            color: replyToMessageColor
-          } = getCodeNameAndColor(
-            replyToMessage.pubkey,
-            replyToMessage.codeset_version
-          );
-
-          const resolvedMessage: Message = {
-            id: m.message_id,
-            body: cipher.decrypt(m.text),
-            timestamp: m.timestamp,
-            codename: messageCodeName,
-            nickname: m.nickname || '',
-            color: messageColor,
-            channelId: m.channel_id,
-            status: m.status,
-            uuid: m.id,
-            round: m.round,
-            pubkey: m.pubkey,
-            pinned: m.pinned,
-            hidden: m.hidden,
-            replyToMessage: {
-              id: replyToMessage.message_id,
-              body: cipher.decrypt(replyToMessage.text),
-              timestamp: replyToMessage.timestamp,
-              codename: replyToMessageCodeName,
-              nickname: replyToMessage.nickname || '',
-              color: replyToMessageColor,
-              channelId: replyToMessage.channel_id,
-              status: replyToMessage.status,
-              uuid: replyToMessage.id,
-              round: replyToMessage.round,
-              pubkey: replyToMessage.pubkey,
-              pinned: replyToMessage.pinned,
-              hidden: replyToMessage.hidden
-            }
-          };
-          mappedMessages.push(resolvedMessage);
-        } else if (!m.parent_message_id) {
-          // This is normal message
-          const {
-            codename: messageCodeName,
-            color: messageColor
-          } = getCodeNameAndColor(m.pubkey, m.codeset_version);
-          const resolvedMessage: Message = {
-            id: m.message_id,
-            body: cipher.decrypt(m.text),
-            timestamp: m.timestamp,
-            codename: messageCodeName,
-            nickname: m.nickname || '',
-            color: messageColor,
-            channelId: m.channel_id,
-            status: m.status,
-            uuid: m.id,
-            round: m.round,
-            pubkey: m.pubkey,
-            pinned: m.pinned,
-            hidden: m.hidden,
-          };
-          mappedMessages.push(resolvedMessage);
-        }
+        const resolvedMessage: Message = dbMessageMapper(message);
+        resolvedMessage.replyToMessage = replyToMessage && dbMessageMapper(replyToMessage);
+        return resolvedMessage;
       });
-      return mappedMessages;
     }
-  }, [cipher, db, getCodeNameAndColor]);
+  }, [cipher, db, dbMessageMapper]);
 
 
   const dbMessageToReaction = useCallback((reaction: DBMessage) => {
@@ -626,103 +563,29 @@ export const NetworkProvider: FC<WithChildren> = props => {
     
   }, [dbMessageToReaction]);
 
-  const updateSenderMessageStatus = useCallback((message: DBMessage) => {
-    setMessages(prevMessages => {
-      return prevMessages.map(m => {
-        if (m.uuid === message.id) {
-          return {
-            ...m,
-            id: message.message_id,
-            status: message.status,
-            round: message.round
-          };
-        } else return m;
-      });
-    });
-  }, []);
-
-  const resolveBlockedEvent = useCallback(async (event: DBMessage) => {
-    if (event.type === 3) {
-      handleReactionReceived(event);
-    } else if (event.type === 1) {
-      const mappedMessages = await mapDbMessagesToMessages([event]);
-
-      if (mappedMessages.length) {
-        const newMessage = mappedMessages[0];
-
-        setMessages(prev => {
-          // Sorting if needed
-          if (prev.length === 0) {
-            return [newMessage];
-          } else {
-            const channelMessages = prev.filter(
-              m => m.channelId === newMessage.channelId
-            );
-
-            // This is the first message for this channel
-            if (channelMessages.length === 0) {
-              return [...prev, newMessage];
-            } else {
-              const lastChannelMessageTimestamp = new Date(
-                channelMessages[channelMessages.length - 1].timestamp
-              ).getTime();
-              const newMessageTimestamp = new Date(
-                newMessage.timestamp
-              ).getTime();
-
-              // No need to sort
-              if (newMessageTimestamp >= lastChannelMessageTimestamp) {
-                return [...prev, newMessage];
-              } else {
-                const newMessages = [...prev, newMessage];
-                const sortedNewMessages = newMessages.sort((x, y) => {
-                  return (
-                    new Date(x.timestamp).getTime() -
-                    new Date(y.timestamp).getTime()
-                  );
-                });
-                return sortedNewMessages;
-              }
-            }
-          }
+  const updateMessage = useCallback((message: DBMessage) => {
+    setMessages((msgs) => {
+      const index = msgs.findIndex((m) => m.uuid === message.id);
+      if (index !== -1) {
+        const original = msgs[index];
+        const copy = msgs.slice();
+        copy.splice(index, 1, {
+          ...dbMessageMapper(message),
+          replyToMessage: original.replyToMessage
         });
+        assert(msgs.length === copy.length, 'Something went wrong');
+        return copy;
+      } else {
+        return msgs;
       }
-    }
-  }, [handleReactionReceived, mapDbMessagesToMessages]);
-
-  const checkIfWillResolveBlockedEvent = useCallback((receivedMessage: DBMessage) => {
-    const blockedEventsToResolve = blockedEvents.filter(
-      e => e.parent_message_id === receivedMessage.message_id
-    );
-
-    if (blockedEventsToResolve?.length) {
-      setBlockedEvents(
-        (evts) => evts.filter(
-          (e) => e.parent_message_id !== 
-            blockedEventsToResolve[0].parent_message_id
-        )
-      );
-      blockedEventsToResolve.forEach(e => {
-        resolveBlockedEvent(e);
-      });
-    }
-  }, [blockedEvents, resolveBlockedEvent]);
+    });
+  }, [dbMessageMapper]);
 
   const handleMessageEvent = useCallback(async ({ messageId, update }: events.MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
       const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
 
-      if (receivedMessage?.hidden === true) {
-        return;
-      }
-
-      if (update && receivedMessage) {
-        if ([1, 2, 3].includes(receivedMessage.status)) {
-          updateSenderMessageStatus(receivedMessage);
-          return;
-        }
-      }
-
+      // Notify user if someone replied to him
       if (receivedMessage?.parent_message_id
           && receivedMessage?.pubkey !== channelIdentity?.PubKey) {
         const replyingTo = await db.table<DBMessage>('messages').where('message_id').equals(receivedMessage?.parent_message_id).first();
@@ -735,10 +598,19 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }
       }
 
-      if (receivedMessage?.type === DBMessageType.Reaction) {
-        // It's reaction event
-        handleReactionReceived(receivedMessage);
-      } else if (receivedMessage && receivedMessage?.type === DBMessageType.Normal) {
+      if (update && receivedMessage) {
+        return updateMessage(receivedMessage);
+      }
+
+      if (receivedMessage?.hidden === true) {
+        return;
+      }
+
+      if (receivedMessage?.type === MessageType.Reaction) {
+        return handleReactionReceived(receivedMessage);
+      }
+      
+      if (receivedMessage && receivedMessage?.type === MessageType.Normal) {
         const receivedMessageChannelId = receivedMessage?.channel_id;
 
         if (receivedMessageChannelId !== currentChannelRef?.current?.id) {
@@ -756,8 +628,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
           });
         }
 
-        // It's normal message or reply to message event
         const mappedMessages = await mapDbMessagesToMessages([receivedMessage]);
+        
         if (mappedMessages.length) {
           const newMessage = mappedMessages[0];
           setMessages((prev) => {
@@ -798,20 +670,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
           });
         }
       }
-      if (receivedMessage) {
-        checkIfWillResolveBlockedEvent(receivedMessage);
-      }
     }
   }, [
     channelIdentity?.PubKey,
-    checkIfWillResolveBlockedEvent,
     cipher,
     db,
     getCodeNameAndColor,
     handleReactionReceived,
     mapDbMessagesToMessages,
     messageReplied,
-    updateSenderMessageStatus
+    updateMessage
   ]);
 
   useEffect(() => {
@@ -875,26 +743,22 @@ export const NetworkProvider: FC<WithChildren> = props => {
         return db.table<DBMessage>('messages')
           .orderBy('timestamp')
           .reverse()
-          .filter(m => {
-            return !m.hidden && m.channel_id === chId && m.type === 1;
-          })
+          .filter(m =>  !m.hidden && m.channel_id === chId && m.type === 1)
           .limit(batchCount)
           .toArray();
       })
     );
+
     let msgs: DBMessage[] = [];
 
     groupedMessages.forEach(g => {
       msgs = [...msgs, ..._.reverse(g)];
     });
 
-    const result = await mapInitialLoadDataToCurrentState(
+    const { mappedChannels, mappedMessages } = await mapInitialLoadDataToCurrentState(
       fetchedChannels,
       msgs
     );
-
-    const mappedMessages = result.mappedMessages;
-    const mappedChannels = result.mappedChannels;
 
     setChannels(
       mappedChannels.map((ch: DBChannel) => {
@@ -981,7 +845,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }, new Map<string, User>()).values();
       
       users = Array.from(usersMap);
-      setBannedUsers(users);
+      setMutedUsers(users);
     }
 
     return users;
@@ -1362,12 +1226,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
         Cookies.remove('userAuthenticated', { path: '/' });
         setIsAuthenticated(false);
         setIsReadyToRegister(undefined);
-        setIsNetworkHealthy(undefined);
         setChannels([]);
         setCurrentChannel(undefined);
         setChannelManager(undefined);
         setMessages([]);
-        setBlockedEvents([]);
         currentCodeNameRef.current = '';
         currentChannelRef.current = undefined;
 
@@ -1420,7 +1282,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     getMutedUsers();
   }, [currentChannel, getMutedUsers]);
 
-  const userIsBanned = useCallback(
+  const userIsMuted = useCallback(
     (pubkey: string) => !!mutedUsers?.find((u) => u.pubkey === pubkey),
     [mutedUsers]
   );
@@ -1551,8 +1413,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     isMuted,
     exportChannelAdminKeys,
     importChannelAdminKeys,
-    userIsMuted: userIsBanned,
-    setMutedUsers: setBannedUsers,
+    userIsMuted: userIsMuted,
+    setMutedUsers: setMutedUsers,
     muteUser,
     getMuted,
     cmix,
@@ -1591,7 +1453,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     loadMoreChannelData,
     exportPrivateIdentity,
     getCodeNameAndColor,
-    isNetworkHealthy,
+    isNetworkHealthy: cmixStatus === NetworkStatus.CONNECTED,
     isReadyToRegister,
     setIsReadyToRegister,
     checkRegistrationReadiness,
