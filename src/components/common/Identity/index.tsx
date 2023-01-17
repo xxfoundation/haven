@@ -31,7 +31,7 @@ const Identity: FC<Props> = ({ codename, color = '', disableMuteStyles, nickname
       : colorHex);
 
   return (
-    <span title={`${[nickname, codename].join(' – ')}`} className={cn(classes.root)}>
+    <span title={`${nickname && `${nickname} – `}${codename}`} className={cn(classes.root)}>
       {nickname && (
         <>
           <span className='nickname' style={{ color: colorHex }}>
