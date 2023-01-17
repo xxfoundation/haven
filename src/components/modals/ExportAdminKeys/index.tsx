@@ -79,8 +79,8 @@ const ExportCodenameView: FC = () => {
           </h3>
           <p style={{ color: 'var(--red)' }}>
             Anyone with these keys and encryption password can be an admin
-            of this channel, they can pin messages, delete messages, ban
-            users and view list of banned users.
+            of this channel, they can pin messages, delete messages, and mute
+            users.
           </p>
           <div className='mt-10'>
             {error && (

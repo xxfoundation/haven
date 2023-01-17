@@ -7,7 +7,7 @@ import cn from 'classnames';
 
 import { Delete, EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
 import { Button, Spinner } from 'src/components/common';
-import { Ban, Pin, Unpin } from 'src/components/icons';
+import { Mute, Pin, Unpin } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 
 import classes from './MessageActions.module.scss';
@@ -110,7 +110,7 @@ const MessageActions: FC<Props> = ({
         ) : (
           <>
             {isAdmin && !isOwn && !isMuted && (
-              <Ban
+              <Mute
                 onClick={onMuteUser}
               />
             )}

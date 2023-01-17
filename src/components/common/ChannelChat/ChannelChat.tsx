@@ -95,7 +95,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     }
   }, [cmix, openModal, sendReaction, setModalView]);
 
-
   return (
     <div className={s.root}>
       {currentChannel ? (

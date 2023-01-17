@@ -6,7 +6,7 @@ import 'moment-timezone';
 import moment from 'moment';
 import DOMPurify from 'dompurify';
 import Clamp from 'react-multiline-clamp';
-
+import { pick } from 'lodash';
 import Identity from 'src/components/common/Identity';
 
 import s from './ChatMessage.module.scss';
@@ -22,7 +22,6 @@ const mapTextToHtmlWithAnchors = (text: string) => {
     ALLOWED_ATTR: ['target', 'href']
   });
 };
-
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
@@ -40,7 +39,7 @@ const ChatMessage: FC<Props> = (props) => {
         'flex items-center',
         s.root,
         {
-          [s.root__withReply]: !!message.replyToMessage
+          [s.root__withReply]: message.repliedTo !== null
         },
         props.className
       )}
@@ -49,12 +48,15 @@ const ChatMessage: FC<Props> = (props) => {
 
       <div className={cn('flex flex-col', s.messageWrapper)}>
         <div className={cn(s.header)}>
-          {message.replyToMessage ? (
+          {message.repliedTo !== null ? (
             <>
               <Identity {...message} />
               <span className={cn(s.separator, 'mx-1')}>replied to</span>
 
-              <Identity {...message.replyToMessage} />
+              {message.replyToMessage
+                ? <Identity {...message.replyToMessage} />
+                : <span className={cn(s.separator, '')}><strong>deleted/unknown</strong></span>}
+
             </>
           ) : (
             <Identity {...message} />
@@ -80,32 +82,41 @@ const ChatMessage: FC<Props> = (props) => {
         </div>
 
         <div className={cn(s.body)}>
-          {message.replyToMessage && (
+          {message.repliedTo !== null && (
             <p
               className={cn(s.replyToMessageBody)}
               onClick={() => {
-                const originalMessage = document.getElementById(
-                  message?.replyToMessage?.id || ''
-                );
-                if (originalMessage) {
-                  originalMessage.scrollIntoView();
-                  originalMessage.classList.add(s.root__highlighted);
-                  setTimeout(() => {
-                    originalMessage.classList.remove(s.root__highlighted);
-                  }, 3000);
+                if (message.replyToMessage) {
+                  const originalMessage = document.getElementById(
+                    message.replyToMessage.id || ''
+                  );
+                  if (originalMessage) {
+                    originalMessage.scrollIntoView();
+                    originalMessage.classList.add(s.root__highlighted);
+                    setTimeout(() => {
+                      originalMessage.classList.remove(s.root__highlighted);
+                    }, 3000);
+                  }
                 }
               }}
             >
-              <Identity {...message.replyToMessage} />
-              <Clamp lines={3}>
-                <p
-                  dangerouslySetInnerHTML={{
-                    __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)
-                  }}
-                ></p>
-              </Clamp>
+              {message.replyToMessage ? (
+                <>
+                  <Identity {...message.replyToMessage} />
+                  <Clamp lines={3}>
+                    <p
+                      dangerouslySetInnerHTML={{
+                        __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)
+                      }}
+                    ></p>
+                  </Clamp>
+                </>
+              ) : (
+                <>This message is unknown/deleted</>
+              )}
             </p>
           )}
+          <p>{JSON.stringify(pick(message, ['id', 'repliedTo', 'uuid', 'status']))}</p>
           <Clamp withToggle={clamped} lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
             <p
               className={cn(s.messageBody, {

@@ -13,13 +13,13 @@ export type MuteUserAction = 'mute' | 'mute+delete';
 
 const ViewMutedUsers: FC = () =>  {
   const { currentChannel, getMutedUsers, muteUser, mutedUsers } = useNetworkClient();
-  const getBanned = useAsync(getMutedUsers);
+  const getMuted = useAsync(getMutedUsers);
   const muting = useAsync((...args: Parameters<typeof muteUser>) => Promise.all([
     delay(5000),  // delay to let the nodes propagate
     muteUser(...args)
   ]));
 
-  const unbanUser = useCallback((user: User) => async () => {
+  const unMuteUser = useCallback((user: User) => async () => {
     await muting.execute(user.pubkey, true);
   }, [muting])
 
@@ -27,7 +27,7 @@ const ViewMutedUsers: FC = () =>  {
     <div
       className={cn('w-full flex flex-col justify-center items-center pb-8')}
     >
-      {getBanned.status === 'pending' || muting.status === 'pending' ? <div className='my-32'><Spinner /></div> : (
+      {getMuted.status === 'pending' || muting.status === 'pending' ? <div className='my-32'><Spinner /></div> : (
         <>
           <h2 className={cn('mt-9 mb-4')}>Muted Users</h2>
           {currentChannel?.isAdmin && (
@@ -43,7 +43,7 @@ const ViewMutedUsers: FC = () =>  {
               <div key={user.pubkey} className='flex items-center justify-between mb-3'>
                 <Identity disableMuteStyles {...user} />
                 <div className='pr-6' />
-                <Button size='sm' onClick={unbanUser(user)}>
+                <Button size='sm' onClick={unMuteUser(user)}>
                   Unmute
                 </Button>
               </div>
