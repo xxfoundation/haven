@@ -132,16 +132,15 @@ const useCmix = () => {
   
 
   useEffect(() => {
-    if (status === 'connected' && dummyTraffic && !dummyTraffic.GetStatus()) {
+    if (status === NetworkStatus.CONNECTED && dummyTraffic && !dummyTraffic.GetStatus()) {
+      console.error('STARTING DUMMY TRAFFIC');
       dummyTraffic.Start();
     }
-
-    return () => dummyTraffic?.Pause();
   }, [dummyTraffic, status])
 
 
   useEffect(() => {
-    if (cmixId) {
+    if (cmixId !== undefined) {
       try {
         setDummyTrafficManager(utils.NewDummyTrafficManager(
           cmixId,
