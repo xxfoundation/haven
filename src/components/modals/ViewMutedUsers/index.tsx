@@ -43,9 +43,11 @@ const ViewMutedUsers: FC = () =>  {
               <div key={user.pubkey} className='flex items-center justify-between mb-3'>
                 <Identity disableMuteStyles {...user} />
                 <div className='pr-6' />
-                <Button size='sm' onClick={unMuteUser(user)}>
-                  Unmute
-                </Button>
+                {currentChannel?.isAdmin && (
+                  <Button size='sm' onClick={unMuteUser(user)}>
+                    Unmute
+                  </Button>
+                )}
               </div>
             ))}
           </div>

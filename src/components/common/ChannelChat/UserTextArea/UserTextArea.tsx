@@ -38,7 +38,7 @@ const UserTextArea: FC<Props> = ({
   const messageIsValid = useMemo(() => messageBody.trim().length <= MESSAGE_MAX_SIZE, [messageBody])
   const placeholder = useMemo(
     () => isMuted
-      ? 'You can\'t send messages to this channel because you are muted by an admin of this channel.'
+      ? 'You have been muted by an admin and cannot send messages.'
       : 'Type your message here...',
     [isMuted]
   );
@@ -131,7 +131,7 @@ const UserTextArea: FC<Props> = ({
 
       <div className={s.buttonsWrapper}>
         <SendButton
-          disabled={!messageIsValid || isMuted}
+          disabled={!messageIsValid}
           className={s.button}
           onClick={sendCurrentMessage}
         />

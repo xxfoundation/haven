@@ -1,11 +1,12 @@
 import { FC } from 'react';
 import cn from 'classnames';
 
-import { ModalCtaButton, Spinner } from 'src/components/common';
+import { ModalCtaButton } from 'src/components/common';
 import Modal from 'src/components/modals';
 
 import s from './PinMessage.module.scss';
 import { useCallback, useState } from 'react';
+import Loading from '../LoadingView';
 
 type Props = {
   onConfirm: () => Promise<void>;
@@ -27,7 +28,7 @@ const PinMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
       <div
         className={cn('w-full flex flex-col justify-center items-center')}
       >
-        {loading ? (<div className='my-32'><Spinner size='md' /></div>) : (
+        {loading ? (<Loading />) : (
           <>
             <h2 className={cn('mt-9 mb-4')}>
               Confirmation

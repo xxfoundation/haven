@@ -10,13 +10,13 @@ import { ModalViews, useUI } from 'src/contexts/ui-context';
 import { useNetworkClient, Channel } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
-import { Loading } from 'src/components/common';
 import AuthenticationUI from './AuthenticationUI';
 import NotificationBanner from 'src/components/common/NotificationBanner';
 
 import {
   CreateChannelView,
   ClaimAdminKeys,
+  LoadingView,
   JoinChannelView,
   ShareChannelView,
   LeaveChannelConfirmationView,
@@ -51,6 +51,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     CREATE_CHANNEL: <CreateChannelView />,
     JOIN_CHANNEL: <JoinChannelView />,
     LOGOUT: <LogoutView />,
+    LOADING: <LoadingView />,
     LEAVE_CHANNEL_CONFIRMATION: <LeaveChannelConfirmationView />,
     SET_NICK_NAME: currentChannel && <NickNameSetView />,
     CHANNEL_ACTIONS: <ChannelActionsView />,
@@ -135,7 +136,7 @@ const DefaultLayout: FC<WithChildren> = ({
           </>
         )
       ) : (
-        <Loading />
+        null
       )}
     </div>
     </>
