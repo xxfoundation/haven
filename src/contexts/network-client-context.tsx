@@ -1409,6 +1409,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const version = JSON.parse(decoder.decode(utils.GetWasmSemanticVersion())) as VersionJSON;
       const isUpdate = version.Updated;
       const outdatedVersion = '0.1.8';
+      console.log(version);
       const [outdatedMajor, outdatedMinor] = outdatedVersion.split('.').map((i) => parseInt(i, 10));
       const [oldMajor, oldMinor] = version.Old.split('.').map((i) => parseInt(i, 10));
       

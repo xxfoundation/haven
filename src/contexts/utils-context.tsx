@@ -22,9 +22,9 @@ export type ChannelJSON = {
 }
 
 export type VersionJSON = {
-  Current: string;
-  Updated: boolean;
-  Old: string;
+  current: string;
+  updated: boolean;
+  old: string;
 }
 
 export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
