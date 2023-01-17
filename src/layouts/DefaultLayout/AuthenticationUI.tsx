@@ -56,6 +56,7 @@ const AuthenticationUI: FC = () => {
       {displayModal && modalView === 'IMPORT_CODENAME' &&  (
         <ImportAccountModal onSubmit={onSubmit} />
       )}
+      
       {hasAccount ? <LoginView /> : <Register />}
     </>
   );
