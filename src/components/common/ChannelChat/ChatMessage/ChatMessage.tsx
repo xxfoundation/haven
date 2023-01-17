@@ -116,7 +116,19 @@ const ChatMessage: FC<Props> = (props) => {
               )}
             </p>
           )}
-          <Clamp withToggle={clamped} lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
+          <Clamp
+            showMoreElement={({ toggle }: { toggle: () => void }) => (
+              <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
+                  Show more
+              </button>
+            )}
+            showLessElement={({ toggle }: { toggle: () => void }) => (
+              <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
+                  Show less
+              </button>
+            )}
+            withToggle={clamped}
+            lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
             <p
               className={cn(s.messageBody, {
                 [s.messageBody__failed]: message.status === 3
