@@ -13,8 +13,8 @@ import ChatReactions from '../ChatReactions';
 
 const mapTextToHtmlWithAnchors = (text: string) => {
   const returnVal = text.replace(
-    /(https?:\/\/)([^ ]+)/g,
-    '<a target="_blank" href="$&">$2</a>'
+    /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/,
+    '<a target="_blank" rel="noopener noreferrer" href="$&">$&</a>'
   );
   return DOMPurify.sanitize(returnVal, {
     ALLOWED_TAGS: ['a'],
