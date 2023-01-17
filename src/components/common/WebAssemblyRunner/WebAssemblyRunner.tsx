@@ -38,6 +38,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             GetPublicChannelIdentityFromPrivate,
             GetShareUrlType,
             GetVersion,
+            GetWasmSemanticVersion,
             ImportPrivateIdentity,
             IsNicknameValid,
             LoadChannelsManagerWithIndexedDb,
@@ -48,7 +49,8 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             NewCmix,
             NewDummyTrafficManager,
             Purge,
-            ValidForever
+            ValidForever,
+            
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } = (window as any) || {};
 
@@ -69,6 +71,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             GetVersion,
             GetClientVersion,
             GetOrInitPassword,
+            GetWasmSemanticVersion,
             ImportPrivateIdentity,
             ConstructIdentity,
             DecodePrivateURL,
