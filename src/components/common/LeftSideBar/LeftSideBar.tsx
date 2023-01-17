@@ -146,7 +146,7 @@ const LeftSideBar: FC<{
         <div className={cn(s.version)}>
           {getClientVersion() && <span>XXDK version {getClientVersion()}</span>}
           {getVersion() && <span>Wasm version {getVersion()}</span>}
-          <span>App version 0.1.4</span>
+          <span>App version 0.2.0</span>
         </div>
       </div>
     </div>

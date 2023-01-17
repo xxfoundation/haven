@@ -12,13 +12,18 @@ import s from './ChatMessage.module.scss';
 import ChatReactions from '../ChatReactions';
 
 const mapTextToHtmlWithAnchors = (text: string) => {
-  const returnVal = text.replace(
+  const withLinks = text.replace(
     /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/,
     '<a target="_blank" rel="noopener noreferrer" href="$&">$&</a>'
   );
-  return DOMPurify.sanitize(returnVal, {
-    ALLOWED_TAGS: ['a'],
-    ALLOWED_ATTR: ['target', 'href']
+
+  const withBreaks = withLinks.replace(
+    /\n/g, '<br />'
+  )
+
+  return DOMPurify.sanitize(withBreaks, {
+    ALLOWED_TAGS: ['a', 'br'],
+    ALLOWED_ATTR: ['target', 'href', 'rel']
   });
 };
 
@@ -119,12 +124,12 @@ const ChatMessage: FC<Props> = (props) => {
           <Clamp
             showMoreElement={({ toggle }: { toggle: () => void }) => (
               <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
-                  Show more
+                Show more
               </button>
             )}
             showLessElement={({ toggle }: { toggle: () => void }) => (
               <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
-                  Show less
+                Show less
               </button>
             )}
             withToggle={clamped}
@@ -136,7 +141,7 @@ const ChatMessage: FC<Props> = (props) => {
               dangerouslySetInnerHTML={{
                 __html: mapTextToHtmlWithAnchors(message.body)
               }}
-            ></p>
+            />
           </Clamp>
         </div>
         <ChatReactions {...props} />

@@ -35,7 +35,7 @@ const UserTextArea: FC<Props> = ({
     sendReply
   } = useNetworkClient();
 
-  const messageIsValid = useMemo(() => messageBody.trim().length <= MESSAGE_MAX_SIZE, [messageBody])
+  const messageIsValid = useMemo(() => messageBody.length <= MESSAGE_MAX_SIZE, [messageBody])
   const placeholder = useMemo(
     () => isMuted
       ? 'You have been muted by an admin and cannot send messages.'
@@ -65,9 +65,9 @@ const UserTextArea: FC<Props> = ({
       }
 
       if (replyToMessage) {
-        sendReply(messageBody.trim(), replyToMessage.id);
+        sendReply(messageBody, replyToMessage.id);
       } else {
-        sendMessage(messageBody.trim());
+        sendMessage(messageBody);
       }
 
       setMessageBody('');
@@ -127,7 +127,7 @@ const UserTextArea: FC<Props> = ({
       <span style={{
         fontSize: 12,
         color: messageIsValid || isMuted ? 'var(--dark-9)' : 'var(--red)'}} className='absolute left-0 bottom-0 p-2'>
-          {messageBody.trim().length ?? 0}/700
+          {messageBody.length ?? 0}/700
       </span>
 
       <div className={s.buttonsWrapper}>
