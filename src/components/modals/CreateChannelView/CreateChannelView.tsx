@@ -10,7 +10,7 @@ const CreateChannelView: FC = () => {
   const { createChannel } = useNetworkClient();
   const { closeModal } = useUI();
   const [channelName, onChannelNameChange, { set: setChannelName }] = useInput();
-  const [channelDesc, onChannelDescChange, { set: setChannelDesc}] = useInput();
+  const [channelDesc, onChannelDescChange, { set: setChannelDesc }] = useInput();
   const [error, setError] = useState('');
   const [privacyLevel, setPrivacyLevel] = useState<0 | 2>(2); //0 = public, 1 = private, and 2 = secret
 

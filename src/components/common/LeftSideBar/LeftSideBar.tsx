@@ -36,6 +36,11 @@ const LeftSideBar: FC<{
     }
   }, [channels, setCurrentChannel]);
 
+  const sortedChannels = useMemo(
+    () => channels.slice().sort((a, b) => a.name.localeCompare(b.name)),
+    [channels]
+  );
+
   const openSettingsModal = useCallback(() => {
     setModalView('SETTINGS');
     openModal();
@@ -99,7 +104,7 @@ const LeftSideBar: FC<{
         )}
         <Collapse title={collapseTitle} defaultActive>
           <div className='flex flex-col'>
-            {channels.map(ch => (
+            {sortedChannels.map((ch) => (
                 <div className='flex justify-between items-center' key={ch.id}>
                   <span
                     title={ch.isAdmin ? 'You are admin in this channel' : undefined}
