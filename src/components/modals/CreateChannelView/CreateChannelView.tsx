@@ -6,6 +6,9 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import useInput from 'src/hooks/useInput';
 
+const pCL = 'a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ';
+const regex = new RegExp(`[${pCL}][${pCL}' ,"-]*[${pCL}'",]+`);
+
 const CreateChannelView: FC = () => {
   const { createChannel } = useNetworkClient();
   const { closeModal } = useUI();
@@ -22,7 +25,7 @@ const CreateChannelView: FC = () => {
   );
 
   const onCreate = useCallback(async () => {
-    if (!/[^\p{L}0-9_$]{3,24}/.test(channelName)) {
+    if (!regex.test(channelName)) {
       setError('The name must be between 3 and 24 characters inclusive. It can only include upper and lowercase Unicode letters, digits 0 through 9, and underscores (_).');
       return;
     }
