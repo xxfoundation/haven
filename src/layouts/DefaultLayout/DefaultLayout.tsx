@@ -34,6 +34,7 @@ import {
 
 import s from './DefaultLayout.module.scss';
 import ViewMutedUsers from '@components/modals/ViewMutedUsers';
+import UpdatesModal from './UpdatesModal';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -121,24 +122,25 @@ const DefaultLayout: FC<WithChildren> = ({
   return (
     <>
       <NotificationBanner />
+      <UpdatesModal />
       <div className={cn(s.root)}>
-      {utilsLoaded ? (
-        cmix && isAuthenticated && storageTag && isReadyToRegister ? (
-          <>
-            <LeftSideBar cssClasses={s.leftSideBar} />
-            <main className=''>{children}</main>
-            <RightSideBar cssClasses={s.rightSideBar} />
-            <AuthenticatedUserModals currentChannel={currentChannel} />
-          </>
+        {utilsLoaded ? (
+          cmix && isAuthenticated && storageTag && isReadyToRegister ? (
+            <>
+              <LeftSideBar cssClasses={s.leftSideBar} />
+              <main className=''>{children}</main>
+              <RightSideBar cssClasses={s.rightSideBar} />
+              <AuthenticatedUserModals currentChannel={currentChannel} />
+            </>
+          ) : (
+            <>
+              <AuthenticationUI />
+            </>
+          )
         ) : (
-          <>
-            <AuthenticationUI />
-          </>
-        )
-      ) : (
-        null
-      )}
-    </div>
+          null
+        )}
+      </div>
     </>
     
   );
