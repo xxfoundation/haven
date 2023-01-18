@@ -1,6 +1,6 @@
 {
-  "name": "elixxir",
-  "version": "0.1.0",
+  "name": "speakeasy-web",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,6 @@
     "lint:fix": "next lint --fix"
   },
   "dependencies": {
-    "@brancol/react-snackbar": "^0.3.0",
     "@emoji-mart/data": "^1.0.6",
     "@emoji-mart/react": "^1.0.1",
     "@juggle/resize-observer": "^3.4.0",
@@ -21,7 +20,6 @@
     "copy-to-clipboard": "^3.3.2",
     "delay": "^5.0.0",
     "dexie": "^3.2.2",
-    "dexie-react-hooks": "^1.1.1",
     "dompurify": "^2.4.0",
     "emoji-mart": "^5.2.2",
     "file-saver": "^2.0.5",

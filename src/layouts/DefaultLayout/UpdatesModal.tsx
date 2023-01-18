@@ -5,11 +5,11 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 import s from './UpdatesModal.module.scss';
 
 const UpdatesModal = () => {
-  const [showModal, setShowModal] = useLocalStorage('update-notice-0.2.0', true);
+  const [showModal, setShowModal] = useLocalStorage('update-notice-0.2.1', true);
   
   return showModal ? (
     <Modal className={s.root} onClose={() => setShowModal(false)}>
-      <h2 className='text-center mb-8'>Welcome to version 0.2.0</h2>
+      <h2 className='text-center mb-8'>Welcome to version 0.2.1</h2>
       <h3>👑 Admin Commands</h3>
       <ul>
         <li>
