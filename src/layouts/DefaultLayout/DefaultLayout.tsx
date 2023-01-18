@@ -120,6 +120,9 @@ const DefaultLayout: FC<WithChildren> = ({
     router
   ]);
 
+  // eslint-disable-next-line no-console
+  console.log({ cmix, isAuthenticated, storageTag, isReadyToRegister });
+
   return (
     <>
       <NotificationBanner />
@@ -127,7 +130,7 @@ const DefaultLayout: FC<WithChildren> = ({
       <SecretModal />
       <div className={cn(s.root)}>
         {utilsLoaded ? (
-          cmix && isAuthenticated && storageTag && isReadyToRegister ? (
+          isAuthenticated ? (
             <>
               <LeftSideBar cssClasses={s.leftSideBar} />
               <main className=''>{children}</main>
@@ -135,9 +138,7 @@ const DefaultLayout: FC<WithChildren> = ({
               <AuthenticatedUserModals currentChannel={currentChannel} />
             </>
           ) : (
-            <>
-              <AuthenticationUI />
-            </>
+            <AuthenticationUI />
           )
         ) : (
           null

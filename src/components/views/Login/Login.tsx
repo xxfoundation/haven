@@ -1,4 +1,4 @@
-import { FC, useCallback, useState, useEffect } from 'react';
+import { FC, useCallback, useState } from 'react';
 import cn from 'classnames';
 
 import { ModalCtaButton, Spinner } from 'src/components/common';
@@ -12,19 +12,16 @@ import {
   NormalHash,
   RoadMap
 } from 'src/components/icons';
+import { useAuthentication } from '@contexts/authentication-context';
 
 const LoginView: FC = ({}) => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const {
-    initialize,
-    setIsReadyToRegister
+    initialize
   } = useNetworkClient();
+  const { setIsAuthenticated } = useAuthentication();
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setIsReadyToRegister(true);
-  }, [setIsReadyToRegister]);
 
   const handleSubmit = useCallback(async () => {
     setError('');
@@ -33,12 +30,13 @@ const LoginView: FC = ({}) => {
       setTimeout(async () => {
         await initialize(password);
         setIsLoading(false);
+        setIsAuthenticated(true);
       }, 1)
     } catch (e) {
       setError((e as Error).message);
       setIsLoading(false);
     }
-  }, [initialize, password]);
+  }, [initialize, password, setIsAuthenticated]);
 
   return (
     <div className={cn('', s.root)}>

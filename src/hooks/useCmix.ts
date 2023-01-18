@@ -126,7 +126,7 @@ const useCmix = () => {
 
 
   useEffect(() => {
-    if (cmix && status !== NetworkStatus.CONNECTED) {
+    if (cmix && (status === NetworkStatus.DISCONNECTED || status === NetworkStatus.FAILED)) {
       connect();
     }
   }, [connect, cmix, status, disconnect])
