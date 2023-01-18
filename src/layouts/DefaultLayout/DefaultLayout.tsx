@@ -82,8 +82,7 @@ const DefaultLayout: FC<WithChildren> = ({
     cmix,
     currentChannel,
     getShareUrlType,
-    isNetworkHealthy,
-    isReadyToRegister
+    isNetworkHealthy
   } = useNetworkClient();
   const { openModal, setChannelInviteLink, setModalView } = useUI();
 
@@ -95,7 +94,6 @@ const DefaultLayout: FC<WithChildren> = ({
       isNetworkHealthy &&
       isAuthenticated &&
       storageTag &&
-      isReadyToRegister &&
       window.location.search &&
       [
         PrivacyLevel.Private,
@@ -110,7 +108,6 @@ const DefaultLayout: FC<WithChildren> = ({
   }, [
     cmix,
     isAuthenticated,
-    isReadyToRegister,
     isNetworkHealthy,
     storageTag,
     getShareUrlType,

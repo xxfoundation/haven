@@ -38,7 +38,9 @@ const CodenameRegistration: FC = () => {
             if (isReadyInfo.IsReady) {
               setTimeout(() => {
                 setLoading(false);
-              }, 2500)
+                // Dont mess with this, it needs exactly 3 seconds
+                // for the database to initialize
+              }, 3000)
             }
             setReadyProgress(
               Math.ceil((isReadyInfo?.HowClose || 0) * 100)
