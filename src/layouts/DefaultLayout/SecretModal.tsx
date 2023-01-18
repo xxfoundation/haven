@@ -13,7 +13,8 @@ const options = [
   { label: 'Default', value: '/sounds/notification.mp3' },
   { label: 'Augh', value: '/sounds/augh.mp3' },
   { label: 'Parry', value: '/sounds/parry.mp3' },
-  { label: 'Bring', value: '/sounds/bring.mp3' }
+  { label: 'Bring', value: '/sounds/bring.mp3' },
+  { label: 'ICQ', value: '/sounds/classic-icq.wav' }
 ];
 
 const SecretModal = () => {
