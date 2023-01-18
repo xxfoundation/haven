@@ -6,8 +6,7 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import useInput from 'src/hooks/useInput';
 
-const pCL = 'a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ';
-const regex = new RegExp(`[${pCL}][${pCL}' ,"-]*[${pCL}'",]+`);
+const regex = new RegExp('[a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ0-9_$]{3,24}');
 
 const CreateChannelView: FC = () => {
   const { createChannel } = useNetworkClient();
