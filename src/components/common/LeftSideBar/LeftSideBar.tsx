@@ -105,25 +105,25 @@ const LeftSideBar: FC<{
         <Collapse title={collapseTitle} defaultActive>
           <div className='flex flex-col'>
             {sortedChannels.map((ch) => (
-                <div className='flex justify-between items-center' key={ch.id}>
-                  <span
-                    title={ch.isAdmin ? 'You are admin in this channel' : undefined}
-                    className={cn(s.channelPill, 'headline--xs', {
-                      [s.channelPill__active]:
-                        ch.id === (currentChannel?.id || '')
-                    })}
-                    onClick={onChannelChange(ch.id)}
-                  >
-                    {ch.name}
+              <div className='flex justify-between items-center' key={ch.id}>
+                <span
+                  title={ch.isAdmin ? 'You are admin in this channel' : undefined}
+                  className={cn(s.channelPill, 'headline--xs', {
+                    [s.channelPill__active]:
+                      ch.id === (currentChannel?.id || '')
+                  })}
+                  onClick={onChannelChange(ch.id)}
+                >
+                  {ch.name}
+                </span>
+                {ch.withMissedMessages && (
+                  <span className='mr-2'>
+                    <MissedMessagesIcon></MissedMessagesIcon>
                   </span>
-                  {ch.withMissedMessages && (
-                    <span className='mr-2'>
-                      <MissedMessagesIcon></MissedMessagesIcon>
-                    </span>
-                  )}
-                </div>
-              )
-            )}
+                )}
+              </div>
+            )
+          )}
           </div>
         </Collapse>
       </div>
