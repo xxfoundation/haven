@@ -120,9 +120,6 @@ const DefaultLayout: FC<WithChildren> = ({
     router
   ]);
 
-  // eslint-disable-next-line no-console
-  console.log({ cmix, isAuthenticated, storageTag, isReadyToRegister });
-
   return (
     <>
       <NotificationBanner />
