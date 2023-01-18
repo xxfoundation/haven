@@ -35,6 +35,7 @@ import {
 import s from './DefaultLayout.module.scss';
 import ViewMutedUsers from '@components/modals/ViewMutedUsers';
 import UpdatesModal from './UpdatesModal';
+import SecretModal from './SecretModal';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -123,6 +124,7 @@ const DefaultLayout: FC<WithChildren> = ({
     <>
       <NotificationBanner />
       <UpdatesModal />
+      <SecretModal />
       <div className={cn(s.root)}>
         {utilsLoaded ? (
           cmix && isAuthenticated && storageTag && isReadyToRegister ? (

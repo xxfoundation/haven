@@ -5,7 +5,8 @@ import useSound from 'use-sound';
 
 
 const useNotification = () => {
-  const [playNotification] = useSound('/sounds/notification.mp3');
+  const [notificationSound] = useLocalStorage('notification-sound', '/sounds/notification.mp3');
+  const [playNotification] = useSound(notificationSound);
   const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>('notification-permission', Notification?.permission === 'granted');
   const notification = useRef<Notification | null>(null);
   const [permissionIgnored, setPermissionIgnored] = useSessionStorage('notifications_ignored', false);

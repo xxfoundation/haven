@@ -39,6 +39,7 @@
     "react-moment": "^1.1.2",
     "react-multiline-clamp": "^2.0.0",
     "react-spring": "^9.5.2",
+    "react-tailwindcss-select": "^1.6.0",
     "react-tooltip": "^4.2.21",
     "react-use-measure": "^2.1.1",
     "sass": "^1.54.8",
