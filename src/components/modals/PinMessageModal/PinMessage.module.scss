@@ -1,0 +1,11 @@
+.buttonGroup {
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  & > button {
+    margin:0.5rem  0.75rem ;
+  }
+}

@@ -1,0 +1,33 @@
+.root {
+  padding: 0.5rem 60px;
+
+  span {
+    display: block;
+    max-width: 1440px;
+    margin: 0 auto;
+    width:100%;
+  }
+
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.04);
+
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  button {
+    color: var(--orange);
+  }
+
+  display: flex;
+  justify-content: space-between;
+
+  svg {
+    cursor: pointer;
+  }
+
+  svg path {
+    fill: var(--orange);
+    stroke-width: 2px;
+  }
+}
