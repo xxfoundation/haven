@@ -1,0 +1,29 @@
+:root {
+  --primary: #2d3136;
+  --secondary: #f5f5f5;
+
+  --cyan: #259cdb;
+
+  --orange: #ecba60;
+  --green: rgb(132, 196, 37);
+  --red: #DE7171;
+  --white: #f5f5f5;
+  --grey: #95989e;
+  --dark-1: #2d3136;
+  --dark-2: #40444a;
+  --dark-3: #43464d;
+  --dark-4: #282b2f;
+  --dark-5: #36393e;
+  --dark-6: #484c52;
+  --dark-7: #16181d;
+  --dark-8: #37393e;
+
+  --black-1: #0a0c0f;
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #d2d2d2;
+
+  --font-sans: -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue",
+    "Helvetica", sans-serif;
+  --font-montserrat: "Montserrat", "Helvetica Neue", "Helvetica", sans-serif;
+}

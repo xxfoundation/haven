@@ -1,0 +1,109 @@
+.root {
+  p {
+    word-break: break-all;
+  }
+  padding: 8px 16px;
+  position: relative;
+
+  &__highlighted {
+    box-shadow: 0px 1px 4px var(--cyan);
+  }
+
+  .sender {
+    display: flex;
+    align-items: center;
+
+    svg {
+      margin-right: 1px;
+      width: 12px;
+      margin-bottom: -0.5px;
+    }
+  }
+
+  &__withReply {
+    .replyToMessageBody {
+      font-size: 13px;
+      background-color: var(--dark-4);
+      max-width: fit-content;
+      margin-top: 4px;
+      margin-bottom: 8px;
+      padding: 6px;
+      border-radius: 5px;
+      a {
+        color: var(--cyan);
+      }
+
+      cursor: pointer;
+      .sender {
+        svg {
+          width: 8px;
+          margin-bottom: -0.5px;
+        }
+        font-size: 10px;
+      }
+    }
+  }
+
+  &:hover {
+    background-color: var(--dark-6);
+  }
+
+  .sender {
+    color: var(--cyan);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .separator {
+    font-size: 12px;
+  }
+
+  .messageTimestamp {
+    font-size: 10px;
+    font-weight: 400;
+    margin-left: 6px;
+  }
+
+  .body {
+    font-size: 14px;
+  }
+
+  .replyToMessage {
+    cursor: pointer;
+    span {
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 700;
+    }
+  }
+}
+
+.timestamp {
+  padding: 4px !important;
+  span {
+    font-size: 9px !important;
+    font-weight: 400;
+    color: var(--cyan) !important;
+  }
+}
+
+
+.messageBody {
+  &__failed {
+    color: var(--red) !important;
+  }
+  a {
+    color: var(--cyan);
+  }
+}
+
+.sender {
+  white-space: nowrap;
+}
+
+.actionsWrapperPosition {
+  position: absolute;
+  right: 20px;
+  top: 2px;
+  z-index: 2;
+}

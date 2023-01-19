@@ -1,10 +1,27 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require('tailwindcss/colors')
+
 module.exports = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}"
+    "./src/pages/**/*.{js,ts,jsx,tsx}",
+    "./src/components/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/react-tailwindcss-select/dist/index.esm.js"
   ],
   theme: {
+    colors: {
+      ...colors,
+      orange: {
+        100: '#faecd1',
+        200: '#f4d8a4',
+        300: '#efc576',
+        400: '#eab148',
+        500: '#e49e1b',
+        600: '#b77e15',
+        700: '#a06e13',
+        800: '#895f10',
+        900: '#724f0d'
+      }
+    },
     fontFamily: {
       sans: ["Moderat"]
     },
