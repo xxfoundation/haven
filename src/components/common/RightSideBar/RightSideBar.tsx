@@ -164,7 +164,9 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                   return null;
                 } else {
                   return (
-                    <Identity {...c} />
+                    <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <Identity  {...c} />
+                    </div>
                   );
                 }
               })}
