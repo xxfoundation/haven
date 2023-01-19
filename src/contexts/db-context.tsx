@@ -52,7 +52,7 @@ export const DBContext = createContext<DBContextType>({ initDb: () => {} } as un
 
 export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [db, setDb] = useState<Dexie>();
-  const [storageTags] = useLocalStorage<string[]>(ELIXXIR_USERS_TAGS);
+  const [storageTags] = useLocalStorage<string[]>(ELIXXIR_USERS_TAGS, []);
   const storageTag = useMemo(() => storageTags?.[0], [storageTags]);
   
   const initDb = useCallback((tag: string) => {

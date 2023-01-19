@@ -131,7 +131,7 @@ export type ChannelManager = {
   ) => Promise<Uint8Array>;
   IsChannelAdmin: (channelId: Uint8Array) => boolean;
   GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => Promise<string>;
-  GetStorageTag: () => string;
+  GetStorageTag: () => string | undefined;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
   GetNickname: (channelId: Uint8Array) => string;
   GetIdentity: () => Uint8Array;
@@ -174,7 +174,6 @@ type NetworkContext = {
   cmix?: CMix;
   currentChannel?: Channel;
   isNetworkHealthy: boolean | undefined;
-  isReadyToRegister: boolean | undefined;
   channelIdentity: IdentityJSON | null;
   pinnedMessages?: Message[];
   messageReactions?: EmojiReactions;
@@ -230,7 +229,6 @@ type NetworkContext = {
   loadMoreChannelData: (channelId: string) => Promise<void>;
   exportPrivateIdentity: (password: string) => Uint8Array | false;
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
-  setIsReadyToRegister: (isReady: boolean | undefined) => void;
   logout: (password: string) => boolean;
 };
 
@@ -241,7 +239,6 @@ export const NetworkClientContext = React.createContext<NetworkContext>({
   channels: [],
   messages: [],
   isNetworkHealthy: undefined,
-  isReadyToRegister: undefined,
 } as unknown as NetworkContext);
 
 NetworkClientContext.displayName = 'NetworkClientContext';
@@ -277,10 +274,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
   const [messageReactions, setMessageReactions] = useState<EmojiReactions>();
   const [channelIdentity, setChannelIdentity] = useState<IdentityJSON | null>(null);
-  
-  const [isReadyToRegister, setIsReadyToRegister] = useState<
-    boolean | undefined
-  >(undefined);
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
   const currentCodeNameRef = useRef<string>('');
   const currentChannelRef = useRef<Channel>();
@@ -309,13 +302,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       await initializeCmix(statePassEncoded);
     }
   }, [checkUser, initializeCmix]);
-
-  useEffect(() => {
-    if (cmix) {
-      setIsAuthenticated(true);
-    }
-  }, [cmix, setIsAuthenticated]);
-
 
   const upgradeAdmin = useCallback(() => {
     if (currentChannel) {
@@ -878,7 +864,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       
       setChannelManager(createdChannelManager);
       const tag = createdChannelManager.GetStorageTag();
-      addStorageTag(tag);
+      if (tag) {
+        addStorageTag(tag);
+      }
     }
   }, [
     cipher,
@@ -1208,14 +1196,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
             clearInterval(intervalId);
             setTimeout(() => {
               createChannelManager(selectedPrivateIdentity);
-              setIsReadyToRegister(true);
+              setIsAuthenticated(true);
               resolve();
             }, 3000);
           }
         }
       }, 1000);
     });
-  }, [createChannelManager, cmix]);
+  }, [cmix, createChannelManager, setIsAuthenticated]);
 
   const logout = useCallback((password: string) => {
     if (utils && utils.Purge && cmix && cmix.StopNetworkFollower) {
@@ -1225,7 +1213,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
         window.localStorage.clear();
         Cookies.remove('userAuthenticated', { path: '/' });
         setIsAuthenticated(false);
-        setIsReadyToRegister(undefined);
         setChannels([]);
         setCurrentChannel(undefined);
         setChannelManager(undefined);
@@ -1472,8 +1459,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     exportPrivateIdentity,
     getCodeNameAndColor,
     isNetworkHealthy: cmixStatus === NetworkStatus.CONNECTED,
-    isReadyToRegister,
-    setIsReadyToRegister,
     checkRegistrationReadiness,
     pinMessage,
     logout,

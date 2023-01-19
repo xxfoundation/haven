@@ -34,6 +34,8 @@ import {
 
 import s from './DefaultLayout.module.scss';
 import ViewMutedUsers from '@components/modals/ViewMutedUsers';
+import UpdatesModal from './UpdatesModal';
+import SecretModal from './SecretModal';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -80,8 +82,7 @@ const DefaultLayout: FC<WithChildren> = ({
     cmix,
     currentChannel,
     getShareUrlType,
-    isNetworkHealthy,
-    isReadyToRegister
+    isNetworkHealthy
   } = useNetworkClient();
   const { openModal, setChannelInviteLink, setModalView } = useUI();
 
@@ -93,7 +94,6 @@ const DefaultLayout: FC<WithChildren> = ({
       isNetworkHealthy &&
       isAuthenticated &&
       storageTag &&
-      isReadyToRegister &&
       window.location.search &&
       [
         PrivacyLevel.Private,
@@ -108,7 +108,6 @@ const DefaultLayout: FC<WithChildren> = ({
   }, [
     cmix,
     isAuthenticated,
-    isReadyToRegister,
     isNetworkHealthy,
     storageTag,
     getShareUrlType,
@@ -121,24 +120,24 @@ const DefaultLayout: FC<WithChildren> = ({
   return (
     <>
       <NotificationBanner />
+      <UpdatesModal />
+      <SecretModal />
       <div className={cn(s.root)}>
-      {utilsLoaded ? (
-        cmix && isAuthenticated && storageTag && isReadyToRegister ? (
-          <>
-            <LeftSideBar cssClasses={s.leftSideBar} />
-            <main className=''>{children}</main>
-            <RightSideBar cssClasses={s.rightSideBar} />
-            <AuthenticatedUserModals currentChannel={currentChannel} />
-          </>
-        ) : (
-          <>
+        {utilsLoaded ? (
+          isAuthenticated ? (
+            <>
+              <LeftSideBar cssClasses={s.leftSideBar} />
+              <main className=''>{children}</main>
+              <RightSideBar cssClasses={s.rightSideBar} />
+              <AuthenticatedUserModals currentChannel={currentChannel} />
+            </>
+          ) : (
             <AuthenticationUI />
-          </>
-        )
-      ) : (
-        null
-      )}
-    </div>
+          )
+        ) : (
+          null
+        )}
+      </div>
     </>
     
   );
