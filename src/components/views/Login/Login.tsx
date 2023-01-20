@@ -26,16 +26,16 @@ const LoginView: FC = ({}) => {
   const handleSubmit = useCallback(async () => {
     setError('');
     setIsLoading(true);
-    try {
       setTimeout(async () => {
-        await initialize(password);
-        setIsLoading(false);
-        setIsAuthenticated(true);
-      }, 1)
-    } catch (e) {
-      setError((e as Error).message);
-      setIsLoading(false);
-    }
+        try {
+          await initialize(password);
+          setIsLoading(false);
+          setIsAuthenticated(true);
+        } catch (e) {
+          setError((e as Error).message);
+          setIsLoading(false);
+        }
+      }, 1);
   }, [initialize, password, setIsAuthenticated]);
 
   return (
