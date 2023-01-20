@@ -132,6 +132,7 @@ const ChatMessage: FC<Props> = (props) => {
                 Show less
               </button>
             )}
+            maxLines={Number.MAX_SAFE_INTEGER}
             withToggle={clamped}
             lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
             <p
