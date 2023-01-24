@@ -6,17 +6,18 @@ import Picker from '@emoji-mart/react';
 import cn from 'classnames';
 
 import { Delete, EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
-import { Button, Spinner } from 'src/components/common';
-import { Ban, Pin } from 'src/components/icons';
+import { Mute, Pin, Unpin } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 
 import classes from './MessageActions.module.scss';
 import { createPortal } from 'react-dom';
+import { useNetworkClient } from '@contexts/network-client-context';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
-  isBanned: boolean;
+  isMuted: boolean;
   isAdmin: boolean;
   isOwn: boolean;
+  isPinned: boolean;
   onReplyClicked: () => void;
   onReactToMessage: (emoji: string) => void;
   onDeleteMessage: () => void;
@@ -26,8 +27,9 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 
 const MessageActions: FC<Props> = ({
   isAdmin,
-  isBanned,
+  isMuted,
   isOwn,
+  isPinned,
   onDeleteMessage,
   onMuteUser,
   onPinMessage,
@@ -35,6 +37,8 @@ const MessageActions: FC<Props> = ({
   onReplyClicked,
   ...props
 }) => {
+  const { isMuted: userIsMuted } = useNetworkClient();
+  const { closeModal, openModal, setModalView } = useUI();
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerIconRef = useRef<HTMLDivElement>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -66,12 +70,16 @@ const MessageActions: FC<Props> = ({
     onReactToMessage(e.native);
   }, [onReactToMessage]);
 
-  const { showPinned } = useUI();
-
   const [loading, setLoading] = useState(false);
   const onUnpin = useCallback(async () => {
     setLoading(true);
-    await onPinMessage(true).finally(() => setLoading(false));
+    try {
+      await onPinMessage(true);
+    } catch (e) {
+      setLoading(false);
+      throw e;
+    }
+    setLoading(false)
   }, [onPinMessage]);
 
   const adjustPickerPosition = useCallback(() => {
@@ -85,67 +93,73 @@ const MessageActions: FC<Props> = ({
     })
   }, []);
 
+  useEffect(() => {
+    if (loading) {
+      setModalView('LOADING');
+      openModal();
+      setTimeout(() => {
+        closeModal();
+      }, 5000)
+    }
+
+    return () => {  };
+  }, [closeModal, loading, openModal, setModalView])
+
   const onOpenEmojiMart = useCallback(() => {
     adjustPickerPosition();
     setPickerVisible((visibile) => !visibile);
-  }, [adjustPickerPosition])
+  }, [adjustPickerPosition]);
 
   const emojiPortalElement = document.getElementById('emoji-portal');
 
   return (
     <div  {...props} className={cn(props.className, classes.root)}>
-      {showPinned
-        ? (
-          <>
-            {isAdmin && (loading ? <Spinner /> : <Button onClick={onUnpin}>Unpin</Button>)}
-          </>
-        ) : (
-          <>
-            {isAdmin && !isOwn && !isBanned && (
-              <Ban
-                onClick={onMuteUser}
+      <>
+        {isAdmin && !isOwn && !isMuted && (
+          <Mute
+            onClick={onMuteUser}
+          />
+        )}
+        {(isAdmin && !isPinned) && (
+          <Pin
+            onClick={() => onPinMessage()}
+          />
+        )}
+        {(isAdmin && isPinned) && (
+          <Unpin onClick={onUnpin}/>
+        )}
+        {(isOwn || isAdmin) && !isPinned && !userIsMuted && (
+          <Delete
+            onClick={onDeleteMessage}
+          />
+        )}
+        <div ref={pickerIconRef}>
+          <EmojisPickerIcon
+            onClick={onOpenEmojiMart}
+          />
+        </div>
+        {pickerVisible && emojiPortalElement &&
+          createPortal(
+            <div
+              ref={pickerRef}
+              style={style}
+              className={cn(classes.emojisPickerWrapper)}
+            >
+              <Picker
+                data={data}
+                previewPosition='none'
+                onEmojiSelect={onEmojiSelect}
               />
-            )}
-            {(isAdmin) && (
-              <Pin
-                onClick={() => onPinMessage()}
-              />
-            )}
-            {(isOwn || isAdmin) && (
-              <Delete
-                onClick={onDeleteMessage}
-              />
-            )}
-            <div ref={pickerIconRef}>
-              <EmojisPickerIcon
-              
-                onClick={onOpenEmojiMart}
-              />
-            </div>
-            {pickerVisible && emojiPortalElement &&
-              createPortal(
-                <div
-                  ref={pickerRef}
-                  style={style}
-                  className={cn(classes.emojisPickerWrapper)}
-                >
-                  <Picker
-                    data={data}
-                    previewPosition='none'
-                    onEmojiSelect={onEmojiSelect}
-                  />
-                </div>,
-                emojiPortalElement
-              )
-            }
-            <Reply
-              onClick={() => {
-                onReplyClicked();
-              }}
-            />
-          </>
-        )
-      }
+            </div>,
+            emojiPortalElement
+          )
+        }
+        <Reply
+          onClick={() => {
+            onReplyClicked();
+          }}
+        />
+      </>
     </div>
   );
 };

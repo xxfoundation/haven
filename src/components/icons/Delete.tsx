@@ -1,6 +1,6 @@
 import { SVGProps } from 'react';
 
-import s from './Ban.module.scss';
+import s from './Mute.module.scss';
 
 const Delete = (props: SVGProps<SVGSVGElement>) => (
   <svg

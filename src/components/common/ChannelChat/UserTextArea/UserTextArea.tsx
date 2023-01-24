@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useRef, useCallback, useMemo } from 'react';
 import cn from 'classnames';
+import Clamp from 'react-multiline-clamp';
 
 import { Message } from 'src/types';
 import { Close } from 'src/components/icons';
@@ -29,12 +30,18 @@ const UserTextArea: FC<Props> = ({
   const {
     cmix,
     currentChannel,
-    getMuted,
+    isMuted,
     sendMessage,
     sendReply
   } = useNetworkClient();
 
-  const messageIsValid = useMemo(() => messageBody.trim().length <= MESSAGE_MAX_SIZE, [messageBody])
+  const messageIsValid = useMemo(() => messageBody.length <= MESSAGE_MAX_SIZE, [messageBody])
+  const placeholder = useMemo(
+    () => isMuted
+      ? 'You have been muted by an admin and cannot send messages.'
+      : 'Type your message here...',
+    [isMuted]
+  );
 
   useEffect(() => {
     if (currentChannel?.id) {
@@ -47,38 +54,37 @@ const UserTextArea: FC<Props> = ({
       setModalView('NETWORK_NOT_READY');
       openModal();
     } else {
-      const muted = getMuted();
-      if (muted) {
-        setModalView('USER_WAS_BANNED');
+      if (isMuted) {
+        setModalView('USER_WAS_MUTED');
         openModal();
         return;
       }
 
-      if (replyToMessage) {
-        if (messageIsValid) {
-          sendReply(messageBody.trim(), replyToMessage.id);
-          setMessageBody('');
-        }
-      } else {
-        if (messageIsValid) {
-          sendMessage(messageBody.trim());
-          setMessageBody('');
-        }
+      if (!messageIsValid) {
+        return;
       }
+
+      if (replyToMessage) {
+        sendReply(messageBody, replyToMessage.id);
+      } else {
+        sendMessage(messageBody);
+      }
+
+      setMessageBody('');
     }
 
     setReplyToMessage(null);
   }, [
     cmix,
-    getMuted,
+    isMuted,
     messageBody,
     messageIsValid,
     openModal,
     replyToMessage,
     sendMessage,
     sendReply,
-    setMessageBody,
     setModalView,
+    setMessageBody,
     setReplyToMessage
   ]);
 
@@ -88,7 +94,7 @@ const UserTextArea: FC<Props> = ({
         <div className={cn(s.replyContainer)}>
           <div className='flex flex-col flex-1'>
             <span>Reply to {replyToMessage.codename}</span>
-            <p>{replyToMessage.body}</p>
+            <Clamp lines={1}><p>{replyToMessage.body}</p></Clamp>
           </div>
           <Close
             width={14}
@@ -102,29 +108,31 @@ const UserTextArea: FC<Props> = ({
       )}
 
       <textarea
+        className={cn({ [s.muted]: isMuted })}
         ref={textAreaRef}
         name=''
-        placeholder='Type your message here...'
+        placeholder={placeholder}
         value={messageBody}
         onChange={e => {
           setMessageBody(e.target.value);
         }}
         onKeyDown={(e) => {
-          if (e.keyCode === 13 && !e.shiftKey) {
+          if (e.key === 'Enter' && !e.shiftKey) {
             sendCurrentMessage();
+            e.preventDefault();
           }
         }}
       />
 
       <span style={{
         fontSize: 12,
-        color: messageIsValid ? 'var(--dark-9)' : 'var(--red)'}} className='absolute left-0 bottom-0 p-2'>
-          {messageBody.trim().length ?? 0}/700
+        color: messageIsValid || isMuted ? 'var(--dark-9)' : 'var(--red)'}} className='absolute left-0 bottom-0 p-2'>
+          {messageBody.length ?? 0}/700
       </span>
 
       <div className={s.buttonsWrapper}>
         <SendButton
-          disabled={messageBody.trim().length > MESSAGE_MAX_SIZE}
+          disabled={!messageIsValid}
           className={s.button}
           onClick={sendCurrentMessage}
         />

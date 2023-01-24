@@ -8,7 +8,7 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 type AuthenticationContextType = {
   checkUser: (password: string) => Uint8Array | false;
   statePathExists: () => boolean;
-  getStorageTag: () => string | null;
+  storageTag: string | null;
   addStorageTag: (tag: string) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (authenticated: boolean) => void;
@@ -43,7 +43,7 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
       value={{
         checkUser,
         statePathExists,
-        getStorageTag: () => storageTags?.[0] || null,
+        storageTag: storageTags?.[0] || null,
         addStorageTag: (tag: string) => setStorageTags((storageTags ?? []).concat(tag)),
         isAuthenticated,
         setIsAuthenticated

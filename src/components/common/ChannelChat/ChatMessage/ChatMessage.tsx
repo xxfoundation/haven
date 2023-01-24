@@ -1,49 +1,40 @@
 import type { Message } from 'src/types';
 
-import React, { FC, HTMLAttributes, useMemo } from 'react';
+import React, { FC, HTMLAttributes } from 'react';
 import cn from 'classnames';
 import 'moment-timezone';
 import moment from 'moment';
 import DOMPurify from 'dompurify';
-
+import Clamp from 'react-multiline-clamp';
 import Identity from 'src/components/common/Identity';
-import { ToolTip } from 'src/components/common';
 
 import s from './ChatMessage.module.scss';
+import ChatReactions from '../ChatReactions';
 
 const mapTextToHtmlWithAnchors = (text: string) => {
-  const returnVal = text.replace(
-    /(https?:\/\/)([^ ]+)/g,
-    '<a target="_blank" href="$&">$2</a>'
+  const withLinks = text.replace(
+    /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i,
+    '<a target="_blank" rel="noopener noreferrer" href="$&">$&</a>'
   );
-  return DOMPurify.sanitize(returnVal, {
-    ALLOWED_TAGS: ['a'],
-    ALLOWED_ATTR: ['target', 'href']
+
+  const withBreaks = withLinks.replace(
+    /\n/g, '<br />'
+  )
+
+  return DOMPurify.sanitize(withBreaks, {
+    ALLOWED_TAGS: ['a', 'br'],
+    ALLOWED_ATTR: ['target', 'href', 'rel']
   });
 };
 
-type EmojiReactions = {
-  emoji: string;
-  users: string[];
-}
-
 type Props = HTMLAttributes<HTMLDivElement> & {
+  clamped: boolean;
   onEmojiReaction?: (emoji: string, messageId: string) => void;
   message: Message;
 }
 
-const ChatMessage: FC<Props> = ({
-    message,
-    onEmojiReaction = () => {},
-    ...props
-  }) => {
-
-  const emojiReactions = useMemo<EmojiReactions[] | undefined>(
-    () => message.emojisMap && Array.from(message.emojisMap.entries())
-      .map(([emoji, users]) => ({ emoji, users})),
-    [message.emojisMap]
-  );
-  
+const ChatMessage: FC<Props> = (props) => {
+  const { clamped, message } = props;
   return (
     <div
     {...props}
@@ -52,7 +43,7 @@ const ChatMessage: FC<Props> = ({
         'flex items-center',
         s.root,
         {
-          [s.root__withReply]: !!message.replyToMessage
+          [s.root__withReply]: message.repliedTo !== null
         },
         props.className
       )}
@@ -61,12 +52,15 @@ const ChatMessage: FC<Props> = ({
 
       <div className={cn('flex flex-col', s.messageWrapper)}>
         <div className={cn(s.header)}>
-          {message.replyToMessage ? (
+          {message.repliedTo !== null ? (
             <>
               <Identity {...message} />
               <span className={cn(s.separator, 'mx-1')}>replied to</span>
 
-              <Identity {...message.replyToMessage} />
+              {message.replyToMessage
+                ? <Identity {...message.replyToMessage} />
+                : <span className={cn(s.separator, '')}><strong>deleted/unknown</strong></span>}
+
             </>
           ) : (
             <Identity {...message} />
@@ -81,6 +75,7 @@ const ChatMessage: FC<Props> = ({
             rel='noreferrer'
             className='text text--xs ml-2'
             style={{
+              whiteSpace: 'nowrap',
               fontSize: '9px',
               color: 'var(--text-secondary)',
               textDecoration: 'underline',
@@ -92,85 +87,65 @@ const ChatMessage: FC<Props> = ({
         </div>
 
         <div className={cn(s.body)}>
-          {message.replyToMessage && (
+          {message.repliedTo !== null && (
             <p
               className={cn(s.replyToMessageBody)}
               onClick={() => {
-                const originalMessage = document.getElementById(
-                  message?.replyToMessage?.id || ''
-                );
-                if (originalMessage) {
-                  originalMessage.scrollIntoView();
-                  originalMessage.classList.add(s.root__highlighted);
-                  setTimeout(() => {
-                    originalMessage.classList.remove(s.root__highlighted);
-                  }, 3000);
+                if (message.replyToMessage) {
+                  const originalMessage = document.getElementById(
+                    message.replyToMessage.id || ''
+                  );
+                  if (originalMessage) {
+                    originalMessage.scrollIntoView();
+                    originalMessage.classList.add(s.root__highlighted);
+                    setTimeout(() => {
+                      originalMessage.classList.remove(s.root__highlighted);
+                    }, 3000);
+                  }
                 }
               }}
             >
-              <Identity {...message.replyToMessage} />
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)
-                }}
-              ></p>
+              {message.replyToMessage ? (
+                <>
+                  <Identity {...message.replyToMessage} />
+                  <Clamp lines={3}>
+                    <p
+                      dangerouslySetInnerHTML={{
+                        __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)
+                      }}
+                    ></p>
+                  </Clamp>
+                </>
+              ) : (
+                <>This message is unknown/deleted</>
+              )}
             </p>
           )}
-          <p
-            className={cn(s.messageBody, {
-              [s.messageBody__failed]: message.status === 3
-            })}
-            dangerouslySetInnerHTML={{
-              __html: mapTextToHtmlWithAnchors(message.body)
-            }}
-          ></p>
-        </div>
-        {message.emojisMap && (
-          <div className={cn(s.footer)}>
-            <div className={cn(s.emojisWrapper)}>
-              {Array.from(message.emojisMap.keys()).map(emoji => {
-                return (
-                  <div
-                    key={`${message.id}-${emoji}`}
-                    data-tip
-                    data-for={`${message.id}-${emoji}-emojis-users-reactions`}
-                    className={cn(s.emoji)}
-                    onClick={() => onEmojiReaction(emoji, message.id)}
-                  >
-                    <span className='mr-1'>{emoji}</span>
-                    <span className={cn(s.emojiCount)}>
-                      {message.emojisMap?.get(emoji)?.length}
-                    </span>
-                  </div>
-                );
+          <Clamp
+            showMoreElement={({ toggle }: { toggle: () => void }) => (
+              <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
+                Show more
+              </button>
+            )}
+            showLessElement={({ toggle }: { toggle: () => void }) => (
+              <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
+                Show less
+              </button>
+            )}
+            maxLines={Number.MAX_SAFE_INTEGER}
+            withToggle={clamped}
+            lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
+            <p
+              className={cn(s.messageBody, {
+                [s.messageBody__failed]: message.status === 3
               })}
-            </div>
-            {emojiReactions?.map(({ emoji, users }) =>  (
-              <ToolTip
-                key={emoji}
-                tooltipProps={{
-                  id: `${message.id}-${emoji}-emojis-users-reactions`,
-                  effect: 'solid',
-                  place: 'top',
-                  className: s.emojisTooltip
-                }}
-              >
-                <div className={cn(s.emojiIcon)}>{emoji}</div>
-                <p>
-                  {users.length === 1
-                    ? users[0] + ' reacted with '
-                    : users.length === 2
-                    ? `${users[0]} and ${users[1]} reacted with `
-                    : users.slice(0, users.length - 1).join(', ') +
-                      ` and ${users[users.length - 1]} reacted with `}
-                  <span style={{ fontSize: '18px', marginLeft: '4px' }}>
-                    {emoji}
-                  </span>
-                </p>
-              </ToolTip>
-            ))}
-          </div>
-        )}
+              dangerouslySetInnerHTML={{
+                __html: mapTextToHtmlWithAnchors(message.body)
+              }}
+            />
+          </Clamp>
+        </div>
+        <ChatReactions {...props} />
       </div>
     </div>
   );

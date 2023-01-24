@@ -1,17 +1,22 @@
 import icon from 'src/assets/images/logo.svg';
-import { useState, useRef, useCallback } from 'react';
-import { useSessionStorage } from 'usehooks-ts';
+import { useRef, useCallback } from 'react';
+import { useLocalStorage, useSessionStorage } from 'usehooks-ts';
+import useSound from 'use-sound';
+
 
 const useNotification = () => {
-  const [isPermissionGranted, setIsPermissionGranted] = useState<boolean>(Notification?.permission === 'granted');
+  const [notificationSound] = useLocalStorage('notification-sound', '/sounds/notification.mp3');
+  const [playNotification] = useSound(notificationSound);
+  const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>('notification-permission', Notification?.permission === 'granted');
   const notification = useRef<Notification | null>(null);
   const [permissionIgnored, setPermissionIgnored] = useSessionStorage('notifications_ignored', false);
 
   const notify = useCallback((title: string, options?: NotificationOptions) => {
     if (isPermissionGranted) {
       notification.current = new Notification(title, options);
+      playNotification();
     }
-  }, [isPermissionGranted]);
+  }, [isPermissionGranted, playNotification]);
 
   const messageReplied = useCallback((username: string, message: string) => {
     notify(`${username} replied to you`, {
@@ -30,12 +35,13 @@ const useNotification = () => {
 
   const request = useCallback(() => {
     Notification.requestPermission().then((permission) => setIsPermissionGranted(permission === 'granted'));
-  }, [])
+  }, [setIsPermissionGranted])
 
   return {
     isPermissionGranted,
     permissionIgnored,
     setPermissionIgnored,
+    setIsPermissionGranted,
     messagePinned,
     messageReplied,
     close,
