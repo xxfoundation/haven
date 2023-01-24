@@ -38,9 +38,15 @@
     display: flex;
     border-radius: 5px 5px 0 0;
   }
+
   ::placeholder {
     color: #73767c;
   }
+
+  .muted::placeholder {
+    color: var(--red);
+  }
+
 
   .buttonsWrapper {
     display: flex;

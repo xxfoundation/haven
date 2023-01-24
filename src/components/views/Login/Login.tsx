@@ -1,8 +1,7 @@
-import { FC, useCallback, useState, useEffect } from 'react';
+import { FC, useCallback, useState } from 'react';
 import cn from 'classnames';
 
 import { ModalCtaButton, Spinner } from 'src/components/common';
-import { useAuthentication } from 'src/contexts/authentication-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 
 import s from './Login.module.scss';
@@ -13,46 +12,31 @@ import {
   NormalHash,
   RoadMap
 } from 'src/components/icons';
+import { useAuthentication } from '@contexts/authentication-context';
 
 const LoginView: FC = ({}) => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const {
-    loadChannelManager,
-    loadCmix,
-    setIsReadyToRegister
+    initialize
   } = useNetworkClient();
-  const { checkUser, getStorageTag } = useAuthentication();
+  const { setIsAuthenticated } = useAuthentication();
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setIsReadyToRegister(true);
-  }, [setIsReadyToRegister]);
 
   const handleSubmit = useCallback(async () => {
     setError('');
     setIsLoading(true);
-    const statePassEncoded = checkUser(password);
-    if (!statePassEncoded) {
-      setError('Incorrect password');
-      setIsLoading(false);
-    } else {
       setTimeout(async () => {
-        const cmix = await loadCmix(statePassEncoded);
-        const tag = getStorageTag();
-        if (tag) {
-          loadChannelManager(tag, cmix);
+        try {
+          await initialize(password);
+          setIsLoading(false);
+          setIsAuthenticated(true);
+        } catch (e) {
+          setError((e as Error).message);
+          setIsLoading(false);
         }
-        setIsLoading(false);
-      }, 1000);
-    }
-  }, [
-    checkUser,
-    getStorageTag,
-    loadChannelManager,
-    loadCmix,
-    password
-  ]);
+      }, 1);
+  }, [initialize, password, setIsAuthenticated]);
 
   return (
     <div className={cn('', s.root)}>

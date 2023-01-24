@@ -13,22 +13,21 @@ import { useNetworkClient } from '@contexts/network-client-context';
 
 const AuthenticationUI: FC = () => {
   const { displayModal, modalView = '' } = useUI();
-  const { getStorageTag, statePathExists } = useAuthentication();
+  const { setIsAuthenticated, statePathExists, storageTag } = useAuthentication();
   const { utils } = useUtils(); 
-  const { checkRegistrationReadiness, cmix, initiateCmix, setIsReadyToRegister } = useNetworkClient();
+  const { checkRegistrationReadiness, cmix, initialize } = useNetworkClient();
   const [loading, setLoading] = useState(false); 
   const [readyProgress, setReadyProgress] = useState<number>(0);
-  const hasAccount = statePathExists() && getStorageTag();
+  const hasAccount = statePathExists() && storageTag;
 
   const [importedIdentity, setImportedIdentity] = useState<Uint8Array>();
 
   const onSubmit = useCallback(async ({ identity, password }: IdentityVariables) =>  {
       setLoading(true);
-      setIsReadyToRegister(false);
       const imported = utils.ImportPrivateIdentity(password, encoder.encode(identity));
       setImportedIdentity(imported);
-      await initiateCmix(password);
-  }, [initiateCmix, setIsReadyToRegister, utils]);
+      await initialize(password);
+  }, [initialize, utils]);
 
   useEffect(() => {
     if (cmix && importedIdentity) {
@@ -36,14 +35,15 @@ const AuthenticationUI: FC = () => {
         importedIdentity,
         (isReadyInfo) => {
           setReadyProgress(Math.ceil((isReadyInfo?.HowClose || 0) * 100));
+          if (isReadyInfo.IsReady) {
+            setLoading(false);  
+            setReadyProgress(0);
+            setIsAuthenticated(true);
+          }
         }
-      ).then(() => {
-        setLoading(false);  
-        setReadyProgress(0);
-        setIsReadyToRegister(true);
-      });
+      );
     }
-  }, [checkRegistrationReadiness, cmix, importedIdentity, setIsReadyToRegister])
+  }, [checkRegistrationReadiness, cmix, importedIdentity, setIsAuthenticated])
 
   if (loading) {
     return (
@@ -56,6 +56,7 @@ const AuthenticationUI: FC = () => {
       {displayModal && modalView === 'IMPORT_CODENAME' &&  (
         <ImportAccountModal onSubmit={onSubmit} />
       )}
+      
       {hasAccount ? <LoginView /> : <Register />}
     </>
   );

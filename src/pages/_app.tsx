@@ -15,6 +15,7 @@ import { WebAssemblyRunner } from 'src/components/common';
 
 import 'src/assets/scss/main.scss';
 import ErrorBoundary from 'src/components/common/ErrorBoundary';
+import { DBProvider } from '@contexts/db-context';
 
 const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
 const isDesktop = () => {
@@ -73,7 +74,7 @@ const SEO = () => {
   );
 };
 
-function MyApp({ Component, pageProps }: AppProps) {
+const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
@@ -101,27 +102,29 @@ function MyApp({ Component, pageProps }: AppProps) {
           <link rel='icon' href='/favicon.svg' />
         </Head>
         <SEO />
-        <ManagedUtilsContext>
-          <ManagedAuthenticationContext>
-            <ManagedNetworkContext>
-              <ManagedUIContext>
-                <WebAssemblyRunner>
-                  {!skipDuplicateTabCheck &&
-                  isDuplicatedWindow(15000, 10000, 'MyApp') ? (
-                    <WarningComponent>
-                      Speakeasy can only run with one tab/window at a time.<br />
-                      Return to your Speakeasy home tab to continue.
-                    </WarningComponent>
-                  ) : (
-                    <Layout pageProps={{ ...pageProps }}>
-                      <Component {...pageProps} />
-                    </Layout>
-                  )}
-                </WebAssemblyRunner>
-              </ManagedUIContext>
-            </ManagedNetworkContext>
-          </ManagedAuthenticationContext>
-        </ManagedUtilsContext>
+        <DBProvider>
+          <ManagedUtilsContext>
+            <ManagedAuthenticationContext>
+              <ManagedNetworkContext>
+                <ManagedUIContext>
+                  <WebAssemblyRunner>
+                    {!skipDuplicateTabCheck &&
+                    isDuplicatedWindow(15000, 10000, 'MyApp') ? (
+                      <WarningComponent>
+                        Speakeasy can only run with one tab/window at a time.<br />
+                        Return to your Speakeasy home tab to continue.
+                      </WarningComponent>
+                    ) : (
+                      <Layout pageProps={{ ...pageProps }}>
+                        <Component {...pageProps} />
+                      </Layout>
+                    )}
+                  </WebAssemblyRunner>
+                </ManagedUIContext>
+              </ManagedNetworkContext>
+            </ManagedAuthenticationContext>
+          </ManagedUtilsContext>
+        </DBProvider>
       </ErrorBoundary>
     );
   } else {
@@ -129,4 +132,4 @@ function MyApp({ Component, pageProps }: AppProps) {
   }
 }
 
-export default MyApp;
+export default SpeakeasyApp;

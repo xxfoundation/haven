@@ -1,18 +1,12 @@
+import type { CMix, DummyTraffic, WithChildren } from '@types';
 import type { ChannelManager } from './network-client-context'
+
 import React, { FC, useState } from 'react';
-import { CMix } from './network-client-context';
-import { WithChildren } from '@types';
 
 export enum PrivacyLevel {
   Public = 0,
   Private = 1,
   Secret = 2
-}
-
-export type DummyTraffic = {
-  GetStatus: () => boolean;
-  Pause: () => void;
-  Start: () => void;
 }
 
 export type ChannelDbCipher = {
@@ -21,12 +15,16 @@ export type ChannelDbCipher = {
 }
 
 export type ChannelJSON = {
+  ReceptionID?: string;
   ChannelID: string;
-  ReceptionID: string;
   Name: string;
   Description: string;
-  Level: PrivacyLevel;
-  Channel: string;
+}
+
+export type VersionJSON = {
+  current: string;
+  updated: boolean;
+  old: string;
 }
 
 export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
@@ -72,6 +70,7 @@ export type XXDKUtils = {
     durationToWaitBetweenSendsMilliseconds: number,
     upperBoundIntervalBetweenCyclesMilliseconds: number
   ) => DummyTraffic;
+  GetWasmSemanticVersion: () => Uint8Array;
   NewChannelsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => ChannelDbCipher;
   Purge: (storageDirectory: string, userPassword: string) => void;
   ValidForever: () => number;

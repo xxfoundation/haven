@@ -17,13 +17,14 @@ import delay from 'delay';
 
 type Props = {
   className?: string;
+  clamped?: boolean;
   readonly?: boolean;
   message: Message;
   handleReplyToMessage: (message: Message) => void;
   onEmojiReaction: (emoji: string, messageId: string) => void;
 }
 
-const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message, onEmojiReaction, readonly }) => {
+const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, onEmojiReaction, readonly }) => {
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
   const {
     channelIdentity,
@@ -31,7 +32,7 @@ const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message,
     deleteMessage,
     muteUser,
     pinMessage,
-    userIsBanned
+    userIsMuted
   } = useNetworkClient();
 
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
@@ -73,7 +74,7 @@ const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message,
     if (unpin === true) {
       await Promise.all([
         pinMessage(message, unpin),
-        delay(5000) // delay to let the nodes propagate
+        delay(8000) // delay to let the nodes propagate
       ]);
     } else {
       showPinModal();
@@ -83,7 +84,7 @@ const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message,
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
       pinMessage(message),
-      delay(5000) // delay to let the nodes propagate
+      delay(8000) // delay to let the nodes propagate
     ]);
     hidePinModal();
   }, [hidePinModal, message, pinMessage]);
@@ -117,7 +118,8 @@ const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message,
             className={cn(classes.actions, {
               [classes.show]: showActionsWrapper
             })}
-            isBanned={userIsBanned(message.pubkey)}
+            isPinned={message.pinned}
+            isMuted={userIsMuted(message.pubkey)}
             onMuteUser={muteUserModalToggle.toggleOn}
             onPinMessage={handlePinMessage}
             onReactToMessage={handleEmojiReaction}
@@ -131,6 +133,7 @@ const MessageContainer: FC<Props> = ({ className, handleReplyToMessage, message,
     )}
     <ChatMessage
       className={className}
+      clamped={clamped}
       onMouseEnter={() => setShowActionsWrapper(true)}
       onMouseLeave={() => setShowActionsWrapper(false)}
       onTouchEnd={() => setShowActionsWrapper(true)}

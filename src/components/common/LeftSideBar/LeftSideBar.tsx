@@ -36,6 +36,11 @@ const LeftSideBar: FC<{
     }
   }, [channels, setCurrentChannel]);
 
+  const sortedChannels = useMemo(
+    () => channels.slice().sort((a, b) => a.name.localeCompare(b.name)),
+    [channels]
+  );
+
   const openSettingsModal = useCallback(() => {
     setModalView('SETTINGS');
     openModal();
@@ -99,26 +104,26 @@ const LeftSideBar: FC<{
         )}
         <Collapse title={collapseTitle} defaultActive>
           <div className='flex flex-col'>
-            {channels.map(ch => (
-                <div className='flex justify-between items-center' key={ch.id}>
-                  <span
-                    title={ch.isAdmin ? 'You are admin in this channel' : undefined}
-                    className={cn(s.channelPill, 'headline--xs', {
-                      [s.channelPill__active]:
-                        ch.id === (currentChannel?.id || '')
-                    })}
-                    onClick={onChannelChange(ch.id)}
-                  >
-                    {ch.name}
+            {sortedChannels.map((ch) => (
+              <div className='flex justify-between items-center' key={ch.id}>
+                <span
+                  title={ch.isAdmin ? 'You are admin in this channel' : undefined}
+                  className={cn(s.channelPill, 'headline--xs', {
+                    [s.channelPill__active]:
+                      ch.id === (currentChannel?.id || '')
+                  })}
+                  onClick={onChannelChange(ch.id)}
+                >
+                  {ch.name}
+                </span>
+                {ch.withMissedMessages && (
+                  <span className='mr-2'>
+                    <MissedMessagesIcon></MissedMessagesIcon>
                   </span>
-                  {ch.withMissedMessages && (
-                    <span className='mr-2'>
-                      <MissedMessagesIcon></MissedMessagesIcon>
-                    </span>
-                  )}
-                </div>
-              )
-            )}
+                )}
+              </div>
+            )
+          )}
           </div>
         </Collapse>
       </div>
@@ -146,7 +151,7 @@ const LeftSideBar: FC<{
         <div className={cn(s.version)}>
           {getClientVersion() && <span>XXDK version {getClientVersion()}</span>}
           {getVersion() && <span>Wasm version {getVersion()}</span>}
-          <span>App version 0.1.4</span>
+          <span>App version 0.2.2</span>
         </div>
       </div>
     </div>
