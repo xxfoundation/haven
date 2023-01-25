@@ -572,7 +572,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
 
       // Notify user if someone replied to him
-      if (receivedMessage?.parent_message_id
+      if (
+          receivedMessage?.type !== MessageType.Reaction && // Remove emoji reactions, Ben thinks theyre annoying
+          receivedMessage?.parent_message_id
           && receivedMessage?.pubkey !== channelIdentity?.PubKey) {
         const replyingTo = await db.table<DBMessage>('messages').where('message_id').equals(receivedMessage?.parent_message_id).first();
         if (replyingTo?.pubkey === channelIdentity?.PubKey) {
