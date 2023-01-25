@@ -3,7 +3,6 @@ import EventEmitter from 'events';
 
 export const bus = new EventEmitter();
 
-
 export const RECEIVED_MESSAGE = 'message';
 export const USER_MUTED = 'muted';
 export const MESSAGE_DELETED = 'delete';
