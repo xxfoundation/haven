@@ -267,7 +267,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const { messagePinned, messageReplied } = useNotification();
   const { utils } = useUtils();
   const [mutedUsers, setMutedUsers] = useState<User[]>();
-  const { cipher, cmix, initializeCmix, status: cmixStatus } = useCmix();
+  const { cipher, cmix, connect, disconnect, initializeCmix, status: cmixStatus } = useCmix();
   const [currentChannel, setCurrentChannel] = useState<Channel | undefined>();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -1206,9 +1206,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [cmix, createChannelManager, setIsAuthenticated]);
 
   const logout = useCallback((password: string) => {
-    if (utils && utils.Purge && cmix && cmix.StopNetworkFollower) {
+    if (utils && utils.Purge && connect) {
       try {
-        cmix.StopNetworkFollower();
+        disconnect();
         utils.Purge(STATE_PATH, password);
         window.localStorage.clear();
         Cookies.remove('userAuthenticated', { path: '/' });
@@ -1223,14 +1223,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
         return true;
       } catch (error) {
         console.error(error);
-        // If something wrong happened like wrong password then we should start network follower again
-        cmix.StartNetworkFollower(50000);
+        connect();
         return false;
       }
     } else {
       return false;
     }
-  }, [cmix, setIsAuthenticated, utils]);
+  }, [connect, disconnect, setIsAuthenticated, utils]);
 
   const muteUser = useCallback(async (pubkey: string, muted: boolean) => {
     if (currentChannel) {
