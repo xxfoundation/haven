@@ -4,23 +4,25 @@ export enum PrivacyLevel {
   Secret = 2
 }
 
-export interface Channel {
-  prettyPrint?: string;
+export type ChannelInfo = {
   name: string;
   id: string;
   description: string;
   isAdmin: boolean;
   privacyLevel: PrivacyLevel | null;
-  isLoading?: boolean;
-  withMissedMessages?: boolean;
-  currentMessagesBatch?: number;
+  prettyPrint?: string;
+}
+
+export type Channel = ChannelInfo & {
+  currentPage: number;
+  hasMissedMessages?: boolean;
 }
 
 export type ChannelId = Channel['id'];
 
 export type ChannelsState = {
   byId: Record<ChannelId, Channel>;
-  currentChannel?: ChannelId;
+  currentChannelId?: ChannelId;
 };
 
 declare module 'src/store/types' {

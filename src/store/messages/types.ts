@@ -21,9 +21,8 @@ export interface Message {
   color?: string;
   codename: string;
   nickname?: string;
-  replyToMessage?: Message;
   channelId: string;
-  status?: number;
+  status?: MessageStatus;
   uuid: number;
   round: number;
   pubkey: string;
@@ -32,10 +31,14 @@ export interface Message {
 }
 
 export type MessageUuid = Message['uuid'];
+export type MessageId = Message['id'];
 
 export type MessagesState = {
   byId: Record<MessageUuid, Message>;
 };
+
+// { [messageId]: { [emoji]: codename[] } }
+export type EmojiReactions =  Record<string, Record<string, string[]>>;
 
 declare module 'src/store/types' {
   interface RootState {
