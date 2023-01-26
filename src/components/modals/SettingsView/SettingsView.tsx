@@ -10,13 +10,13 @@ const SettingsView: FC = () => {
   const { openModal, setModalView } = useUI();
   const { isPermissionGranted, request, setIsPermissionGranted } = useNotification();
 
-  const exportLogs = useCallback(() => {
-    if (!window.logFile) {
+  const exportLogs = useCallback(async () => {
+    if (!window.logger) {
       throw new Error('Log file required');
     }
 
-    const filename = window.logFile.Name();
-    const data = window.logFile.GetFile();
+    const filename = 'xxdk.log';
+    const data = await window.logger.GetFile();
     const file = new Blob([data], { type: 'text/plain' });
     const a = document.createElement('a'),
       url = URL.createObjectURL(file);
@@ -24,7 +24,7 @@ const SettingsView: FC = () => {
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    setTimeout(function() {
+    setTimeout(function () {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     }, 0);
