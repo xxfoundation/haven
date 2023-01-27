@@ -1,5 +1,3 @@
-
-
 export enum MessageType {
   Normal = 1,
   Reply = 2,
@@ -7,9 +5,10 @@ export enum MessageType {
 }
 
 export enum MessageStatus {
-  Sending = 1,
-  Sent = 2,
-  Delivered = 3
+  Unsent    = 0,
+  Sent      = 1,
+  Delivered = 2,
+  Failed    = 3
 }
 
 export interface Message {
