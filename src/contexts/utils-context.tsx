@@ -38,8 +38,7 @@ export type XXDKUtils = {
   Base64ToUint8Array: (base64: string) => Uint8Array;
   GenerateChannelIdentity: (cmixId: number) => Uint8Array;
   NewChannelsManagerWithIndexedDb: (
-    cmixId: number,
-    wasmJsPath: string,
+    cmidId: number,
     privateIdentity: Uint8Array,
     onMessage: MessageReceivedCallback,
     onDelete: MessageDeletedCallback,
@@ -48,7 +47,6 @@ export type XXDKUtils = {
   ) => Promise<ChannelManager>;
   LoadChannelsManagerWithIndexedDb: (
     cmixId: number,
-    wasmJsPath: string,
     storageTag: string,
     onMessage: MessageReceivedCallback,
     onDelete: MessageDeletedCallback,
@@ -67,7 +65,7 @@ export type XXDKUtils = {
   DecodePublicURL: (url: string) => string;
   GetChannelJSON: (prettyPrint: string) => Uint8Array;
   NewDummyTrafficManager: (
-    cmixId: number,
+    cmidId: number,
     maximumOfMessagesPerCycle: number,
     durationToWaitBetweenSendsMilliseconds: number,
     upperBoundIntervalBetweenCyclesMilliseconds: number

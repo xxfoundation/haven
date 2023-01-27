@@ -4,24 +4,12 @@ import { FC, useEffect } from 'react';
 
 import { useUtils } from 'src/contexts/utils-context';
 
-type Logger = {
-  LogToFile: (level: number, maxLogFileSizeBytes: number) => void,
-  LogToFileWorker: (level: number, maxLogFileSizeBytes: number,
-                    wasmJsPath: string, workerName: string) => Promise<void>,
-  StopLogging: () => void,
-  GetFile: () => Promise<string>,
-  Threshold: () => number,
-  MaxSize: () => number,
-  Size: () => Promise<number>,
-  Worker: () => Worker,
-};
+type LogFile = { Name: () => string, GetFile: () => string };
 
 declare global {
   interface Window {
-    Crash: () => void;
-    GetLogger: () => Logger;
-    logger?: Logger;
-    getCrashedLogFile: () => Promise<string>;
+    LogToFile: (level: number, path: string, maxLogFileSizeBytes: number) => LogFile;
+    logFile?: LogFile;
   }
 }
 
@@ -62,11 +50,11 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             NewDummyTrafficManager,
             Purge,
             ValidForever,
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } = (window as any) || {};
 
-          const { Crash, GetLogger } = window;
+          const { LogToFile } = window;
 
           setUtils({
             NewCmix,
@@ -96,35 +84,11 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
           });
 
           if (LogLevel) {
-            LogLevel(1);
+            LogLevel(2);
           }
-
-
-          const logger = GetLogger()
-
-          const wasmJsPath = 'integrations/assets/logFileWorker.js';
-          await logger.LogToFileWorker(
-            0, 5000000, wasmJsPath, 'xxdkLogFileWorker').catch((err) => {
-            throw new Error(err)
-          })
-
-          // Get the actual Worker object from the log file object
-          const w = logger.Worker()
-
-          window.getCrashedLogFile = () => {
-            return new Promise((resolve) => {
-              w.addEventListener('message', ev => {
-                resolve(atob(JSON.parse(ev.data).data))
-              })
-              w.postMessage(JSON.stringify({ tag: 'GetFileExt' }))
-            });
-          };
-
-
-          window.logger = logger
-
-
-          window.Crash = Crash
+          
+          const logFile = LogToFile(0, 'receiver.log', 5000000);
+          window.logFile = logFile;
           setUtilsLoaded(true);
         }
       );
