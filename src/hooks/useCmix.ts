@@ -126,15 +126,14 @@ const useCmix = () => {
 
 
   useEffect(() => {
-    if (cmix && (status === NetworkStatus.DISCONNECTED || status === NetworkStatus.FAILED)) {
+    if (cmix) {
       connect();
     }
-  }, [connect, cmix, status, disconnect])
+  }, [connect, cmix])
   
 
   useEffect(() => {
     if (status === NetworkStatus.CONNECTED && dummyTraffic && !dummyTraffic.GetStatus()) {
-      console.error('STARTING DUMMY TRAFFIC');
       dummyTraffic.Start();
     }
   }, [dummyTraffic, status])

@@ -4,9 +4,12 @@ import cn from 'classnames';
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
 const NickNameSetView: FC = () => {
-  const { currentChannel, getNickName, setNickName } = useNetworkClient();
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const { getNickName, setNickName } = useNetworkClient();
   const [nickName, setnickName] = useState(getNickName() || '');
   const [error, setError] = useState('');
   const { closeModal } = useUI();

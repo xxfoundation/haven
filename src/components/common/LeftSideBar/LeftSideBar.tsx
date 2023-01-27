@@ -11,35 +11,29 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import useToggle from 'src/hooks/useToggle';
 
 import s from './LeftSideBar.module.scss';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import * as channels from 'src/store/channels';
+import * as identity from 'src/store/identity';
 
 const LeftSideBar: FC<{
   cssClasses?: string;
 }> = ({ cssClasses }) => {
+  const dispatch = useAppDispatch();
   const { openModal, setModalView } = useUI();
 
   const {
-    channels,
-    currentChannel,
     getClientVersion,
-    getIdentity,
     getVersion,
-    setCurrentChannel
   } = useNetworkClient();
 
-  const codename = getIdentity()?.Codename;
-  const color = getIdentity()?.Color.replace('0x', '#');;
+  const { codename, color } = useAppSelector(identity.selectors.identity) ?? {};
+  const allChannels = useAppSelector(channels.selectors.channels);
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
 
   const onChannelChange = useCallback((chId: string) => () => {
-    const selectedChannel = channels.find(ch => ch.id === chId);
-    if (selectedChannel) {
-      setCurrentChannel(selectedChannel);
-    }
-  }, [channels, setCurrentChannel]);
-
-  const sortedChannels = useMemo(
-    () => channels.slice().sort((a, b) => a.name.localeCompare(b.name)),
-    [channels]
-  );
+    dispatch(channels.actions.selectChannel(chId));
+  }, [dispatch]);
+  
 
   const openSettingsModal = useCallback(() => {
     setModalView('SETTINGS');
@@ -104,7 +98,7 @@ const LeftSideBar: FC<{
         )}
         <Collapse title={collapseTitle} defaultActive>
           <div className='flex flex-col'>
-            {sortedChannels.map((ch) => (
+            {allChannels.map((ch) => (
               <div className='flex justify-between items-center' key={ch.id}>
                 <span
                   title={ch.isAdmin ? 'You are admin in this channel' : undefined}
@@ -112,11 +106,11 @@ const LeftSideBar: FC<{
                     [s.channelPill__active]:
                       ch.id === (currentChannel?.id || '')
                   })}
-                  onClick={onChannelChange(ch.id)}
+                  onClick={(onChannelChange(ch.id))}
                 >
                   {ch.name}
                 </span>
-                {ch.withMissedMessages && (
+                {ch.hasMissedMessages && (
                   <span className='mr-2'>
                     <MissedMessagesIcon></MissedMessagesIcon>
                   </span>

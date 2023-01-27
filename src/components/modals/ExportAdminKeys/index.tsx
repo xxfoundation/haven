@@ -8,9 +8,12 @@ import useStep from 'src/hooks/useStep';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import useInput from 'src/hooks/useInput';
 import { useNetworkClient } from '@contexts/network-client-context';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
 const ExportCodenameView: FC = () => {
-  const { currentChannel, exportChannelAdminKeys } = useNetworkClient();
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const { exportChannelAdminKeys } = useNetworkClient();
   const { checkUser } = useAuthentication();
   const [password, setPassword] = useInput('');
   const [encryptionPassword, setEncryptionPassword] = useInput('');
