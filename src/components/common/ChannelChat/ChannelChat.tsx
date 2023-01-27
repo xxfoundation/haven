@@ -35,12 +35,12 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const [messageBody, setMessageBody] = useState<string>('');
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const joinedChannels = useAppSelector(channels.selectors.channels);
-  
+
   useEffect(() => {
     setReplyToMessage(undefined);
   }, [currentChannel?.id]);
 
-  const checkBottom = useCallback(() => {
+  const isScrolledAtBottom = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
       const { clientHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
       return (
@@ -50,7 +50,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     return;
   }, []);
 
-  const checkTop = useCallback(async () => {
+  const fetchMoreIfScrolledToTop = useCallback(async () => {
     if (
       currentChannel &&
       typeof currentChannel.currentPage !== 'undefined'
@@ -107,8 +107,8 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             scrollRef={messagesContainerRef}
             onEmojiReaction={onEmojiReaction}
             onScroll={() => {
-              checkTop();
-              if (checkBottom()) {
+              fetchMoreIfScrolledToTop();
+              if (isScrolledAtBottom()) {
                 setAutoScrollToEnd(true);
               } else {
                 setAutoScrollToEnd(false);

@@ -456,12 +456,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
   }, [
+    allMessages,
     cipher,
     currentChannel?.id,
+    currentChannels,
     db,
     dbMessageMapper,
     dispatch,
     getCodeNameAndColor,
+    messagePinned,
     messageReplied,
     userIdentity?.pubkey
   ]);
