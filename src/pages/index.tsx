@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import Cookies from 'js-cookie';
 
 import { DefaultLayout } from 'src/layouts';
-import { ChannelChat, Loading } from 'src/components/common';
+import { ChannelChat } from 'src/components/common';
 
 import { useUI } from '@contexts/ui-context';
 import usePrevious from 'src/hooks/usePrevious';
