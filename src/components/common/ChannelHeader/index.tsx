@@ -1,4 +1,4 @@
-import type { Channel } from '@contexts/network-client-context';
+import type { Channel } from 'src/store/channels/types';
 
 import React, { FC } from 'react';
 import cn from 'classnames';

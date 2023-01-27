@@ -1,5 +1,5 @@
 import { WithChildren } from '@types';
-import React, { FC, useCallback, useState, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 
 export type ModalViews =
   | 'SHARE_CHANNEL'
@@ -94,7 +94,6 @@ function uiReducer(state: State, action: Action) {
 
 export const UIProvider: FC<WithChildren> = ({ children }) => {
   const [state, dispatch] = React.useReducer(uiReducer, initialState);
-  const [showPinned, setShowPinned] = useState(false);
 
   const openModal = useCallback(() => dispatch({ type: 'OPEN_MODAL' }), [
     dispatch
@@ -121,15 +120,12 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       closeModal,
       setModalView,
       setChannelInviteLink,
-      showPinned,
-      setShowPinned
     }),
     [
       closeModal,
       openModal,
       setChannelInviteLink,
       setModalView,
-      showPinned,
       state
     ]
   );

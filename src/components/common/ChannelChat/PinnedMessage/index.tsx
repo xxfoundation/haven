@@ -2,15 +2,16 @@ import type { FC } from 'react';
 import type { Message } from 'src/types';
 
 import { Pin } from 'src/components/icons';
-import { useNetworkClient } from '@contexts/network-client-context';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import cn from 'classnames';
-import useAsync from 'src/hooks/useAsync';
 
 import s from './PinnedMessage.module.scss';
 import Button from 'src/components/common/Button';
 import { useUI } from '@contexts/ui-context';
 import MessageContainer from '../MessageContainer';
+
+import * as messages from 'src/store/messages';
+import { useAppSelector } from 'src/store/hooks';
 
 type Props = {
   handleReplyToMessage: (message: Message) => void;
@@ -19,17 +20,7 @@ type Props = {
 
 const PinnedMessage: FC<Props> = (props) => {
   const { openModal, setModalView } = useUI();
-  const { fetchPinnedMessages, pinnedMessages, setPinnedMessages } = useNetworkClient();
-
-  const { execute } = useAsync(fetchPinnedMessages);
-
-  useEffect(() => {
-    execute().then((msgs) => {
-      if (msgs) {
-        setPinnedMessages(msgs)
-      }
-    });
-  }, [execute, setPinnedMessages]);
+  const pinnedMessages = useAppSelector(messages.selectors.currentPinnedMessages);
 
   const openPinnedMessagesModal = useCallback(() => {
     setModalView('VIEW_PINNED_MESSAGES');

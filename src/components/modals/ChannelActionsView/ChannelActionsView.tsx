@@ -1,11 +1,12 @@
 import { FC } from 'react';
 import { ModalCtaButton } from 'src/components/common';
 import cn from 'classnames';
-import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
 const ChannelActionsView: FC = () => {
-  const { currentChannel } = useNetworkClient();
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { openModal, setModalView } = useUI();
 
   return (
