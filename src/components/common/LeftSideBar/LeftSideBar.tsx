@@ -31,7 +31,7 @@ const LeftSideBar: FC<{
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
 
   const onChannelChange = useCallback((chId: string) => () => {
-    dispatch(channels.actions.select(chId));
+    dispatch(channels.actions.selectChannel(chId));
   }, [dispatch]);
   
 

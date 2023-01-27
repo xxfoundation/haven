@@ -25,7 +25,7 @@ import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 
-const batchCount = 100;
+const BATCH_COUNT = 1000;
 
 export type DBMessage = {
   id: number;
@@ -176,7 +176,6 @@ type NetworkContext = {
   isMuted: boolean;
   joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
   importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
-  fetchPinnedMessages: () => Promise<Message[]>;
   getMutedUsers: () => Promise<User[]>;
   muteUser: (pubkey: string, unmute: boolean) => Promise<void>;
   shareChannel: () => void;
@@ -187,11 +186,10 @@ type NetworkContext = {
   handleInitialLoadData: () => Promise<void>;
   getNickName: () => string;
   setNickName: (nickname: string) => boolean;
-  getIdentity: () => IdentityJSON | null;
   sendReply: (reply: string, replyToMessageId: string) => Promise<void>;
   sendReaction: (reaction: string, reactToMessageId: string) => Promise<void>;
   getPrettyPrint: (channelId: string) => string | undefined;
-  getShareURL: () => ShareURL | null;
+  getShareURL: (channelId: string) => ShareURL | null;
   getShareUrlType: (url: string) => PrivacyLevel | null;
   joinChannelFromURL: (url: string, password: string) => void;
   getVersion: () => string | null;
@@ -258,36 +256,28 @@ export const NetworkProvider: FC<WithChildren> = props => {
     dispatch(channels.actions.upgradeAdminInCurrentChannel());
   }, [dispatch])
 
-  const getIdentity = useCallback((mngr?: ChannelManager) => {
+  const fetchIdentity = useCallback((mngr?: ChannelManager) => {
     const manager = channelManager || mngr; 
     try {
       const json = decoder.decode(manager?.GetIdentity());
 
-      return JSON.parse(json) as IdentityJSON;
+      const parsed = JSON.parse(json) as IdentityJSON;
+
+      dispatch(identity.actions.set({
+        codename: parsed.Codename,
+        pubkey: parsed.PubKey,
+        codesetVersion: parsed.CodesetVersion,
+        color: parsed.Color.replace('0x', '#'),
+        extension: parsed.Extension
+      }));
     } catch (error) {
       console.error(error);
       return null;
     }
-  }, [channelManager]);
-
-
-  useEffect(() => {
-    if (channelManager) {
-      const json = getIdentity();
-      if (json) {
-        dispatch(identity.actions.set({
-          codename: json.Codename,
-          pubkey: json.PubKey,
-          codesetVersion: json.CodesetVersion,
-          color: json.Color,
-          extension: json.Extension
-        }));
-      }
-    }
-  }, [dispatch, channelManager, getIdentity]);
+  }, [channelManager, dispatch]);
 
   const getShareURL = useCallback((
-    channelId = currentChannel?.id,
+    channelId: string,
   ) => {
     if (
       cmix &&
@@ -312,7 +302,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     } else {
       return null;
     }
-  }, [channelManager, currentChannel, cmix, utils]);
+  }, [channelManager, cmix, utils]);
 
   const getShareUrlType = useCallback((url?: string) => {
     if (url && utils && utils.GetShareUrlType) {
@@ -328,9 +318,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [utils]);
 
   const getPrivacyLevel = useCallback(
-    (channelId: string) => {
-      return getShareUrlType(getShareURL(channelId)?.url)
-    },
+    (channelId: string) => getShareUrlType(getShareURL(channelId)?.url),
     [getShareURL, getShareUrlType]
   );
   
@@ -352,7 +340,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
         };
 
-        dispatch(channels.actions.select(temp.id));
+        dispatch(channels.actions.selectChannel(temp.id));
         dispatch(channels.actions.upsert(temp));
       }
     }
@@ -372,7 +360,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       return {
         codename: identityJson.Codename,
-        color: identityJson.Color
+        color: identityJson.Color.replace('0x', '#')
       };
     } catch (error) {
       console.error('Failed to get codename and color', error);
@@ -428,6 +416,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [db, dbMessageMapper, dispatch]);
 
+  const allMessages = useAppSelector(messages.selectors.allMessages);
 
   const handleMessageEvent = useCallback(async ({ messageId }: events.MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
@@ -446,6 +435,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
             cipher.decrypt(receivedMessage.text)
           )
         }
+      }
+
+      const oldMessage = allMessages.find(({ uuid }) => receivedMessage?.id === uuid);
+
+      if (!oldMessage?.pinned && receivedMessage?.pinned) {
+        const foundChannel = currentChannels.find(({ id }) => receivedMessage.channel_id === id);
+        messagePinned(
+          cipher.decrypt(receivedMessage.text),
+          foundChannel?.name ?? 'unknown'
+        );
       }
 
       if (receivedMessage) {
@@ -471,7 +470,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     events.bus.addListener(events.RECEIVED_MESSAGE, handleMessageEvent);
 
     return () => { events.bus.removeListener('message', handleMessageEvent) };
-  }, [handleMessageEvent])
+  }, [handleMessageEvent]);
 
   const fetchChannels = useCallback(async () => {
     assert(db);
@@ -486,12 +485,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }));
 
     channelList.forEach((channel) => dispatch(channels.actions.upsert(channel)))
-    if (channelList.length > 0 && !currentChannel) {
-      dispatch(channels.actions.select(channelList[0].id));
-    }
 
     return channelList;
-  }, [channelManager, currentChannel, db, dispatch, getPrivacyLevel, utils]);
+  }, [
+    channelManager,
+    db,
+    dispatch,
+    getPrivacyLevel,
+    utils
+  ]);
 
   const fetchMessages = useCallback(async (channelIds: ChannelId[]) => {
     const groupedMessages = await Promise.all(
@@ -504,7 +506,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           .orderBy('timestamp')
           .reverse()
           .filter(m =>  !m.hidden && m.channel_id === chId && m.type === 1)
-          .limit(batchCount)
+          .limit(BATCH_COUNT)
           .toArray();
       })
     );
@@ -525,41 +527,77 @@ export const NetworkProvider: FC<WithChildren> = props => {
   useEffect(() => {}, []);
 
   const fetchReactions = useCallback(async () => {
-    const channelReactions = await db?.table<DBMessage>('messages')
-      .filter((e) => {
-        return !e.hidden && e.type === 3;
-      })
-      .toArray() ?? [];
-      
-    const reactions = channelReactions?.filter((r) => r.parent_message_id !== null)
-      .map(dbMessageMapper);
+    if (currentChannel?.id !== undefined) {
+      const channelReactions = await db?.table<DBMessage>('messages')
+        .where('channel_id')
+        .equals(currentChannel?.id)
+        .filter((e) => {
+          return !e.hidden && e.type === 3;
+        })
+        .toArray() ?? [];
+        
+      const reactions = channelReactions?.filter((r) => r.parent_message_id !== null)
+        .map(dbMessageMapper);
 
-    dispatch(messages.actions.upsertMany(reactions));
-  }, [db, dbMessageMapper, dispatch]);
+      dispatch(messages.actions.upsertMany(reactions));
+    }
+  }, [currentChannel?.id, db, dbMessageMapper, dispatch]);
+
+  const fetchPinnedMessages = useCallback(async (): Promise<void> => {
+    if (db && currentChannel) {
+      const fetchedPinnedMessages = (await db.table<DBMessage>('messages')
+        .where('channel_id')
+        .equals(currentChannel.id)
+        .filter((m) => m.pinned && !m.hidden)
+        .toArray())
+        .map(dbMessageMapper);
+      
+      dispatch(messages.actions.upsertMany(fetchedPinnedMessages));
+    }
+  }, [currentChannel, db, dbMessageMapper, dispatch]);
 
   const fetchInitialData = useCallback(async () => {
-    assert(db);
-    assert(cmix);
-    assert(channelManager);
+    try {
+      assert(db);
+      assert(cmix);
+      assert(channelManager);
+    } catch (e) {
+      return;
+    }
+    fetchIdentity();
     const fetchedChannels = await fetchChannels();
     const channelMessages = await fetchMessages(fetchedChannels.map((ch) => ch.id));
     fetchRepliedToMessages(channelMessages);
-    fetchReactions();
+
   }, [
     channelManager,
     cmix,
     db,
     fetchChannels,
+    fetchIdentity,
     fetchMessages,
-    fetchReactions,
     fetchRepliedToMessages
   ]);
+
+  useEffect(() => {
+    if (!currentChannel && currentChannels.length > 0) {
+      dispatch(channels.actions.selectChannel(currentChannels[0]?.id));
+    }
+  }, [currentChannel, currentChannels, dispatch])
 
   useEffect(() => {
     if (db && channelManager && cmix) {
       fetchInitialData();
     }
-  }, [channelManager, cmix, db, fetchInitialData])
+  }, [db, cmix, channelManager, fetchInitialData]);
+
+  useEffect(() => {
+    if (currentChannel?.id !== undefined) {
+      fetchPinnedMessages();
+      fetchReactions();
+    }
+  }, [currentChannel?.id, fetchPinnedMessages, fetchReactions]);
+
 
   const loadChannelManager = useCallback(async () => {
     if (
@@ -681,12 +719,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
           .filter(m => {
             return !m.hidden && m.channel_id === chId && m.type === 1;
           })
-          .offset(foundChannel.currentPage + 1 * batchCount)
-          .limit(batchCount)
+          .offset(foundChannel.currentPage + 1 * BATCH_COUNT)
+          .limit(BATCH_COUNT)
           .toArray();
         
-        dispatch(channels.actions.incrementPage(chId));
-        dispatch(messages.actions.upsertMany(newMessages.map(dbMessageMapper)));
+        if (newMessages.length > 0) {
+          dispatch(channels.actions.incrementPage(chId));
+          dispatch(messages.actions.upsertMany(newMessages.map(dbMessageMapper)));
+        }
       }
     }
   }, [db, currentChannels, dispatch, dbMessageMapper]);
@@ -706,7 +746,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
             privacyLevel: getPrivacyLevel(chanInfo?.ChannelID),
             isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID))
           }));
-          dispatch(channels.actions.select(chanInfo.ChannelID));
+          dispatch(channels.actions.selectChannel(chanInfo.ChannelID));
         }
       } catch (error) {
         console.error('Error joining channel')
@@ -749,7 +789,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         joinChannel(channelPrettyPrint, false);
         savePrettyPrint(channel.id, channelPrettyPrint);
         dispatch(channels.actions.upsert(channel));
-        dispatch(channels.actions.select(channel.id));
+        dispatch(channels.actions.selectChannel(channel.id));
       }
   }, [cmix, channelManager, getChannelInfo, joinChannel, dispatch]);
 
@@ -1006,16 +1046,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils]);
 
-  const fetchPinnedMessages = useCallback(async (): Promise<Message[]> => {
-    if (db && currentChannel) {
-      const fetchedPinnedMessages = await db.table<DBMessage>('messages')
-        .filter((m) => m.pinned && !m.hidden && m.channel_id === currentChannel.id)
-        .toArray();
-      
-      dispatch(messages.actions.upsertMany(fetchedPinnedMessages.map(dbMessageMapper)));
-    }
-    return [];
-  }, [currentChannel, db, dbMessageMapper, dispatch]);
 
   const getMuted = useCallback(() => {
     if (currentChannel && channelManager) {
@@ -1023,20 +1053,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
     return false;
   }, [channelManager, currentChannel, utils]);
-
-  useEffect(() => {
-    if (currentChannel?.id) {
-      fetchPinnedMessages();
-    }
-  }, [currentChannel?.id, fetchPinnedMessages]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchPinnedMessages();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [fetchPinnedMessages]);
 
 
   const exportChannelAdminKeys = useCallback((encryptionPassword: string) => {
@@ -1092,7 +1108,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
           
   }, [utils]);
 
-
   const ctx: NetworkContext = {
     decryptMessageContent: cipher?.decrypt,
     getMutedUsers,
@@ -1107,7 +1122,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     getMuted,
     cmix,
     deleteMessage,
-    fetchPinnedMessages,
     joinChannel,
     createChannel,
     shareChannel,
@@ -1119,7 +1133,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     handleInitialLoadData: fetchInitialData,
     setNickName,
     getNickName,
-    getIdentity,
     sendReply,
     sendReaction,
     getPrettyPrint,

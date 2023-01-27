@@ -1,4 +1,4 @@
-import type { Message } from 'src/types';
+import { Message } from 'src/types';
 
 import React, { FC, HTMLAttributes } from 'react';
 import cn from 'classnames';
@@ -37,9 +37,10 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 
 const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
+  
   return (
     <div
-    {...htmlProps}
+      {...htmlProps}
       className={cn(
         htmlProps.className,
         'flex items-center',
@@ -51,14 +52,14 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
       )}
       id={message.id}
     >
-
       <div className={cn('flex flex-col', s.messageWrapper)}>
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
             <>
               <Identity {...message} />
-              <span className={cn(s.separator, 'mx-1')}>replied to</span>
-
+              <span className={cn(s.separator, 'mx-1')}>
+                replied to
+              </span>
               {repliedToMessage
                 ? <Identity {...repliedToMessage} />
                 : <span className={cn(s.separator, '')}><strong>deleted/unknown</strong></span>}
@@ -147,7 +148,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
             />
           </Clamp>
         </div>
-        <ChatReactions onEmojiReaction={onEmojiReaction} />
+        <ChatReactions message={message} onEmojiReaction={onEmojiReaction} />
       </div>
     </div>
   );

@@ -8,6 +8,8 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import s from './UserTextArea.module.scss';
 import SendButton from '../SendButton';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
 type Props = {
   scrollToEnd: () => void;
@@ -25,11 +27,11 @@ const UserTextArea: FC<Props> = ({
   setMessageBody,
   setReplyToMessage,
 }) => {
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { openModal, setModalView } = useUI();
   const {
     cmix,
-    currentChannel,
     isMuted,
     sendMessage,
     sendReply

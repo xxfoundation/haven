@@ -2,8 +2,6 @@ import type { Message, MessagesState } from './types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
 
-import * as events from 'src/events';
-
 const initialState: MessagesState = { byId: {} };
 
 const upsert = (state: MessagesState, message: Message) => {
@@ -16,14 +14,13 @@ const upsert = (state: MessagesState, message: Message) => {
     return state;
   }
 
-  if (previousMessageState && previousMessageState && message.pinned === true) {
-    events.bus.emit(events.MESSAGE_PINNED, message);
-  }
-
   return {
     ...state,
     byId: {
-      [message.uuid]: message,
+      [message.uuid]: {
+        ...state.byId[message.uuid],
+        ...message
+      },
       ...state.byId
     }
   }
