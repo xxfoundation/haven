@@ -1,12 +1,12 @@
-
+import { Message } from './store/messages/types';
 import EventEmitter from 'events';
 
 export const bus = new EventEmitter();
 
-
 export const RECEIVED_MESSAGE = 'message';
 export const USER_MUTED = 'muted';
 export const MESSAGE_DELETED = 'delete';
+export const MESSAGE_PINNED = 'pinned';
 
 export type MessageReceivedEvent = {
   messageId: string;
@@ -53,4 +53,4 @@ export const onMessageDelete = (msgId: Uint8Array) => {
   bus.emit(MESSAGE_DELETED, event);
 };
 
-
+export type MessagePinEvent = Message;

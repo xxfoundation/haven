@@ -3,6 +3,8 @@ import type{ FC } from 'react';
 
 import { useCallback, useState } from 'react';
 import cn from 'classnames';
+import delay from 'delay';
+
 
 import MessageActions from '../MessageActions';
 import ChatMessage from '../ChatMessage/ChatMessage';
@@ -11,9 +13,12 @@ import useToggle from 'src/hooks/useToggle';
 import PinMessageModal from 'src/components/modals/PinMessageModal';
 import MuteUserModal, { MuteUserAction } from 'src/components/modals/MuteUser';
 import DeleteMessageModal from 'src/components/modals/DeleteMessage';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
 import classes from './MessageContainer.module.scss';
-import delay from 'delay';
+import * as identity from 'src/store/identity';
+
 
 type Props = {
   className?: string;
@@ -25,10 +30,10 @@ type Props = {
 }
 
 const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, onEmojiReaction, readonly }) => {
+  const { pubkey } = useAppSelector(identity.selectors.identity) ?? {};
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
   const {
-    channelIdentity,
-    currentChannel,
     deleteMessage,
     muteUser,
     pinMessage,
@@ -125,7 +130,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
             onReactToMessage={handleEmojiReaction}
             onReplyClicked={onReplyMessage}
             isAdmin={currentChannel?.isAdmin ?? false}
-            isOwn={channelIdentity?.PubKey === message.pubkey}
+            isOwn={pubkey === message.pubkey}
             onDeleteMessage={showDeleteMessageModal}
           />
         </div>

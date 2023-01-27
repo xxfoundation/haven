@@ -5,7 +5,9 @@ import { NextSeo } from 'next-seo';
 import { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { Provider } from 'react-redux';
 
+import store from 'src/store';
 import { ManagedUIContext } from 'src/contexts/ui-context';
 import { ManagedNetworkContext } from 'src/contexts/network-client-context';
 import { ManagedAuthenticationContext } from 'src/contexts/authentication-context';
@@ -103,27 +105,29 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
         </Head>
         <SEO />
         <DBProvider>
-          <ManagedUtilsContext>
-            <ManagedAuthenticationContext>
-              <ManagedNetworkContext>
-                <ManagedUIContext>
-                  <WebAssemblyRunner>
-                    {!skipDuplicateTabCheck &&
-                    isDuplicatedWindow(15000, 10000, 'MyApp') ? (
-                      <WarningComponent>
-                        Speakeasy can only run with one tab/window at a time.<br />
-                        Return to your Speakeasy home tab to continue.
-                      </WarningComponent>
-                    ) : (
-                      <Layout pageProps={{ ...pageProps }}>
-                        <Component {...pageProps} />
-                      </Layout>
-                    )}
-                  </WebAssemblyRunner>
-                </ManagedUIContext>
-              </ManagedNetworkContext>
-            </ManagedAuthenticationContext>
-          </ManagedUtilsContext>
+          <Provider store={store}>
+            <ManagedUtilsContext>
+              <ManagedAuthenticationContext>
+                <ManagedNetworkContext>
+                  <ManagedUIContext>
+                    <WebAssemblyRunner>
+                      {!skipDuplicateTabCheck &&
+                      isDuplicatedWindow(15000, 10000, 'MyApp') ? (
+                        <WarningComponent>
+                          Speakeasy can only run with one tab/window at a time.<br />
+                          Return to your Speakeasy home tab to continue.
+                        </WarningComponent>
+                      ) : (
+                        <Layout pageProps={{ ...pageProps }}>
+                          <Component {...pageProps} />
+                        </Layout>
+                      )}
+                    </WebAssemblyRunner>
+                  </ManagedUIContext>
+                </ManagedNetworkContext>
+              </ManagedAuthenticationContext>
+            </ManagedUtilsContext>
+          </Provider>
         </DBProvider>
       </ErrorBoundary>
     );

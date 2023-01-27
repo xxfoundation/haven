@@ -13,6 +13,8 @@ import MessagesContainer from './MessagesContainer';
 import PinnedMessage from './PinnedMessage';
 import { useUI } from '@contexts/ui-context';
 import ChannelHeader from '../ChannelHeader';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
 type Props = {
   messages: Message[];
@@ -22,9 +24,7 @@ type Props = {
 const ChannelChat: FC<Props> = ({ messages }) => {
   const { openModal, setModalView } = useUI();
   const {
-    channels,
     cmix,
-    currentChannel,
     loadMoreChannelData,
     sendReaction
   } = useNetworkClient();
@@ -32,18 +32,14 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null); 
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
-  const [messageBody, setMessageBody] = useState<string>('');
-
-  const currentChannelMessages = useMemo(
-    () => messages.filter(m =>  m.channelId === currentChannel?.id),
-    [currentChannel?.id, messages]
-  );
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const joinedChannels = useAppSelector(channels.selectors.channels);
 
   useEffect(() => {
     setReplyToMessage(undefined);
   }, [currentChannel?.id]);
 
-  const checkBottom = useCallback(() => {
+  const isScrolledAtBottom = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
       const { clientHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
       return (
@@ -53,10 +49,10 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     return;
   }, []);
 
-  const checkTop = useCallback(async () => {
+  const fetchMoreIfScrolledToTop = useCallback(async () => {
     if (
       currentChannel &&
-      typeof currentChannel.currentMessagesBatch !== 'undefined'
+      typeof currentChannel.currentPage !== 'undefined'
     ) {
       
       await debouncedDataLoader(currentChannel.id);
@@ -110,44 +106,42 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             scrollRef={messagesContainerRef}
             onEmojiReaction={onEmojiReaction}
             onScroll={() => {
-              checkTop();
-              if (checkBottom()) {
+              fetchMoreIfScrolledToTop();
+              if (isScrolledAtBottom()) {
                 setAutoScrollToEnd(true);
               } else {
                 setAutoScrollToEnd(false);
               }
             }}
-            messages={currentChannelMessages}
+            messages={messages}
             handleReplyToMessage={setReplyToMessage} />
           <UserTextArea
-            messageBody={messageBody}
-            setMessageBody={setMessageBody}
             scrollToEnd={() => setAutoScrollToEnd(true)}
             replyToMessage={replyToMessage}
             setReplyToMessage={setReplyToMessage}
           />
         </>
-      ) : channels.length ? (
-        <div className={s.channelHeader}></div>
       ) : (
         <>
           <div className={s.channelHeader}></div>
-          <div className='flex flex-col justify-center items-center h-full'>
-            <Tree></Tree>
-            <div
-              style={{
-                fontSize: '12px',
-                lineHeight: '14px',
-                marginTop: '14px',
-                maxWidth: '280px',
-                fontWeight: '700',
-                color: 'var(--text-primary)'
-              }}
-            >
-              You haven't joined any channel yet. You can create or join a
-              channel to start the journey!
+          {joinedChannels.length === 0 && (
+            <div className='flex flex-col justify-center items-center h-full'>
+              <Tree></Tree>
+              <div
+                style={{
+                  fontSize: '12px',
+                  lineHeight: '14px',
+                  marginTop: '14px',
+                  maxWidth: '280px',
+                  fontWeight: '700',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                You haven't joined any channel yet. You can create or join a
+                channel to start the journey!
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

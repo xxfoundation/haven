@@ -1,11 +1,12 @@
 import type { Message } from '@types';
 
-import React, { FC, useMemo } from 'react';
+import React, { FC } from 'react';
 import cn from 'classnames';
 
 import s from './styles.module.scss';
 import { ToolTip } from 'src/components/common';
-import { useNetworkClient } from '@contexts/network-client-context';
+import * as messages from 'src/store/messages';
+import { useAppSelector } from 'src/store/hooks';
 
 type Props = {
   onEmojiReaction?: (emoji: string, messageId: string) => void;
@@ -13,14 +14,8 @@ type Props = {
 }
 
 const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
-  const { messageReactions } = useNetworkClient();
+  const reactions = useAppSelector(messages.selectors.reactionsTo(message));
 
-  const reactions = useMemo(
-    () => Object.entries(messageReactions?.[message.id] ?? {})
-      .sort((a, b) => b[1].length - a[1].length),
-    [message.id, messageReactions]
-  );
-  
   return (
     <>
       <div className={cn(s.wrapper)}>

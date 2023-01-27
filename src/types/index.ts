@@ -1,24 +1,4 @@
-import { MessageType } from '@contexts/network-client-context';
 import type { ReactNode } from 'react';
-
-export interface Message {
-  id: string;
-  body: string;
-  timestamp: string;
-  repliedTo: string | null;
-  type: MessageType;
-  color?: string;
-  codename: string;
-  nickname?: string;
-  replyToMessage?: Message;
-  channelId: string;
-  status?: number;
-  uuid: number;
-  round: number;
-  pubkey: string;
-  pinned: boolean;
-  hidden: boolean;
-}
 
 export type WithChildren = {
   children?: ReactNode;
@@ -41,3 +21,7 @@ export type DummyTraffic = {
   Pause: () => void;
   Start: () => void;
 }
+
+export * from 'src/store/channels/types';
+export * from 'src/store/identity/types';
+export * from 'src/store/messages/types';

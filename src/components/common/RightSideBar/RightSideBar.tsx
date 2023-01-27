@@ -1,5 +1,3 @@
-import { Message } from '@types';
-
 import { FC, useMemo, useState, useEffect, MouseEventHandler, useCallback } from 'react';
 import { useSpring, a } from '@react-spring/web';
 import cn from 'classnames';
@@ -12,6 +10,10 @@ import { Elixxir } from 'src/components/icons';
 
 import s from './RightSideBar.module.scss';
 import Identity from '../Identity';
+import * as channels from 'src/store/channels';
+import * as identity from 'src/store/identity';
+import * as messages from 'src/store/messages';
+import { useAppSelector } from 'src/store/hooks';
 
 type IconProps = {
   cssClass?: string;
@@ -23,49 +25,27 @@ const Icon: FC<IconProps> = ({
   cssClass,
   isActive,
   onClick
-}) => {
-  return isActive ? (
+}) => isActive
+  ? (
     <DoubleRightArrows onClick={onClick} className={cn(cssClass)} />
-  ) : (
+  )
+  : (
     <DoubleLeftArrows onClick={onClick} className={cn(cssClass)} />
   );
-};
+
 
 
 const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
-  const {
-    currentChannel,
-    getIdentity,
-    getNickName,
-    messages
-  } = useNetworkClient();
-  const [currentContributors, setCurrentContributors] = useState<Message[]>([]);
-
-  const currentChannelMessages = useMemo(
-    () => messages.filter(
-      m => m.channelId === (currentChannel?.id || '')
-    ), [currentChannel?.id, messages]
-  );
-  const identity = useMemo(() => getIdentity(), [getIdentity]);
-
-  useEffect(() => {
-    const updated = [
-      ...Array.from(
-        new Map(
-          currentChannelMessages.map(item => [item.codename, item])
-        ).values()
-      )
-    ];
-    setCurrentContributors(updated);
-  }, [currentChannelMessages]);
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const { codename, color } = useAppSelector(identity.selectors.identity) ?? {};
+  const { getNickName } = useNetworkClient();
+  const contributors = useAppSelector(messages.selectors.contributors);
+  const filtered = useMemo(() => contributors.filter((c) => c.channelId === currentChannel?.id), [contributors, currentChannel?.id])
 
   const { openModal, setModalView } = useUI();
   const [isActive, setIsActive] = useState<boolean>(true);
 
-  const codeName = identity?.Codename;
-  const color = identity?.Color.replace('0x', '#');
-
-  const nickName = getNickName();
+  const nickName = useMemo(() => currentChannel && getNickName(), [currentChannel, getNickName]);
 
   const animProps1 = useSpring({
     width: isActive ? '22%' : '40px',
@@ -78,6 +58,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
         setIsActive(false);
       }
     };
+
     adjustActiveState();
     window?.addEventListener('resize', adjustActiveState);
     return () => window?.removeEventListener('resize', adjustActiveState);
@@ -141,7 +122,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                     className={cn('flex items-center', s.currentUser)}
                   >
                     <Elixxir style={{ fill: color, width: '10px' }} />
-                    {codeName} (you)
+                    {codename} (you)
                   </span>
                 )}
 
@@ -159,17 +140,13 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
                 </span>
               </div>
 
-              {currentContributors.map((c) => {
-                if (c.codename === codeName) {
-                  return null;
-                } else {
-                  return (
-                    <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      <Identity  {...c} />
-                    </div>
-                  );
-                }
-              })}
+              {filtered
+                .filter((c) => c.codename !== codename)
+                .map((c) =>  (
+                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <Identity  {...c} />
+                </div>
+              ))}
             </div>
           </Collapse>
         )}

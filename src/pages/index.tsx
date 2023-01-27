@@ -1,19 +1,22 @@
 import { NextPage } from 'next';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import Cookies from 'js-cookie';
 
 import { DefaultLayout } from 'src/layouts';
 import { ChannelChat } from 'src/components/common';
-import { useNetworkClient } from '@contexts/network-client-context';
 
 import { useUI } from '@contexts/ui-context';
 import usePrevious from 'src/hooks/usePrevious';
+import { useAppSelector } from 'src/store/hooks';
+import * as channels from 'src/store/channels';
+import * as messages from 'src/store/messages';
+
+const removeAuthCookie = () => {
+  Cookies.remove('userAuthenticated', { path: '/' });
+}
 
 const Home: NextPage = () => {
   const { closeModal } = useUI();
-  const removeAuthCookie = useCallback(() => {
-    Cookies.remove('userAuthenticated', { path: '/' });
-  }, []);
 
   useEffect(() => {
     window.addEventListener('beforeunload', removeAuthCookie);
@@ -23,9 +26,10 @@ const Home: NextPage = () => {
       window.removeEventListener('beforeunload', removeAuthCookie);
       window.removeEventListener('unload', removeAuthCookie);
     };
-  }, [removeAuthCookie]);
+  }, []);
 
-  const { currentChannel, messages } = useNetworkClient();
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const currentChannelMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const previousChannelId = usePrevious(currentChannel?.id);
 
   useEffect(() => {
@@ -34,7 +38,7 @@ const Home: NextPage = () => {
     }
   }, [currentChannel?.id, previousChannelId, closeModal]);
 
-  return <ChannelChat messages={messages} />;
+  return <ChannelChat messages={currentChannelMessages ?? []} />;
 };
 
 export default Home;
