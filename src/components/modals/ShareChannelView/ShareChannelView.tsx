@@ -4,6 +4,8 @@ import cn from 'classnames';
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import useCopyClipboard from 'src/hooks/useCopyToClipboard';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
 interface ICredentials {
   url: string;
@@ -11,7 +13,8 @@ interface ICredentials {
 }
 
 const ShareChannelView: FC = () => {
-  const { currentChannel, getShareURL } = useNetworkClient();
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const { getShareURL } = useNetworkClient();
   const [credentials, setCredentials] = useState<ICredentials>({
     url: '',
     password: ''
@@ -20,15 +23,17 @@ const ShareChannelView: FC = () => {
   const [copied, copy] = useCopyClipboard(700);
 
   useEffect(() => {
-    const resultCredential = getShareURL();
+    if (currentChannel) {
+      const resultCredential = getShareURL(currentChannel?.id);
     
-    if (resultCredential) {
-      setCredentials({
-        url: resultCredential?.url || '',
-        password: resultCredential?.password || ''
-      });
+      if (resultCredential) {
+        setCredentials({
+          url: resultCredential?.url || '',
+          password: resultCredential?.password || ''
+        });
+      }
     }
-  }, [getShareURL]);
+  }, [currentChannel, getShareURL]);
 
   return (
     <div

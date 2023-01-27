@@ -1,4 +1,4 @@
-import type { Message } from 'src/types';
+import { Message } from 'src/types';
 
 import React, { FC, HTMLAttributes } from 'react';
 import cn from 'classnames';
@@ -10,6 +10,8 @@ import Identity from 'src/components/common/Identity';
 
 import s from './ChatMessage.module.scss';
 import ChatReactions from '../ChatReactions';
+import { useAppSelector } from 'src/store/hooks';
+import * as messages from 'src/store/messages';
 
 const mapTextToHtmlWithAnchors = (text: string) => {
   const withLinks = text.replace(
@@ -33,32 +35,33 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   message: Message;
 }
 
-const ChatMessage: FC<Props> = (props) => {
-  const { clamped, message } = props;
+const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
+  const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
+  
   return (
     <div
-    {...props}
+      {...htmlProps}
       className={cn(
-        props.className,
+        htmlProps.className,
         'flex items-center',
         s.root,
         {
           [s.root__withReply]: message.repliedTo !== null
         },
-        props.className
+        htmlProps.className
       )}
       id={message.id}
     >
-
       <div className={cn('flex flex-col', s.messageWrapper)}>
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
             <>
               <Identity {...message} />
-              <span className={cn(s.separator, 'mx-1')}>replied to</span>
-
-              {message.replyToMessage
-                ? <Identity {...message.replyToMessage} />
+              <span className={cn(s.separator, 'mx-1')}>
+                replied to
+              </span>
+              {repliedToMessage
+                ? <Identity {...repliedToMessage} />
                 : <span className={cn(s.separator, '')}><strong>deleted/unknown</strong></span>}
 
             </>
@@ -91,9 +94,9 @@ const ChatMessage: FC<Props> = (props) => {
             <p
               className={cn(s.replyToMessageBody)}
               onClick={() => {
-                if (message.replyToMessage) {
+                if (repliedToMessage) {
                   const originalMessage = document.getElementById(
-                    message.replyToMessage.id || ''
+                    repliedToMessage.id || ''
                   );
                   if (originalMessage) {
                     originalMessage.scrollIntoView();
@@ -105,13 +108,13 @@ const ChatMessage: FC<Props> = (props) => {
                 }
               }}
             >
-              {message.replyToMessage ? (
+              {repliedToMessage ? (
                 <>
-                  <Identity {...message.replyToMessage} />
+                  <Identity {...repliedToMessage} />
                   <Clamp lines={3}>
                     <p
                       dangerouslySetInnerHTML={{
-                        __html: mapTextToHtmlWithAnchors(message.replyToMessage.body)
+                        __html: mapTextToHtmlWithAnchors(repliedToMessage.body)
                       }}
                     ></p>
                   </Clamp>
@@ -145,7 +148,7 @@ const ChatMessage: FC<Props> = (props) => {
             />
           </Clamp>
         </div>
-        <ChatReactions {...props} />
+        <ChatReactions message={message} onEmojiReaction={onEmojiReaction} />
       </div>
     </div>
   );
