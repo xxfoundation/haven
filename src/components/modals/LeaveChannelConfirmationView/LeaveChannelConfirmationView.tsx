@@ -28,7 +28,7 @@ const LeaveChannelConfirmationView: FC = () => {
       <div className='flex'>
         <ModalCtaButton
           buttonCopy='Cancel'
-          cssClass='mt-5 mb-10'
+          cssClass='mt-5 mb-10 mr-5'
           style={{
             borderColor: 'var(--red)'
           }}
@@ -36,7 +36,7 @@ const LeaveChannelConfirmationView: FC = () => {
         />
         <ModalCtaButton
           buttonCopy='Leave'
-          cssClass='mt-5 mb-10 mr-5'
+          cssClass='mt-5 mb-10'
           onClick={onLeave}
         />
       </div>

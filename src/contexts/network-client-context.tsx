@@ -25,7 +25,7 @@ import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 
-const BATCH_COUNT = 1000;
+const BATCH_COUNT = 100;
 
 export type DBMessage = {
   id: number;

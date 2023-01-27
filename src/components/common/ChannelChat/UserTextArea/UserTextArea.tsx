@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { FC, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import cn from 'classnames';
 import Clamp from 'react-multiline-clamp';
 
@@ -15,18 +15,15 @@ type Props = {
   scrollToEnd: () => void;
   replyToMessage: Message | null | undefined;
   setReplyToMessage: (msg: Message | null) => void;
-  messageBody: string;
-  setMessageBody: React.Dispatch<React.SetStateAction<string>>
 };
 
 const MESSAGE_MAX_SIZE = 700;
 
 const UserTextArea: FC<Props> = ({
-  messageBody,
   replyToMessage,
-  setMessageBody,
   setReplyToMessage,
 }) => {
+  const [messageBody, setMessageBody] = useState<string>('');
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { openModal, setModalView } = useUI();

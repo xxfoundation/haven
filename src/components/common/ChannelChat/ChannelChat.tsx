@@ -32,7 +32,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null); 
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
-  const [messageBody, setMessageBody] = useState<string>('');
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const joinedChannels = useAppSelector(channels.selectors.channels);
 
@@ -117,8 +116,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             messages={messages}
             handleReplyToMessage={setReplyToMessage} />
           <UserTextArea
-            messageBody={messageBody}
-            setMessageBody={setMessageBody}
             scrollToEnd={() => setAutoScrollToEnd(true)}
             replyToMessage={replyToMessage}
             setReplyToMessage={setReplyToMessage}
