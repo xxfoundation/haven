@@ -4,9 +4,12 @@ import cn from 'classnames';
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
 const LeaveChannelConfirmationView: FC = () => {
-  const { currentChannel, leaveCurrentChannel } = useNetworkClient();
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const {  leaveCurrentChannel } = useNetworkClient();
   const { closeModal } = useUI();
 
   const onLeave = useCallback(() => {
@@ -24,17 +27,17 @@ const LeaveChannelConfirmationView: FC = () => {
 
       <div className='flex'>
         <ModalCtaButton
-          buttonCopy='Leave'
-          cssClass='mt-5 mb-10 mr-5'
+          buttonCopy='Cancel'
+          cssClass='mt-5 mb-10'
           style={{
             borderColor: 'var(--red)'
           }}
-          onClick={onLeave}
+          onClick={closeModal}
         />
         <ModalCtaButton
-          buttonCopy='Cancel'
-          cssClass='mt-5 mb-10'
-          onClick={closeModal}
+          buttonCopy='Leave'
+          cssClass='mt-5 mb-10 mr-5'
+          onClick={onLeave}
         />
       </div>
     </div>

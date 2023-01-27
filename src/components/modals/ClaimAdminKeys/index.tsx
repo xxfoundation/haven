@@ -1,18 +1,20 @@
 import { FC, useCallback, useRef, useState } from 'react';
 import cn from 'classnames';
 
-import s from './styles.module.scss';
 import { ModalCtaButton } from 'src/components/common';
 import useInput from 'src/hooks/useInput';
 import { useNetworkClient } from '@contexts/network-client-context';
-
 import { Upload } from 'src/components/icons';
+import * as channels from 'src/store/channels';
+import { useAppSelector } from 'src/store/hooks';
 
+import s from './styles.module.scss';
 
 const ExportCodenameView: FC = () => {
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const { currentChannel, importChannelAdminKeys, upgradeAdmin } = useNetworkClient();
+  const { importChannelAdminKeys, upgradeAdmin } = useNetworkClient();
   const [privateKeys, setPrivateKeys] = useState('');
   const [password, setPassword] = useInput('');
   const fileInputLabelRef = useRef<HTMLInputElement>(null);

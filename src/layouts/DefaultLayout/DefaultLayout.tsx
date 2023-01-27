@@ -1,4 +1,5 @@
 import type { WithChildren } from 'src/types';
+import type { Channel } from 'src/types';
 
 import cn from 'classnames';
 import React, { FC, useEffect, useMemo } from 'react';
@@ -7,7 +8,7 @@ import { useRouter } from 'next/router';
 import { LeftSideBar, RightSideBar } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
 import { ModalViews, useUI } from 'src/contexts/ui-context';
-import { useNetworkClient, Channel } from 'src/contexts/network-client-context';
+import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import AuthenticationUI from './AuthenticationUI';
@@ -36,6 +37,8 @@ import s from './DefaultLayout.module.scss';
 import ViewMutedUsers from '@components/modals/ViewMutedUsers';
 import UpdatesModal from './UpdatesModal';
 import SecretModal from './SecretModal';
+import { useAppSelector } from 'src/store/hooks';
+import * as channels from 'src/store/channels';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -75,12 +78,12 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
 const DefaultLayout: FC<WithChildren> = ({
   children,
 }) => {
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const router = useRouter();
   const { isAuthenticated, storageTag } = useAuthentication();
   const { utilsLoaded } = useUtils();
   const {
     cmix,
-    currentChannel,
     getShareUrlType,
     isNetworkHealthy
   } = useNetworkClient();

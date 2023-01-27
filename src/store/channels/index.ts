@@ -49,17 +49,19 @@ export const slice = createSlice({
         }
       }
     },
-    select: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => ({
-      ...state,
-      byId: {
-        ...state.byId,
-        [channelId]: state.byId[channelId] && {
-          ...state.byId[channelId],
-          hasMissedMessages: false,
-        }
-      },
-      currentChannelId: state.byId[channelId] && channelId
-    }),
+    selectChannel: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [channelId]: {
+            ...state.byId[channelId],
+            hasMissedMessages: false,
+          }
+        },
+        currentChannelId: channelId,
+      };
+    },
     leaveCurrentChannel: (state: ChannelsState): ChannelsState => {
       if (state.currentChannelId === undefined) {
         return state;
