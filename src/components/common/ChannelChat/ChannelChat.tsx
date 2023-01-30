@@ -15,6 +15,8 @@ import { useUI } from '@contexts/ui-context';
 import ChannelHeader from '../ChannelHeader';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
+import Spinner from '../Spinner';
+import { bus, MESSAGE_RECEIVED } from 'src/events';
 
 type Props = {
   messages: Message[];
@@ -25,61 +27,75 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const { openModal, setModalView } = useUI();
   const {
     cmix,
-    loadMoreChannelData,
+    pagination,
     sendReaction
   } = useNetworkClient();
-  const debouncedDataLoader = useMemo(() => debounce(loadMoreChannelData, 1000), [loadMoreChannelData]);
-  const messagesContainerRef = useRef<HTMLDivElement>(null); 
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const joinedChannels = useAppSelector(channels.selectors.channels);
-
+  const paginatedItems = useMemo(() => pagination.paginate(messages), [messages, pagination]);
+  
   useEffect(() => {
     setReplyToMessage(undefined);
   }, [currentChannel?.id]);
+  
+  const userIsAtTop = useCallback(() =>
+    messagesContainerRef &&
+    messagesContainerRef.current &&
+    messagesContainerRef.current.scrollTop === 0,
+    []
+  );
 
-  const isScrolledAtBottom = useCallback(() => {
-    if (messagesContainerRef && messagesContainerRef.current) {
-      const { clientHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
-      return (
-        Math.ceil(scrollTop + clientHeight) >= scrollHeight
-      );
-    }
-    return;
-  }, []);
 
-  const fetchMoreIfScrolledToTop = useCallback(async () => {
+  useEffect(() => {
+    pagination.setCount(messages.length);
+  }, [messages.length, pagination])
+
+  const checkIfUserScrolledTop = useCallback(() => {
     if (
       currentChannel &&
       typeof currentChannel.currentPage !== 'undefined'
     ) {
-      
-      await debouncedDataLoader(currentChannel.id);
-
-      if (
-        messagesContainerRef &&
-        messagesContainerRef.current &&
-        messagesContainerRef.current.scrollTop === 0
-      ) {
-        messagesContainerRef.current.scrollTop = 20;
+      if (pagination.hasMore && messagesContainerRef.current && userIsAtTop()) {
+        messagesContainerRef.current.scrollTop = 45;
+        pagination.next();
       }
     }
-  }, [currentChannel, debouncedDataLoader]);
+  }, [currentChannel, pagination, userIsAtTop]);
 
   const scrollToEnd = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop =
-        messagesContainerRef.current.scrollHeight;
+      const newScrollTop = messagesContainerRef.current.scrollHeight - messagesContainerRef.current.offsetHeight - (pagination.hasLess ? 45 : 0);
+      messagesContainerRef.current.scrollTop =  newScrollTop;
     }
     setAutoScrollToEnd(true);
-  }, []);
+  }, [pagination.hasLess]);
+
+
+  const checkIfUserScrolledToBottom = useCallback(() => {
+    if (messagesContainerRef && messagesContainerRef.current) {
+      const { clientHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
+   
+      if (pagination.hasLess && Math.floor(scrollHeight - scrollTop) <= (clientHeight + 1)) {
+        messagesContainerRef.current.scrollBy(0, -45);
+        pagination.previous();
+      }
+    }
+  }, [pagination]);
+
+  useEffect(() => {
+    bus.addListener(MESSAGE_RECEIVED, scrollToEnd);
+
+    return () => { bus.removeListener(MESSAGE_RECEIVED, scrollToEnd); }
+  }, [scrollToEnd])
 
   useEffect(() => {
     if (autoScrollToEnd) {
       scrollToEnd();
     }
-  }, [autoScrollToEnd, scrollToEnd, messages, currentChannel]);
+  }, [autoScrollToEnd, scrollToEnd, currentChannel]);
 
 
   const onEmojiReaction = useCallback((emoji: string, messageId: string) =>  {
@@ -91,30 +107,31 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     }
   }, [cmix, openModal, sendReaction, setModalView]);
 
+  const onScroll = useMemo(() => debounce(() => {
+    checkIfUserScrolledTop();
+    checkIfUserScrolledToBottom();
+  }, 1000), [checkIfUserScrolledTop, checkIfUserScrolledToBottom])
+
   return (
     <div className={s.root}>
       {currentChannel ? (
         <>
+          {JSON.stringify(pagination)}
           <ChannelHeader {...currentChannel} />
           <PinnedMessage 
             handleReplyToMessage={setReplyToMessage}
             onEmojiReaction={onEmojiReaction}
           />
-          <MessagesContainer
-            id={'messagesContainer'}
-            className={cn(s.messagesContainer)}
-            scrollRef={messagesContainerRef}
-            onEmojiReaction={onEmojiReaction}
-            onScroll={() => {
-              fetchMoreIfScrolledToTop();
-              if (isScrolledAtBottom()) {
-                setAutoScrollToEnd(true);
-              } else {
-                setAutoScrollToEnd(false);
-              }
-            }}
-            messages={messages}
-            handleReplyToMessage={setReplyToMessage} />
+          <div style={{ overflow: 'auto', flexGrow: 1, overflowAnchor: 'none' }} onScroll={onScroll} ref={messagesContainerRef}>
+            {pagination.hasMore && <Spinner />}
+            <MessagesContainer
+              id={'messagesContainer'}
+              className={cn(s.messagesContainer)}
+              onEmojiReaction={onEmojiReaction}
+              messages={paginatedItems}
+              handleReplyToMessage={setReplyToMessage} />
+            {pagination.hasLess && <Spinner />}
+          </div>
           <UserTextArea
             scrollToEnd={() => setAutoScrollToEnd(true)}
             replyToMessage={replyToMessage}

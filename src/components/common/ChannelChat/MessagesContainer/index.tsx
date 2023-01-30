@@ -1,6 +1,6 @@
 
 import type { Message } from '@types';
-import type { FC, HTMLAttributes, LegacyRef } from 'react';
+import type { FC, HTMLAttributes } from 'react';
 
 import React, { useMemo } from 'react';
 import moment from 'moment';
@@ -19,7 +19,6 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   readonly?: boolean;
   messages: Message[];
   handleReplyToMessage?: (message: Message) => void;
-  scrollRef?: LegacyRef<HTMLDivElement>;
   onEmojiReaction?: (emoji: string, messageId: string) => void;
 }
 
@@ -27,7 +26,6 @@ const MessagesContainer: FC<Props> = ({
   readonly = false,
   handleReplyToMessage = () => {},
   messages,
-  scrollRef,
   onEmojiReaction = () => {},
   ...props
 }) => {
@@ -48,7 +46,7 @@ const MessagesContainer: FC<Props> = ({
 
 
   return (
-    <div ref={scrollRef} {...props}>
+    <div {...props}>
       {!currentChannel ? (
         <div className='m-auto flex w-full h-full justify-center items-center'>
           <Spinner />
