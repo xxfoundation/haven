@@ -40,6 +40,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
   
   return (
     <div
+      id={message.id}
       {...htmlProps}
       className={cn(
         htmlProps.className,
@@ -50,7 +51,6 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
         },
         htmlProps.className
       )}
-      id={message.id}
     >
       <div className={cn('flex flex-col', s.messageWrapper)}>
         <div className={cn(s.header)}>
