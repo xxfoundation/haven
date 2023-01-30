@@ -116,7 +116,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     <div className={s.root}>
       {currentChannel ? (
         <>
-          {JSON.stringify(pagination)}
           <ChannelHeader {...currentChannel} />
           <PinnedMessage 
             handleReplyToMessage={setReplyToMessage}
