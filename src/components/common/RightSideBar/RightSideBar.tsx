@@ -45,7 +45,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   const { openModal, setModalView } = useUI();
   const [isActive, setIsActive] = useState<boolean>(true);
 
-  const nickName = useMemo(() => currentChannel && getNickName(), [currentChannel, getNickName]);
+  const nickName = currentChannel && getNickName();
 
   const animProps1 = useSpring({
     width: isActive ? '22%' : '40px',
