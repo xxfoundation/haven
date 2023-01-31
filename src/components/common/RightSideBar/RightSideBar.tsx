@@ -39,7 +39,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { codename, color } = useAppSelector(identity.selectors.identity) ?? {};
   const { getNickName } = useNetworkClient();
-  const contributors = useAppSelector(messages.selectors.contributors);
+  const contributors = useAppSelector(messages.selectors.allContributors);
   const filtered = useMemo(() => contributors.filter((c) => c.channelId === currentChannel?.id), [contributors, currentChannel?.id])
 
   const { openModal, setModalView } = useUI();
