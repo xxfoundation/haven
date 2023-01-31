@@ -86,12 +86,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   }, [pagination]);
 
   useEffect(() => {
-    bus.addListener(MESSAGE_RECEIVED, scrollToEnd);
-
-    return () => { bus.removeListener(MESSAGE_RECEIVED, scrollToEnd); }
-  }, [scrollToEnd])
-
-  useEffect(() => {
     if (autoScrollToEnd) {
       scrollToEnd();
     }
@@ -110,7 +104,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const onScroll = useMemo(() => debounce(() => {
     checkIfUserScrolledTop();
     checkIfUserScrolledToBottom();
-  }, 1000), [checkIfUserScrolledTop, checkIfUserScrolledToBottom])
+  }, 100), [checkIfUserScrolledTop, checkIfUserScrolledToBottom])
 
   return (
     <div className={s.root}>
