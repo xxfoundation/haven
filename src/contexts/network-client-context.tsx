@@ -372,6 +372,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [utils]);
 
   useEffect(() => {
+    if (channelManager && userIdentity) {
+      Cookies.set("userAuthenticated", "true", { path: "/" });
+    }
+  }, [channelManager]);
+
+  useEffect(() => {
     bc.onmessage = async event => {
       if (event.data?.prettyPrint) {
         try {
