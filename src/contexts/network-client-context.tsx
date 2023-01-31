@@ -373,9 +373,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   useEffect(() => {
     if (channelManager && userIdentity) {
-      Cookies.set("userAuthenticated", "true", { path: "/" });
+      Cookies.set('userAuthenticated', 'true', { path: '/' });
     }
-  }, [channelManager]);
+  }, [channelManager, userIdentity]);
 
   useEffect(() => {
     bc.onmessage = async event => {
@@ -386,7 +386,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     };
   }, [bc, channelManager, joinChannel]);
-
 
   const dbMessageMapper = useCallback((dbMsg: DBMessage): Message => {
     assert(cipher, 'Cipher required');
