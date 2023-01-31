@@ -16,7 +16,6 @@ import ChannelHeader from '../ChannelHeader';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
 import Spinner from '../Spinner';
-import { bus, MESSAGE_RECEIVED } from 'src/events';
 
 type Props = {
   messages: Message[];
