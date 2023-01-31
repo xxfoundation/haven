@@ -47,22 +47,16 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     []
   );
 
-
   useEffect(() => {
     pagination.setCount(messages.length);
   }, [messages.length, pagination])
 
   const checkIfUserScrolledTop = useCallback(() => {
-    if (
-      currentChannel &&
-      typeof currentChannel.currentPage !== 'undefined'
-    ) {
-      if (pagination.hasMore && messagesContainerRef.current && userIsAtTop()) {
-        messagesContainerRef.current.scrollTop = 45;
-        pagination.next();
-      }
+    if (pagination.hasMore && messagesContainerRef.current && userIsAtTop()) {
+      messagesContainerRef.current.scrollTop = 45;
+      pagination.next();
     }
-  }, [currentChannel, pagination, userIsAtTop]);
+  }, [pagination, userIsAtTop]);
 
   const scrollToEnd = useCallback(() => {
     if (messagesContainerRef && messagesContainerRef.current) {
@@ -103,7 +97,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const onScroll = useMemo(() => debounce(() => {
     checkIfUserScrolledTop();
     checkIfUserScrolledToBottom();
-  }, 100), [checkIfUserScrolledTop, checkIfUserScrolledToBottom])
+  }, 10), [checkIfUserScrolledTop, checkIfUserScrolledToBottom])
 
   return (
     <div className={s.root}>
