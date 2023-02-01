@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 
 export const bus = new EventEmitter();
 
-export const RECEIVED_MESSAGE = 'message';
+export const MESSAGE_RECEIVED = 'message';
 export const USER_MUTED = 'muted';
 export const MESSAGE_DELETED = 'delete';
 export const MESSAGE_PINNED = 'pinned';
@@ -25,7 +25,7 @@ export const onMessageReceived = (
     update
   }
 
-  bus.emit(RECEIVED_MESSAGE, messageEvent);
+  bus.emit(MESSAGE_RECEIVED, messageEvent);
 }
 
 export type UserMutedEvent = {

@@ -24,6 +24,7 @@ import * as channels from 'src/store/channels'
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
+import usePagination from 'src/hooks/usePagination';
 
 const BATCH_COUNT = 100;
 
@@ -157,6 +158,7 @@ type NetworkContext = {
     selectedPrivateIdentity: Uint8Array,
     onIsReadyInfoChange: (readinessInfo: IsReadyInfo) => void
   ) => Promise<void>;
+  pagination: ReturnType<typeof usePagination>;
   createChannel: (
     channelName: string,
     channelDescription: string,
@@ -225,6 +227,7 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
 };
 
 export const NetworkProvider: FC<WithChildren> = props => {
+  const pagination = usePagination();
   const dispatch = useAppDispatch();
   const db = useDb();
   const {
@@ -369,6 +372,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [utils]);
 
   useEffect(() => {
+    if (channelManager && userIdentity) {
+      Cookies.set('userAuthenticated', 'true', { path: '/' });
+    }
+  }, [channelManager, userIdentity]);
+
+  useEffect(() => {
     bc.onmessage = async event => {
       if (event.data?.prettyPrint) {
         try {
@@ -377,7 +386,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     };
   }, [bc, channelManager, joinChannel]);
-
 
   const dbMessageMapper = useCallback((dbMsg: DBMessage): Message => {
     assert(cipher, 'Cipher required');
@@ -470,7 +478,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ]);
 
   useEffect(() => {
-    events.bus.addListener(events.RECEIVED_MESSAGE, handleMessageEvent);
+    events.bus.addListener(events.MESSAGE_RECEIVED, handleMessageEvent);
 
     return () => { events.bus.removeListener('message', handleMessageEvent) };
   }, [handleMessageEvent]);
@@ -711,6 +719,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     addStorageTag
   ]);
 
+  const [hasMore, setHasMore] = useState(true);
+
   const loadMoreChannelData = useCallback(async (chId: string) => {
     if (db) {
       const foundChannel = currentChannels.find(ch => ch.id === chId);
@@ -729,10 +739,24 @@ export const NetworkProvider: FC<WithChildren> = props => {
         if (newMessages.length > 0) {
           dispatch(channels.actions.incrementPage(chId));
           dispatch(messages.actions.upsertMany(newMessages.map(dbMessageMapper)));
+        } else {
+          setHasMore(false);
         }
       }
     }
   }, [db, currentChannels, dispatch, dbMessageMapper]);
+
+  useEffect(() => {
+    if (currentChannel?.id !== undefined && pagination.offset >= allMessages.length && hasMore) {
+      loadMoreChannelData(currentChannel?.id);
+    }
+  }, [
+    allMessages.length,
+    currentChannel?.id,
+    hasMore,
+    loadMoreChannelData,
+    pagination.offset
+  ])
 
   const joinChannelFromURL = useCallback((url: string, password = '') => {
     if (channelManager && channelManager.JoinChannelFromURL) {
@@ -1124,6 +1148,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     muteUser,
     getMuted,
     cmix,
+    pagination,
     deleteMessage,
     joinChannel,
     createChannel,
