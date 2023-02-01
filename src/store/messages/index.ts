@@ -17,11 +17,11 @@ const upsert = (state: MessagesState, message: Message) => {
   return {
     ...state,
     byId: {
+      ...state.byId,
       [message.uuid]: {
         ...state.byId[message.uuid],
         ...message
       },
-      ...state.byId
     }
   }
 };

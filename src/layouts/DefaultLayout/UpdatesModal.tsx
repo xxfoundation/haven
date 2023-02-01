@@ -5,7 +5,7 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 import s from './UpdatesModal.module.scss';
 
 const UpdatesModal = () => {
-  const [showModal, setShowModal] = useLocalStorage('update-notice-0.2.2', true);
+  const [showModal, setShowModal] = useLocalStorage('update-notice-0.2.2', false);
   
   return showModal ? (
     <Modal className={s.root} onClose={() => setShowModal(false)}>
