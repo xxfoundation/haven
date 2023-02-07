@@ -16,6 +16,7 @@ import { isDuplicatedWindow } from 'src/utils/oneTabEnforcer';
 import { WebAssemblyRunner } from 'src/components/common';
 
 import 'src/assets/scss/main.scss';
+import 'src/assets/scss/wysiwyg-overrides.scss';
 import ErrorBoundary from 'src/components/common/ErrorBoundary';
 import { DBProvider } from '@contexts/db-context';
 
