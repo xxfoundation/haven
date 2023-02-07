@@ -1,5 +1,4 @@
-import { FC, useMemo, useState, useEffect, MouseEventHandler, useCallback } from 'react';
-import { useSpring, a } from '@react-spring/web';
+import { FC, useMemo, MouseEventHandler } from 'react';
 import cn from 'classnames';
 
 import { Button, Collapse } from 'src/components/common';
@@ -33,9 +32,13 @@ const Icon: FC<IconProps> = ({
     <DoubleLeftArrows onClick={onClick} className={cn(cssClass)} />
   );
 
+type Props = {
+  cssClasses?: string
+  collapsed: boolean;
+  onToggle: () => void;
+}
 
-
-const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
+const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { codename, color } = useAppSelector(identity.selectors.identity) ?? {};
   const { getNickName } = useNetworkClient();
@@ -43,40 +46,17 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
   const filtered = useMemo(() => contributors.filter((c) => c.channelId === currentChannel?.id), [contributors, currentChannel?.id])
 
   const { openModal, setModalView } = useUI();
-  const [isActive, setIsActive] = useState<boolean>(true);
 
   const nickName = currentChannel && getNickName();
 
-  const animProps1 = useSpring({
-    width: isActive ? '22%' : '40px',
-    config: { duration: 100 }
-  });
-
-  useEffect(() => {
-    const adjustActiveState = () => {
-      if (window?.innerWidth <= 760) {
-        setIsActive(false);
-      }
-    };
-
-    adjustActiveState();
-    window?.addEventListener('resize', adjustActiveState);
-    return () => window?.removeEventListener('resize', adjustActiveState);
-  }, []);
-
-  const toggleIsActive = useCallback(() => {
-    setIsActive(!isActive);
-  }, [isActive]);
-
   return (
-    <a.div
-      className={cn(s.root, cssClasses, { [s.root__collapsed]: !isActive })}
-      style={{ overflow: 'hidden', ...animProps1 }}
+    <div
+      className={cn(s.root, cssClasses, { [s.collapsed]: collapsed })}
     >
       <div className={s.header}>
         <Icon
-          isActive={isActive}
-          onClick={() => toggleIsActive()}
+          isActive={collapsed}
+          onClick={onToggle}
           cssClass={cn('cursor-pointer', s.icon)}
         />
         <div>
@@ -151,7 +131,7 @@ const RightSideBar: FC<{ cssClasses?: string }> = ({ cssClasses }) => {
           </Collapse>
         )}
       </div>
-    </a.div>
+    </div>
   );
 };
 

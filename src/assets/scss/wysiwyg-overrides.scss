@@ -1,0 +1,121 @@
+.rdw-editor-main {
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 0 0.25rem;
+  color: var(--text-primary);
+  font-size: 14px;
+  width: 100%;
+  display: flex;
+  padding-bottom: 1.5rem;
+  border-radius: 0;
+
+  blockquote {
+    border-left: 0;
+    position: relative;
+    padding-left: 1ch;
+
+    &::before {
+      content: ' ';
+      width: 0.25rem;
+      height: 1ch;
+      background-color: var(--grey);
+      position: absolute;
+      left: 0;
+      height: 100%;
+      border-radius: 0.25rem;
+    }
+  }
+
+  a {
+    color: var(--primary);
+  }
+
+  pre {
+    background-color: var(--dark-7) !important;
+    color: var(--light-orange);
+  }
+
+  .public-DraftStyleDefault-ul {
+    margin: 0.2rem 0;
+  }
+
+  .public-DraftStyleDefault-block {
+    margin: 0.2rem 0 0.2rem;
+    white-space: break-word;
+  }
+
+  .DraftEditor-root {
+    width: 100%;
+  }
+
+  .rdw-link-decorator-icon {
+    display: none;
+  }
+}
+
+.rdw-editor-wrapper {
+  height: 100%;
+}
+
+.rdw-editor-toolbar {
+  background-color: inherit !important;
+  border-top-right-radius: 5px !important;
+  border-top-left-radius: 5px !important;
+  border: none !important;
+  padding: 0 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.rdw-link-wrapper {
+  margin-bottom: 0;
+}
+
+.rdw-link-modal {
+  background-color: var(--dark-4);
+  border: none;
+  border-radius: 5px;
+  bottom: 100%;
+  top: unset;
+  height: unset;
+  width: 20rem;
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.25);
+  
+  .rdw-link-modal-input {
+    background-color: var(--dark-3);
+    border-radius: 5px;
+    border: none;
+  }
+
+  .rdw-link-modal-target-option {
+    display: none;
+  }
+
+  .rdw-link-modal-btn {
+    background-color: var(--orange);
+    border: none;
+    margin: 0 0.5rem;
+  }
+}
+
+.rdw-option-wrapper {
+  border-radius: 5px;
+  background-color: var(--dark-5);
+  border: none;
+  margin: 0.25rem;
+  border: 1px solid var(--dark-5);
+
+  &:hover, &.rdw-option-active {
+    box-shadow: none;
+    border: 1px solid #777d88;
+  }
+
+  
+  svg, img {
+    color: white;
+    width: 1rem;
+    path {
+      fill: white;
+    }
+  } 
+}
