@@ -49,7 +49,7 @@ type Entity = {
 const customEntityTransform = (entity: Entity, text: string) => {
   if (entity.type === 'LINK') {
     const target = '_blank';
-    return `<a rel="noopener" href="${entity.data.url ?? ''}" target="${target}">${text}</a>)`;
+    return `<a rel="noopener" href="${entity.data.url ?? ''}" target="${target}">${text}</a>`;
   }
 }
 
