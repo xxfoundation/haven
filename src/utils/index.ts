@@ -33,9 +33,10 @@ export const exportDataToFile = (data: Uint8Array) => {
 export const byEntryTimestamp = (x: [string, unknown], y: [string, unknown]) => new Date(x[0]).getTime() - new Date(y[0]).getTime()
 
 const sanitize = (markup: string) => DOMPurify.sanitize(markup, {
-  ALLOWED_TAGS: ['p', 'a', 'br', 'code', 'ol', 'ul', 'li', 'pre'],
+  ALLOWED_TAGS: ['p', 'a', 'br', 'code', 'ol', 'ul', 'li', 'pre', 'i', 'strong', 'b', 'em'],
   ALLOWED_ATTR: ['target', 'href', 'rel', 'class', 'style']
-});
+});;
+
 
 type Entity = {
   type: string;
