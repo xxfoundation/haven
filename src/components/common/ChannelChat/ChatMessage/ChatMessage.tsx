@@ -64,21 +64,23 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
           <span className={cn(s.messageTimestamp)}>
             {moment(message.timestamp).format('hh:mm A')}
           </span>
-          <a
-            href={`https://dashboard.xx.network/rounds/${message.round}`}
-            target='_blank'
-            rel='noreferrer'
-            className='text text--xs ml-2'
-            style={{
-              whiteSpace: 'nowrap',
-              fontSize: '9px',
-              color: 'var(--text-secondary)',
-              textDecoration: 'underline',
-              marginBottom: '1px'
-            }}
-          >
-            Show mix
-          </a>
+          {message.round !== 0 && (
+            <a
+              href={`https://dashboard.xx.network/rounds/${message.round}`}
+              target='_blank'
+              rel='noreferrer'
+              className='text text--xs ml-2'
+              style={{
+                whiteSpace: 'nowrap',
+                fontSize: '9px',
+                color: 'var(--text-secondary)',
+                textDecoration: 'underline',
+                marginBottom: '1px'
+              }}
+            >
+              Show mix
+            </a>
+          )}
         </div>
 
         <div className={cn(s.body)}>
