@@ -17,6 +17,7 @@ import { useAppSelector } from 'src/store/hooks';
 
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import { deflateContent, deflatedMessageToMarkup, resetEditorState } from '@utils/index';
+import { Tooltip } from 'react-tooltip';
 
 const Editor = dynamic<EditorProps>(
   () => import('react-draft-wysiwyg').then((mod) => mod.Editor),
@@ -36,7 +37,12 @@ type CustomEditorButton = {
   editorState: EditorState;
 }
 
-const createCustomButton = (type: 'block' | 'style', key: string, svg: React.ReactNode): FC<CustomEditorButton> => ({ editorState, onChange }) => {
+const createCustomButton = (
+  type: 'block' | 'style',
+  key: string,
+  icon: React.ReactNode,
+  tooltip?: React.ReactNode
+): FC<CustomEditorButton> => ({ editorState, onChange }) => {
   const func = type ===  'block' ? 'toggleBlockType' : 'toggleInlineStyle';
   const toggleCode = useCallback(() => {
     const newState = RichUtils[func](editorState, key);
@@ -50,14 +56,20 @@ const createCustomButton = (type: 'block' | 'style', key: string, svg: React.Rea
   const currentKey = currentSelection.getStartKey();
   const currentBlock = editorState.getCurrentContent().getBlockForKey(currentKey);
   const blockType = currentBlock.getType();
-
+  const id = `${type}-${key}-tooltip`;
   return (
-    <button
-      title={key.toLocaleLowerCase()}
-      className={cn('rdw-option-wrapper', { 'rdw-option-active': editorState.getCurrentInlineStyle().has(key) || blockType === key })} 
-      onClick={toggleCode}>
-      {svg}
-    </button>
+    <>
+      <Tooltip anchorId={id}>
+        {tooltip}
+      </Tooltip>
+      <button
+        id={id}
+        title={key.toLocaleLowerCase()}
+        className={cn('rdw-option-wrapper', { 'rdw-option-active': editorState.getCurrentInlineStyle().has(key) || blockType === key })} 
+        onClick={toggleCode}>
+        {icon}
+      </button>
+    </>
   );
 }
 
@@ -66,7 +78,8 @@ const Bold = createCustomButton(
   'BOLD',
   <svg viewBox='0 0 20 20'>
     <path fill='currentColor' fill-rule='evenodd' d='M4 2.75A.75.75 0 0 1 4.75 2h6.343a3.908 3.908 0 0 1 3.88 3.449A2.21 2.21 0 0 1 15 5.84l.001.067a3.901 3.901 0 0 1-1.551 3.118A4.627 4.627 0 0 1 11.875 18H4.75a.75.75 0 0 1-.75-.75V9.5a.75.75 0 0 1 .032-.218A.75.75 0 0 1 4 9.065V2.75Zm2.5 5.565h3.593a2.157 2.157 0 1 0 0-4.315H6.5v4.315Zm4.25 1.935H6.5v5.5h4.25a2.75 2.75 0 1 0 0-5.5Z' clip-rule='evenodd'></path>
-  </svg>
+  </svg>,
+  'CTRL/CMD + B'
 );
 
 const Italic = createCustomButton(
@@ -74,7 +87,8 @@ const Italic = createCustomButton(
   'ITALIC',
   <svg viewBox='0 0 20 20'>
     <path fill='currentColor' fill-rule='evenodd' d='M7 2.75A.75.75 0 0 1 7.75 2h7.5a.75.75 0 0 1 0 1.5H12.3l-2.6 13h2.55a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5H7.7l2.6-13H7.75A.75.75 0 0 1 7 2.75Z' clip-rule='evenodd'></path>
-  </svg>
+  </svg>,
+  'CTRL/CMD + I'
 );
 
 const Strikethrough = createCustomButton(
@@ -94,7 +108,8 @@ const CodeBlock = createCustomButton(
   'code-block',
   <svg aria-hidden='true' viewBox='0 0 20 20'>
     <path fill='currentColor' fill-rule='evenodd' d='M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z' clip-rule='evenodd'></path>
-  </svg>
+  </svg>,
+  'CTRL/CMD J'
 );
 
 const OrderedList = createCustomButton(
@@ -211,7 +226,23 @@ const UserTextArea: FC<Props> = ({
     }
 
     return handled;
-  }, [sendCurrentMessage])
+  }, [sendCurrentMessage]);
+
+  const handleKeyCommand = useCallback((command: string, state: EditorState) => {
+    let newState: EditorState | null = RichUtils.handleKeyCommand(state, command);
+
+    // If RichUtils.handleKeyCommand didn't find anything, check for our custom strikethrough command and call `RichUtils.toggleInlineStyle` if we find it.
+    if (!newState && command === 'strikethrough') {
+      newState = RichUtils.toggleInlineStyle(editorState, 'STRIKETHROUGH');
+    }
+
+    if (newState) {
+      setEditorState(newState);
+      return 'handled';
+    }
+
+    return 'not-handled';
+  }, [editorState]);
 
   return (
     <div className={cn('relative', s.textArea)}>
@@ -232,6 +263,7 @@ const UserTextArea: FC<Props> = ({
       )}
       <div className={s.editorWrapper}>
         <Editor
+          handleKeyCommand={handleKeyCommand}
           customStyleMap={{
             'CODE': {
               backgroundColor: 'var(--dark-7)',

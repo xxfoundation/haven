@@ -103,5 +103,5 @@ export const resetEditorState = (editorState: EditorState): EditorState => {
 
   const newState = EditorState.push(editorState, newContentState, 'remove-range');
   
-  return removeSelectedBlocksStyle(newState)
+  return removeSelectedBlocksStyle(newState);
 }
