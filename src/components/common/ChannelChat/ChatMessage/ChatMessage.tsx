@@ -11,7 +11,7 @@ import s from './ChatMessage.module.scss';
 import ChatReactions from '../ChatReactions';
 import { useAppSelector } from 'src/store/hooks';
 import * as messages from 'src/store/messages';
-import { deflatedMessageToMarkup } from '@utils/index';
+import { inflate } from '@utils/index';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
@@ -22,11 +22,11 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
   const markup = useMemo(
-    () => deflatedMessageToMarkup(message.body),
+    () => inflate(message.body),
     [message.body]
   );
   const replyMarkup = useMemo(
-    () => repliedToMessage && deflatedMessageToMarkup(repliedToMessage.body),
+    () => repliedToMessage && inflate(repliedToMessage.body),
     [repliedToMessage]
   );
   
