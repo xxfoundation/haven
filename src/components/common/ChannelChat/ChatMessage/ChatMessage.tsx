@@ -83,7 +83,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
           )}
         </div>
 
-        <div className={cn(s.body)}>
+        <div className={cn('message-body', s.body)}>
           {message.repliedTo !== null && (
             <p
               className={cn(s.replyToMessageBody)}
