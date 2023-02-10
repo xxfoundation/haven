@@ -314,7 +314,7 @@ const UserTextArea: FC<Props> = ({
           />
         </div>
       )}
-      <div className={s.editorWrapper}>
+      <div className={cn('editor', s.editorWrapper)}>
         <CustomToolbar />
         {editorLoaded && (
           <Editor
