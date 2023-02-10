@@ -18,6 +18,7 @@ import { useAppSelector } from 'src/store/hooks';
 import Spinner from 'src/components/common/Spinner';
 
 import { deflate, inflate } from '@utils/index';
+import { Tooltip } from 'react-tooltip';
 
 export const bus = new EventEmitter();
 
@@ -48,6 +49,71 @@ type Props = {
 
 const MESSAGE_MAX_SIZE = 700;
 
+const CustomToolbar = () => (
+  <div id='custom-toolbar'>
+    <span className='ql-formats'>
+      <Tooltip className='text-center' anchorId='bold-button'>
+        <strong>Bold</strong>
+        <br />
+        CTRL/CMD + B
+      </Tooltip>
+      <button id='bold-button' className='ql-bold' />
+      <Tooltip className='text-center' anchorId='italic-button'>
+        <i>Italic</i>
+        <br />
+        CTRL/CMD + I
+      </Tooltip>
+      <button id='italic-button' className='ql-italic' />
+      <Tooltip className='text-center' anchorId='strike-button'>
+        <s>Strikethrough</s>
+        <br />
+        CTRL/CMD + SHIFT + S
+      </Tooltip>
+      <button id='strike-button' className='ql-strike' />
+    </span>
+    <span className='ql-formats'>
+      <Tooltip className='text-center' anchorId='link-button'>
+        <a>Link</a>
+        <br />
+        CTRL/CMD + L
+      </Tooltip>
+      <button id='link-button' className='ql-link' />
+    </span>
+    <span className='ql-formats'>
+      <Tooltip className='text-center' anchorId='ordered-list-button'>
+        <ol><li>Ordered list</li></ol>
+        CTRL/CMD + SHIFT + 7
+      </Tooltip>
+      <button id='ordered-list-button' className='ql-list' value='ordered' />
+      <Tooltip className='text-center' anchorId='unordered-list-button'>
+        <ul><li>Unordered list</li></ul>
+        CTRL/CMD + SHIFT + 8
+      </Tooltip>
+      <button id='unordered-list-button' className='ql-list' value='bullet' />
+    </span>
+    <span className='ql-formats'>
+      <Tooltip className='text-center' anchorId='blockquote-button'>
+        <blockquote style={{ display: 'inline-block', marginBottom: '0.25rem' }}>Blockquote</blockquote>
+        <br />
+        CTRL/CMD + SHIFT + 9
+      </Tooltip>
+      <button id='blockquote-button' className='ql-blockquote' />
+    </span>
+    <span className='ql-formats'>
+      <Tooltip className='text-center' anchorId='code-button'>
+        <code>Code</code>
+        <br />
+        CTRL/CMD + SHIFT + C
+      </Tooltip>
+      <button id='code-button' className='ql-code' />
+      <Tooltip className='text-center' anchorId='code-block-button'>
+        <pre style={{ margin: 0 }}>Code block</pre>
+        CTRL/CMD + SHIFT + 0
+      </Tooltip>
+      <button id='code-block-button' className='ql-code-block' />
+    </span>
+  </div>
+)
 
 const UserTextArea: FC<Props> = ({
   replyToMessage,
@@ -78,7 +144,7 @@ const UserTextArea: FC<Props> = ({
     const DetectUrl = (await import('quill-auto-detect-url')).default;
 
     Quill.register('modules/autoDetectUrl', DetectUrl);
-    
+
     setEditorLoaded(true);
   }, []);
 
@@ -143,12 +209,9 @@ const UserTextArea: FC<Props> = ({
   }, [sendCurrentMessage]);
 
   const modules  = useMemo<StringMap>(() => ({
-    toolbar: [
-      ['bold', 'italic', 'strike'],
-      ['link'],
-      [{'list': 'ordered'}, {'list': 'bullet'}],
-      ['blockquote', 'code', 'code-block'],
-    ],
+    toolbar: {
+      container: '#custom-toolbar'
+    },
     autoDetectUrl: {
       urlRegularExpression: /(https?:\/\/|www\.)[\w-.]+\.[\w-.]+[\S]+/i,
     } as QuillAutoDetectUrlOptions,
@@ -252,6 +315,7 @@ const UserTextArea: FC<Props> = ({
         </div>
       )}
       <div className={s.editorWrapper}>
+        <CustomToolbar />
         {editorLoaded && (
           <Editor
             value={message}
