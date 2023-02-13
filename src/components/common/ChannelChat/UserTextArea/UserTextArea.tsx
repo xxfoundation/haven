@@ -117,10 +117,6 @@ const CustomToolbar = () => (
   </div>
 );
 
-
-const isMac = navigator.userAgent.indexOf('Mac') !== -1;
-const ctrlOrCmd = isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
-
 const UserTextArea: FC<Props> = ({
   replyToMessage,
   setReplyToMessage,
@@ -144,7 +140,10 @@ const UserTextArea: FC<Props> = ({
     [isMuted]
   );
   const replyMessageMarkup = useMemo(() => replyToMessage && inflate(replyToMessage.body), [replyToMessage]);
-  
+  const ctrlOrCmd = useMemo(() => {
+    const isMac = navigator?.userAgent.indexOf('Mac') !== -1;
+    return isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
+  }, []);
   const loadQuillModules = useCallback(async () => {
     const Quill = (await import('react-quill')).default.Quill;
     const DetectUrl = (await import('quill-auto-detect-url')).default;
@@ -297,7 +296,7 @@ const UserTextArea: FC<Props> = ({
         },
       }
     }
-  }), []);
+  }), [ctrlOrCmd]);
 
   const formats = useMemo(() => [
     'header',
