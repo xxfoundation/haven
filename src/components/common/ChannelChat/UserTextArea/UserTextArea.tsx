@@ -68,7 +68,7 @@ const CustomToolbar = () => (
       <Tooltip className='text-center' anchorId='strike-button'>
         <s>Strikethrough</s>
         <br />
-        CTRL/CMD + SHIFT + S
+        CTRL/CMD + SHIFT + X
       </Tooltip>
       <button id='strike-button' className='ql-strike' />
     </span>
@@ -76,7 +76,7 @@ const CustomToolbar = () => (
       <Tooltip className='text-center' anchorId='link-button'>
         <a>Link</a>
         <br />
-        CTRL/CMD + L
+        CTRL/CMD + U
       </Tooltip>
       <button id='link-button' className='ql-link' />
     </span>
