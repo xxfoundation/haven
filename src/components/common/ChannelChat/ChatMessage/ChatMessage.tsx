@@ -44,7 +44,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
         htmlProps.className
       )}
     >
-      <div className={cn('flex flex-col', s.messageWrapper)}>
+      <div className={cn('w-full')}>
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
             <>
