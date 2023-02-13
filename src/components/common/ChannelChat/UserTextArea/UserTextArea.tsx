@@ -41,6 +41,7 @@ const Editor = dynamic(
   { ssr: false, loading: () => <Spinner /> },
 );
 
+
 type Props = {
   scrollToEnd: () => void;
   replyToMessage: Message | null | undefined;
@@ -86,7 +87,7 @@ const CustomToolbar = () => (
       </Tooltip>
       <button id='ordered-list-button' className='ql-list' value='ordered' />
       <Tooltip className='text-center' anchorId='unordered-list-button'>
-        <ul><li>Unordered list</li></ul>
+        <ul><li>Bulleted list</li></ul>
         CTRL/CMD + SHIFT + 8
       </Tooltip>
       <button id='unordered-list-button' className='ql-list' value='bullet' />
@@ -108,12 +109,17 @@ const CustomToolbar = () => (
       <button id='code-button' className='ql-code' />
       <Tooltip className='text-center' anchorId='code-block-button'>
         <pre style={{ margin: 0 }}>Code block</pre>
-        CTRL/CMD + SHIFT + 0
+        CTRL/CMD + SHIFT + ALT + C
       </Tooltip>
-      <button id='code-block-button' className='ql-code-block' />
+      <button id='code-block-button' className='ql-code-block'>
+      </button>
     </span>
   </div>
-)
+);
+
+
+const isMac = navigator.userAgent.indexOf('Mac') !== -1;
+const ctrlOrCmd = isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
 
 const UserTextArea: FC<Props> = ({
   replyToMessage,
@@ -142,6 +148,9 @@ const UserTextArea: FC<Props> = ({
   const loadQuillModules = useCallback(async () => {
     const Quill = (await import('react-quill')).default.Quill;
     const DetectUrl = (await import('quill-auto-detect-url')).default;
+
+    const icons = Quill.import('ui/icons');
+    icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fill-rule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clip-rule=\'evenodd\'></path></svg>';
 
     Quill.register('modules/autoDetectUrl', DetectUrl);
 
@@ -218,8 +227,8 @@ const UserTextArea: FC<Props> = ({
     keyboard: {
       bindings: {
         strike: {
-          key: 'S',
-          ctrlKey: true,
+          ...ctrlOrCmd,
+          key: 'X',
           shiftKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
             const format = this.quill.getFormat(range);
@@ -233,53 +242,54 @@ const UserTextArea: FC<Props> = ({
           }
         },
         listOrdered: {
+          ...ctrlOrCmd,
           key: '7',
           shiftKey: true,
-          ctrlKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
             this.quill.formatLine(range.index, range.length, 'list', 'ordered');
           }
         },
         list: {
+          ...ctrlOrCmd,
           key: '8',
           shiftKey: true,
-          ctrlKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
             const format = this.quill.getFormat(range);
             this.quill.format('list', !format.list);
           }
         },
         code: {
+          ...ctrlOrCmd,
           key: 'C',
           shiftKey: true,
-          ctrlKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
             const format = this.quill.getFormat(range);
             this.quill.format('code', !format.code);
           }
         },
         codeblock: {
-          key: '0',
+          ...ctrlOrCmd,
+          key: 'C',
           shiftKey: true,
-          ctrlKey: true,
+          altKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
             const format = this.quill.getFormat(range);
             this.quill.format('code-block', !format['code-block']);
           }
         },
         blockquote: {
+          ...ctrlOrCmd,
           key: '9',
           shiftKey: true,
-          ctrlKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
             const format = this.quill.getFormat(range);
             this.quill.format('blockquote', !format.blockquote);
           }
         },
         link: {
-          key: 'L',
-          ctrlKey: true,
-          shiftKey: false,
+          ...ctrlOrCmd,
+          key: 'U',
+          shiftKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
             const format = this.quill.getFormat(range);
             this.quill.format('link', !format.link);

@@ -46,7 +46,8 @@ const useNotification = () => {
   }, []);
 
   const request = useCallback(() => {
-    Notification.requestPermission().then((permission) => setIsPermissionGranted(permission === 'granted'));
+    Notification.requestPermission()
+      .then((permission) => setIsPermissionGranted(permission === 'granted'));
   }, [setIsPermissionGranted])
 
   return {
