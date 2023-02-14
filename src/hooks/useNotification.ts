@@ -2,7 +2,19 @@ import icon from 'src/assets/images/logo.svg';
 import { useRef, useCallback } from 'react';
 import { useLocalStorage, useSessionStorage } from 'usehooks-ts';
 import useSound from 'use-sound';
+import { convert } from 'html-to-text';
 
+import { inflate } from '@utils/index';
+
+const getText = (content: string) => {
+  let text = ''; 
+  try {
+    text = convert(inflate(content));
+  } catch (e) {
+    text = content;
+  }
+  return text;
+}
 
 const useNotification = () => {
   const [notificationSound] = useLocalStorage('notification-sound', '/sounds/notification.mp3');
@@ -20,21 +32,22 @@ const useNotification = () => {
 
   const messageReplied = useCallback((username: string, message: string) => {
     notify(`${username} replied to you`, {
-      body: message,
+      body: getText(message),
       icon
     });
   }, [notify]);
 
   const messagePinned = useCallback((message: string, channelName: string) => {
-    notify(`New message pinned in ${channelName}`, { icon, body: message });
-  }, [notify])
+    notify(`New message pinned in ${channelName}`, { icon, body: getText(message) });
+  }, [notify]);
 
   const close = useCallback(() => {
     notification.current?.close();
   }, []);
 
   const request = useCallback(() => {
-    Notification.requestPermission().then((permission) => setIsPermissionGranted(permission === 'granted'));
+    Notification.requestPermission()
+      .then((permission) => setIsPermissionGranted(permission === 'granted'));
   }, [setIsPermissionGranted])
 
   return {
