@@ -22,9 +22,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
   const markup = useMemo(
-    () => inflate(message.body)
-      .replaceAll(/(?:\r\n|\r|\n)/g, '<br />')
-      .replaceAll(/ (?![^<]*>|[^<>]*<\/)/g, '&nbsp;'),
+    () => inflate(message.body),
     [message.body]
   );
   
