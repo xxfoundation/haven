@@ -39,6 +39,7 @@ import UpdatesModal from './UpdatesModal';
 import SecretModal from './SecretModal';
 import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
+import useToggle from 'src/hooks/useToggle';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -88,6 +89,7 @@ const DefaultLayout: FC<WithChildren> = ({
     isNetworkHealthy
   } = useNetworkClient();
   const { openModal, setChannelInviteLink, setModalView } = useUI();
+  const [rightSideCollapsed, { set: setRightSideCollapsed, toggle }] = useToggle(false);
 
   useEffect(() => {
     const privacyLevel = getShareUrlType(window.location.href);
@@ -120,18 +122,33 @@ const DefaultLayout: FC<WithChildren> = ({
     router
   ]);
 
+  useEffect(() => {
+    const adjustActiveState = () => {
+      if (window?.innerWidth <= 760) {
+        setRightSideCollapsed(false);
+      }
+    };
+
+    adjustActiveState();
+    window?.addEventListener('resize', adjustActiveState);
+    return () => window?.removeEventListener('resize', adjustActiveState);
+  }, [setRightSideCollapsed]);
+
   return (
     <>
       <NotificationBanner />
       <UpdatesModal />
       <SecretModal />
-      <div className={cn(s.root)}>
+      <div className={cn(s.root, { [s.collapsed]: rightSideCollapsed } )}>
         {utilsLoaded ? (
           isAuthenticated ? (
             <>
               <LeftSideBar cssClasses={s.leftSideBar} />
-              <main className=''>{children}</main>
-              <RightSideBar cssClasses={s.rightSideBar} />
+              <main>{children}</main>
+              <RightSideBar
+                collapsed={rightSideCollapsed}
+                onToggle={toggle}
+                cssClasses={s.rightSideBar} />
               <AuthenticatedUserModals currentChannel={currentChannel} />
             </>
           ) : (

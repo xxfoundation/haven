@@ -1,3 +1,6 @@
+import { deflateSync, inflateSync } from 'zlib';
+import DOMPurify from 'dompurify';
+
 // Encodes Uint8Array to a string.
 export const encoder = new TextEncoder();
 
@@ -25,3 +28,22 @@ export const exportDataToFile = (data: Uint8Array) => {
 };
 
 export const byEntryTimestamp = (x: [string, unknown], y: [string, unknown]) => new Date(x[0]).getTime() - new Date(y[0]).getTime()
+
+const sanitize = (markup: string) => DOMPurify.sanitize(markup, {
+  ALLOWED_TAGS: ['blockquote', 'p', 'a', 'br', 'code', 'ol', 'ul', 'li', 'pre', 'i', 'strong', 'b', 'em'],
+  ALLOWED_ATTR: ['target', 'href', 'rel', 'class', 'style']
+});
+
+export const inflate = (content: string) => {
+  let inflated: string;
+  try {
+    inflated = inflateSync(Buffer.from(content, 'base64')).toString();
+  } catch (e) {
+    // Probably a message from before rich text format was implemented 
+    inflated = content;
+  }
+
+  return sanitize(inflated);
+}
+
+export const deflate = (content: string) => deflateSync(content).toString('base64');

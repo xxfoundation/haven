@@ -1,26 +1,19 @@
+.collapsed {
+  .header > div,
+  .content,
+  .footer {
+    display: none;
+  }
+}
+
 .root {
   background-color: var(--dark-1);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: stretch;
-  min-width: 316px;
-  max-width: 316px;
 
-  &__collapsed {
-    width: 40px;
-    min-width: 40px;
 
-    .header {
-      min-height: unset;
-    }
-
-    .header > div,
-    .content,
-    .footer {
-      display: none;
-    }
-  }
 }
 
 .header {

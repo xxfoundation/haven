@@ -89,6 +89,10 @@
 
 
 .messageBody {
+  p:empty {
+    margin-bottom: 1rem;
+  }
+
   &__failed {
     color: var(--red) !important;
   }
