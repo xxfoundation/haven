@@ -161,7 +161,7 @@
   color: var(--light-orange);
 }
 
-.ql-snow .ql-editor pre.ql-syntax {
+.ql-snow .ql-editor pre.ql-syntax:not(.ql-container) {
   color: var(--light-orange);
 }
 
@@ -210,7 +210,7 @@
     margin-left: 15px; 
   }
 
-  blockquote {
+  blockquote:not(.ql-syntax) {
     border-left: 0 !important;
     position: relative;
     padding-left: 1ch;
