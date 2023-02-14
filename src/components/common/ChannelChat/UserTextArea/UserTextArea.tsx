@@ -24,18 +24,6 @@ export const bus = new EventEmitter();
 
 const enterEvent = () => bus.emit('enter');
 
-// const Editor = dynamic(
-//   async () => {
-//     const { default: ReactQuill } = await import('react-quill');
-//     const QuillAutoDetectUrl = await import('quill-auto-detect-url');
-
-//     ReactQuill.Quill.register('modules/autoDetectUrl', QuillAutoDetectUrl);
-
-//     return ReactQuill;
-//   },
-//   { ssr: false, loading: () => <Spinner size='md' /> },
-// );
-
 const Editor = dynamic(
   () => import('react-quill').then((mod) => mod.default),
   { ssr: false, loading: () => <Spinner /> },
@@ -311,7 +299,9 @@ const UserTextArea: FC<Props> = ({
       {replyToMessage && replyMessageMarkup && (
         <div className={cn(s.replyContainer)}>
           <div className={s.replyHeader}>Replying to {replyToMessage.codename}</div>
-          <Clamp lines={1}><p dangerouslySetInnerHTML={{ __html: replyMessageMarkup }}></p></Clamp>
+          <Clamp lines={1}>
+            <pre dangerouslySetInnerHTML={{ __html: replyMessageMarkup }} />
+          </Clamp>
           <Close
             className={s.closeButton}
             width={14}
@@ -327,6 +317,7 @@ const UserTextArea: FC<Props> = ({
         <CustomToolbar />
         {editorLoaded && (
           <Editor
+            preserveWhitespace
             value={message}
             theme='snow'
             formats={formats}

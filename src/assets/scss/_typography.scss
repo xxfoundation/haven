@@ -114,10 +114,11 @@ h5,
     margin-left: 15px; 
   }
 
-  blockquote {
+  blockquote:not(.ql-container) {
     border-left: 0;
     position: relative;
     padding-left: 1ch;
+    white-space: pre-wrap;
 
     &::before {
       content: ' ';
@@ -129,6 +130,11 @@ h5,
       height: 100%;
       border-radius: 0.25rem;
     }
+
+    & + blockquote::before {
+      height: calc(100% + 6px);
+      top: -6px;
+    }
   }
 
   code {
@@ -139,7 +145,7 @@ h5,
     border-radius: 0.25rem
   }
 
-  pre {
+  pre.ql-syntax {
     background-color: var(--dark-7) !important;
     color: var(--light-orange);
     border-radius: 0.25rem;

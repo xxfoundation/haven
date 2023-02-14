@@ -22,9 +22,12 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
   const markup = useMemo(
-    () => inflate(message.body),
+    () => inflate(message.body)
+      .replaceAll(/(?:\r\n|\r|\n)/g, '<br />')
+      .replaceAll(/ (?![^<]*>|[^<>]*<\/)/g, '&nbsp;'),
     [message.body]
   );
+  
   const replyMarkup = useMemo(
     () => repliedToMessage && inflate(repliedToMessage.body),
     [repliedToMessage]
@@ -106,11 +109,11 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
                 <>
                   <Identity {...repliedToMessage} />
                   <Clamp lines={3}>
-                    <p
+                    <pre
                       dangerouslySetInnerHTML={{
                         __html: replyMarkup
                       }}
-                    ></p>
+                    />
                   </Clamp>
                 </>
               ) : (
@@ -132,7 +135,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
             maxLines={Number.MAX_SAFE_INTEGER}
             withToggle={clamped}
             lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
-            {markup ? <p
+            {markup ? <pre
               className={cn(s.messageBody, {
                 [s.messageBody__failed]: message.status === 3
               })}
