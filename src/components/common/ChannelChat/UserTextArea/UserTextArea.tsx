@@ -7,6 +7,7 @@ import cn from 'classnames';
 import Clamp from 'react-multiline-clamp';
 import dynamic from 'next/dynamic';
 import EventEmitter from 'events';
+import { Tooltip } from 'react-tooltip';
 
 import { Close } from 'src/components/icons';
 import { useNetworkClient } from 'src/contexts/network-client-context';
@@ -17,8 +18,7 @@ import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
 import Spinner from 'src/components/common/Spinner';
 
-import { deflate, inflate } from '@utils/index';
-import { Tooltip } from 'react-tooltip';
+import { deflate, inflate } from 'src/utils/index';
 
 export const bus = new EventEmitter();
 
@@ -28,7 +28,6 @@ const Editor = dynamic(
   () => import('react-quill').then((mod) => mod.default),
   { ssr: false, loading: () => <Spinner /> },
 );
-
 
 type Props = {
   scrollToEnd: () => void;
@@ -132,13 +131,32 @@ const UserTextArea: FC<Props> = ({
     const isMac = navigator?.userAgent.indexOf('Mac') !== -1;
     return isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
   }, []);
+  
   const loadQuillModules = useCallback(async () => {
     const Quill = (await import('react-quill')).default.Quill;
     const DetectUrl = (await import('quill-auto-detect-url')).default;
-
+    const Link = Quill.import('formats/link')
     const icons = Quill.import('ui/icons');
-    icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fill-rule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clip-rule=\'evenodd\'></path></svg>';
 
+    icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fill-rule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clip-rule=\'evenodd\'></path></svg>';
+    Link.PROTOCOL_WHITELIST = ['http', 'https', 'mailto', 'tel', 'radar', 'rdar', 'smb', 'sms']
+    
+    class CustomLinkSanitizer extends Link {
+      static sanitize(url: string) {
+        const sanitizedUrl = super.sanitize(url)
+    
+        if (!sanitizedUrl || sanitizedUrl === 'about:blank') return sanitizedUrl
+    
+        const hasWhitelistedProtocol = this.PROTOCOL_WHITELIST
+          .some((protocol: string)  => sanitizedUrl.startsWith(protocol))
+    
+        if (hasWhitelistedProtocol) return sanitizedUrl
+    
+        return `https://${sanitizedUrl}`
+      }
+    }
+
+    Quill.register(CustomLinkSanitizer, true)
     Quill.register('modules/autoDetectUrl', DetectUrl);
 
     setEditorLoaded(true);
@@ -233,7 +251,12 @@ const UserTextArea: FC<Props> = ({
           key: '7',
           shiftKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
-            this.quill.formatLine(range.index, range.length, 'list', 'ordered');
+            const format = this.quill.getFormat(range);
+            if (format.list) {
+              this.quill.format('list', false);
+            } else {
+              this.quill.formatLine(range.index, range.length, 'list', 'ordered');
+            }
           }
         },
         list: {
