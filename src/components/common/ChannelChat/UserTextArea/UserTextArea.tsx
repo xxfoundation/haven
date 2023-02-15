@@ -131,32 +131,27 @@ const UserTextArea: FC<Props> = ({
     const isMac = navigator?.userAgent.indexOf('Mac') !== -1;
     return isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
   }, []);
+  
   const loadQuillModules = useCallback(async () => {
     const Quill = (await import('react-quill')).default.Quill;
     const DetectUrl = (await import('quill-auto-detect-url')).default;
-
-    const icons = Quill.import('ui/icons');
-    icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fill-rule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clip-rule=\'evenodd\'></path></svg>';
     const Link = Quill.import('formats/link')
-    // Override the existing property on the Quill global object and add custom protocols
+    const icons = Quill.import('ui/icons');
+
+    icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fill-rule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clip-rule=\'evenodd\'></path></svg>';
     Link.PROTOCOL_WHITELIST = ['http', 'https', 'mailto', 'tel', 'radar', 'rdar', 'smb', 'sms']
     
     class CustomLinkSanitizer extends Link {
       static sanitize(url: string) {
-        // Run default sanitize method from Quill
         const sanitizedUrl = super.sanitize(url)
     
-        // Not whitelisted URL based on protocol so, let's return `blank`
         if (!sanitizedUrl || sanitizedUrl === 'about:blank') return sanitizedUrl
     
-        // Verify if the URL already have a whitelisted protocol
-        const hasWhitelistedProtocol = this.PROTOCOL_WHITELIST.some(function(protocol) {
-          return sanitizedUrl.startsWith(protocol)
-        })
+        const hasWhitelistedProtocol = this.PROTOCOL_WHITELIST
+          .some((protocol: string)  => sanitizedUrl.startsWith(protocol))
     
         if (hasWhitelistedProtocol) return sanitizedUrl
     
-        // if not, then append only 'https' to not to be a relative URL
         return `https://${sanitizedUrl}`
       }
     }
