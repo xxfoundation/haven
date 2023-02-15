@@ -97,7 +97,11 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const onScroll = useMemo(() => debounce(() => {
     checkIfUserScrolledTop();
     checkIfUserScrolledToBottom();
-  }, 10), [checkIfUserScrolledTop, checkIfUserScrolledToBottom])
+  }, 10), [checkIfUserScrolledTop, checkIfUserScrolledToBottom]);
+
+  useEffect(() => {
+    pagination.reset();
+  }, [currentChannel, pagination])
 
   return (
     <div className={s.root}>

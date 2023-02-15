@@ -34,7 +34,7 @@ function usePagination(options?: PaginationOptions): PaginationResult {
   const start = (page - 1) * rowsPerPage
 
   const reset = useCallback(() => {
-    setPage(0);
+    setPage(1);
   }, []);
   
   const hasLess = page > 1;
