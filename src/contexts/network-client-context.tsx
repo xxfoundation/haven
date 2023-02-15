@@ -335,7 +335,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       ) as ChannelJSON;
 
       if (appendToCurrent) {
-        const temp: ChannelInfo = {
+        const channel: ChannelInfo = {
           id: chanInfo.ChannelID,
           name: chanInfo.Name,
           privacyLevel: getPrivacyLevel(chanInfo.ChannelID),
@@ -343,8 +343,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
           isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
         };
 
-        dispatch(channels.actions.selectChannel(temp.id));
-        dispatch(channels.actions.upsert(temp));
+        dispatch(channels.actions.selectChannel(channel.id));
+        dispatch(channels.actions.upsert(channel));
       }
     }
   }, [channelManager, dispatch, getPrivacyLevel, utils]);
