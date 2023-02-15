@@ -107,7 +107,8 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
                 <>
                   <Identity {...repliedToMessage} />
                   <Clamp lines={3}>
-                    <pre
+                    <p
+                      className='message'
                       dangerouslySetInnerHTML={{
                         __html: replyMarkup
                       }}
@@ -133,8 +134,8 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
             maxLines={Number.MAX_SAFE_INTEGER}
             withToggle={clamped}
             lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
-            {markup ? <pre
-              className={cn(s.messageBody, {
+            {markup ? <p
+              className={cn('message', s.messageBody, {
                 [s.messageBody__failed]: message.status === 3
               })}
               dangerouslySetInnerHTML={{
