@@ -233,7 +233,12 @@ const UserTextArea: FC<Props> = ({
           key: '7',
           shiftKey: true,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
-            this.quill.formatLine(range.index, range.length, 'list', 'ordered');
+            const format = this.quill.getFormat(range);
+            if (format.list) {
+              this.quill.format('list', false);
+            } else {
+              this.quill.formatLine(range.index, range.length, 'list', 'ordered');
+            }
           }
         },
         list: {
