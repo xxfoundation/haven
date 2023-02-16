@@ -46,7 +46,7 @@ const MessagesContainer: FC<Props> = ({
 
 
   return (
-    <div {...props}>
+    <>
       {!currentChannel ? (
         <div className='m-auto flex w-full h-full justify-center items-center'>
           <Spinner />
@@ -70,7 +70,7 @@ const MessagesContainer: FC<Props> = ({
         ))
       )}
       {props.children}
-    </div>
+    </>
   );
 }
 

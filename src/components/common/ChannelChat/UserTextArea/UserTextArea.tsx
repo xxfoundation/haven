@@ -31,7 +31,7 @@ const Editor = dynamic(
 );
 
 type Props = {
-  scrollToEnd: () => void;
+  className: string;
   replyToMessage: Message | null | undefined;
   setReplyToMessage: (msg: Message | null) => void;
 };
@@ -110,12 +110,13 @@ const CustomToolbar = () => (
 let atMentions: { id: string, value: string }[] = [];
 
 const UserTextArea: FC<Props> = ({
+  className,
   replyToMessage,
   setReplyToMessage,
 }) => {
   const contributors = useAppSelector(messages.selectors.currentContributors);
   useEffect(() => {
-    atMentions = contributors.map((c) => ({ id: c.codename, value: c.codename }))
+    atMentions = contributors.map((c) => ({ id: c.pubkey, value: c.codename }))
   }, [contributors]);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { openModal, setModalView } = useUI();
@@ -337,7 +338,7 @@ const UserTextArea: FC<Props> = ({
   ], []);
 
   return (
-    <div className={cn('relative', s.textArea)}>
+    <div className={cn('relative', s.textArea, className)}>
       {replyToMessage && replyMessageMarkup && (
         <div className={cn(s.replyContainer)}>
           <div className={s.replyHeader}>Replying to {replyToMessage.codename}</div>
