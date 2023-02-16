@@ -1,6 +1,6 @@
 import type { Message } from 'src/types';
 
-import React, { FC, HTMLAttributes, useMemo } from 'react';
+import React, { CSSProperties, FC, HTMLAttributes, useEffect, useMemo, useRef, useState } from 'react';
 import cn from 'classnames';
 import 'moment-timezone';
 import moment from 'moment';
@@ -12,6 +12,7 @@ import ChatReactions from '../ChatReactions';
 import { useAppSelector } from 'src/store/hooks';
 import * as messages from 'src/store/messages';
 import { inflate } from '@utils/index';
+import { Tooltip } from 'react-tooltip';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
@@ -20,6 +21,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 }
 
 const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
+  const contributors = useAppSelector(messages.selectors.currentContributors);
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
   const markup = useMemo(
     () => inflate(message.body),
@@ -30,6 +32,36 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
     () => repliedToMessage && inflate(repliedToMessage.body),
     [repliedToMessage]
   );
+  
+  const [hoveredMention, setHoveredMention] = useState<string | null>(null);
+  const hoveredContributor = useMemo(
+    () => contributors.find((c) => c.codename === hoveredMention),
+    [contributors, hoveredMention]
+  );
+  const [tooltipStyles, setTooltipStyles] = useState<CSSProperties>({});
+
+  useEffect(() => {
+    const mentions = document.getElementById(message.id)?.getElementsByClassName('mention')
+    if (!mentions) {
+      return;
+    }
+
+    for (let i = 0; i < mentions.length; i++) {
+      const mention = mentions[i];
+
+      if (mention instanceof HTMLElement) {
+        const mentioned = mention.dataset.value ?? null;
+        mention.onmouseenter = (evt) => {
+          setHoveredMention(mentioned);
+          setTooltipStyles({ position: 'fixed', zIndex: 10, left: evt.clientX - 10, top: evt.clientY + 10 });
+        };
+        mention.onmouseleave = () => {
+          setHoveredMention(null);
+          setTooltipStyles({});
+        };
+      }
+    }
+  }, [markup, message.id])
   
   return (
     <div
@@ -45,6 +77,9 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
         htmlProps.className
       )}
     >
+      <Tooltip clickable style={tooltipStyles} isOpen={hoveredMention !== null}>
+        {hoveredContributor && <Identity {...hoveredContributor} />}
+      </Tooltip>
       <div className={cn('w-full')}>
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
