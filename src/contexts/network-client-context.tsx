@@ -10,7 +10,7 @@ import assert from 'assert';
 
 import { bus, Event, MessageDeletedEvent, MessagePinEvent, MessageReceivedEvent, onMessageDelete, onMessagePinned, onMessageReceived, onMessageUnpinned, onMutedUser } from 'src/events';
 import { WithChildren } from 'src/types';
-import { decoder, encoder, exportDataToFile } from 'src/utils';
+import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH } from '../constants';
@@ -236,7 +236,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setIsAuthenticated,
     storageTag,
   } = useAuthentication();
-  const { messagePinned, messageReplied } = useNotification();
+  const { mentioned, messagePinned, messageReplied } = useNotification();
   const { utils } = useUtils();
   const [mutedUsers, setMutedUsers] = useState<User[]>();
   const { cipher, cmix, connect, disconnect, initializeCmix, status: cmixStatus } = useCmix();
@@ -429,8 +429,30 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const handleMessageEvent = useCallback(async ({ messageId }: MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
       const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
+      if (!receivedMessage) {
+        return;
+      }
+      
+      const decryptedText = cipher.decrypt(receivedMessage.text);
+      const inflatedText = inflate(decryptedText);
+      const mentions = new DOMParser()
+        .parseFromString(inflatedText, 'text/html')
+        .getElementsByClassName('mention');
 
-      // Notify user if someone replied to him
+      for (let i = 0; i < mentions.length; i++) {
+        const mention = mentions[i];
+        const mentionedCodename = mention.getAttribute('data-value');
+
+        if (mentionedCodename === userIdentity?.codename) {
+          const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
+          mentioned(
+            receivedMessage.nickname || codename,
+            decryptedText
+          );
+          break;
+        }
+      }
+
       if (
           receivedMessage?.type !== MessageType.Reaction && // Remove emoji reactions, Ben thinks theyre annoying
           receivedMessage?.parent_message_id
@@ -440,7 +462,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
           messageReplied(
             receivedMessage.nickname || codename,
-            cipher.decrypt(receivedMessage.text)
+            decryptedText
           )
         }
       }
@@ -451,12 +473,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
         const foundChannel = currentChannels.find(({ id }) => receivedMessage.channel_id === id);
         onMessagePinned(dbMessageMapper(receivedMessage));
         messagePinned(
-          cipher.decrypt(receivedMessage.text),
+          decryptedText,
           foundChannel?.name ?? 'unknown'
         );
       }
 
-      if (receivedMessage && oldMessage?.pinned && !receivedMessage.pinned) {
+      if (oldMessage?.pinned && !receivedMessage.pinned) {
         onMessageUnpinned(dbMessageMapper(receivedMessage));
       }
 
@@ -477,8 +499,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
     dbMessageMapper,
     dispatch,
     getCodeNameAndColor,
+    mentioned,
     messagePinned,
     messageReplied,
+    userIdentity?.codename,
     userIdentity?.pubkey
   ]);
 
