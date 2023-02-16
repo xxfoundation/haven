@@ -8,7 +8,7 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import * as events from 'src/events';
+import { bus, Event, MessageDeletedEvent, MessagePinEvent, MessageReceivedEvent, onMessageDelete, onMessagePinned, onMessageReceived, onMessageUnpinned, onMutedUser } from 'src/events';
 import { WithChildren } from 'src/types';
 import { decoder, encoder, exportDataToFile } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
@@ -426,7 +426,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const allMessages = useAppSelector(messages.selectors.allMessages);
 
-  const handleMessageEvent = useCallback(async ({ messageId }: events.MessageReceivedEvent) => {
+  const handleMessageEvent = useCallback(async ({ messageId }: MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
       const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
 
@@ -449,10 +449,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       if (!oldMessage?.pinned && receivedMessage?.pinned) {
         const foundChannel = currentChannels.find(({ id }) => receivedMessage.channel_id === id);
+        onMessagePinned(dbMessageMapper(receivedMessage));
         messagePinned(
           cipher.decrypt(receivedMessage.text),
           foundChannel?.name ?? 'unknown'
         );
+      }
+
+      if (receivedMessage && oldMessage?.pinned && !receivedMessage.pinned) {
+        onMessageUnpinned(dbMessageMapper(receivedMessage));
       }
 
       if (receivedMessage) {
@@ -478,9 +483,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ]);
 
   useEffect(() => {
-    events.bus.addListener(events.MESSAGE_RECEIVED, handleMessageEvent);
+    bus.addListener(Event.MESSAGE_RECEIVED, handleMessageEvent);
 
-    return () => { events.bus.removeListener('message', handleMessageEvent) };
+    return () => { bus.removeListener('message', handleMessageEvent) };
   }, [handleMessageEvent]);
 
   const fetchChannels = useCallback(async () => {
@@ -621,9 +626,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
         .LoadChannelsManagerWithIndexedDb(
           cmix.GetID(),
           storageTag,
-          events.onMessageReceived,
-          events.onMessageDelete,
-          events.onMutedUser,
+          onMessageReceived,
+          onMessageDelete,
+          onMutedUser,
           cipher?.id
         );
 
@@ -669,14 +674,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, currentChannel, db, getCodeNameAndColor, utils]);
 
   useEffect(() => {
-    const listener = ({ body, channelId }: events.MessagePinEvent) => {
+    const listener = ({ body, channelId }: MessagePinEvent) => {
       const channelName = currentChannels.find((c) => c.id === channelId)?.name ?? 'unknown';
       messagePinned(body, channelName);
     };
 
-    events.bus.addListener(events.MESSAGE_PINNED, listener);
+    bus.addListener(Event.MESSAGE_PINNED, listener);
 
-    return () => { events.bus.removeListener(events.MESSAGE_PINNED, listener); }
+    return () => { bus.removeListener(Event.MESSAGE_PINNED, listener); }
 
   }, [currentChannels, messagePinned])
 
@@ -685,9 +690,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       getMutedUsers();
     }
 
-    events.bus.addListener(events.USER_MUTED, listener);
+    bus.addListener(Event.USER_MUTED, listener);
 
-    return () => { events.bus.removeListener(events.USER_MUTED, listener); };
+    return () => { bus.removeListener(Event.USER_MUTED, listener); };
   }, [getMutedUsers]);
 
   const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
@@ -700,9 +705,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
         cmix.GetID(),
         privateIdentity,
-        events.onMessageReceived,
-        events.onMessageDelete,
-        events.onMutedUser,
+        onMessageReceived,
+        onMessageDelete,
+        onMutedUser,
         cipher.id
       );
       
@@ -1043,13 +1048,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, dispatch, utils]);
 
   useEffect(() => {
-    const listener = (evt: events.MessageDeletedEvent) => {
+    const listener = (evt: MessageDeletedEvent) => {
       dispatch(messages.actions.delete(evt.messageId));
     };
 
-    events.bus.addListener(events.MESSAGE_DELETED, listener);
+    bus.addListener(Event.MESSAGE_DELETED, listener);
 
-    return () => { events.bus.removeListener(events.MESSAGE_DELETED, listener); }
+    return () => { bus.removeListener(Event.MESSAGE_DELETED, listener); }
   }, [dispatch])
 
   useEffect(() => {
@@ -1112,9 +1117,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       checkMuted();
     }
 
-    events.bus.addListener(events.USER_MUTED, checkMuted);
+    bus.addListener(Event.USER_MUTED, checkMuted);
 
-    return () => { events.bus.removeListener(events.USER_MUTED, checkMuted); }
+    return () => { bus.removeListener(Event.USER_MUTED, checkMuted); }
   }, [currentChannel?.id, getMuted]);
 
 
