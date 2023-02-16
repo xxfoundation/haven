@@ -27,6 +27,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     pagination,
     sendReaction
   } = useNetworkClient();
+  const {  reset } = pagination;
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const joinedChannels = useAppSelector(channels.selectors.channels);
@@ -49,9 +50,11 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     }
   }, [cmix, openModal, sendReaction, setModalView]);
 
+  const [autoScroll, setAutoScroll] = useState(true);
   useEffect(() => {
-    pagination.reset();
-  }, [currentChannel, pagination]);
+    reset();
+    setAutoScroll(true);
+  }, [currentChannel?.id, reset]);
 
   return (
     <div className={s.root}>
@@ -62,7 +65,12 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             handleReplyToMessage={setReplyToMessage}
             onEmojiReaction={onEmojiReaction}
           />
-          <ScrollDiv className={s.messagesContainer}>
+          <ScrollDiv
+            autoScrollBottom={autoScroll}
+            setAutoScrollBottom={setAutoScroll}
+            nearBottom={pagination.previous}
+            nearTop={pagination.next}
+            className={s.messagesContainer}>
             <MessagesContainer
               onEmojiReaction={onEmojiReaction}
               messages={paginatedItems}

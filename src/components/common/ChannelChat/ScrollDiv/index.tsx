@@ -7,13 +7,28 @@ import { useElementSize } from 'usehooks-ts';
 
 const SCROLL_BOX_MIN_HEIGHT = 20;
 
-const ScrollDiv: FC<HTMLProps<HTMLDivElement>> = ({ children, className, ...rest }) => {
+type Props = HTMLProps<HTMLDivElement> & {
+  nearTop: () => void;
+  nearBottom: () => void;
+  autoScrollBottom: boolean,
+  setAutoScrollBottom: (autoscroll: boolean) => void
+};
+
+const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBottom, nearTop, setAutoScrollBottom, ...rest }) => {
   const [scrollBoxHeight, setScrollBoxHeight] = useState(SCROLL_BOX_MIN_HEIGHT);
   const [scrollBoxTop, setScrollBoxTop] = useState(0);
   const [lastScrollThumbPosition, setScrollThumbPosition] = useState(0);
   const [isDragging, setDragging] = useState(false);
   const scrollHostRef = useRef<HTMLDivElement>(null);
   const [itemsRef, { height }] = useElementSize();
+  const scrollThumb = useRef<HTMLDivElement>(null);
+  
+  const handleScrollThumbMouseDown = useCallback<MouseEventHandler<HTMLDivElement>>((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setScrollThumbPosition(e.clientY);
+    setDragging(true);
+  }, []);
 
   const handleDocumentMouseUp = useCallback(
     (e: MouseEvent) => {
@@ -25,52 +40,81 @@ const ScrollDiv: FC<HTMLProps<HTMLDivElement>> = ({ children, className, ...rest
     [isDragging]
   );
 
-  const handleDocumentMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (isDragging && scrollHostRef.current) {
-        e.preventDefault();
-        e.stopPropagation();
-        const scrollHostElement = scrollHostRef.current;
-        const { offsetHeight, scrollHeight } = scrollHostElement;
-
-        const deltaY = e.clientY - lastScrollThumbPosition;
-        const percentage = deltaY * (scrollHeight / offsetHeight);
-
-        setScrollThumbPosition(e.clientY);
-        setScrollBoxTop(
-          Math.min(
-            Math.max(0, scrollBoxTop + deltaY),
-            offsetHeight - scrollBoxHeight
-          )
-        );
-        scrollHostElement.scrollTop = Math.min(
-          scrollHostElement.scrollTop + percentage,
-          scrollHeight - offsetHeight
-        );
-      }
-    },
-    [isDragging, lastScrollThumbPosition, scrollBoxHeight, scrollBoxTop]
-  );
-
-  const handleScrollThumbMouseDown = useCallback<MouseEventHandler<HTMLDivElement>>((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setScrollThumbPosition(e.clientY);
-    setDragging(true);
+  const scrollToBottom = useCallback(() => {
+    if (scrollHostRef.current) {
+      const scrollHostElement = scrollHostRef.current;
+      const { scrollHeight } = scrollHostElement;
+      scrollHostElement.scrollTop = scrollHeight;
+    }
   }, []);
 
+  useEffect(() => {
+    if (autoScrollBottom) {
+      scrollToBottom();
+    }
+  }, [autoScrollBottom, scrollToBottom])
+
+  const setScroll = useCallback((e: MouseEvent) => {
+    if (scrollHostRef.current) {
+      setAutoScrollBottom(false);
+      const scrollHostElement = scrollHostRef.current;
+      const { offsetHeight, scrollHeight } = scrollHostElement;
+  
+      const deltaY = e.clientY - lastScrollThumbPosition;
+  
+      setScrollThumbPosition(e.clientY);
+
+      setScrollBoxTop(
+        Math.min(
+          Math.max(0, scrollBoxTop + deltaY),
+          offsetHeight - scrollBoxHeight
+        )
+      );
+
+      const percentage = deltaY * (scrollHeight / offsetHeight);
+      const scrollTop = Math.min(
+        scrollHostElement.scrollTop + percentage,
+        scrollHeight - offsetHeight
+      );
+
+      scrollHostElement.scrollTop = scrollTop;
+    }
+  }, [lastScrollThumbPosition, scrollBoxHeight, scrollBoxTop, setAutoScrollBottom])
+
+  const handleDocumentMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (isDragging) {
+        e.preventDefault();
+        e.stopPropagation();
+        setScroll(e);
+      }
+    },
+    [isDragging, setScroll]
+  );
+
   const handleScroll = useCallback(() => {
-    if (!scrollHostRef || !scrollHostRef.current) {
+    if (!scrollHostRef || !scrollHostRef.current || !scrollThumb.current) {
       return;
     }
+    setAutoScrollBottom(false);
 
     const scrollHostElement = scrollHostRef.current;
     const { offsetHeight, scrollHeight, scrollTop } = scrollHostElement;
 
+    const scrollPercent = scrollTop / (scrollHeight - offsetHeight);
+    if (scrollPercent < 0.1) {
+      nearTop();
+    }
+
+    if (scrollPercent > 0.9) {
+      nearBottom();
+    }
+
     let newTop = (scrollTop / scrollHeight) * offsetHeight;
     newTop = Math.min(newTop, offsetHeight - scrollBoxHeight);
+
     setScrollBoxTop(newTop);
-  }, [scrollBoxHeight]);
+  }, [nearBottom, nearTop, scrollBoxHeight, setAutoScrollBottom]);
 
   const resizeScrollbar = useCallback(() => {
     if (!scrollHostRef.current) {
@@ -129,6 +173,7 @@ const ScrollDiv: FC<HTMLProps<HTMLDivElement>> = ({ children, className, ...rest
       </div>
       <div className={s['scroll-bar']} style={{ opacity: 1, visibility: isDragging ? 'visible' : undefined }}>
         <div
+          ref={scrollThumb}
           className={s['scroll-thumb']}
           style={{ height: scrollBoxHeight, top: scrollBoxTop }}
           onMouseDown={handleScrollThumbMouseDown}

@@ -1,6 +1,6 @@
 
 import type { Message } from '@types';
-import type { FC, HTMLAttributes } from 'react';
+import { FC, HTMLAttributes } from 'react';
 
 import React, { useMemo } from 'react';
 import moment from 'moment';
@@ -52,22 +52,24 @@ const MessagesContainer: FC<Props> = ({
           <Spinner />
         </div>
       ) : (
-        sortedGroupedMessagesPerDay.map(([key, message]) => (
-          <div className={cn(s.dayMessagesWrapper)} key={key}>
-            <div className={s.separator}></div>
-            <span className={cn(s.currentDay)}>
-              {moment(key).format('dddd MMMM Do, YYYY')}
-            </span>
-            {message.map((m) => (
-              <MessageContainer
-                readonly={readonly}
-                key={m.id}
-                onEmojiReaction={onEmojiReaction}
-                handleReplyToMessage={handleReplyToMessage}
-                message={m} />
-            ))}
-          </div>
-        ))
+        <>
+          {sortedGroupedMessagesPerDay.map(([key, message]) => (
+            <div className={cn(s.dayMessagesWrapper)} key={key}>
+              <div className={s.separator}></div>
+              <span className={cn(s.currentDay)}>
+                {moment(key).format('dddd MMMM Do, YYYY')}
+              </span>
+              {message.map((m) => (
+                <MessageContainer
+                  readonly={readonly}
+                  key={m.id}
+                  onEmojiReaction={onEmojiReaction}
+                  handleReplyToMessage={handleReplyToMessage}
+                  message={m} />
+              ))}
+            </div>
+          ))}
+        </>
       )}
       {props.children}
     </>
