@@ -17,7 +17,6 @@ type Props = {
 }
 
 const Identity: FC<Props> = ({ codename, color = '', disableMuteStyles, nickname, pubkey }) => {
-
   const { userIsMuted } = useNetworkClient();
   const isMuted = useMemo(
     () => !disableMuteStyles && userIsMuted(pubkey),

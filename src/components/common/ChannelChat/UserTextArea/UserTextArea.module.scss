@@ -1,11 +1,8 @@
 
 .textArea {
-  display: flex;
+  height: 100%;
   margin: 15px 9px;
   border-radius: 5px;
-  flex: 0 0 10rem;
-  flex-direction: column;
-  align-items: stretch;
   position: relative;
 
   .replyContainer {
@@ -62,7 +59,7 @@
 }
 
 .editorWrapper {
-  flex: 1 0 auto;
+  height: 100%;
   background-color: var(--dark-3);
   border-radius: 5px;
   padding: 0.2rem;

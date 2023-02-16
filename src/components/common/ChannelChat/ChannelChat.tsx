@@ -1,8 +1,6 @@
 import type { Message } from 'src/types';
 
-import { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import cn from 'classnames';
-import { debounce } from 'lodash';
+import { FC, useState, useEffect, useCallback, useMemo } from 'react';
 
 import UserTextArea from './UserTextArea/UserTextArea';
 import { useNetworkClient } from 'src/contexts/network-client-context';
@@ -15,7 +13,7 @@ import { useUI } from '@contexts/ui-context';
 import ChannelHeader from '../ChannelHeader';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
-import Spinner from '../Spinner';
+import ScrollDiv from './ScrollDiv';
 
 type Props = {
   messages: Message[];
@@ -29,9 +27,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     pagination,
     sendReaction
   } = useNetworkClient();
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
-  const [autoScrollToEnd, setAutoScrollToEnd] = useState<boolean>(true);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const joinedChannels = useAppSelector(channels.selectors.channels);
   const paginatedItems = useMemo(() => pagination.paginate(messages), [messages, pagination]);
@@ -39,51 +35,10 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   useEffect(() => {
     setReplyToMessage(undefined);
   }, [currentChannel?.id]);
-  
-  const userIsAtTop = useCallback(() =>
-    messagesContainerRef &&
-    messagesContainerRef.current &&
-    messagesContainerRef.current.scrollTop === 0,
-    []
-  );
 
   useEffect(() => {
     pagination.setCount(messages.length);
   }, [messages.length, pagination])
-
-  const checkIfUserScrolledTop = useCallback(() => {
-    if (pagination.hasMore && messagesContainerRef.current && userIsAtTop()) {
-      messagesContainerRef.current.scrollTop = 45;
-      pagination.next();
-    }
-  }, [pagination, userIsAtTop]);
-
-  const scrollToEnd = useCallback(() => {
-    if (messagesContainerRef && messagesContainerRef.current) {
-      const newScrollTop = messagesContainerRef.current.scrollHeight - messagesContainerRef.current.offsetHeight - (pagination.hasLess ? 45 : 0);
-      messagesContainerRef.current.scrollTop =  newScrollTop;
-    }
-    setAutoScrollToEnd(true);
-  }, [pagination.hasLess]);
-
-
-  const checkIfUserScrolledToBottom = useCallback(() => {
-    if (messagesContainerRef && messagesContainerRef.current) {
-      const { clientHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
-   
-      if (pagination.hasLess && Math.floor(scrollHeight - scrollTop) <= (clientHeight + 1)) {
-        messagesContainerRef.current.scrollBy(0, -45);
-        pagination.previous();
-      }
-    }
-  }, [pagination]);
-
-  useEffect(() => {
-    if (autoScrollToEnd) {
-      scrollToEnd();
-    }
-  }, [autoScrollToEnd, scrollToEnd, currentChannel]);
-
 
   const onEmojiReaction = useCallback((emoji: string, messageId: string) =>  {
     if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
@@ -94,14 +49,9 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     }
   }, [cmix, openModal, sendReaction, setModalView]);
 
-  const onScroll = useMemo(() => debounce(() => {
-    checkIfUserScrolledTop();
-    checkIfUserScrolledToBottom();
-  }, 10), [checkIfUserScrolledTop, checkIfUserScrolledToBottom]);
-
   useEffect(() => {
     pagination.reset();
-  }, [currentChannel, pagination])
+  }, [currentChannel, pagination]);
 
   return (
     <div className={s.root}>
@@ -112,18 +62,14 @@ const ChannelChat: FC<Props> = ({ messages }) => {
             handleReplyToMessage={setReplyToMessage}
             onEmojiReaction={onEmojiReaction}
           />
-          <div style={{ overflow: 'auto', flexGrow: 1, overflowAnchor: 'none' }} onScroll={onScroll} ref={messagesContainerRef}>
-            {pagination.hasMore && <Spinner />}
+          <ScrollDiv className={s.messagesContainer}>
             <MessagesContainer
-              id={'messagesContainer'}
-              className={cn(s.messagesContainer)}
               onEmojiReaction={onEmojiReaction}
               messages={paginatedItems}
               handleReplyToMessage={setReplyToMessage} />
-            {pagination.hasLess && <Spinner />}
-          </div>
+          </ScrollDiv>
           <UserTextArea
-            scrollToEnd={() => setAutoScrollToEnd(true)}
+            className={s.textArea}
             replyToMessage={replyToMessage}
             setReplyToMessage={setReplyToMessage}
           />
