@@ -1,6 +1,6 @@
 import type { Message } from 'src/types';
 
-import React, { CSSProperties, FC, HTMLAttributes, useEffect, useMemo, useRef, useState } from 'react';
+import React, { CSSProperties, FC, HTMLAttributes, useEffect, useMemo, useState } from 'react';
 import cn from 'classnames';
 import 'moment-timezone';
 import moment from 'moment';
@@ -13,6 +13,7 @@ import { useAppSelector } from 'src/store/hooks';
 import * as messages from 'src/store/messages';
 import { inflate } from '@utils/index';
 import { Tooltip } from 'react-tooltip';
+import { selectors } from 'src/store/messages';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
@@ -20,8 +21,15 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   message: Message;
 }
 
+const HoveredMention = ({ codename }: { codename: string }) => {
+  const contributors = useAppSelector(selectors.allContributors);
+  const mentioned = useMemo(() => contributors.find((c) => c.codename === codename), [codename, contributors]);
+  return mentioned ? (
+    <Identity {...mentioned} />
+  ) : null;
+}
+
 const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
-  const contributors = useAppSelector(messages.selectors.currentContributors);
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
   const markup = useMemo(
     () => inflate(message.body),
@@ -34,10 +42,6 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
   );
   
   const [hoveredMention, setHoveredMention] = useState<string | null>(null);
-  const hoveredContributor = useMemo(
-    () => contributors.find((c) => c.codename === hoveredMention),
-    [contributors, hoveredMention]
-  );
   const [tooltipStyles, setTooltipStyles] = useState<CSSProperties>({});
 
   useEffect(() => {
@@ -50,9 +54,10 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
       const mention = mentions[i];
 
       if (mention instanceof HTMLElement) {
-        const mentioned = mention.dataset.value ?? null;
+        const codename = mention.dataset.value ?? '';
+
         mention.onmouseenter = (evt) => {
-          setHoveredMention(mentioned);
+          setHoveredMention(codename);
           setTooltipStyles({ position: 'fixed', zIndex: 10, left: evt.clientX - 10, top: evt.clientY + 10 });
         };
         mention.onmouseleave = () => {
@@ -78,7 +83,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
       )}
     >
       <Tooltip clickable style={tooltipStyles} isOpen={hoveredMention !== null}>
-        {hoveredContributor && <Identity {...hoveredContributor} />}
+        {hoveredMention && <HoveredMention codename={hoveredMention} />}
       </Tooltip>
       <div className={cn('w-full')}>
         <div className={cn(s.header)}>

@@ -1,0 +1,47 @@
+.scrollhost::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollhost-container {
+  position: relative;
+  height: 100%;
+  padding-right: 0.5rem;
+
+  &:hover {
+    .scroll-bar {
+      visibility: visible;
+    }
+  }
+}
+
+.scrollhost {
+  overflow: auto;
+  height: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: relative;
+}
+
+.scroll-bar {
+  visibility: hidden;
+  z-index: 2;
+  width: 10px;
+  height: 100%;
+  right: 0;
+  top: 0px;
+  position: absolute;
+  border-radius: 7px;
+  bottom: 0px;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+.scroll-thumb {
+  width: 8px;
+  height: 20px;
+  margin-left: 1px;
+  position: absolute;
+  border-radius: 7px;
+  opacity: 1;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+}
