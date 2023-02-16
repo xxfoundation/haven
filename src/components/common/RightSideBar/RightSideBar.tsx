@@ -1,4 +1,4 @@
-import { FC, useMemo, MouseEventHandler } from 'react';
+import { FC, MouseEventHandler } from 'react';
 import cn from 'classnames';
 
 import { Button, Collapse } from 'src/components/common';
@@ -42,10 +42,8 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { codename, color } = useAppSelector(identity.selectors.identity) ?? {};
   const { getNickName } = useNetworkClient();
-  const contributors = useAppSelector(messages.selectors.allContributors);
-  const filtered = useMemo(() => contributors.filter((c) => c.channelId === currentChannel?.id), [contributors, currentChannel?.id])
-
-  const { openModal, setModalView } = useUI();
+  const contributors = useAppSelector(messages.selectors.currentContributors);
+   const { openModal, setModalView } = useUI();
 
   const nickName = currentChannel && getNickName();
 
@@ -120,7 +118,7 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
                 </span>
               </div>
 
-              {filtered
+              {contributors
                 .filter((c) => c.codename !== codename)
                 .map((c) =>  (
                 <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
