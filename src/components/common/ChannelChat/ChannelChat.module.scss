@@ -8,7 +8,9 @@
 
 .messagesContainer {
   flex: 1 0;
-  overflow: hidden;
+  overflow: auto;
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 .textArea {

@@ -26,7 +26,7 @@ import * as messages from 'src/store/messages';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 
-const BATCH_COUNT = 100;
+const BATCH_COUNT = 1000;
 
 export type DBMessage = {
   id: number;
@@ -244,6 +244,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentChannels = useAppSelector(channels.selectors.channels);
+  const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const userIdentity = useAppSelector(identity.selectors.identity);
 
   const initialize = useCallback(async (password: string) => {
@@ -457,7 +458,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
           receivedMessage?.type !== MessageType.Reaction && // Remove emoji reactions, Ben thinks theyre annoying
           receivedMessage?.parent_message_id
           && receivedMessage?.pubkey !== userIdentity?.pubkey) {
-        const replyingTo = await db.table<DBMessage>('messages').where('message_id').equals(receivedMessage?.parent_message_id).first();
+        const replyingTo = await db.table<DBMessage>('messages')
+          .where('message_id')
+          .equals(receivedMessage?.parent_message_id)
+          .first();
         if (replyingTo?.pubkey === userIdentity?.pubkey) {
           const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
           messageReplied(
@@ -750,10 +754,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const [hasMore, setHasMore] = useState(true);
 
+  useEffect(() => { setHasMore(true); }, [currentChannel?.id])
+
   const loadMoreChannelData = useCallback(async (chId: string) => {
     if (db) {
       const foundChannel = currentChannels.find(ch => ch.id === chId);
       if (foundChannel) {
+        const offset = (foundChannel.currentPage + 1) * BATCH_COUNT;
+
         const newMessages = await db
           .table<DBMessage>('messages')
           .orderBy('timestamp')
@@ -761,7 +769,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           .filter(m => {
             return !m.hidden && m.channel_id === chId && m.type === 1;
           })
-          .offset(foundChannel.currentPage + 1 * BATCH_COUNT)
+          .offset(offset)
           .limit(BATCH_COUNT)
           .toArray();
         
@@ -776,15 +784,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [db, currentChannels, dispatch, dbMessageMapper]);
 
   useEffect(() => {
-    if (currentChannel?.id !== undefined && pagination.offset >= allMessages.length && hasMore) {
+    if (currentChannel?.id !== undefined && pagination.end >= (currentMessages?.length ?? 0) && hasMore) {
       loadMoreChannelData(currentChannel?.id);
     }
   }, [
-    allMessages.length,
     currentChannel?.id,
+    currentMessages?.length,
     hasMore,
     loadMoreChannelData,
-    pagination.offset
+    pagination.end
   ])
 
   const joinChannelFromURL = useCallback((url: string, password = '') => {
