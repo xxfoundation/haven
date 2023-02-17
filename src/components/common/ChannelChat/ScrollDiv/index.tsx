@@ -108,8 +108,6 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
 
     const scrollPercent = scrollTop / (scrollHeight - offsetHeight);
 
-    console.log('SCROLLING: Onscroll trigger', scrollPercent, autoScrollBottom)
-
     if (scrollPercent < 0.1) {
       nearTop();
     }
@@ -117,22 +115,13 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     if (scrollPercent > 0.9) {
       nearBottom();
     }
-    
-    if (scrollPercent < 1 && autoScrollBottom) {
-      scrollToBottom();
-    }
 
-    if (scrollPercent === 1) {
-      setAutoScrollBottom(true);
-    }
-
+    setAutoScrollBottom(scrollPercent === 1);
     setThumbPosition();
   }, [
-    autoScrollBottom,
     setThumbPosition,
     nearTop,
     nearBottom,
-    scrollToBottom,
     setAutoScrollBottom
   ]);
 
@@ -141,7 +130,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     if (autoScrollBottom) {
       scrollToBottom();
     }
-  }, [autoScrollBottom, scrollToBottom])
+  }, [autoScrollBottom, scrollToBottom, children])
 
   const resizeScrollbar = useCallback(() => {
     if (!scrollHostRef.current) {
@@ -167,12 +156,13 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     onScroll,
     resizeScrollbar,
     setThumbPosition
-  ])
+  ]);
 
   useEffect(() => {
     if (!scrollHostRef.current) {
       return;
     }
+
     const scrollHostElement = scrollHostRef.current;
     scrollHostElement.addEventListener('scroll', onScroll, true);
     return () => {
@@ -181,21 +171,18 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
   }, [onScroll, resizeScrollbar]);
 
   useEffect(() => {
-    const onwheel = () => {
-      setAutoScrollBottom(false);
-    };
-    document.addEventListener('wheel', onwheel)
+    // document.addEventListener('wheel', onwheel)
     document.addEventListener('mousemove', handleDocumentMouseMove);
     document.addEventListener('mouseup', handleDocumentMouseUp);
     document.addEventListener('mouseleave', handleDocumentMouseUp);
 
     return () => {
-      document.removeEventListener('wheel', onwheel);
+      // document.removeEventListener('wheel', onwheel);
       document.removeEventListener('mousemove', handleDocumentMouseMove);
       document.removeEventListener('mouseup', handleDocumentMouseUp);
       document.removeEventListener('mouseleave', handleDocumentMouseUp);
     };
-  }, [handleDocumentMouseMove, handleDocumentMouseUp, setAutoScrollBottom]);
+  }, [handleDocumentMouseMove, handleDocumentMouseUp]);
 
   return (
     <div
