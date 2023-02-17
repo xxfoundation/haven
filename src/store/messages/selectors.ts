@@ -68,3 +68,5 @@ export const allContributors = (state: RootState) => {
       [] as Message[]
     );
 }
+
+export const currentContributors = (state: RootState) => allContributors(state).filter((m) => m.channelId === state.channels.currentChannelId);

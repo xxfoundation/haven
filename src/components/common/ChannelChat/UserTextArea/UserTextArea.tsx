@@ -15,6 +15,7 @@ import { useUI } from 'src/contexts/ui-context';
 import s from './UserTextArea.module.scss';
 import SendButton from '../SendButton';
 import * as channels from 'src/store/channels';
+import * as messages from 'src/store/messages';
 import { useAppSelector } from 'src/store/hooks';
 import Spinner from 'src/components/common/Spinner';
 
@@ -30,7 +31,7 @@ const Editor = dynamic(
 );
 
 type Props = {
-  scrollToEnd: () => void;
+  className: string;
   replyToMessage: Message | null | undefined;
   setReplyToMessage: (msg: Message | null) => void;
 };
@@ -104,10 +105,19 @@ const CustomToolbar = () => (
   </div>
 );
 
+// React quill takes the short bus to school because the modules prop is not reactive
+// so we're instantiating a reference outside of the component, lol
+let atMentions: { id: string, value: string }[] = [];
+
 const UserTextArea: FC<Props> = ({
+  className,
   replyToMessage,
   setReplyToMessage,
 }) => {
+  const contributors = useAppSelector(messages.selectors.currentContributors);
+  useEffect(() => {
+    atMentions = contributors.map((c) => ({ id: c.pubkey, value: c.codename }))
+  }, [contributors]);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { openModal, setModalView } = useUI();
   const {
@@ -133,6 +143,7 @@ const UserTextArea: FC<Props> = ({
   }, []);
   
   const loadQuillModules = useCallback(async () => {
+    await import('quill-mention');
     const Quill = (await import('react-quill')).default.Quill;
     const DetectUrl = (await import('quill-auto-detect-url')).default;
     const Link = Quill.import('formats/link')
@@ -229,6 +240,14 @@ const UserTextArea: FC<Props> = ({
     autoDetectUrl: {
       urlRegularExpression: /(https?:\/\/|www\.)[\w-.]+\.[\w-.]+[\S]+/i,
     } as QuillAutoDetectUrlOptions,
+    mention: {
+      allowedChars: /^[A-Za-z]*$/,
+      mentionDenotationChars: ['@'],
+      source: function(searchTerm: string, renderList: (values: { id: string, value: string }[], search: string) => void) {
+        const matches = atMentions.filter((v) => v.value.toLocaleLowerCase().startsWith(searchTerm.toLocaleLowerCase()));
+        renderList(matches, searchTerm);
+      }
+    },
     keyboard: {
       bindings: {
         strike: {
@@ -314,11 +333,12 @@ const UserTextArea: FC<Props> = ({
     'bold', 'italic', 'underline', 'strike', 'blockquote',
     'list', 'bullet',
     'link',
-    'code', 'code-block'
+    'code', 'code-block',
+    'mention'
   ], []);
 
   return (
-    <div className={cn('relative', s.textArea)}>
+    <div className={cn('relative', s.textArea, className)}>
       {replyToMessage && replyMessageMarkup && (
         <div className={cn(s.replyContainer)}>
           <div className={s.replyHeader}>Replying to {replyToMessage.codename}</div>
