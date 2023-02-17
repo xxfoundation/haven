@@ -166,7 +166,7 @@ type NetworkContext = {
   ) => void;
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
-  deleteMessage: (message: Message) => Promise<void>;
+  deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
   exportChannelAdminKeys: (encryptionPassword: string) => string;
   getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   generateIdentities: (amountOfIdentites: number) => {
@@ -921,8 +921,29 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils]);
 
+  const deleteMessage = useCallback(async ({ channelId, id }: Pick<Message, 'channelId' | 'id'>) => {
+    await channelManager?.DeleteMessage(
+      utils.Base64ToUint8Array(channelId),
+      utils.Base64ToUint8Array(id),
+      utils.GetDefaultCMixParams()
+    );
+
+    dispatch(messages.actions.delete(id));
+  }, [channelManager, dispatch, utils]);
+
   const sendReaction = useCallback(async (reaction: string, reactToMessageId: string) => {
     if (channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
+     const foundReaction = allMessages.find(
+      (m) => m.pubkey === userIdentity?.pubkey
+        && m.channelId === currentChannel?.id
+        && m.body === reaction
+        && m.type === MessageType.Reaction
+        && m.repliedTo === reactToMessageId
+    );
+
+    if (currentChannel && foundReaction) {
+      await deleteMessage({ channelId: currentChannel.id, id: foundReaction.id })
+    } else {
       try {
         await channelManager.SendReaction(
           utils.Base64ToUint8Array(currentChannel.id),
@@ -937,7 +958,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
         );
       }
     }
-  }, [channelManager, currentChannel, utils]);
+      
+    }
+  }, [
+    allMessages,
+    channelManager,
+    currentChannel,
+    deleteMessage,
+    userIdentity?.pubkey,
+    utils
+  ]);
 
   const setNickName = useCallback((nickName: string) => {
     if (channelManager?.SetNickname && currentChannel?.id) {
@@ -1073,16 +1103,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       )
     }
   }, [channelManager, currentChannel, utils]);
-
-  const deleteMessage = useCallback(async ({ channelId, id }: Message) => {
-    await channelManager?.DeleteMessage(
-      utils.Base64ToUint8Array(channelId),
-      utils.Base64ToUint8Array(id),
-      utils.GetDefaultCMixParams()
-    );
-
-    dispatch(messages.actions.delete(id));
-  }, [channelManager, dispatch, utils]);
 
   useEffect(() => {
     const listener = (evt: MessageDeletedEvent) => {

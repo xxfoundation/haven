@@ -73,7 +73,14 @@ const ExportCodenameView: FC = () => {
           <p className='mb-4'>
             By being an admin, you can pin messages, delete messages, mute users
           </p>
-          <form onSubmit={onImport}>
+          <form 
+            onKeyDown={(evt) => {
+              if (evt.key === 'Enter') {
+                onImport(evt)
+              }
+            }}
+            onSubmit={onImport}
+          >
             {error && (
               <div className={'text text--xs mt-2 mb-4'} style={{ color: 'var(--red)' }}>
                 {error}

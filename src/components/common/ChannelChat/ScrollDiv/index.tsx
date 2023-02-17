@@ -40,20 +40,6 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     [isDragging]
   );
 
-  const scrollToBottom = useCallback(() => {
-    if (scrollHostRef.current) {
-      const scrollHostElement = scrollHostRef.current;
-      const { scrollHeight } = scrollHostElement;
-      scrollHostElement.scrollTop = scrollHeight;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (autoScrollBottom) {
-      scrollToBottom();
-    }
-  }, [autoScrollBottom, scrollToBottom])
-
   const setScroll = useCallback((e: MouseEvent) => {
     if (scrollHostRef.current) {
       setAutoScrollBottom(false);
@@ -92,12 +78,11 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     [isDragging, setScroll]
   );
 
-  const handleScroll = useCallback(() => {
+  const onScroll = useCallback(() => {
     if (!scrollHostRef || !scrollHostRef.current || !scrollThumb.current) {
       return;
     }
-    setAutoScrollBottom(false);
-
+    console.log('SCROLLING: ON SCROLL');
     const scrollHostElement = scrollHostRef.current;
     const { offsetHeight, scrollHeight, scrollTop } = scrollHostElement;
 
@@ -114,13 +99,31 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     newTop = Math.min(newTop, offsetHeight - scrollBoxHeight);
 
     setScrollBoxTop(newTop);
-  }, [nearBottom, nearTop, scrollBoxHeight, setAutoScrollBottom]);
+  }, [nearBottom, nearTop, scrollBoxHeight]);
+
+  const scrollToBottom = useCallback(() => {
+    console.log('SCROLLING TO BOTTOM');
+    if (scrollHostRef.current) {
+      const scrollHostElement = scrollHostRef.current;
+      const { scrollHeight } = scrollHostElement;
+      scrollHostElement.scrollTop = scrollHeight;
+      onScroll();
+    }
+  }, [onScroll]);
+
+
+  useEffect(() => {
+    if (autoScrollBottom) {
+      scrollToBottom();
+    }
+  }, [autoScrollBottom, scrollToBottom])
 
   const resizeScrollbar = useCallback(() => {
     if (!scrollHostRef.current) {
       return;
     }
 
+    console.log('SCROLLING RESIZED');
     const scrollHostElement = scrollHostRef.current;
     const { clientHeight, scrollHeight } = scrollHostElement;
     const scrollThumbPercentage = clientHeight / scrollHeight;
@@ -133,25 +136,31 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
 
   useEffect(() => {
     resizeScrollbar();
-  }, [height, resizeScrollbar])
+    if (autoScrollBottom) {
+      scrollToBottom();
+    }
+  }, [autoScrollBottom, height, resizeScrollbar, scrollToBottom])
 
   useEffect(() => {
     if (!scrollHostRef.current) {
       return;
     }
     const scrollHostElement = scrollHostRef.current;
-    scrollHostElement.addEventListener('scroll', handleScroll, true);
+    scrollHostElement.addEventListener('scroll', onScroll, true);
     return () => {
-      scrollHostElement.removeEventListener('scroll', handleScroll, true);
+      scrollHostElement.removeEventListener('scroll', onScroll, true);
     };
-  }, [handleScroll, resizeScrollbar]);
+  }, [onScroll, resizeScrollbar]);
 
   useEffect(() => {
+    const onwheel = () => { setAutoScrollBottom(false); };
+    document.addEventListener('wheel', onwheel)
     document.addEventListener('mousemove', handleDocumentMouseMove);
     document.addEventListener('mouseup', handleDocumentMouseUp);
     document.addEventListener('mouseleave', handleDocumentMouseUp);
 
     return () => {
+      document.removeEventListener('wheel', onwheel);
       document.removeEventListener('mousemove', handleDocumentMouseMove);
       document.removeEventListener('mouseup', handleDocumentMouseUp);
       document.removeEventListener('mouseleave', handleDocumentMouseUp);
