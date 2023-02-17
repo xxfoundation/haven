@@ -37,7 +37,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
 
   const [autoScroll, setAutoScroll] = useState(true);
   useEffect(() => {
-    console.log('SCROLLING SET');
+    console.log('SCROLLING ENABLING AUTOSCROLL');
     reset();
     setAutoScroll(true);
   }, [currentChannel?.id, reset]);

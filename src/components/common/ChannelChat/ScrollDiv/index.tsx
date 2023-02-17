@@ -16,7 +16,7 @@ type Props = HTMLProps<HTMLDivElement> & {
 
 const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBottom, nearTop, setAutoScrollBottom, ...rest }) => {
   const [scrollBoxHeight, setScrollBoxHeight] = useState(SCROLL_BOX_MIN_HEIGHT);
-  const [scrollBoxTop, setScrollBoxTop] = useState(0);
+  const [scrollThumbTop, setThumbTop] = useState(0);
   const [lastScrollThumbPosition, setScrollThumbPosition] = useState(0);
   const [isDragging, setDragging] = useState(false);
   const scrollHostRef = useRef<HTMLDivElement>(null);
@@ -40,9 +40,8 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     [isDragging]
   );
 
-  const setScroll = useCallback((e: MouseEvent) => {
+  const onMouseScroll = useCallback((e: MouseEvent) => {
     if (scrollHostRef.current) {
-      setAutoScrollBottom(false);
       const scrollHostElement = scrollHostRef.current;
       const { offsetHeight, scrollHeight } = scrollHostElement;
   
@@ -50,9 +49,9 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
   
       setScrollThumbPosition(e.clientY);
 
-      setScrollBoxTop(
+      setThumbTop(
         Math.min(
-          Math.max(0, scrollBoxTop + deltaY),
+          Math.max(0, scrollThumbTop + deltaY),
           offsetHeight - scrollBoxHeight
         )
       );
@@ -65,28 +64,52 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
 
       scrollHostElement.scrollTop = scrollTop;
     }
-  }, [lastScrollThumbPosition, scrollBoxHeight, scrollBoxTop, setAutoScrollBottom])
+  }, [lastScrollThumbPosition, scrollBoxHeight, scrollThumbTop])
 
   const handleDocumentMouseMove = useCallback(
     (e: MouseEvent) => {
       if (isDragging) {
         e.preventDefault();
         e.stopPropagation();
-        setScroll(e);
+        onMouseScroll(e);
       }
     },
-    [isDragging, setScroll]
+    [isDragging, onMouseScroll]
   );
+
+  const scrollToBottom = useCallback(() => {
+    if (scrollHostRef.current) {
+      const scrollHostElement = scrollHostRef.current;
+      const { scrollHeight } = scrollHostElement;
+      scrollHostElement.scrollTop = scrollHeight;
+    }
+  }, []);
+
+  const setThumbPosition = useCallback(() => {
+    if (!scrollHostRef.current) {
+      return;
+    }
+    const scrollHostElement = scrollHostRef.current;
+    const { offsetHeight, scrollHeight, scrollTop } = scrollHostElement;
+    
+    let newTop = (scrollTop / scrollHeight) * offsetHeight;
+    newTop = Math.min(newTop, offsetHeight - scrollBoxHeight);
+
+    setThumbTop(newTop);
+  }, [scrollBoxHeight])
 
   const onScroll = useCallback(() => {
     if (!scrollHostRef || !scrollHostRef.current || !scrollThumb.current) {
       return;
     }
-    console.log('SCROLLING: ON SCROLL');
+
     const scrollHostElement = scrollHostRef.current;
     const { offsetHeight, scrollHeight, scrollTop } = scrollHostElement;
 
     const scrollPercent = scrollTop / (scrollHeight - offsetHeight);
+
+    console.log('SCROLLING: Onscroll trigger', scrollPercent, autoScrollBottom)
+
     if (scrollPercent < 0.1) {
       nearTop();
     }
@@ -94,22 +117,24 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     if (scrollPercent > 0.9) {
       nearBottom();
     }
-
-    let newTop = (scrollTop / scrollHeight) * offsetHeight;
-    newTop = Math.min(newTop, offsetHeight - scrollBoxHeight);
-
-    setScrollBoxTop(newTop);
-  }, [nearBottom, nearTop, scrollBoxHeight]);
-
-  const scrollToBottom = useCallback(() => {
-    console.log('SCROLLING TO BOTTOM');
-    if (scrollHostRef.current) {
-      const scrollHostElement = scrollHostRef.current;
-      const { scrollHeight } = scrollHostElement;
-      scrollHostElement.scrollTop = scrollHeight;
-      onScroll();
+    
+    if (scrollPercent < 1 && autoScrollBottom) {
+      scrollToBottom();
     }
-  }, [onScroll]);
+
+    if (scrollPercent === 1) {
+      setAutoScrollBottom(true);
+    }
+
+    setThumbPosition();
+  }, [
+    autoScrollBottom,
+    setThumbPosition,
+    nearTop,
+    nearBottom,
+    scrollToBottom,
+    setAutoScrollBottom
+  ]);
 
 
   useEffect(() => {
@@ -123,7 +148,6 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
       return;
     }
 
-    console.log('SCROLLING RESIZED');
     const scrollHostElement = scrollHostRef.current;
     const { clientHeight, scrollHeight } = scrollHostElement;
     const scrollThumbPercentage = clientHeight / scrollHeight;
@@ -134,12 +158,16 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     setScrollBoxHeight(scrollThumbHeight);
   }, []);
 
+  // React to changes in the items size
   useEffect(() => {
     resizeScrollbar();
-    if (autoScrollBottom) {
-      scrollToBottom();
-    }
-  }, [autoScrollBottom, height, resizeScrollbar, scrollToBottom])
+    setThumbPosition();
+  }, [
+    height,
+    onScroll,
+    resizeScrollbar,
+    setThumbPosition
+  ])
 
   useEffect(() => {
     if (!scrollHostRef.current) {
@@ -153,7 +181,9 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
   }, [onScroll, resizeScrollbar]);
 
   useEffect(() => {
-    const onwheel = () => { setAutoScrollBottom(false); };
+    const onwheel = () => {
+      setAutoScrollBottom(false);
+    };
     document.addEventListener('wheel', onwheel)
     document.addEventListener('mousemove', handleDocumentMouseMove);
     document.addEventListener('mouseup', handleDocumentMouseUp);
@@ -165,7 +195,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
       document.removeEventListener('mouseup', handleDocumentMouseUp);
       document.removeEventListener('mouseleave', handleDocumentMouseUp);
     };
-  }, [handleDocumentMouseMove, handleDocumentMouseUp]);
+  }, [handleDocumentMouseMove, handleDocumentMouseUp, setAutoScrollBottom]);
 
   return (
     <div
@@ -184,7 +214,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
         <div
           ref={scrollThumb}
           className={s['scroll-thumb']}
-          style={{ height: scrollBoxHeight, top: scrollBoxTop }}
+          style={{ height: scrollBoxHeight, top: scrollThumbTop }}
           onMouseDown={handleScrollThumbMouseDown}
         />
       </div>
