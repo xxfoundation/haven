@@ -37,6 +37,13 @@ const useNotification = () => {
     });
   }, [notify]);
 
+  const notifyMentioned = useCallback((username: string, message: string) => {
+    notify(`${username} mentioned you`, {
+      body: getText(message),
+      icon
+    });
+  }, [notify])
+
   const messagePinned = useCallback((message: string, channelName: string) => {
     notify(`New message pinned in ${channelName}`, { icon, body: getText(message) });
   }, [notify]);
@@ -55,6 +62,7 @@ const useNotification = () => {
     permissionIgnored,
     setPermissionIgnored,
     setIsPermissionGranted,
+    notifyMentioned,
     messagePinned,
     messageReplied,
     close,
