@@ -62,12 +62,22 @@ const CreateChannelView: FC = () => {
       <input
         type='text'
         placeholder='Name'
+        onKeyDown={(evt) => {
+          if (evt.key === 'Enter') {
+            onCreate();
+          }
+        }}
         value={channelName}
         onChange={onChannelNameChange}
       />
       <input
         type='text'
         placeholder='Description'
+        onKeyDown={(evt) => {
+          if (evt.key === 'Enter') {
+            onCreate();
+          }
+        }}
         className='mt-4'
         value={channelDesc}
         onChange={onChannelDescChange}

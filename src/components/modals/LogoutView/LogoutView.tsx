@@ -46,6 +46,11 @@ const LogoutView: FC = ({}) => {
         type='password'
         className='mt-3 mb-4'
         name=''
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleSubmit();
+          }
+        }}
         placeholder='Enter password'
         value={password}
         onChange={setPassword}

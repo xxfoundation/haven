@@ -1,5 +1,5 @@
 import { NextPage } from 'next';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import cn from 'classnames';
 import Cookies from 'js-cookie';
@@ -71,6 +71,24 @@ const Join: NextPage = () => {
     }
   }, [broadcastChannel, channelType, utils]);
 
+  const onConfirm = useCallback(() => {
+    if (password) {
+      try {
+        const prettyPrinted = utils.DecodePrivateURL(
+          window.location.href,
+          password
+        );
+        const infoJson = JSON.parse(
+          decoder.decode(utils.GetChannelJSON(prettyPrinted))
+        );
+        setChannelPrettyPrint(prettyPrinted);
+        setChannelInfoJson(infoJson);
+      } catch (e) {
+        setError('Invalid passphrase');
+      }
+    }
+  }, [password, utils]);
+
   if (isLoading) {
     return (
       <div className={'w-full h-screen flex justify-center items-center'}>
@@ -114,6 +132,12 @@ const Join: NextPage = () => {
               className='mt-3 mb-4'
               name=''
               type='password'
+
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  onConfirm();
+                }
+              }}
               placeholder='Enter passphrase'
               value={password}
               onChange={e => {
@@ -131,23 +155,7 @@ const Join: NextPage = () => {
             <ModalCtaButton
               buttonCopy='Confirm'
               cssClass={cn('mb-7 mt-8 mr-4', s.button)}
-              onClick={() => {
-                if (password) {
-                  try {
-                    const prettyPrinted = utils.DecodePrivateURL(
-                      window.location.href,
-                      password
-                    );
-                    const infoJson = JSON.parse(
-                      decoder.decode(utils.GetChannelJSON(prettyPrinted))
-                    );
-                    setChannelPrettyPrint(prettyPrinted);
-                    setChannelInfoJson(infoJson);
-                  } catch (e) {
-                    setError('Invalid passphrase');
-                  }
-                }
-              }}
+              onClick={onConfirm}
             />
           </div>
         )}

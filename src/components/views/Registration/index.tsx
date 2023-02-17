@@ -77,6 +77,11 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               placeholder='Enter your password'
               className=''
               value={password}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  onContinue();
+                }
+              }}
               onChange={e => {
                 setPassword(e.target.value);
               }}
@@ -86,6 +91,11 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               type='password'
               placeholder='Confirm your password'
               className='mt-4'
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  onContinue();
+                }
+              }}
               value={passwordConfirm}
               onChange={e => {
                 setPasswordConfirm(e.target.value);
