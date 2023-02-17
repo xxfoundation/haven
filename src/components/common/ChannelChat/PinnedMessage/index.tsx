@@ -15,7 +15,6 @@ import { useAppSelector } from 'src/store/hooks';
 
 type Props = {
   handleReplyToMessage: (message: Message) => void;
-  onEmojiReaction: (emoji: string, messageId: string) => void;
 }
 
 const PinnedMessage: FC<Props> = (props) => {
