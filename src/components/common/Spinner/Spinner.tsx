@@ -2,7 +2,7 @@ import { FC, HTMLAttributes } from 'react';
 import cn from 'classnames';
 import s from './Spinner.module.scss';
 
-type Size = 'lg' | 'md' | 'sm';
+type Size = 'lg' | 'md' | 'sm' | 'xs';
 
 const Spinner: FC<{ size?: Size } & HTMLAttributes<SVGSVGElement>> = ({ size = 'sm', ...props }) => {
   return (

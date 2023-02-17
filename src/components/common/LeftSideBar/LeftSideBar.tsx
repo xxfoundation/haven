@@ -1,9 +1,7 @@
 import { FC, useCallback, useMemo, useRef } from 'react';
 import cn from 'classnames';
 import { useOnClickOutside } from 'usehooks-ts';
-import {
-  Collapse,
-} from 'src/components/common';
+import { Collapse } from 'src/components/common';
 
 import { Elixxir, SpeakEasy, Settings, Plus, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
