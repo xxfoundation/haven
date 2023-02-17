@@ -37,7 +37,7 @@ const useNotification = () => {
     });
   }, [notify]);
 
-  const mentioned = useCallback((username: string, message: string) => {
+  const notifyMentioned = useCallback((username: string, message: string) => {
     notify(`${username} mentioned you`, {
       body: getText(message),
       icon
@@ -62,7 +62,7 @@ const useNotification = () => {
     permissionIgnored,
     setPermissionIgnored,
     setIsPermissionGranted,
-    mentioned,
+    notifyMentioned,
     messagePinned,
     messageReplied,
     close,
