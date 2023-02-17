@@ -79,7 +79,7 @@ const LoginView: FC = ({}) => {
                 setPassword(e.target.value);
               }}
               onKeyDown={e => {
-                if (e.keyCode === 13) {
+                if (e.key === 'Enter') {
                   e.preventDefault();
                   handleSubmit();
                 }
