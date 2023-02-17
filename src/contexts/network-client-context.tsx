@@ -1,5 +1,5 @@
 import type { CMix } from 'src/types';
-import type {Message, MessageStatus } from 'src/store/messages/types';
+import {Message, MessageStatus } from 'src/store/messages/types';
 
 import { ChannelJSON, VersionJSON } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
@@ -236,7 +236,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setIsAuthenticated,
     storageTag,
   } = useAuthentication();
-  const { mentioned, messagePinned, messageReplied } = useNotification();
+  const { messagePinned, messageReplied, notifyMentioned } = useNotification();
   const { utils } = useUtils();
   const [mutedUsers, setMutedUsers] = useState<User[]>();
   const { cipher, cmix, connect, disconnect, initializeCmix, status: cmixStatus } = useCmix();
@@ -435,24 +435,29 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
       
       const decryptedText = cipher.decrypt(receivedMessage.text);
-      const inflatedText = inflate(decryptedText);
-      const mentions = new DOMParser()
-        .parseFromString(inflatedText, 'text/html')
-        .getElementsByClassName('mention');
 
-      for (let i = 0; i < mentions.length; i++) {
-        const mention = mentions[i];
-        const mentionedCodename = mention.getAttribute('data-value');
-
-        if (mentionedCodename === userIdentity?.codename) {
-          const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
-          mentioned(
-            receivedMessage.nickname || codename,
-            decryptedText
-          );
-          break;
+      // Notify user if message mentions him/her/they/banana
+      if (receivedMessage.status === MessageStatus.Delivered) {
+        const inflatedText = inflate(decryptedText);
+        const mentions = new DOMParser()
+          .parseFromString(inflatedText, 'text/html')
+          .getElementsByClassName('mention');
+  
+        for (let i = 0; i < mentions.length; i++) {
+          const mention = mentions[i];
+          const mentionedPubkey = mention.getAttribute('data-id');
+  
+          if (mentionedPubkey === userIdentity?.pubkey) {
+            const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
+            notifyMentioned(
+              receivedMessage.nickname || codename,
+              decryptedText
+            );
+            break;
+          }
         }
       }
+     
 
       if (
           receivedMessage?.type !== MessageType.Reaction && // Remove emoji reactions, Ben thinks theyre annoying
@@ -473,6 +478,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       const oldMessage = allMessages.find(({ uuid }) => receivedMessage?.id === uuid);
 
+      // notify new pinned messages
       if (!oldMessage?.pinned && receivedMessage?.pinned) {
         const foundChannel = currentChannels.find(({ id }) => receivedMessage.channel_id === id);
         onMessagePinned(dbMessageMapper(receivedMessage));
@@ -503,10 +509,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
     dbMessageMapper,
     dispatch,
     getCodeNameAndColor,
-    mentioned,
+    notifyMentioned,
     messagePinned,
     messageReplied,
-    userIdentity?.codename,
     userIdentity?.pubkey
   ]);
 
