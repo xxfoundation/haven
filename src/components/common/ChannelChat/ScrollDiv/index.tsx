@@ -158,7 +158,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     setScrollBoxHeight(scrollThumbHeight);
   }, []);
 
-  // React to changes in the items size
+  // React to changes in the items container changing dimensions
   useEffect(() => {
     resizeScrollbar();
     setThumbPosition();
