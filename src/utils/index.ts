@@ -30,7 +30,7 @@ export const exportDataToFile = (data: Uint8Array) => {
 export const byEntryTimestamp = (x: [string, unknown], y: [string, unknown]) => new Date(x[0]).getTime() - new Date(y[0]).getTime()
 
 const sanitize = (markup: string) => DOMPurify.sanitize(markup, {
-  ALLOWED_TAGS: ['blockquote', 'p', 'a', 'br', 'code', 'ol', 'ul', 'li', 'pre', 'i', 'strong', 'b', 'em', 'span'],
+  ALLOWED_TAGS: ['blockquote', 'p', 'a', 'br', 'code', 'ol', 'ul', 'li', 'pre', 'i', 'strong', 'b', 'em', 'span', 's'],
   ALLOWED_ATTR: ['target', 'href', 'rel', 'class', 'style']
 });
 
