@@ -36,10 +36,11 @@ const ChatReactions: FC<Props> = ({ message }) => {
       </div>
       {reactions?.map(([emoji, users]) =>  (
         <Tooltip
+          clickable
           className={s.tooltip}
           key={emoji}
           anchorId={`${message.id}-${emoji}-emojis-users-reactions`}
-          place={'top'}
+          place={'bottom'}
         >
           <div className={cn(s.icon)}>{emoji}</div>
           <p>
