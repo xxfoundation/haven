@@ -86,7 +86,7 @@ export const slice = createSlice({
           ...state.byId,
           [action.payload]: {
             ...state.byId[action.payload],
-            hasMissedMessages: false,
+            hasMissedMessages: true,
           }
         }
       });
