@@ -1,45 +1,76 @@
-import { Message } from 'src/types';
+import { Message, MessageStatus } from 'src/types';
 
-import React, { FC, HTMLAttributes } from 'react';
+import React, { CSSProperties, FC, HTMLAttributes, useEffect, useMemo, useState } from 'react';
 import cn from 'classnames';
 import 'moment-timezone';
 import moment from 'moment';
-import DOMPurify from 'dompurify';
 import Clamp from 'react-multiline-clamp';
-import Identity from 'src/components/common/Identity';
 
+import Identity from 'src/components/common/Identity';
 import s from './ChatMessage.module.scss';
 import ChatReactions from '../ChatReactions';
+import Spinner from '@components/common/Spinner';
 import { useAppSelector } from 'src/store/hooks';
 import * as messages from 'src/store/messages';
-
-const mapTextToHtmlWithAnchors = (text: string) => {
-  const withLinks = text.replace(
-    /(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?/ig,
-    '<a target="_blank" rel="noopener noreferrer" href="$&">$&</a>'
-  );
-
-  const withBreaks = withLinks.replace(
-    /\n/g, '<br />'
-  )
-
-  return DOMPurify.sanitize(withBreaks, {
-    ALLOWED_TAGS: ['a', 'br'],
-    ALLOWED_ATTR: ['target', 'href', 'rel']
-  });
-};
+import { inflate } from '@utils/index';
+import { Tooltip } from 'react-tooltip';
+import { selectors } from 'src/store/messages';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
-  onEmojiReaction?: (emoji: string, messageId: string) => void;
   message: Message;
 }
 
-const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
+const HoveredMention = ({ codename }: { codename: string }) => {
+  const contributors = useAppSelector(selectors.allContributors);
+  const mentioned = useMemo(() => contributors.find((c) => c.codename === codename), [codename, contributors]);
+  return mentioned ? (
+    <Identity {...mentioned} />
+  ) : null;
+}
+
+const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
+  const markup = useMemo(
+    () => inflate(message.body),
+    [message.body]
+  );
+  
+  const replyMarkup = useMemo(
+    () => repliedToMessage && inflate(repliedToMessage.body),
+    [repliedToMessage]
+  );
+  
+  const [hoveredMention, setHoveredMention] = useState<string | null>(null);
+  const [tooltipStyles, setTooltipStyles] = useState<CSSProperties>({});
+
+  useEffect(() => {
+    const mentions = document.getElementById(message.id)?.getElementsByClassName('mention')
+    if (!mentions) {
+      return;
+    }
+
+    for (let i = 0; i < mentions.length; i++) {
+      const mention = mentions[i];
+
+      if (mention instanceof HTMLElement) {
+        const codename = mention.dataset.value ?? '';
+
+        mention.onmouseenter = (evt) => {
+          setHoveredMention(codename);
+          setTooltipStyles({ position: 'fixed', zIndex: 10, left: evt.clientX - 10, top: evt.clientY + 10 });
+        };
+        mention.onmouseleave = () => {
+          setHoveredMention(null);
+          setTooltipStyles({});
+        };
+      }
+    }
+  }, [markup, message.id])
   
   return (
     <div
+      id={message.id}
       {...htmlProps}
       className={cn(
         htmlProps.className,
@@ -50,9 +81,11 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
         },
         htmlProps.className
       )}
-      id={message.id}
     >
-      <div className={cn('flex flex-col', s.messageWrapper)}>
+      <Tooltip clickable style={tooltipStyles} isOpen={hoveredMention !== null}>
+        {hoveredMention && <HoveredMention codename={hoveredMention} />}
+      </Tooltip>
+      <div className={cn('w-full')}>
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
             <>
@@ -72,24 +105,29 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
           <span className={cn(s.messageTimestamp)}>
             {moment(message.timestamp).format('hh:mm A')}
           </span>
-          <a
-            href={`https://dashboard.xx.network/rounds/${message.round}`}
-            target='_blank'
-            rel='noreferrer'
-            className='text text--xs ml-2'
-            style={{
-              whiteSpace: 'nowrap',
-              fontSize: '9px',
-              color: 'var(--text-secondary)',
-              textDecoration: 'underline',
-              marginBottom: '1px'
-            }}
-          >
-            Show mix
-          </a>
+          {message.status === MessageStatus.Unsent && (
+            <Spinner size='xs' />
+          )}
+          {message.round !== 0 && (
+            <a
+              href={`https://dashboard.xx.network/rounds/${message.round}`}
+              target='_blank'
+              rel='noreferrer'
+              className='text text--xs ml-2'
+              style={{
+                whiteSpace: 'nowrap',
+                fontSize: '9px',
+                color: 'var(--text-secondary)',
+                textDecoration: 'underline',
+                marginBottom: '1px'
+              }}
+            >
+              Show mix
+            </a>
+          )}
         </div>
 
-        <div className={cn(s.body)}>
+        <div className={cn('message-body', s.body)}>
           {message.repliedTo !== null && (
             <p
               className={cn(s.replyToMessageBody)}
@@ -108,15 +146,16 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
                 }
               }}
             >
-              {repliedToMessage ? (
+              {repliedToMessage && replyMarkup ? (
                 <>
                   <Identity {...repliedToMessage} />
                   <Clamp lines={3}>
                     <p
+                      className='message'
                       dangerouslySetInnerHTML={{
-                        __html: mapTextToHtmlWithAnchors(repliedToMessage.body)
+                        __html: replyMarkup
                       }}
-                    ></p>
+                    />
                   </Clamp>
                 </>
               ) : (
@@ -138,17 +177,17 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
             maxLines={Number.MAX_SAFE_INTEGER}
             withToggle={clamped}
             lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
-            <p
-              className={cn(s.messageBody, {
+            {markup ? <p
+              className={cn('message', s.messageBody, {
                 [s.messageBody__failed]: message.status === 3
               })}
               dangerouslySetInnerHTML={{
-                __html: mapTextToHtmlWithAnchors(message.body)
+                __html: markup
               }}
-            />
+            /> : <p></p>}
           </Clamp>
         </div>
-        <ChatReactions message={message} onEmojiReaction={onEmojiReaction} />
+        <ChatReactions message={message} />
       </div>
     </div>
   );

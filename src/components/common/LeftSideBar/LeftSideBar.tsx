@@ -1,9 +1,7 @@
 import { FC, useCallback, useMemo, useRef } from 'react';
 import cn from 'classnames';
 import { useOnClickOutside } from 'usehooks-ts';
-import {
-  Collapse,
-} from 'src/components/common';
+import { Collapse } from 'src/components/common';
 
 import { Elixxir, SpeakEasy, Settings, Plus, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
@@ -145,7 +143,7 @@ const LeftSideBar: FC<{
         <div className={cn(s.version)}>
           {getClientVersion() && <span>XXDK version {getClientVersion()}</span>}
           {getVersion() && <span>Wasm version {getVersion()}</span>}
-          <span>App version 0.2.2</span>
+          <span>App version 0.2.8</span>
         </div>
       </div>
     </div>
