@@ -15,16 +15,18 @@ export const slice = createSlice({
   initialState,
   name: 'channels',
   reducers: {
-    upsert: (state: ChannelsState, { payload }: PayloadAction<Omit<Channel, 'currentPage' | 'missedMessages'>>): ChannelsState => ({
-      ...state,
-      byId: {
-        ...state.byId,
-        [payload.id]: {
-          ...(state.byId[payload.id] || initialChannelState),
-          ...payload,
+    upsert: (state: ChannelsState, { payload }: PayloadAction<Omit<Channel, 'currentPage' | 'missedMessages'>>): ChannelsState => {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [payload.id]: {
+            ...(state.byId[payload.id] || initialChannelState),
+            ...payload,
+          }
         }
       }
-    }),
+    },
     incrementPage: (state: ChannelsState, { payload }: PayloadAction<ChannelId>): ChannelsState => {
       if (!state.byId[payload]) {
         return state;
@@ -44,12 +46,14 @@ export const slice = createSlice({
     delete: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
       return {
         ...state,
-        byId: {
-          ...pickBy(state.byId, ({ id }) => id !== channelId)
-        }
+        byId: pickBy(state.byId, ({ id }) => id !== channelId)
       }
     },
     selectChannel: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
+      if (!state.byId[channelId]) {
+        return state;
+      }
+      
       return {
         ...state,
         byId: {
@@ -75,27 +79,32 @@ export const slice = createSlice({
       }
       
     },
-    notifyNewMessage: (state: ChannelsState, action: PayloadAction<ChannelId>): ChannelsState => action.payload === state.currentChannelId ? state : ({
-      ...state,
-      byId: {
-        ...state.byId,
-        [action.payload]: state.byId[action.payload] && {
-          ...state.byId[action.payload],
-          hasMissedMessages: false,
+    notifyNewMessage: (state: ChannelsState, action: PayloadAction<ChannelId>): ChannelsState => {
+      return action.payload === state.currentChannelId || !state.byId[action.payload] ? state : ({
+        ...state,
+        byId: {
+          ...state.byId,
+          [action.payload]: {
+            ...state.byId[action.payload],
+            hasMissedMessages: true,
+          }
         }
-      }
-    }),
-    upgradeAdminInCurrentChannel: (state: ChannelsState) => state.currentChannelId ? ({
-      ...state,
-      byId: {
-        ...state.byId,
-        [state.currentChannelId]: {
-          ...state.byId[state.currentChannelId],
-          isAdmin: true
+      });
+    },
+    upgradeAdminInCurrentChannel: (state: ChannelsState) => {
+      return state.currentChannelId ? ({
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.currentChannelId]: {
+            ...state.byId[state.currentChannelId],
+            isAdmin: true
+          }
         }
-      }
-    }) : state,
+      }) : state
+    },
   }
+  
 });
 
 export default slice.reducer;

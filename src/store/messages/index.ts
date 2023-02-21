@@ -17,11 +17,11 @@ const upsert = (state: MessagesState, message: Message) => {
   return {
     ...state,
     byId: {
+      ...state.byId,
       [message.uuid]: {
         ...state.byId[message.uuid],
         ...message
       },
-      ...state.byId
     }
   }
 };
@@ -33,10 +33,13 @@ export const slice = createSlice({
     upsert: (state: MessagesState, { payload }: PayloadAction<Message>) => upsert(state, payload),
     upsertMany: (state: MessagesState, { payload: messages }: PayloadAction<Message[]>) =>
       messages.reduce(upsert, state),
-    delete: (state: MessagesState, { payload: messageId }: PayloadAction<Message['id']>): MessagesState => ({
-      ...state,
-      byId: omit(state.byId, messageId)
-    })
+    delete: (state: MessagesState, { payload: messageId }: PayloadAction<Message['id']>): MessagesState => {
+      const found = Object.values(state.byId).find((message) => message.id === messageId);
+      return {
+        ...state,
+        byId: found ? omit(state.byId, found.uuid) : state.byId
+      }
+    }
   }
 });
 

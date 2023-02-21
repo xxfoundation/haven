@@ -3,8 +3,6 @@ import type{ FC } from 'react';
 
 import { useCallback, useState } from 'react';
 import cn from 'classnames';
-import delay from 'delay';
-
 
 import MessageActions from '../MessageActions';
 import ChatMessage from '../ChatMessage/ChatMessage';
@@ -18,6 +16,7 @@ import { useAppSelector } from 'src/store/hooks';
 
 import classes from './MessageContainer.module.scss';
 import * as identity from 'src/store/identity';
+import { awaitEvent, Event } from 'src/events';
 
 
 type Props = {
@@ -26,10 +25,9 @@ type Props = {
   readonly?: boolean;
   message: Message;
   handleReplyToMessage: (message: Message) => void;
-  onEmojiReaction: (emoji: string, messageId: string) => void;
 }
 
-const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, onEmojiReaction, readonly }) => {
+const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, readonly }) => {
   const { pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
@@ -37,6 +35,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     deleteMessage,
     muteUser,
     pinMessage,
+    sendReaction,
     userIsMuted
   } = useNetworkClient();
 
@@ -68,7 +67,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
 
     promises.push(muteUser(message.pubkey, false));
 
-    promises.push(delay(5000));  // delay to let the nodes propagate
+    promises.push(awaitEvent(Event.USER_MUTED));  // delay to let the nodes propagate
 
     await Promise.all(promises);
 
@@ -79,7 +78,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     if (unpin === true) {
       await Promise.all([
         pinMessage(message, unpin),
-        delay(8000) // delay to let the nodes propagate
+        awaitEvent(Event.MESSAGE_UNPINNED) // delay to let the nodes propagate
       ]);
     } else {
       showPinModal();
@@ -89,14 +88,14 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
       pinMessage(message),
-      delay(8000) // delay to let the nodes propagate
+      awaitEvent(Event.MESSAGE_PINNED) // delay to let the nodes propagate
     ]);
     hidePinModal();
   }, [hidePinModal, message, pinMessage]);
 
   const handleEmojiReaction = useCallback((emoji: string) => {
-    onEmojiReaction(emoji, message.id);
-  }, [message.id, onEmojiReaction]);
+    sendReaction(emoji, message.id);
+  }, [message.id, sendReaction]);
   
   return (
     <>{!readonly && (
@@ -142,8 +141,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
       onMouseEnter={() => setShowActionsWrapper(true)}
       onMouseLeave={() => setShowActionsWrapper(false)}
       onTouchEnd={() => setShowActionsWrapper(true)}
-      message={message}
-      onEmojiReaction={onEmojiReaction} />
+      message={message} />
     </>
   );
 }

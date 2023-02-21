@@ -1,7 +1,4 @@
 .root {
-  p {
-    word-break: break-all;
-  }
   padding: 8px 16px;
   position: relative;
 
@@ -89,6 +86,10 @@
 
 
 .messageBody {
+  p:empty {
+    margin-bottom: 1rem;
+  }
+
   &__failed {
     color: var(--red) !important;
   }
@@ -99,11 +100,4 @@
 
 .sender {
   white-space: nowrap;
-}
-
-.actionsWrapperPosition {
-  position: absolute;
-  right: 20px;
-  top: 2px;
-  z-index: 2;
 }

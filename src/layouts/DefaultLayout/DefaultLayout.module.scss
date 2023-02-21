@@ -1,13 +1,29 @@
 .root {
   display: flex;
   height: 100vh;
+  overflow: hidden;
+
+  &.collapsed {
+    main {
+      max-width: calc(100vw - 19rem);
+    }
+    .rightSideBar {
+      transition: width 1s;
+      flex: 0 0 1rem;
+    }
+  }
 
   .leftSideBar {
-    max-width: 286px;
+    flex: 0 0 18rem;
+  }
+
+  .rightSideBar {
+    flex: 0 0 18rem;
   }
 
   main {
     flex-grow: 1;
+    max-width: calc(100vw - 36rem);
   }
 }
 

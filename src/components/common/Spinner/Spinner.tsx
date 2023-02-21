@@ -1,12 +1,12 @@
-import { FC } from 'react';
+import { FC, HTMLAttributes } from 'react';
 import cn from 'classnames';
 import s from './Spinner.module.scss';
 
-type Size = 'lg' | 'md' | 'sm';
+type Size = 'lg' | 'md' | 'sm' | 'xs';
 
-const Spinner: FC<{ size?: Size }> = ({ size = 'sm' }) => {
+const Spinner: FC<{ size?: Size } & HTMLAttributes<SVGSVGElement>> = ({ size = 'sm', ...props }) => {
   return (
-    <svg className={cn(s.spinner, s[size] )} xmlns='http://www.w3.org/2000/svg' viewBox='0 0 61.03 67.69'>
+    <svg {...props} className={cn(s.spinner, s[size], props.className )} xmlns='http://www.w3.org/2000/svg' viewBox='0 0 61.03 67.69'>
       <g id='Layer_2' data-name='Layer 2'>
         <g id='Layer_1-2' data-name='Layer 1'>
           <path className={s['stroke-1']} fill='#fff' d='M45.9,13.44a26.38,26.38,0,0,1,2.39,11c0,.12,0,.24,0,.37L61,13.48V0Z'/>

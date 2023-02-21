@@ -2,14 +2,15 @@ import type { User } from '@contexts/network-client-context';
 
 import { FC, useCallback } from 'react';
 import cn from 'classnames';
-import delay from 'delay';
 
-import { Button, Spinner } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import Identity from 'src/components/common/Identity';
 import useAsync from 'src/hooks/useAsync';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
+import { awaitEvent, Event } from 'src/events';
+import Loading from '../LoadingView';
 
 export type MuteUserAction = 'mute' | 'mute+delete';
 
@@ -18,7 +19,7 @@ const ViewMutedUsers: FC = () =>  {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const getMuted = useAsync(getMutedUsers);
   const muting = useAsync((...args: Parameters<typeof muteUser>) => Promise.all([
-    delay(5000),  // delay to let the nodes propagate
+    awaitEvent(Event.USER_MUTED),  // delay to let the nodes propagate
     muteUser(...args)
   ]));
 
@@ -30,7 +31,7 @@ const ViewMutedUsers: FC = () =>  {
     <div
       className={cn('w-full flex flex-col justify-center items-center pb-8')}
     >
-      {getMuted.status === 'pending' || muting.status === 'pending' ? <div className='my-32'><Spinner /></div> : (
+      {getMuted.status === 'pending' || muting.status === 'pending' ? <Loading /> : (
         <>
           <h2 className={cn('mt-9 mb-4')}>Muted Users</h2>
           {currentChannel?.isAdmin && (
