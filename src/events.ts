@@ -1,12 +1,16 @@
 import { Message } from './store/messages/types';
 import EventEmitter from 'events';
+import delay from 'delay';
 
 export const bus = new EventEmitter();
 
-export const RECEIVED_MESSAGE = 'message';
-export const USER_MUTED = 'muted';
-export const MESSAGE_DELETED = 'delete';
-export const MESSAGE_PINNED = 'pinned';
+export enum Event {
+  MESSAGE_RECEIVED = 'message',
+  USER_MUTED = 'muted',
+  MESSAGE_DELETED = 'delete',
+  MESSAGE_PINNED = 'pinned',
+  MESSAGE_UNPINNED = 'unpinned'
+}
 
 export type MessageReceivedEvent = {
   messageId: string;
@@ -25,7 +29,7 @@ export const onMessageReceived = (
     update
   }
 
-  bus.emit(RECEIVED_MESSAGE, messageEvent);
+  bus.emit(Event.MESSAGE_RECEIVED, messageEvent);
 }
 
 export type UserMutedEvent = {
@@ -40,7 +44,7 @@ export const onMutedUser = (
   unmute: boolean
 ) => {
   const event: UserMutedEvent = { channelId, pubkey, unmute };
-  bus.emit(USER_MUTED, event);
+  bus.emit(Event.USER_MUTED, event);
 }
 
 export type MessageDeletedEvent = {
@@ -50,7 +54,29 @@ export type MessageDeletedEvent = {
 export const onMessageDelete = (msgId: Uint8Array) => {
   const messageId = Buffer.from(msgId).toString('base64');
   const event: MessageDeletedEvent = { messageId };
-  bus.emit(MESSAGE_DELETED, event);
+  bus.emit(Event.MESSAGE_DELETED, event);
 };
 
+export const onMessagePinned = (message: Message) => {
+  bus.emit(Event.MESSAGE_PINNED, message);
+}
+
+export const onMessageUnpinned = (message: Message) => {
+  bus.emit(Event.MESSAGE_UNPINNED, message);
+}
+
 export type MessagePinEvent = Message;
+export type MessageUnPinEvent = Message;
+
+export const awaitEvent = async (evt: Event) => {
+  let listener: () => void = () => {};
+  await Promise.race([
+    new Promise<void>((resolve) => {
+      listener = resolve;
+      bus.addListener(evt, resolve)
+    }),
+    delay(10000) // 10 second timeout
+  ]);
+
+  bus.removeListener(evt, listener);
+}

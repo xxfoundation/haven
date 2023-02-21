@@ -2,18 +2,19 @@ import type { Message } from '@types';
 
 import React, { FC } from 'react';
 import cn from 'classnames';
+import { Tooltip } from 'react-tooltip';
 
 import s from './styles.module.scss';
-import { ToolTip } from 'src/components/common';
 import * as messages from 'src/store/messages';
 import { useAppSelector } from 'src/store/hooks';
+import { useNetworkClient } from '@contexts/network-client-context';
 
 type Props = {
-  onEmojiReaction?: (emoji: string, messageId: string) => void;
   message: Message;
 }
 
-const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
+const ChatReactions: FC<Props> = ({ message }) => {
+  const { sendReaction } = useNetworkClient();
   const reactions = useAppSelector(messages.selectors.reactionsTo(message));
 
   return (
@@ -22,10 +23,9 @@ const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
         {reactions?.map(([emoji, users]) => (
           <div
             key={`${message.id}-${emoji}`}
-            data-tip
-            data-for={`${message.id}-${emoji}-emojis-users-reactions`}
+            id={`${message.id}-${emoji}-emojis-users-reactions`}
             className={cn(s.emoji)}
-            onClick={() => onEmojiReaction(emoji, message.id)}
+            onClick={() => sendReaction(emoji, message.id)}
           >
             <span className='mr-1'>{emoji}</span>
             <span className={cn(s.count)}>
@@ -35,14 +35,12 @@ const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
         ))}
       </div>
       {reactions?.map(([emoji, users]) =>  (
-        <ToolTip
+        <Tooltip
+          clickable
+          className={s.tooltip}
           key={emoji}
-          tooltipProps={{
-            id: `${message.id}-${emoji}-emojis-users-reactions`,
-            effect: 'solid',
-            place: 'top',
-            className: s.tooltip
-          }}
+          anchorId={`${message.id}-${emoji}-emojis-users-reactions`}
+          place={'bottom'}
         >
           <div className={cn(s.icon)}>{emoji}</div>
           <p>
@@ -56,7 +54,7 @@ const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
               {emoji}
             </span>
           </p>
-        </ToolTip>
+        </Tooltip>
       ))}
     </>
   )

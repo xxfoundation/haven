@@ -1,11 +1,12 @@
 import { FC } from 'react';
 import cn from 'classnames';
 
-import { ModalCtaButton, Spinner } from 'src/components/common';
+import { ModalCtaButton } from 'src/components/common';
 import Modal from 'src/components/modals';
 
 import s from './MuteUser.module.scss';
 import { useCallback, useState } from 'react';
+import Loading from '../LoadingView';
 
 export type MuteUserAction = 'mute' | 'mute+delete';
 
@@ -29,7 +30,7 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
       <div
         className={cn('w-full flex flex-col justify-center items-center')}
       >
-        {loading ? <div className='my-32'><Spinner /></div> : (
+        {loading ? <Loading /> : (
           <>
             <h2 className={cn('mt-9 mb-4')}>Warning</h2>
             <p className='mb-4'>

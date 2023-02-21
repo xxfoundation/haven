@@ -1,5 +1,5 @@
 import type { CMix } from 'src/types';
-import type {Message, MessageStatus } from 'src/store/messages/types';
+import {Message, MessageStatus } from 'src/store/messages/types';
 
 import { ChannelJSON, VersionJSON } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
@@ -8,9 +8,9 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import * as events from 'src/events';
+import { bus, Event, MessageDeletedEvent, MessagePinEvent, MessageReceivedEvent, onMessageDelete, onMessagePinned, onMessageReceived, onMessageUnpinned, onMutedUser } from 'src/events';
 import { WithChildren } from 'src/types';
-import { decoder, encoder, exportDataToFile } from 'src/utils';
+import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH } from '../constants';
@@ -24,8 +24,9 @@ import * as channels from 'src/store/channels'
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
+import usePagination from 'src/hooks/usePagination';
 
-const BATCH_COUNT = 100;
+const BATCH_COUNT = 1000;
 
 export type DBMessage = {
   id: number;
@@ -157,6 +158,7 @@ type NetworkContext = {
     selectedPrivateIdentity: Uint8Array,
     onIsReadyInfoChange: (readinessInfo: IsReadyInfo) => void
   ) => Promise<void>;
+  pagination: ReturnType<typeof usePagination>;
   createChannel: (
     channelName: string,
     channelDescription: string,
@@ -164,7 +166,7 @@ type NetworkContext = {
   ) => void;
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
-  deleteMessage: (message: Message) => Promise<void>;
+  deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
   exportChannelAdminKeys: (encryptionPassword: string) => string;
   getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   generateIdentities: (amountOfIdentites: number) => {
@@ -225,6 +227,7 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
 };
 
 export const NetworkProvider: FC<WithChildren> = props => {
+  const pagination = usePagination();
   const dispatch = useAppDispatch();
   const db = useDb();
   const {
@@ -233,7 +236,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     setIsAuthenticated,
     storageTag,
   } = useAuthentication();
-  const { messagePinned, messageReplied } = useNotification();
+  const { messagePinned, messageReplied, notifyMentioned } = useNotification();
   const { utils } = useUtils();
   const [mutedUsers, setMutedUsers] = useState<User[]>();
   const { cipher, cmix, connect, disconnect, initializeCmix, status: cmixStatus } = useCmix();
@@ -241,6 +244,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentChannels = useAppSelector(channels.selectors.channels);
+  const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const userIdentity = useAppSelector(identity.selectors.identity);
 
   const initialize = useCallback(async (password: string) => {
@@ -332,7 +336,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       ) as ChannelJSON;
 
       if (appendToCurrent) {
-        const temp: ChannelInfo = {
+        const channel: ChannelInfo = {
           id: chanInfo.ChannelID,
           name: chanInfo.Name,
           privacyLevel: getPrivacyLevel(chanInfo.ChannelID),
@@ -340,8 +344,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
           isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
         };
 
-        dispatch(channels.actions.selectChannel(temp.id));
-        dispatch(channels.actions.upsert(temp));
+        dispatch(channels.actions.selectChannel(channel.id));
+        dispatch(channels.actions.upsert(channel));
       }
     }
   }, [channelManager, dispatch, getPrivacyLevel, utils]);
@@ -369,6 +373,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [utils]);
 
   useEffect(() => {
+    if (channelManager && userIdentity) {
+      Cookies.set('userAuthenticated', 'true', { path: '/' });
+    }
+  }, [channelManager, userIdentity]);
+
+  useEffect(() => {
     bc.onmessage = async event => {
       if (event.data?.prettyPrint) {
         try {
@@ -377,7 +387,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     };
   }, [bc, channelManager, joinChannel]);
-
 
   const dbMessageMapper = useCallback((dbMsg: DBMessage): Message => {
     assert(cipher, 'Cipher required');
@@ -418,33 +427,69 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const allMessages = useAppSelector(messages.selectors.allMessages);
 
-  const handleMessageEvent = useCallback(async ({ messageId }: events.MessageReceivedEvent) => {
+  const handleMessageEvent = useCallback(async ({ messageId }: MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
       const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
+      if (!receivedMessage) {
+        return;
+      }
+      
+      const decryptedText = cipher.decrypt(receivedMessage.text);
 
-      // Notify user if someone replied to him
+      // Notify user if message mentions him/her/they/banana
+      if (receivedMessage.status === MessageStatus.Delivered) {
+        const inflatedText = inflate(decryptedText);
+        const mentions = new DOMParser()
+          .parseFromString(inflatedText, 'text/html')
+          .getElementsByClassName('mention');
+  
+        for (let i = 0; i < mentions.length; i++) {
+          const mention = mentions[i];
+          const mentionedPubkey = mention.getAttribute('data-id');
+  
+          if (mentionedPubkey === userIdentity?.pubkey) {
+            const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
+            notifyMentioned(
+              receivedMessage.nickname || codename,
+              decryptedText
+            );
+            break;
+          }
+        }
+      }
+     
+
       if (
           receivedMessage?.type !== MessageType.Reaction && // Remove emoji reactions, Ben thinks theyre annoying
           receivedMessage?.parent_message_id
           && receivedMessage?.pubkey !== userIdentity?.pubkey) {
-        const replyingTo = await db.table<DBMessage>('messages').where('message_id').equals(receivedMessage?.parent_message_id).first();
+        const replyingTo = await db.table<DBMessage>('messages')
+          .where('message_id')
+          .equals(receivedMessage?.parent_message_id)
+          .first();
         if (replyingTo?.pubkey === userIdentity?.pubkey) {
           const { codename } = getCodeNameAndColor(receivedMessage.pubkey, receivedMessage.codeset_version);
           messageReplied(
             receivedMessage.nickname || codename,
-            cipher.decrypt(receivedMessage.text)
+            decryptedText
           )
         }
       }
 
       const oldMessage = allMessages.find(({ uuid }) => receivedMessage?.id === uuid);
 
+      // notify new pinned messages
       if (!oldMessage?.pinned && receivedMessage?.pinned) {
         const foundChannel = currentChannels.find(({ id }) => receivedMessage.channel_id === id);
+        onMessagePinned(dbMessageMapper(receivedMessage));
         messagePinned(
-          cipher.decrypt(receivedMessage.text),
+          decryptedText,
           foundChannel?.name ?? 'unknown'
         );
+      }
+
+      if (oldMessage?.pinned && !receivedMessage.pinned) {
+        onMessageUnpinned(dbMessageMapper(receivedMessage));
       }
 
       if (receivedMessage) {
@@ -464,15 +509,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
     dbMessageMapper,
     dispatch,
     getCodeNameAndColor,
+    notifyMentioned,
     messagePinned,
     messageReplied,
     userIdentity?.pubkey
   ]);
 
   useEffect(() => {
-    events.bus.addListener(events.RECEIVED_MESSAGE, handleMessageEvent);
+    bus.addListener(Event.MESSAGE_RECEIVED, handleMessageEvent);
 
-    return () => { events.bus.removeListener('message', handleMessageEvent) };
+    return () => { bus.removeListener('message', handleMessageEvent) };
   }, [handleMessageEvent]);
 
   const fetchChannels = useCallback(async () => {
@@ -614,9 +660,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
           cmix.GetID(),
           '/integrations/assets/channelsIndexedDbWorker.js',
           storageTag,
-          events.onMessageReceived,
-          events.onMessageDelete,
-          events.onMutedUser,
+          onMessageReceived,
+          onMessageDelete,
+          onMutedUser,
           cipher?.id
         );
 
@@ -662,14 +708,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, currentChannel, db, getCodeNameAndColor, utils]);
 
   useEffect(() => {
-    const listener = ({ body, channelId }: events.MessagePinEvent) => {
+    const listener = ({ body, channelId }: MessagePinEvent) => {
       const channelName = currentChannels.find((c) => c.id === channelId)?.name ?? 'unknown';
       messagePinned(body, channelName);
     };
 
-    events.bus.addListener(events.MESSAGE_PINNED, listener);
+    bus.addListener(Event.MESSAGE_PINNED, listener);
 
-    return () => { events.bus.removeListener(events.MESSAGE_PINNED, listener); }
+    return () => { bus.removeListener(Event.MESSAGE_PINNED, listener); }
 
   }, [currentChannels, messagePinned])
 
@@ -678,9 +724,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       getMutedUsers();
     }
 
-    events.bus.addListener(events.USER_MUTED, listener);
+    bus.addListener(Event.USER_MUTED, listener);
 
-    return () => { events.bus.removeListener(events.USER_MUTED, listener); };
+    return () => { bus.removeListener(Event.USER_MUTED, listener); };
   }, [getMutedUsers]);
 
   const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
@@ -694,9 +740,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
         cmix.GetID(),
         '/integrations/assets/channelsIndexedDbWorker.js',
         privateIdentity,
-        events.onMessageReceived,
-        events.onMessageDelete,
-        events.onMutedUser,
+        onMessageReceived,
+        onMessageDelete,
+        onMutedUser,
         cipher.id
       );
       
@@ -713,10 +759,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
     addStorageTag
   ]);
 
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => { setHasMore(true); }, [currentChannel?.id])
+
   const loadMoreChannelData = useCallback(async (chId: string) => {
     if (db) {
       const foundChannel = currentChannels.find(ch => ch.id === chId);
       if (foundChannel) {
+        const offset = (foundChannel.currentPage + 1) * BATCH_COUNT;
+
         const newMessages = await db
           .table<DBMessage>('messages')
           .orderBy('timestamp')
@@ -724,17 +776,31 @@ export const NetworkProvider: FC<WithChildren> = props => {
           .filter(m => {
             return !m.hidden && m.channel_id === chId && m.type === 1;
           })
-          .offset(foundChannel.currentPage + 1 * BATCH_COUNT)
+          .offset(offset)
           .limit(BATCH_COUNT)
           .toArray();
         
         if (newMessages.length > 0) {
           dispatch(channels.actions.incrementPage(chId));
           dispatch(messages.actions.upsertMany(newMessages.map(dbMessageMapper)));
+        } else {
+          setHasMore(false);
         }
       }
     }
   }, [db, currentChannels, dispatch, dbMessageMapper]);
+
+  useEffect(() => {
+    if (currentChannel?.id !== undefined && pagination.end >= (currentMessages?.length ?? 0) && hasMore) {
+      loadMoreChannelData(currentChannel?.id);
+    }
+  }, [
+    currentChannel?.id,
+    currentMessages?.length,
+    hasMore,
+    loadMoreChannelData,
+    pagination.end
+  ])
 
   const joinChannelFromURL = useCallback((url: string, password = '') => {
     if (channelManager && channelManager.JoinChannelFromURL) {
@@ -857,8 +923,29 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils]);
 
+  const deleteMessage = useCallback(async ({ channelId, id }: Pick<Message, 'channelId' | 'id'>) => {
+    await channelManager?.DeleteMessage(
+      utils.Base64ToUint8Array(channelId),
+      utils.Base64ToUint8Array(id),
+      utils.GetDefaultCMixParams()
+    );
+
+    dispatch(messages.actions.delete(id));
+  }, [channelManager, dispatch, utils]);
+
   const sendReaction = useCallback(async (reaction: string, reactToMessageId: string) => {
     if (channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
+     const foundReaction = allMessages.find(
+      (m) => m.pubkey === userIdentity?.pubkey
+        && m.channelId === currentChannel?.id
+        && m.body === reaction
+        && m.type === MessageType.Reaction
+        && m.repliedTo === reactToMessageId
+    );
+
+    if (currentChannel && foundReaction) {
+      await deleteMessage({ channelId: currentChannel.id, id: foundReaction.id })
+    } else {
       try {
         await channelManager.SendReaction(
           utils.Base64ToUint8Array(currentChannel.id),
@@ -873,7 +960,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
         );
       }
     }
-  }, [channelManager, currentChannel, utils]);
+      
+    }
+  }, [
+    allMessages,
+    channelManager,
+    currentChannel,
+    deleteMessage,
+    userIdentity?.pubkey,
+    utils
+  ]);
 
   const setNickName = useCallback((nickName: string) => {
     if (channelManager?.SetNickname && currentChannel?.id) {
@@ -1010,24 +1106,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils]);
 
-  const deleteMessage = useCallback(async ({ channelId, id }: Message) => {
-    await channelManager?.DeleteMessage(
-      utils.Base64ToUint8Array(channelId),
-      utils.Base64ToUint8Array(id),
-      utils.GetDefaultCMixParams()
-    );
-
-    dispatch(messages.actions.delete(id));
-  }, [channelManager, dispatch, utils]);
-
   useEffect(() => {
-    const listener = (evt: events.MessageDeletedEvent) => {
+    const listener = (evt: MessageDeletedEvent) => {
       dispatch(messages.actions.delete(evt.messageId));
     };
 
-    events.bus.addListener(events.MESSAGE_DELETED, listener);
+    bus.addListener(Event.MESSAGE_DELETED, listener);
 
-    return () => { events.bus.removeListener(events.MESSAGE_DELETED, listener); }
+    return () => { bus.removeListener(Event.MESSAGE_DELETED, listener); }
   }, [dispatch])
 
   useEffect(() => {
@@ -1090,9 +1176,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       checkMuted();
     }
 
-    events.bus.addListener(events.USER_MUTED, checkMuted);
+    bus.addListener(Event.USER_MUTED, checkMuted);
 
-    return () => { events.bus.removeListener(events.USER_MUTED, checkMuted); }
+    return () => { bus.removeListener(Event.USER_MUTED, checkMuted); }
   }, [currentChannel?.id, getMuted]);
 
 
@@ -1126,6 +1212,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     muteUser,
     getMuted,
     cmix,
+    pagination,
     deleteMessage,
     joinChannel,
     createChannel,
