@@ -25,10 +25,9 @@ type Props = {
   readonly?: boolean;
   message: Message;
   handleReplyToMessage: (message: Message) => void;
-  onEmojiReaction: (emoji: string, messageId: string) => void;
 }
 
-const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, onEmojiReaction, readonly }) => {
+const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, readonly }) => {
   const { pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
@@ -36,6 +35,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     deleteMessage,
     muteUser,
     pinMessage,
+    sendReaction,
     userIsMuted
   } = useNetworkClient();
 
@@ -94,8 +94,8 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   }, [hidePinModal, message, pinMessage]);
 
   const handleEmojiReaction = useCallback((emoji: string) => {
-    onEmojiReaction(emoji, message.id);
-  }, [message.id, onEmojiReaction]);
+    sendReaction(emoji, message.id);
+  }, [message.id, sendReaction]);
   
   return (
     <>{!readonly && (
@@ -141,8 +141,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
       onMouseEnter={() => setShowActionsWrapper(true)}
       onMouseLeave={() => setShowActionsWrapper(false)}
       onTouchEnd={() => setShowActionsWrapper(true)}
-      message={message}
-      onEmojiReaction={onEmojiReaction} />
+      message={message} />
     </>
   );
 }

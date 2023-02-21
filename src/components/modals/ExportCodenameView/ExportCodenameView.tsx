@@ -36,6 +36,11 @@ const ExportCodenameView: FC = () => {
         type='password'
         placeholder='Unlock export with your password'
         value={password}
+        onKeyDown={(evt) => {
+          if (evt.key === 'Enter') {
+            handleSubmit();
+          }
+        }}
         onChange={e => {
           setPassword(e.target.value);
         }}

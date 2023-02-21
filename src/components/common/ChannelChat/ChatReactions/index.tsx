@@ -7,13 +7,14 @@ import { Tooltip } from 'react-tooltip';
 import s from './styles.module.scss';
 import * as messages from 'src/store/messages';
 import { useAppSelector } from 'src/store/hooks';
+import { useNetworkClient } from '@contexts/network-client-context';
 
 type Props = {
-  onEmojiReaction?: (emoji: string, messageId: string) => void;
   message: Message;
 }
 
-const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
+const ChatReactions: FC<Props> = ({ message }) => {
+  const { sendReaction } = useNetworkClient();
   const reactions = useAppSelector(messages.selectors.reactionsTo(message));
 
   return (
@@ -24,7 +25,7 @@ const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
             key={`${message.id}-${emoji}`}
             id={`${message.id}-${emoji}-emojis-users-reactions`}
             className={cn(s.emoji)}
-            onClick={() => onEmojiReaction(emoji, message.id)}
+            onClick={() => sendReaction(emoji, message.id)}
           >
             <span className='mr-1'>{emoji}</span>
             <span className={cn(s.count)}>
@@ -35,10 +36,11 @@ const ChatReactions: FC<Props> = ({ message, onEmojiReaction = () => {} }) => {
       </div>
       {reactions?.map(([emoji, users]) =>  (
         <Tooltip
+          clickable
           className={s.tooltip}
           key={emoji}
           anchorId={`${message.id}-${emoji}-emojis-users-reactions`}
-          place={'top'}
+          place={'bottom'}
         >
           <div className={cn(s.icon)}>{emoji}</div>
           <p>

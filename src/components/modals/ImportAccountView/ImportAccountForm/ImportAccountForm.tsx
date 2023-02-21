@@ -46,7 +46,15 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
   }, []);
 
   return (
-    <form onSubmit={handleSubmission} className={cn('w-full flex flex-col items-center', s.root)}>
+    <form
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          handleSubmission();
+        }
+      }}
+      onSubmit={handleSubmission}
+      className={cn('w-full flex flex-col items-center', s.root)}
+    >
       <h2 className='mt-9 mb-4'>Import your account</h2>
       <p className='mb-8'>
         Note that importing your account will only restore your codename. You
