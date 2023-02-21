@@ -52,6 +52,12 @@ $speed: 3s;
   text-align: center;
   width: 30px;
 
+  &.xs {
+    width: 1ch;
+    margin: 0 0.25rem;
+    display: inline;
+  }
+
   &.sm {
     width: 30px;
   }

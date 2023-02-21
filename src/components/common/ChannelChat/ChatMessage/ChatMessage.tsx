@@ -1,4 +1,4 @@
-import type { Message } from 'src/types';
+import { Message, MessageStatus } from 'src/types';
 
 import React, { CSSProperties, FC, HTMLAttributes, useEffect, useMemo, useState } from 'react';
 import cn from 'classnames';
@@ -9,6 +9,7 @@ import Clamp from 'react-multiline-clamp';
 import Identity from 'src/components/common/Identity';
 import s from './ChatMessage.module.scss';
 import ChatReactions from '../ChatReactions';
+import Spinner from '@components/common/Spinner';
 import { useAppSelector } from 'src/store/hooks';
 import * as messages from 'src/store/messages';
 import { inflate } from '@utils/index';
@@ -17,7 +18,6 @@ import { selectors } from 'src/store/messages';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
-  onEmojiReaction?: (emoji: string, messageId: string) => void;
   message: Message;
 }
 
@@ -29,7 +29,7 @@ const HoveredMention = ({ codename }: { codename: string }) => {
   ) : null;
 }
 
-const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProps }) => {
+const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
   const markup = useMemo(
     () => inflate(message.body),
@@ -105,6 +105,9 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
           <span className={cn(s.messageTimestamp)}>
             {moment(message.timestamp).format('hh:mm A')}
           </span>
+          {message.status === MessageStatus.Unsent && (
+            <Spinner size='xs' />
+          )}
           {message.round !== 0 && (
             <a
               href={`https://dashboard.xx.network/rounds/${message.round}`}
@@ -184,7 +187,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, onEmojiReaction, ...htmlProp
             /> : <p></p>}
           </Clamp>
         </div>
-        <ChatReactions message={message} onEmojiReaction={onEmojiReaction} />
+        <ChatReactions message={message} />
       </div>
     </div>
   );

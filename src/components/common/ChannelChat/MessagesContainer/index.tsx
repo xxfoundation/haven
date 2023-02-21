@@ -19,14 +19,12 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   readonly?: boolean;
   messages: Message[];
   handleReplyToMessage?: (message: Message) => void;
-  onEmojiReaction?: (emoji: string, messageId: string) => void;
 }
 
 const MessagesContainer: FC<Props> = ({
   readonly = false,
   handleReplyToMessage = () => {},
   messages,
-  onEmojiReaction = () => {},
   ...props
 }) => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
@@ -63,7 +61,6 @@ const MessagesContainer: FC<Props> = ({
                 <MessageContainer
                   readonly={readonly}
                   key={m.id}
-                  onEmojiReaction={onEmojiReaction}
                   handleReplyToMessage={handleReplyToMessage}
                   message={m} />
               ))}

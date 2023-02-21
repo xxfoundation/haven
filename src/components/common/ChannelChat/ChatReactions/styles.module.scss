@@ -1,9 +1,11 @@
 
 .wrapper {
+  position: relative;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   margin-top: 8px;
+  z-index: 2;
 
   .emoji {
     margin-right: 2px;
@@ -26,10 +28,14 @@
 }
 
 .tooltip {
+  position: absolute;
+  z-index: 3;
   padding: 4px 8px 8px 8px !important;
   opacity: 1 !important;
-  border: 0.5px solid var(--secondary) !important;
   max-width: 320px !important;
+  max-height: 350px !important;
+  overflow: auto;
+  border-radius: 5px;
 
   .icon {
     font-size: 48px;
@@ -38,7 +44,7 @@
   
   p {
     font-size: 12px !important;
-    font-weight: 400;
+    font-weight: 500;
     text-align: center;
   }
 }

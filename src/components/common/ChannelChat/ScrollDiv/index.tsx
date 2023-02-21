@@ -16,7 +16,7 @@ type Props = HTMLProps<HTMLDivElement> & {
 
 const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBottom, nearTop, setAutoScrollBottom, ...rest }) => {
   const [scrollBoxHeight, setScrollBoxHeight] = useState(SCROLL_BOX_MIN_HEIGHT);
-  const [scrollBoxTop, setScrollBoxTop] = useState(0);
+  const [scrollThumbTop, setThumbTop] = useState(0);
   const [lastScrollThumbPosition, setScrollThumbPosition] = useState(0);
   const [isDragging, setDragging] = useState(false);
   const scrollHostRef = useRef<HTMLDivElement>(null);
@@ -40,23 +40,8 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     [isDragging]
   );
 
-  const scrollToBottom = useCallback(() => {
+  const onMouseScroll = useCallback((e: MouseEvent) => {
     if (scrollHostRef.current) {
-      const scrollHostElement = scrollHostRef.current;
-      const { scrollHeight } = scrollHostElement;
-      scrollHostElement.scrollTop = scrollHeight;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (autoScrollBottom) {
-      scrollToBottom();
-    }
-  }, [autoScrollBottom, scrollToBottom])
-
-  const setScroll = useCallback((e: MouseEvent) => {
-    if (scrollHostRef.current) {
-      setAutoScrollBottom(false);
       const scrollHostElement = scrollHostRef.current;
       const { offsetHeight, scrollHeight } = scrollHostElement;
   
@@ -64,9 +49,9 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
   
       setScrollThumbPosition(e.clientY);
 
-      setScrollBoxTop(
+      setThumbTop(
         Math.min(
-          Math.max(0, scrollBoxTop + deltaY),
+          Math.max(0, scrollThumbTop + deltaY),
           offsetHeight - scrollBoxHeight
         )
       );
@@ -79,29 +64,50 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
 
       scrollHostElement.scrollTop = scrollTop;
     }
-  }, [lastScrollThumbPosition, scrollBoxHeight, scrollBoxTop, setAutoScrollBottom])
+  }, [lastScrollThumbPosition, scrollBoxHeight, scrollThumbTop])
 
   const handleDocumentMouseMove = useCallback(
     (e: MouseEvent) => {
       if (isDragging) {
         e.preventDefault();
         e.stopPropagation();
-        setScroll(e);
+        onMouseScroll(e);
       }
     },
-    [isDragging, setScroll]
+    [isDragging, onMouseScroll]
   );
 
-  const handleScroll = useCallback(() => {
+  const scrollToBottom = useCallback(() => {
+    if (scrollHostRef.current) {
+      const scrollHostElement = scrollHostRef.current;
+      const { scrollHeight } = scrollHostElement;
+      scrollHostElement.scrollTop = scrollHeight;
+    }
+  }, []);
+
+  const setThumbPosition = useCallback(() => {
+    if (!scrollHostRef.current) {
+      return;
+    }
+    const scrollHostElement = scrollHostRef.current;
+    const { offsetHeight, scrollHeight, scrollTop } = scrollHostElement;
+    
+    let newTop = (scrollTop / scrollHeight) * offsetHeight;
+    newTop = Math.min(newTop, offsetHeight - scrollBoxHeight);
+
+    setThumbTop(newTop);
+  }, [scrollBoxHeight])
+
+  const onScroll = useCallback(() => {
     if (!scrollHostRef || !scrollHostRef.current || !scrollThumb.current) {
       return;
     }
-    setAutoScrollBottom(false);
 
     const scrollHostElement = scrollHostRef.current;
     const { offsetHeight, scrollHeight, scrollTop } = scrollHostElement;
 
     const scrollPercent = scrollTop / (scrollHeight - offsetHeight);
+
     if (scrollPercent < 0.1) {
       nearTop();
     }
@@ -110,11 +116,21 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
       nearBottom();
     }
 
-    let newTop = (scrollTop / scrollHeight) * offsetHeight;
-    newTop = Math.min(newTop, offsetHeight - scrollBoxHeight);
+    setAutoScrollBottom(scrollPercent === 1);
+    setThumbPosition();
+  }, [
+    setThumbPosition,
+    nearTop,
+    nearBottom,
+    setAutoScrollBottom
+  ]);
 
-    setScrollBoxTop(newTop);
-  }, [nearBottom, nearTop, scrollBoxHeight, setAutoScrollBottom]);
+
+  useEffect(() => {
+    if (autoScrollBottom) {
+      scrollToBottom();
+    }
+  }, [autoScrollBottom, scrollToBottom, children])
 
   const resizeScrollbar = useCallback(() => {
     if (!scrollHostRef.current) {
@@ -131,27 +147,37 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     setScrollBoxHeight(scrollThumbHeight);
   }, []);
 
+  // React to changes in the items container changing dimensions
   useEffect(() => {
     resizeScrollbar();
-  }, [height, resizeScrollbar])
+    setThumbPosition();
+  }, [
+    height,
+    onScroll,
+    resizeScrollbar,
+    setThumbPosition
+  ]);
 
   useEffect(() => {
     if (!scrollHostRef.current) {
       return;
     }
+
     const scrollHostElement = scrollHostRef.current;
-    scrollHostElement.addEventListener('scroll', handleScroll, true);
+    scrollHostElement.addEventListener('scroll', onScroll, true);
     return () => {
-      scrollHostElement.removeEventListener('scroll', handleScroll, true);
+      scrollHostElement.removeEventListener('scroll', onScroll, true);
     };
-  }, [handleScroll, resizeScrollbar]);
+  }, [onScroll, resizeScrollbar]);
 
   useEffect(() => {
+    // document.addEventListener('wheel', onwheel)
     document.addEventListener('mousemove', handleDocumentMouseMove);
     document.addEventListener('mouseup', handleDocumentMouseUp);
     document.addEventListener('mouseleave', handleDocumentMouseUp);
 
     return () => {
+      // document.removeEventListener('wheel', onwheel);
       document.removeEventListener('mousemove', handleDocumentMouseMove);
       document.removeEventListener('mouseup', handleDocumentMouseUp);
       document.removeEventListener('mouseleave', handleDocumentMouseUp);
@@ -175,7 +201,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
         <div
           ref={scrollThumb}
           className={s['scroll-thumb']}
-          style={{ height: scrollBoxHeight, top: scrollBoxTop }}
+          style={{ height: scrollBoxHeight, top: scrollThumbTop }}
           onMouseDown={handleScrollThumbMouseDown}
         />
       </div>

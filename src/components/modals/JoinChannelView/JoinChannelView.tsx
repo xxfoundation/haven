@@ -81,6 +81,11 @@ const JoinChannelView: FC = ({}) => {
         name=''
         placeholder='Enter invite link'
         value={url}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleSubmit();
+          }
+        }}
         onChange={e => {
           setUrl(e.target.value);
         }}
@@ -91,6 +96,11 @@ const JoinChannelView: FC = ({}) => {
           name=''
           placeholder='Enter passphrase'
           value={password}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSubmit();
+            }
+          }}
           onChange={e => {
             setPassword(e.target.value);
           }}
