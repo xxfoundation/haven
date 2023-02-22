@@ -1,6 +1,8 @@
-import { EmojiReactions, MessageType } from './types';
+
 import type { RootState } from 'src/store/types';
-import type { Message } from './types';
+import type { EmojiReactions, Message } from './types';
+
+import { MessageType } from 'src/types';
 
 import assert from 'assert';
 import { uniq, uniqBy } from 'lodash';

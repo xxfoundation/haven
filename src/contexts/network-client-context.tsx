@@ -1,5 +1,6 @@
-import type { CMix } from 'src/types';
-import {Message, MessageStatus } from 'src/store/messages/types';
+import type { CMix, DBMessage, DBChannel } from 'src/types';
+import { Message } from 'src/store/messages/types';
+import { MessageStatus, MessageType } from 'src/types';
 
 import { ChannelJSON, VersionJSON } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
@@ -13,12 +14,11 @@ import { WithChildren } from 'src/types';
 import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
-import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH } from '../constants';
+import { PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH, WASM_JS_PATH } from '../constants';
 import useNotification from 'src/hooks/useNotification';
 import { useDb } from './db-context';
 import useCmix from 'src/hooks/useCmix';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { MessageType } from 'src/store/messages/types';
 
 import * as channels from 'src/store/channels'
 import * as identity from 'src/store/identity';
@@ -27,31 +27,6 @@ import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 
 const BATCH_COUNT = 1000;
-
-export type DBMessage = {
-  id: number;
-  nickname: string;
-  message_id: string;
-  channel_id: string;
-  parent_message_id: null | string;
-  timestamp: string;
-  lease: number;
-  status: MessageStatus;
-  hidden: boolean,
-  pinned: boolean;
-  text: string;
-  type: MessageType;
-  round: number;
-  pubkey: string;
-  codeset_version: number;
-  dm_token: number | string;
-}
-
-export type DBChannel = {
-  id: string;
-  name: string;
-  description: string;
-}
 
 export type User = {
   codename: string;
@@ -407,7 +382,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       pubkey: dbMsg.pubkey,
       pinned: dbMsg.pinned,
       hidden: dbMsg.hidden,
-      dmToken: dbMsg.dm_token === 0 ? undefined : dbMsg.dm_token as string
+      dmToken: dbMsg.dm_token === 0 ? undefined : dbMsg.dm_token
     }
   }, [cipher, getCodeNameAndColor]);
 
@@ -740,6 +715,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     ) {
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
         cmix.GetID(),
+        WASM_JS_PATH,
         privateIdentity,
         onMessageReceived,
         onMessageDelete,

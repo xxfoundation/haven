@@ -47,10 +47,11 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             NewChannelsDatabaseCipher,
             NewChannelsManagerWithIndexedDb,
             NewCmix,
+            NewDMClientWithIndexedDb,
+            NewDMsDatabaseCipher,
             NewDummyTrafficManager,
             Purge,
             ValidForever,
-            
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } = (window as any) || {};
 
@@ -77,6 +78,8 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             DecodePrivateURL,
             DecodePublicURL,
             GetChannelJSON,
+            NewDMClientWithIndexedDb,
+            NewDMsDatabaseCipher,
             NewDummyTrafficManager,
             NewChannelsDatabaseCipher,
             Purge,
