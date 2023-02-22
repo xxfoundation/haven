@@ -23,7 +23,6 @@ const ChannelSettingsView: FC = () => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { openModal, setModalView } = useUI();
 
-
   return (
     <>
       <div
