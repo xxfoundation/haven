@@ -1,17 +1,16 @@
-import { FC, useCallback, useMemo, useRef } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 import cn from 'classnames';
-import { useOnClickOutside } from 'usehooks-ts';
 import { Collapse } from 'src/components/common';
 
-import { Elixxir, SpeakEasy, Settings, Plus, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
+import { SpeakEasy, Plus, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
-import useToggle from 'src/hooks/useToggle';
+
 
 import s from './LeftSideBar.module.scss';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
-import * as identity from 'src/store/identity';
+import Dropdown from '../Dropdown';
 
 const LeftSideBar: FC<{
   cssClasses?: string;
@@ -24,23 +23,15 @@ const LeftSideBar: FC<{
     getVersion,
   } = useNetworkClient();
 
-  const { codename, color } = useAppSelector(identity.selectors.identity) ?? {};
   const allChannels = useAppSelector(channels.selectors.channels);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
 
   const onChannelChange = useCallback((chId: string) => () => {
     dispatch(channels.actions.selectChannel(chId));
   }, [dispatch]);
-  
 
-  const openSettingsModal = useCallback(() => {
-    setModalView('SETTINGS');
-    openModal();
-  }, [openModal, setModalView]);
+  const [showCreateNewChannel, setShowCreateNewChannel] = useState(false);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const [showCreateNewChannel, { toggle: toggleChannelCreationMenu, toggleOff: hideMenu }] = useToggle();
-  useOnClickOutside(dropdownRef, hideMenu);
 
   const collapseTitle = useMemo(() => (
     <div className={cn('flex justify-between')}>
@@ -53,13 +44,13 @@ const LeftSideBar: FC<{
               e.stopPropagation();
             }
 
-            toggleChannelCreationMenu();
+            setShowCreateNewChannel((v) => !v);
           }}
         />
         
       </div>
     </div>
-  ), [toggleChannelCreationMenu]);
+  ), []);
 
   return (
     <div className={cn(s.root, cssClasses)}>
@@ -71,13 +62,13 @@ const LeftSideBar: FC<{
       </div>
       <div className={cn(s.content, 'relative')}>
         {showCreateNewChannel && (
-          <div ref={dropdownRef} className='absolute p-2 w-full  left-0 mt-6'>
+          <Dropdown isOpen={showCreateNewChannel} onChange={setShowCreateNewChannel}>
             <ul style={{ backgroundColor: 'var(--dark-2)', zIndex: 2 }} className='text-right w-full rounded-lg p-2 bold'>
               <li className='px-2 py-1'>
                 <button className='underline' onClick={() => {
                   setModalView('CREATE_CHANNEL');
                   openModal();
-                  hideMenu();
+                  setShowCreateNewChannel(false);
                 }}>
                   Create new
                 </button>
@@ -86,13 +77,13 @@ const LeftSideBar: FC<{
                 <button className='underline' onClick={() => {
                   setModalView('JOIN_CHANNEL');
                   openModal();
-                  hideMenu();
+                  setShowCreateNewChannel(false);
                 }}>
                   Join existing by url
                 </button>
               </li>
             </ul>
-          </div>
+          </Dropdown>
         )}
         <Collapse title={collapseTitle} defaultActive>
           <div className='flex flex-col'>
@@ -120,26 +111,6 @@ const LeftSideBar: FC<{
         </Collapse>
       </div>
       <div className={s.footer}>
-        <div
-          className={cn('flex justify-between items-center', s.settingsWrapper)}
-        >
-          <div className={cn('mr-2 flex flex-col', s.currentUserWrapper)}>
-            <span>You are now connected as</span>
-            <span
-              style={{ color }}
-              className={cn('flex items-center', s.currentUser)}
-            >
-              <Elixxir
-                style={{ fill: color, width: '10px', marginTop: '-3px' }}
-              />
-              {codename}
-            </span>
-          </div>
-          <Settings
-            style={{ cursor: 'pointer' }}
-            onClick={openSettingsModal}
-          />
-        </div>
         <div className={cn(s.version)}>
           {getClientVersion() && <span>XXDK version {getClientVersion()}</span>}
           {getVersion() && <span>Wasm version {getVersion()}</span>}

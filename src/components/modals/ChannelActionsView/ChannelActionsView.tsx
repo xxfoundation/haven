@@ -14,17 +14,8 @@ const ChannelActionsView: FC = () => {
       <div
         className={cn('w-full flex flex-col justify-center items-center')}
       >
-        <h2 className='mt-9 mb-4'>More Channel Actions</h2>
+        <h2 className='mt-9 mb-4'>Channel Settings</h2>
         <div className='mt-6 mb-8 flex flex-wrap justify-center items-center mx-auto'>
-          <ModalCtaButton
-            cssClass='m-2'
-            buttonCopy='Logout'
-            style={{ borderColor: 'var(--red)' }}
-            onClick={() => {
-              setModalView('LOGOUT');
-              openModal();
-            }}
-          />
           {currentChannel?.isAdmin ? (
             <ModalCtaButton
               cssClass='m-2'
@@ -58,7 +49,7 @@ const ChannelActionsView: FC = () => {
           />
           <ModalCtaButton
             cssClass='m-2'
-            buttonCopy='Leave'
+            buttonCopy='Leave Channel'
             style={{ borderColor: 'var(--red)' }}
             disabled={!currentChannel}
             onClick={() => {

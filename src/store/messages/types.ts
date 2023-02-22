@@ -27,6 +27,7 @@ export interface Message {
   pubkey: string;
   pinned: boolean;
   hidden: boolean;
+  dmToken?: string;
 }
 
 export type MessageUuid = Message['uuid'];

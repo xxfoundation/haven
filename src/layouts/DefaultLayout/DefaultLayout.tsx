@@ -60,7 +60,7 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     LOADING: <LoadingView />,
     LEAVE_CHANNEL_CONFIRMATION: <LeaveChannelConfirmationView />,
     SET_NICK_NAME: currentChannel && <NickNameSetView />,
-    CHANNEL_ACTIONS: <ChannelActionsView />,
+    CHANNEL_SETTINGS: <ChannelActionsView />,
     SETTINGS: <SettingsView />,
     NETWORK_NOT_READY: <NetworkNotReadyView />,
     JOIN_CHANNEL_SUCCESS: <JoinChannelSuccessView />,

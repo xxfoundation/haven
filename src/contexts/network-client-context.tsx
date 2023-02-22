@@ -44,6 +44,7 @@ export type DBMessage = {
   round: number;
   pubkey: string;
   codeset_version: number;
+  dm_token: number | string;
 }
 
 export type DBChannel = {
@@ -405,6 +406,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       pubkey: dbMsg.pubkey,
       pinned: dbMsg.pinned,
       hidden: dbMsg.hidden,
+      dmToken: dbMsg.dm_token === 0 ? undefined : dbMsg.dm_token as string
     }
   }, [cipher, getCodeNameAndColor]);
 
