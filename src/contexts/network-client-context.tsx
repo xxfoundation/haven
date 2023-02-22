@@ -153,6 +153,7 @@ type NetworkContext = {
   userIsMuted: (pubkey: string) => boolean;
   setMutedUsers: React.Dispatch<React.SetStateAction<User[] | undefined>>;
   cmix?: CMix;
+  networkStatus?: NetworkStatus,
   isNetworkHealthy: boolean | undefined;
   // api
   checkRegistrationReadiness: (
@@ -1212,6 +1213,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     muteUser,
     getMuted,
     cmix,
+    networkStatus: cmixStatus,
     pagination,
     deleteMessage,
     joinChannel,
