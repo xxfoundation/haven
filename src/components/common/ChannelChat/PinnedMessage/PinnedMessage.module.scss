@@ -18,5 +18,8 @@
     left: 5px;
     top: 5px;
     z-index: 2;
+    path {
+      fill: var(--text-secondary);
+    }
   }
 }
