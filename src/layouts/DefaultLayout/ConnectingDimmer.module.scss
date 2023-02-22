@@ -1,0 +1,11 @@
+.dimmer {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background:rgba(#000, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
