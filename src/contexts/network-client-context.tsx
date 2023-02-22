@@ -661,6 +661,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const loadedChannelsManager = await utils
         .LoadChannelsManagerWithIndexedDb(
           cmix.GetID(),
+          '/integrations/assets/channelsIndexedDbWorker.js',
           storageTag,
           onMessageReceived,
           onMessageDelete,
@@ -740,6 +741,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     ) {
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
         cmix.GetID(),
+        '/integrations/assets/channelsIndexedDbWorker.js',
         privateIdentity,
         onMessageReceived,
         onMessageDelete,
