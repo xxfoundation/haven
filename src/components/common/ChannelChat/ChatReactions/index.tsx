@@ -1,8 +1,9 @@
 import type { Message } from '@types';
 
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import cn from 'classnames';
 import { Tooltip } from 'react-tooltip';
+import { uniqueId } from 'lodash';
 
 import s from './styles.module.scss';
 import * as messages from 'src/store/messages';
@@ -16,6 +17,7 @@ type Props = {
 const ChatReactions: FC<Props> = ({ message }) => {
   const { sendReaction } = useNetworkClient();
   const reactions = useAppSelector(messages.selectors.reactionsTo(message));
+  const id = useMemo(() => uniqueId(), []);
 
   return (
     <>
@@ -23,7 +25,7 @@ const ChatReactions: FC<Props> = ({ message }) => {
         {reactions?.map(([emoji, users]) => (
           <div
             key={`${message.id}-${emoji}`}
-            id={`${message.id}-${emoji}-emojis-users-reactions`}
+            id={`${id}-${message.id}-${emoji}-emojis-users-reactions`}
             className={cn(s.emoji)}
             onClick={() => sendReaction(emoji, message.id)}
           >
@@ -39,7 +41,7 @@ const ChatReactions: FC<Props> = ({ message }) => {
           clickable
           className={s.tooltip}
           key={emoji}
-          anchorId={`${message.id}-${emoji}-emojis-users-reactions`}
+          anchorId={`${id}-${message.id}-${emoji}-emojis-users-reactions`}
           place={'bottom'}
         >
           <div className={cn(s.icon)}>{emoji}</div>

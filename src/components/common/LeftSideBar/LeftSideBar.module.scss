@@ -77,20 +77,6 @@
   line-height: 12px;
 }
 
-.currentUserWrapper {
-  overflow: hidden;
-}
-
-.currentUser {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: inline-block;
-  svg {
-    display: inline;
-  }
-}
-
 .plus {
   &__disabled:hover {
     cursor: not-allowed;

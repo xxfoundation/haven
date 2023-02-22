@@ -1,8 +1,8 @@
-import { FC, MouseEventHandler } from 'react';
+import { FC, useCallback } from 'react';
 import cn from 'classnames';
 
-import { Button, Collapse } from 'src/components/common';
-import { DoubleLeftArrows, DoubleRightArrows } from 'src/components/icons';
+import { Collapse } from 'src/components/common';
+import { DoubleLeftArrows, DoubleRightArrows, Settings } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Elixxir } from 'src/components/icons';
@@ -13,24 +13,6 @@ import * as channels from 'src/store/channels';
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import { useAppSelector } from 'src/store/hooks';
-
-type IconProps = {
-  cssClass?: string;
-  isActive: boolean;
-  onClick: MouseEventHandler<SVGSVGElement>;
-};
-
-const Icon: FC<IconProps> = ({
-  cssClass,
-  isActive,
-  onClick
-}) => isActive
-  ? (
-    <DoubleRightArrows onClick={onClick} className={cn(cssClass)} />
-  )
-  : (
-    <DoubleLeftArrows onClick={onClick} className={cn(cssClass)} />
-  );
 
 type Props = {
   cssClasses?: string
@@ -43,9 +25,14 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
   const { codename, color } = useAppSelector(identity.selectors.identity) ?? {};
   const { getNickName } = useNetworkClient();
   const contributors = useAppSelector(messages.selectors.currentContributors);
-   const { openModal, setModalView } = useUI();
-
+  const { openModal, setModalView } = useUI();
   const nickName = currentChannel && getNickName();
+  const Icon = collapsed ? DoubleLeftArrows : DoubleRightArrows;
+
+  const openSettingsModal = useCallback(() => {
+    setModalView('SETTINGS');
+    openModal();
+  }, [openModal, setModalView]);
 
   return (
     <div
@@ -53,36 +40,30 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
     >
       <div className={s.header}>
         <Icon
-          isActive={collapsed}
           onClick={onToggle}
-          cssClass={cn('cursor-pointer', s.icon)}
+          className={cn('cursor-pointer', s.icon)}
         />
-        <div>
-          {currentChannel && (
-            <>
-              <Button
-                cssClasses={cn('block mx-auto mb-4')}
-                disabled={!currentChannel}
-                onClick={() => {
-                  if (currentChannel) {
-                    setModalView('SHARE_CHANNEL');
-                    openModal();
-                  }
-                }}
-              >
-                Share
-              </Button>
-              <Button
-                cssClasses={cn('block mx-auto')}
-                onClick={() => {
-                  setModalView('CHANNEL_ACTIONS');
-                  openModal();
-                }}
-              >
-                More
-              </Button>
-            </>
-          )}
+        <div
+          className={cn('w-full flex justify-between items-center', s.settingsWrapper)}
+        >
+          <p>
+            You are connected as
+            <br />
+            <span
+              style={{ color }}
+              className={cn(s.currentUser)}
+            >
+              <Elixxir
+                style={{ fill: color, width: '10px' }}
+              />
+              {codename}
+            </span>
+          </p>
+          <Settings
+            className={s.icon}
+            style={{ cursor: 'pointer' }}
+            onClick={openSettingsModal}
+          />
         </div>
       </div>
       <div className={s.content}>
