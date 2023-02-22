@@ -73,7 +73,7 @@ const ChannelHeader: FC<Channel> = ({
             {name}{' '}
           </span>
         </div>
-        <div className='flex space-x-2'>
+        <div className='flex space-x-2 mt-1'>
           <Share
             className={s.icon}
             onClick={openShareModal} />

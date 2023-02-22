@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { ModalCtaButton } from 'src/components/common';
 import cn from 'classnames';
 import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
@@ -11,13 +10,6 @@ import LockOpen from '@components/icons/LockOpen';
 import CommentSlash from '@components/icons/CommentSlash';
 import RightFromBracket from '@components/icons/RightFromBracket';
 
-
-<ModalCtaButton
-cssClass='m-2'
-buttonCopy='Claim Admin Keys'
-style={{ borderColor: 'var(--red)' }}
-
-/>
 
 const ChannelSettingsView: FC = () => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);

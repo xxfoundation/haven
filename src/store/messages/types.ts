@@ -1,15 +1,4 @@
-export enum MessageType {
-  Normal = 1,
-  Reply = 2,
-  Reaction = 3
-}
-
-export enum MessageStatus {
-  Unsent    = 0,
-  Sent      = 1,
-  Delivered = 2,
-  Failed    = 3
-}
+import { MessageStatus, MessageType } from 'src/types';
 
 export interface Message {
   id: string;
@@ -27,7 +16,7 @@ export interface Message {
   pubkey: string;
   pinned: boolean;
   hidden: boolean;
-  dmToken?: string;
+  dmToken?: number;
 }
 
 export type MessageUuid = Message['uuid'];

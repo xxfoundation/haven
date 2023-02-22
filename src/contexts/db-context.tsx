@@ -1,4 +1,4 @@
-import type { WithChildren } from '@types';
+import type { MessageStatus, MessageType, WithChildren } from 'src/types';
 import { FC, useContext, useEffect, useMemo } from 'react';
 
 import { Dexie } from 'dexie';
@@ -6,18 +6,6 @@ import { createContext, useCallback, useState } from 'react';
 
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import { ELIXXIR_USERS_TAGS } from 'src/constants';
-
-enum DBMessageType {
-  Normal = 1,
-  Reply = 2,
-  Reaction = 3
-}
-
-enum DBMessageStatus {
-  Sending = 1,
-  Sent = 2,
-  Delivered = 3
-}
 
 export type DBMessage = {
   id: number;
@@ -27,11 +15,11 @@ export type DBMessage = {
   parent_message_id: null | string;
   timestamp: string;
   lease: number;
-  status: DBMessageStatus;
+  status: MessageStatus;
   hidden: boolean,
   pinned: boolean;
   text: string;
-  type: DBMessageType;
+  type: MessageType;
   round: number;
   pubkey: string;
   codeset_version: number;

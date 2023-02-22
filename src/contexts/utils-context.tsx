@@ -1,5 +1,6 @@
 import type { CMix, DummyTraffic, WithChildren } from '@types';
-import type { ChannelManager } from './network-client-context'
+import type { ChannelManager } from './network-client-context';
+import type { DMClient } from 'src/types';
 
 import React, { FC, useState } from 'react';
 
@@ -9,7 +10,7 @@ export enum PrivacyLevel {
   Secret = 2
 }
 
-export type ChannelDbCipher = {
+export type Cipher = {
   GetID: () => number;
   Decrypt: (plaintext: Uint8Array) => Uint8Array;
 }
@@ -30,6 +31,7 @@ export type VersionJSON = {
 export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
 export type MessageDeletedCallback = (uuid: Uint8Array) => void;
 export type UserMutedCallback = (channelId: Uint8Array, pubkey: string, unmute: boolean) => void;
+export type DMReceivedCallback = (uuid: string, dontknow: Uint8Array, update: boolean) => void;
 
 export type XXDKUtils = {
   NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => Promise<void>;
@@ -39,12 +41,21 @@ export type XXDKUtils = {
   GenerateChannelIdentity: (cmixId: number) => Uint8Array;
   NewChannelsManagerWithIndexedDb: (
     cmidId: number,
+    wasmJsPath: string,
     privateIdentity: Uint8Array,
     onMessage: MessageReceivedCallback,
     onDelete: MessageDeletedCallback,
     onMuted: UserMutedCallback,
     channelDbCipher: number
   ) => Promise<ChannelManager>;
+  NewDMClientWithIndexedDb: (
+    cmixId: number,
+    wasmJsPath: string,
+    privateIdentity: Uint8Array,
+    messageCallback: DMReceivedCallback,
+    cipherId: number
+  ) => Promise<DMClient>;
+  NewDMsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => Cipher
   LoadChannelsManagerWithIndexedDb: (
     cmixId: number,
     storageTag: string,
@@ -71,7 +82,7 @@ export type XXDKUtils = {
     upperBoundIntervalBetweenCyclesMilliseconds: number
   ) => DummyTraffic;
   GetWasmSemanticVersion: () => Uint8Array;
-  NewChannelsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => ChannelDbCipher;
+  NewChannelsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => Cipher;
   Purge: (storageDirectory: string, userPassword: string) => void;
   ValidForever: () => number;
 }
