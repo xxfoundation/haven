@@ -3,10 +3,8 @@ import type { CMix, DummyTraffic } from 'src/types';
 import { useUtils } from '@contexts/utils-context';
 import { decoder } from '@utils/index';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { STATE_PATH } from 'src/constants';
+import { MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
 import { ndf } from 'src/sdk-utils/ndf';
-
-const MAXIMUM_PAYLOAD_BLOCK_SIZE = 725;
 
 const cmixPreviouslyInitialized = () => {
   return localStorage && localStorage.getItem(STATE_PATH) !== null;
@@ -48,7 +46,7 @@ const useCmix = () => {
       })
     },
     [utils]
-  )
+  );
   
   const loadCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
     try {
@@ -61,7 +59,7 @@ const useCmix = () => {
         setCmix(loadedCmix);
       });
     } catch (e) {
-      console.error('Failed to load Cmix: ' + e);
+      console.error('Failed to load Cmix:', e);
       setStatus(NetworkStatus.FAILED);
     }
   }, [createDatabaseCipher, utils]);
