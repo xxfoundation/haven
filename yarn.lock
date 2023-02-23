@@ -400,6 +400,11 @@
   dependencies:
     tslib "^2.4.0"
 
+"@types/contrast-color@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/contrast-color/-/contrast-color-1.0.0.tgz#0b64c479f0cb698d4d76a8ea3e707fb2ef319175"
+  integrity sha512-tQA3wqkn7zb0dpgSxjtTEShUsWEExOBWOQ3ByiUT3SzrMM5wEa55NnoGI9X3671Tf19vDQbU/Co2dWVniGqBpQ==
+
 "@types/dompurify@^2.3.4":
   version "2.3.4"
   resolved "https://registry.yarnpkg.com/@types/dompurify/-/dompurify-2.3.4.tgz#94e997e30338ea24d4c8d08beca91ce4dd17a1b4"
@@ -1014,6 +1019,11 @@ constant-case@^3.0.4:
     no-case "^3.0.4"
     tslib "^2.0.3"
     upper-case "^2.0.2"
+
+contrast-color@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/contrast-color/-/contrast-color-1.0.1.tgz#15fd7b444f43ccb7d6175d7e131d095623a9f146"
+  integrity sha512-XeTV/LiyWrf/OWnODTqve2YGBfg32N6zlLqQjJKmEY+ffDqIfecgdmluVz7tky1D4VEaweZgoeRJJT87gDSDCQ==
 
 copy-to-clipboard@^3.3.2:
   version "3.3.2"

@@ -22,7 +22,6 @@ export type ChannelId = Channel['id'];
 
 export type ChannelsState = {
   byId: Record<ChannelId, Channel>;
-  currentChannelId?: ChannelId;
 };
 
 declare module 'src/store/types' {

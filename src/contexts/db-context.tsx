@@ -33,6 +33,7 @@ export type DBChannel = {
 
 type DBContextType = {
   db?: Dexie | undefined;
+  dmDb?: Dexie | undefined;
   initDb: (storageTag: string) => void;
 }
 
@@ -40,19 +41,27 @@ export const DBContext = createContext<DBContextType>({ initDb: () => {} } as un
 
 export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [db, setDb] = useState<Dexie>();
+  const [dmDb, setDmDb] = useState<Dexie>();
   const [storageTags] = useLocalStorage<string[]>(ELIXXIR_USERS_TAGS, []);
   const storageTag = useMemo(() => storageTags?.[0], [storageTags]);
   
   const initDb = useCallback((tag: string) => {
     const instance = new Dexie(`${tag}_speakeasy`);
-      instance.version(0.1).stores({
-        channels: '++id',
-        messages:
-          '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
-      });
+    instance.version(0.1).stores({
+      channels: '++id',
+      messages:
+        '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
+    });
   
-      setDb(instance);
-  }, [])
+    setDb(instance);
+
+    const dmInstance = new Dexie(`${tag}_speakeasy_dm`);
+    dmInstance.version(0.1).stores({
+      conversations: '++id',
+      messages: '++id,conversation_pub_key,&message_id,parent_message_id,timestamp'
+    });
+    setDmDb(dmInstance);
+  }, []);
 
   useEffect(() => {
     if (storageTag) {
@@ -61,11 +70,11 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
   }, [initDb, storageTag]);
 
   return (
-    <DBContext.Provider value={{ db, initDb }}>
+    <DBContext.Provider value={{ db, dmDb, initDb }}>
       {children}
     </DBContext.Provider>
   )
 }
 
-export const useDb = () => useContext(DBContext).db;
+export const useDb = (type: 'dm' | 'channels' = 'channels') => useContext(DBContext)[type === 'channels' ? 'db' : 'dmDb'];
 

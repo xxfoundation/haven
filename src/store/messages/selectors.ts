@@ -1,18 +1,17 @@
 
-import type { RootState } from 'src/store/types';
-import type { EmojiReactions, Message } from './types';
+import type { RootState,  EmojiReactions } from 'src/store/types';
+import type { Message } from './types';
 
+import { byTimestamp } from '../utils';
 import { MessageType } from 'src/types';
 
 import assert from 'assert';
-import { uniq, uniqBy } from 'lodash';
-
-const byTimestamp = <T extends { timestamp: string }>(a: T, b: T) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+import { uniqBy } from 'lodash';
 
 export const allMessages = (state: RootState) => Object.values(state.messages.byId);
 
 export const currentChannelMessages = (state: RootState) => {
-  if (state.channels.currentChannelId === undefined) {
+  if (state.app.selectedChannelId === null) {
     return undefined;
   }
 
@@ -20,7 +19,7 @@ export const currentChannelMessages = (state: RootState) => {
     .filter((msg) =>
       !msg.hidden
       && [MessageType.Normal, MessageType.Reply].includes(msg.type)
-      && msg.channelId === state.channels.currentChannelId
+      && msg.channelId === state.app.selectedChannelId
     ).sort(byTimestamp);
 }
 
@@ -29,19 +28,19 @@ export const channelReactions = (state: RootState): EmojiReactions => {
     .filter((msg) =>
       !msg.hidden
       && msg.type === MessageType.Reaction
-      && msg.channelId === state.channels.currentChannelId
+      && msg.channelId === state.app.selectedChannelId
     );
 
   return reactions
     .filter((m) => typeof m.repliedTo === 'string')
-    .reduce((map, { body: emoji, codename, repliedTo }) => {
+    .reduce((map, { body: emoji, codeset, pubkey, repliedTo }) => {
       assert(repliedTo);
 
       return {
         ...map,
         [repliedTo]: {
           ...map[repliedTo],
-          [emoji]: uniq(map[repliedTo]?.[emoji]?.concat(codename) ?? [codename]),
+          [emoji]: uniqBy(map[repliedTo]?.[emoji]?.concat({ codeset, pubkey }) ?? [{ codeset, pubkey }], (m) => m.pubkey),
         }
       };
     }, {} as EmojiReactions);
@@ -71,4 +70,4 @@ export const allContributors = (state: RootState) => {
     );
 }
 
-export const currentContributors = (state: RootState) => allContributors(state).filter((m) => m.channelId === state.channels.currentChannelId);
+export const currentContributors = (state: RootState) => allContributors(state).filter((m) => m.channelId === state.app.selectedChannelId);
