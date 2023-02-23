@@ -9,6 +9,7 @@ import s from './styles.module.scss';
 import * as messages from 'src/store/messages';
 import { useAppSelector } from 'src/store/hooks';
 import { useNetworkClient } from '@contexts/network-client-context';
+import Identity from 'src/components/common/Identity';
 
 type Props = {
   message: Message;
@@ -36,7 +37,7 @@ const ChatReactions: FC<Props> = ({ message }) => {
           </div>
         ))}
       </div>
-      {reactions?.map(([emoji, users]) =>  (
+      {reactions?.map(([emoji, users]) => (
         <Tooltip
           clickable
           className={s.tooltip}
@@ -46,15 +47,12 @@ const ChatReactions: FC<Props> = ({ message }) => {
         >
           <div className={cn(s.icon)}>{emoji}</div>
           <p>
-            {users.length === 1
-              ? users[0] + ' reacted with '
-              : users.length === 2
-              ? `${users[0]} and ${users[1]} reacted with `
-              : users.slice(0, users.length - 1).join(', ') +
-                ` and ${users[users.length - 1]} reacted with `}
-            <span style={{ fontSize: '18px', marginLeft: '4px' }}>
-              {emoji}
-            </span>
+            {users.slice(0, Math.max(1, users.length - 1))
+              .map((u, i) => <>{i > 0 && ', '}<Identity pubkey={u.pubkey} codeset={u.codeset} /></>)}
+            {users.length > 1 && (
+              <> and <Identity {...users[users.length - 1]} /></> 
+            )}
+            
           </p>
         </Tooltip>
       ))}

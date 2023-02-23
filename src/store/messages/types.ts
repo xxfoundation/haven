@@ -16,6 +16,7 @@ export interface Message {
   pubkey: string;
   pinned: boolean;
   hidden: boolean;
+  codeset: number;
   dmToken?: number;
 }
 
@@ -25,9 +26,6 @@ export type MessageId = Message['id'];
 export type MessagesState = {
   byId: Record<MessageUuid, Message>;
 };
-
-// { [messageId]: { [emoji]: codename[] } }
-export type EmojiReactions =  Record<string, Record<string, string[]>>;
 
 declare module 'src/store/types' {
   interface RootState {

@@ -67,7 +67,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } = (window as any) || {};
 
-          const { Crash, GetLogger } = window;
+          const { GetLogger } = window;
 
           setUtils({
             NewCmix,
@@ -102,7 +102,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             LogLevel(1);
           }
 
-
           const logger = GetLogger()
 
           const wasmJsPath = 'integrations/assets/logFileWorker.js';
@@ -123,11 +122,8 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             });
           };
 
-
           window.logger = logger
 
-
-          window.Crash = Crash
           setUtilsLoaded(true);
         }
       );

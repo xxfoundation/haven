@@ -22,6 +22,7 @@ export type DMClient = {
   SendReaction: (pubkey: Uint8Array, dmToken: number, reactToId: Uint8Array, message: string, cmixParams: Uint8Array) => Promise<void>;
   GetIdentity: () => Uint8Array;
   SetNickname: (nickname: string) => void;
+  GetNickname: () => string;
 }
 
 export type DummyTraffic = {
