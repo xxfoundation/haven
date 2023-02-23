@@ -49,11 +49,7 @@ export const slice = createSlice({
         byId: pickBy(state.byId, ({ id }) => id !== channelId)
       }
     },
-    selectChannel: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
-      if (!state.byId[channelId]) {
-        return state;
-      }
-      
+    dismissNewMessagesNotification: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
       return {
         ...state,
         byId: {
@@ -63,24 +59,19 @@ export const slice = createSlice({
             hasMissedMessages: false,
           }
         },
-        currentChannelId: channelId,
       };
     },
-    leaveCurrentChannel: (state: ChannelsState): ChannelsState => {
-      if (state.currentChannelId === undefined) {
-        return state;
-      }
-      const filtered = omit(state.byId, state.currentChannelId) as ChannelsState['byId'];
+    leaveChannel: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
+      const filtered = omit(state.byId, channelId) as ChannelsState['byId'];
 
       return {
         ...state,
         byId: filtered,
-        currentChannelId: Object.values(filtered)[0]?.id,
       }
       
     },
     notifyNewMessage: (state: ChannelsState, action: PayloadAction<ChannelId>): ChannelsState => {
-      return action.payload === state.currentChannelId || !state.byId[action.payload] ? state : ({
+      return !state.byId[action.payload] ? state : ({
         ...state,
         byId: {
           ...state.byId,
@@ -91,20 +82,19 @@ export const slice = createSlice({
         }
       });
     },
-    upgradeAdminInCurrentChannel: (state: ChannelsState) => {
-      return state.currentChannelId ? ({
+    upgradeAdmin: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>) => {
+      return ({
         ...state,
         byId: {
           ...state.byId,
-          [state.currentChannelId]: {
-            ...state.byId[state.currentChannelId],
+          [channelId]: {
+            ...state.byId[channelId],
             isAdmin: true
           }
         }
-      }) : state
+      })
     },
   }
-  
 });
 
 export default slice.reducer;

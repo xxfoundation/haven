@@ -1,0 +1,21 @@
+.drawer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  background: rgba(22, 24, 29, 0.8);
+  backdrop-filter: blur(10px);
+  color: var(--text-primary);
+
+  border-radius: 2rem 2rem 0 0;
+  overflow: hidden;
+}
+
+.header {
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.content {
+  padding: 1.5rem;
+}

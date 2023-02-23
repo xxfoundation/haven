@@ -35,3 +35,23 @@ export type DBChannel = {
   name: string;
   description: string;
 }
+
+export type DBDirectMessage = {
+  id: number;
+  message_id: string;
+  conversation_pub_key: string;
+  parent_message_id: string;
+  timestamp: string;
+  status: MessageStatus;
+  text: string;
+  type: MessageType;
+  round: number;
+}
+
+export type DBConversation = {
+  pub_key: string;
+  nickname?: string;
+  token: number;
+  codeset_version: number;
+  blocked: boolean;
+}

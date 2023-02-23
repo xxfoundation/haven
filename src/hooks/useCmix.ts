@@ -29,6 +29,7 @@ const useCmix = () => {
   const { utils } = useUtils();
   const cmixId = useMemo(() => cmix?.GetID(), [cmix]);
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
+  const [decryptedPassword, setDecryptedPasword] = useState<Uint8Array>();
 
   const createDatabaseCipher = useCallback(
     (id: number, decryptedInternalPassword: Uint8Array) => {
@@ -65,6 +66,7 @@ const useCmix = () => {
   }, [createDatabaseCipher, utils]);
 
   const initializeCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
+    setDecryptedPasword(decryptedInternalPassword);
     try {
       if (!cmixPreviouslyInitialized()) {
         await utils.NewCmix(ndf, STATE_PATH, decryptedInternalPassword, '');
@@ -156,6 +158,7 @@ const useCmix = () => {
     connect,
     cmix,
     cipher: databaseCipher,
+    decryptedPassword,
     disconnect,
     id: cmixId,
     initializeCmix,

@@ -21,7 +21,7 @@ const AuthenticationUI: FC = () => {
   const hasAccount = statePathExists() && storageTag;
 
   const [importedIdentity, setImportedIdentity] = useState<Uint8Array>();
-
+  
   const onSubmit = useCallback(async ({ identity, password }: IdentityVariables) =>  {
       setLoading(true);
       const imported = utils.ImportPrivateIdentity(password, encoder.encode(identity));

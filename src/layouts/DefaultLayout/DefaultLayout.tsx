@@ -41,6 +41,7 @@ import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 import useToggle from 'src/hooks/useToggle';
 import ConnectingDimmer from './ConnectingDimmer';
+import UserInfoDrawer from '@components/common/UserInfoDrawer';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -145,6 +146,7 @@ const DefaultLayout: FC<WithChildren> = ({
           isAuthenticated ? (
             <>
               <ConnectingDimmer />
+              <UserInfoDrawer />
               <LeftSideBar cssClasses={s.leftSideBar} />
               <main>{children}</main>
               <RightSideBar

@@ -20,11 +20,14 @@ import { useDb } from './db-context';
 import useCmix from 'src/hooks/useCmix';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 
+import * as app from 'src/store/app';
 import * as channels from 'src/store/channels'
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
+import * as dms from 'src/store/dms';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
+import useDmClient from 'src/hooks/useDmClient';
 
 const BATCH_COUNT = 1000;
 
@@ -216,26 +219,45 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const { messagePinned, messageReplied, notifyMentioned } = useNotification();
   const { utils } = useUtils();
   const [mutedUsers, setMutedUsers] = useState<User[]>();
-  const { cipher, cmix, connect, disconnect, initializeCmix, status: cmixStatus } = useCmix();
+  const {
+    cipher,
+    cmix,
+    connect,
+    decryptedPassword,
+    disconnect,
+    id: cmixId,
+    initializeCmix,
+    status: cmixStatus
+  } = useCmix();
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentChannels = useAppSelector(channels.selectors.channels);
   const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
+  const [rawPassword, setRawPassword] = useState<string>();
   const userIdentity = useAppSelector(identity.selectors.identity);
+  const privateIdentity = useMemo(
+    () => (channelManager && rawPassword) ? utils.ImportPrivateIdentity(rawPassword, channelManager.ExportPrivateIdentity(rawPassword)) : undefined,
+    [channelManager, rawPassword, utils]
+  );
+  
+  useDmClient(cmixId, privateIdentity, decryptedPassword);
 
   const initialize = useCallback(async (password: string) => {
     const statePassEncoded = checkUser(password);
     if (!statePassEncoded) {
       throw new Error('Incorrect password');
     } else {
+      setRawPassword(password)
       await initializeCmix(statePassEncoded);
     }
   }, [checkUser, initializeCmix]);
 
   const upgradeAdmin = useCallback(() => {
-    dispatch(channels.actions.upgradeAdminInCurrentChannel());
-  }, [dispatch])
+    if (currentChannel?.id) {
+      dispatch(channels.actions.upgradeAdmin(currentChannel.id));
+    }
+  }, [dispatch, currentChannel])
 
   const fetchIdentity = useCallback((mngr?: ChannelManager) => {
     const manager = channelManager || mngr; 
@@ -321,7 +343,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
           isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
         };
 
-        dispatch(channels.actions.selectChannel(channel.id));
+        dispatch(app.actions.selectChannel(channel.id));
+        dispatch(dms.actions.selectConversation(null));
         dispatch(channels.actions.upsert(channel));
       }
     }
@@ -382,6 +405,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       pubkey: dbMsg.pubkey,
       pinned: dbMsg.pinned,
       hidden: dbMsg.hidden,
+      codeset: dbMsg.codeset_version,
       dmToken: dbMsg.dm_token === 0 ? undefined : dbMsg.dm_token
     }
   }, [cipher, getCodeNameAndColor]);
@@ -608,7 +632,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   useEffect(() => {
     if (!currentChannel && currentChannels.length > 0) {
-      dispatch(channels.actions.selectChannel(currentChannels[0]?.id));
+      dispatch(app.actions.selectChannel(currentChannels[0]?.id));
     }
   }, [currentChannel, currentChannels, dispatch])
 
@@ -707,7 +731,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return () => { bus.removeListener(Event.USER_MUTED, listener); };
   }, [getMutedUsers]);
 
-  const createChannelManager = useCallback(async (privateIdentity: Uint8Array) => {
+  const createChannelManager = useCallback(async (privIdentity: Uint8Array) => {
     if (
       cmix &&
       cipher &&
@@ -717,7 +741,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
         cmix.GetID(),
         WASM_JS_PATH,
-        privateIdentity,
+        privIdentity,
         onMessageReceived,
         onMessageDelete,
         onMutedUser,
@@ -795,7 +819,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
             privacyLevel: getPrivacyLevel(chanInfo?.ChannelID),
             isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID))
           }));
-          dispatch(channels.actions.selectChannel(chanInfo.ChannelID));
+          dispatch(app.actions.selectChannel(chanInfo.ChannelID));
+          dispatch(dms.actions.selectConversation(null));
         }
       } catch (error) {
         console.error('Error joining channel')
@@ -838,7 +863,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         joinChannel(channelPrettyPrint, false);
         savePrettyPrint(channel.id, channelPrettyPrint);
         dispatch(channels.actions.upsert(channel));
-        dispatch(channels.actions.selectChannel(channel.id));
+        dispatch(app.actions.selectChannel(channel.id));
       }
   }, [cmix, channelManager, getChannelInfo, joinChannel, dispatch]);
 
@@ -851,7 +876,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           utils.Base64ToUint8Array(currentChannel.id)
         );
         
-        dispatch(channels.actions.leaveCurrentChannel())
+        dispatch(channels.actions.leaveChannel(currentChannel.id));
       } catch (error) {
         console.error('Failed to leave Channel.');
       }
@@ -983,13 +1008,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
     const identitiesObjects = [];
     if (utils && utils.GenerateChannelIdentity && cmix) {
       for (let i = 0; i < amountOfIdentities; i++) {
-        const privateIdentity = utils.GenerateChannelIdentity(cmix?.GetID());
+        const createdPrivateIdentity = utils.GenerateChannelIdentity(cmix?.GetID());
         const publicIdentity = utils.GetPublicChannelIdentityFromPrivate(
-          privateIdentity
+          createdPrivateIdentity
         );
         const identityJson = JSON.parse(decoder.decode(publicIdentity)) as IdentityJSON;
         const codename = identityJson.Codename;
-        identitiesObjects.push({ privateIdentity, codename });
+        identitiesObjects.push({
+          privateIdentity: createdPrivateIdentity,
+          codename
+        });
       }
     }
     return identitiesObjects;
