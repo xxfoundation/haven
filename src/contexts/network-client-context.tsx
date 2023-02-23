@@ -24,7 +24,6 @@ import * as app from 'src/store/app';
 import * as channels from 'src/store/channels'
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
-import * as dms from 'src/store/dms';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
@@ -344,7 +343,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
         };
 
         dispatch(app.actions.selectChannel(channel.id));
-        dispatch(dms.actions.selectConversation(null));
         dispatch(channels.actions.upsert(channel));
       }
     }
@@ -820,7 +818,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
             isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID))
           }));
           dispatch(app.actions.selectChannel(chanInfo.ChannelID));
-          dispatch(dms.actions.selectConversation(null));
         }
       } catch (error) {
         console.error('Error joining channel')
