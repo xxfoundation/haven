@@ -2,7 +2,7 @@ import { MessageStatus, MessageType } from 'src/types';
 
 export type Conversation = {
   pubkey: string;
-  nickname: string;
+  nickname?: string;
   token: number;
   codesetVersion: number;
   blocked: boolean;
