@@ -6,9 +6,9 @@ import { MessageType } from 'src/types';
 import { byTimestamp } from '../utils';
 import { Conversation } from './types';
 
-export const currentConversation = (state: RootState): Conversation | null => state.dms.conversationsByPubkey[state.dms.selectedConversationPubkey ?? ''] || null;
+export const currentConversation = (state: RootState): Conversation | null => state.dms.conversationsByPubkey[state.app.selectedConversationId ?? ''] || null;
 export const conversations = (state: RootState) => Object.values(state.dms.conversationsByPubkey);
-const allCurrentMessages = (state: RootState) => Object.values(state.dms.messagesByPubkey[state.dms.selectedConversationPubkey ?? ''] ?? {});
+const allCurrentMessages = (state: RootState) => Object.values(state.dms.messagesByPubkey[state.app.selectedConversationId ?? ''] ?? {});
 export const currentDirectMessages = (state: RootState) =>
   allCurrentMessages(state)
     .sort(byTimestamp)

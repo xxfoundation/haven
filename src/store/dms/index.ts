@@ -5,7 +5,6 @@ import { Conversation, DMState } from './types';
 const initialState: DMState = {
   conversationsByPubkey: {},
   messagesByPubkey: {},
-  selectedConversationPubkey: null,
 };
 
 export const slice = createSlice({
@@ -16,15 +15,11 @@ export const slice = createSlice({
       ...state,
       [payload.token]: payload,
     }),
-    selectConversation: (state: DMState, { payload }: PayloadAction<DMState['selectedConversationPubkey']>) => ({
-      ...state,
-      selectedConversationPubkey: payload
-    })
   }
 });
 
 export default slice.reducer;
-
+export * as selectors from './selectors';
 export const actions = slice.actions;
 
 

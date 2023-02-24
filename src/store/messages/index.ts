@@ -4,27 +4,16 @@ import { omit } from 'lodash';
 
 const initialState: MessagesState = { byId: {} };
 
-const upsert = (state: MessagesState, message: Message) => {
-  const previousMessageState = state.byId[message.uuid];
-  const lastTimestamp: number | undefined = previousMessageState
-    && new Date(state.byId[message.uuid]?.timestamp).getTime();
-  const currentTimestamp = new Date(message.timestamp).getTime();
-
-  if (lastTimestamp && lastTimestamp > currentTimestamp) {
-    return state;
+const upsert = (state: MessagesState, message: Message) => ({
+  ...state,
+  byId: {
+    ...state.byId,
+    [message.uuid]: {
+      ...state.byId[message.uuid],
+      ...message
+    },
   }
-
-  return {
-    ...state,
-    byId: {
-      ...state.byId,
-      [message.uuid]: {
-        ...state.byId[message.uuid],
-        ...message
-      },
-    }
-  }
-};
+});
 
 export const slice = createSlice({
   initialState,

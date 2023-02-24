@@ -23,7 +23,7 @@ const slice = createSlice({
       selectedConversationId: conversationId,
       selectedChannelId: null,
     }),
-    selectUser: (state: AppState, { payload: pubkey }: PayloadAction<string>) => ({
+    selectUser: (state: AppState, { payload: pubkey }: PayloadAction<string | null>) => ({
       ...state,
       selectedUserPubkey: pubkey
     })
