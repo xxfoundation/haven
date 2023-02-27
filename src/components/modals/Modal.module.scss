@@ -20,8 +20,8 @@
   align-items: center;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  background-color: var(--dark-1-translucent);
-  backdrop-filter: blur(12px);
+  background: var(--dark-1);
+  backdrop-filter: blur(100px);
   padding: 0 72px;
   min-height: 50px;
 

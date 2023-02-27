@@ -87,6 +87,8 @@ export const onDmReceived = (
     update
   }
 
+  console.error('DM_RECEIVED', messageEvent)
+
   bus.emit(Event.DM_RECEIVED, messageEvent);
 }
 

@@ -10,7 +10,36 @@ import s from './LeftSideBar.module.scss';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
+import * as dms from 'src/store/dms';
 import Dropdown from '../Dropdown';
+import Identity from '../Identity';
+
+type ChannelListItemProps = {
+  currentId: string | null,
+  id: string,
+  name: React.ReactNode,
+  onClick: (id: string) => void,
+  notification: boolean;
+}
+const ChannelListItem: FC<ChannelListItemProps> = ({ currentId, id, name, notification, onClick }) => {
+  return(
+    <div className='flex justify-between items-center' key={id}>
+      <span
+        className={cn(s.channelPill, 'headline--xs', {
+          [s.channelPill__active]:  id === currentId
+        })}
+        onClick={() => onClick(id)}
+      >
+        {name}
+      </span>
+      {notification && (
+        <span className='mr-2'>
+          <MissedMessagesIcon></MissedMessagesIcon>
+        </span>
+      )}
+    </div>
+  )
+}
 
 const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   const dispatch = useAppDispatch();
@@ -22,18 +51,27 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   } = useNetworkClient();
 
   const allChannels = useAppSelector(channels.selectors.channels);
-  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const currentChannelId = useAppSelector(app.selectors.currentChannelId);
+  const currentConversationId = useAppSelector(app.selectors.currentConversationId);
+  const newDmsNotification = useAppSelector(dms.selectors.newDmsNotifications);
 
-  const onChannelChange = useCallback((chId: string) => () => {
+  const selectChannel = useCallback((chId: string) => () => {
     dispatch(app.actions.selectChannel(chId));
     dispatch(channels.actions.dismissNewMessagesNotification(chId))
   }, [dispatch]);
 
+  const selectDm = useCallback((pubkey: string) => () => {
+    dispatch(app.actions.selectConversation(pubkey));
+    dispatch(dms.actions.dismissNewMessages(pubkey));
+  }, [dispatch]);
+
+  const allConversations = useAppSelector(dms.selectors.conversations);
+
   const [showCreateNewChannel, setShowCreateNewChannel] = useState(false);
 
-  const collapseTitle = useMemo(() => (
-    <div className={cn('flex justify-between')}>
-      <span>JOINED</span>
+  const channelsTitle = useMemo(() => (
+    <div className={cn('flex justify-between uppercase')}>
+      <span>Joined</span>
       <div className='flex items-center'>
         <Plus
           className={cn('mr-1', s.plus, {})}
@@ -47,6 +85,12 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
         />
         
       </div>
+    </div>
+  ), []);
+
+  const dmsTitle = useMemo(() => (
+    <div className={cn('flex justify-between uppercase')}>
+      <span>Direct Messages</span>
     </div>
   ), []);
 
@@ -83,29 +127,31 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
             </ul>
           </Dropdown>
         )}
-        <Collapse title={collapseTitle} defaultActive>
+        <Collapse className='mb-3' title={channelsTitle} defaultActive>
           <div className='flex flex-col'>
             {allChannels.map((ch) => (
-              <div className='flex justify-between items-center' key={ch.id}>
-                <span
-                  title={ch.isAdmin ? 'You are admin in this channel' : undefined}
-                  className={cn(s.channelPill, 'headline--xs', {
-                    [s.channelPill__active]:
-                      ch.id === (currentChannel?.id || '')
-                  })}
-                  onClick={(onChannelChange(ch.id))}
-                >
-                  {ch.name}
-                </span>
-                {ch.hasMissedMessages && (
-                  <span className='mr-2'>
-                    <MissedMessagesIcon></MissedMessagesIcon>
-                  </span>
-                )}
-              </div>
+              <ChannelListItem
+                key={ch.id}
+                {...ch}
+                currentId={currentChannelId}
+                onClick={selectChannel(ch.id)}
+                notification={!!ch.hasMissedMessages}
+              />
             )
           )}
           </div>
+        </Collapse>
+        <Collapse title={dmsTitle} defaultActive>
+          {allConversations.map((c) => (
+            <ChannelListItem
+              key={c.pubkey}
+              id={c.pubkey}
+              currentId={currentConversationId}
+              onClick={selectDm(c.pubkey)}
+              name={<Identity pubkey={c.pubkey} codeset={c.codeset} />}
+              notification={newDmsNotification[c.pubkey]}
+            />
+          ))}
         </Collapse>
       </div>
       <div className={s.footer}>

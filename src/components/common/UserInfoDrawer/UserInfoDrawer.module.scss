@@ -3,8 +3,7 @@
   right: 0;
   bottom: 0;
   z-index: 9;
-  background: rgba(56, 58, 62, 0.7);
-  backdrop-filter: blur(10px);
+  background: var(--dark-1);
   color: var(--text-primary);
   border-radius: 2rem 2rem 0 0;
   overflow: hidden;
@@ -53,6 +52,7 @@
 
 .actionIcon {
   width: 1.5rem;
+  height: 1.5rem;
 }
 
 .slash {

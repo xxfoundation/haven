@@ -10,6 +10,7 @@ import usePrevious from 'src/hooks/usePrevious';
 import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 import * as messages from 'src/store/messages';
+import * as dms from 'src/store/dms';
 
 const removeAuthCookie = () => {
   Cookies.remove('userAuthenticated', { path: '/' });
@@ -31,6 +32,7 @@ const Home: NextPage = () => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentChannelMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const previousChannelId = usePrevious(currentChannel?.id);
+  const currentDms = useAppSelector(dms.selectors.currentDirectMessages);
 
   useEffect(() => {
     if (previousChannelId !== currentChannel?.id) {
@@ -38,7 +40,7 @@ const Home: NextPage = () => {
     }
   }, [currentChannel?.id, previousChannelId, closeModal]);
 
-  return <ChannelChat messages={currentChannelMessages ?? []} />;
+  return <ChannelChat messages={(currentChannelMessages || currentDms) ?? []} />;
 };
 
 export default Home;
