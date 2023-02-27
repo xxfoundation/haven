@@ -61,7 +61,8 @@ const UserInfoDrawer = () => {
         dispatch(dms.actions.createConversation({
           pubkey: userInfo.pubkey,
           token: userInfo.dmToken,
-          codesetVersion: userInfo.codeset,
+          codeset: userInfo.codeset,
+          codename: userInfo.codename,
           blocked: false,
         }));
       }
@@ -228,15 +229,20 @@ const UserInfoDrawer = () => {
         </div>
         <ul style={{ maxHeight: 186, overflow: 'auto'}}>
           {commonChannels?.map((c) => (
-            <>
+            <React.Fragment key={c.id}>
               <li className='py-2 border-indigo-500 text-sm'>
-                <span className='font-medium w-1/2 inline-block pr-1 text-ellipsis overflow-hidden whitespace-nowrap'>{c.channelName}</span>
-                <span title={c.nickname || c.codename} className={cn(s.textMuted, 'w-1/2 inline-block text-right pl-1 text-ellipsis  overflow-hidden whitespace-nowrap')}>
+                <span
+                  className='font-medium w-1/2 inline-block pr-1 text-ellipsis overflow-hidden whitespace-nowrap'>
+                  {c.channelName}
+                </span>
+                <span
+                  title={c.nickname || c.codename}
+                  className={cn(s.textMuted, 'w-1/2 inline-block text-right pl-1 text-ellipsis  overflow-hidden whitespace-nowrap')}>
                   {c.nickname || <><Elixxir style={{ display: 'inline' }} fill='var(--text-muted)' /> {c.codename}</>}
                 </span>
               </li>
               <hr className='mb-1' />
-            </>
+            </React.Fragment>
           ))}
         </ul>
       </div>

@@ -24,7 +24,11 @@ const privacyLevelDescriptions: Record<PrivacyLevel, string> = {
   [PrivacyLevel.Secret]: 'Only people with a password can join this channel'
 };
 
-const ChannelHeader: FC<Channel> = ({
+type Props = Omit<Channel, 'name' | 'currentPage'> & {
+  name: React.ReactNode;
+}
+
+const ChannelHeader: FC<Props> = ({
   description,
   id,
   isAdmin,
@@ -74,10 +78,15 @@ const ChannelHeader: FC<Channel> = ({
           </span>
         </div>
         <div className='flex space-x-2 mt-1'>
-          <Share
-            className={s.icon}
-            onClick={openShareModal} />
-          <Ellipsis onClick={openChannelSettings} className={s.icon} />
+          {currentChannel && (
+            <>
+              <Share
+                className={s.icon}
+                onClick={openShareModal} />
+              <Ellipsis onClick={openChannelSettings} className={s.icon} />
+            </>
+          )}
+          
         </div>
       </div>
       <p>

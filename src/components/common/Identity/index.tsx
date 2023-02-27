@@ -18,7 +18,7 @@ type Props = {
   clickable?: boolean;
 }
 
-const Identity: FC<Props> = ({ clickable = true, codeset, disableMuteStyles, nickname, pubkey }) => {
+const Identity: FC<Props> = ({ clickable = false, codeset, disableMuteStyles, nickname, pubkey }) => {
   const { getCodeNameAndColor, userIsMuted } = useNetworkClient();
   const dispatch = useAppDispatch();
   const isMuted = useMemo(
@@ -45,7 +45,7 @@ const Identity: FC<Props> = ({ clickable = true, codeset, disableMuteStyles, nic
   
 
   return (
-    <span onClick={onClick} title={`${nickname && `${nickname} – `}${codename}`} className={cn(classes.root, { [classes.clickable]: clickable })}>
+    <span onClick={onClick} title={`${nickname ? `${nickname} – ` : ''}${codename}`} className={cn(classes.root, { [classes.clickable]: clickable })}>
       {nickname && (
         <>
           <span className='nickname' style={{ color: colorHex }}>

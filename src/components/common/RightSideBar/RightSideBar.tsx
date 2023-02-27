@@ -103,7 +103,7 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
                 .filter((c) => c.codename !== codename)
                 .map((c) =>  (
                 <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  <Identity  {...c} />
+                  <Identity clickable {...c} />
                 </div>
               ))}
             </div>

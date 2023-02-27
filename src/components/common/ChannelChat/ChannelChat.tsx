@@ -13,6 +13,7 @@ import ChannelHeader from '../ChannelHeader';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
+import Identity from '../Identity';
 
 type Props = {
   messages: Message[];
@@ -20,7 +21,7 @@ type Props = {
 }
 
 const ChannelChat: FC<Props> = ({ messages }) => {
-  const { pagination } = useNetworkClient();
+  const { currentDmRecipient, pagination } = useNetworkClient();
   const {  reset } = pagination;
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
@@ -43,12 +44,24 @@ const ChannelChat: FC<Props> = ({ messages }) => {
 
   return (
     <div className={s.root}>
-      {currentChannel ? (
+      {currentChannel || currentDmRecipient ? (
         <>
-          <ChannelHeader {...currentChannel} />
-          <PinnedMessage 
-            handleReplyToMessage={setReplyToMessage}
-          />
+          {currentChannel && (
+            <>
+              <ChannelHeader {...currentChannel} />
+              <PinnedMessage 
+                handleReplyToMessage={setReplyToMessage}
+              />
+            </>
+          )}
+          {currentDmRecipient && (
+            <ChannelHeader
+              id={currentDmRecipient.pubkey}
+              isAdmin={false}
+              name={<Identity {...currentDmRecipient} />}
+              description=''
+              privacyLevel={null} />
+          )}
           <ScrollDiv
             autoScrollBottom={autoScroll}
             setAutoScrollBottom={setAutoScroll}

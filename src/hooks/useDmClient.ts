@@ -2,7 +2,7 @@ import type { DMClient } from 'src/types';
 
 import { useUtils } from '@contexts/utils-context';
 import { useEffect, useState } from 'react';
-import { MAXIMUM_PAYLOAD_BLOCK_SIZE, WASM_JS_PATH } from 'src/constants';
+import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH } from 'src/constants';
 import { decoder } from '@utils/index';
 import { onDmReceived } from 'src/events';
 
@@ -39,7 +39,7 @@ const useDmClient = (cmixId?: number, privateIdentity?: Uint8Array, decryptedInt
     try {
       NewDMClientWithIndexedDb(
         cmixId,
-        WASM_JS_PATH,
+        DMS_WORKER_JS_PATH,
         privateIdentity,
         onDmReceived,
         databaseCipher.id

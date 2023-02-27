@@ -1,10 +1,13 @@
 import { MessageStatus, MessageType } from 'src/types';
 
+type PubKey = string;
+
 export type Conversation = {
-  pubkey: string;
+  pubkey: PubKey;
   nickname?: string;
   token: number;
-  codesetVersion: number;
+  codename: string;
+  codeset: number;
   blocked: boolean;
 }
 
@@ -13,7 +16,7 @@ export type ConversationId = Conversation['pubkey'];
 export type DirectMessage = {
   uuid: number;
   messageId: string;
-  pubkey: string;
+  pubkey: PubKey;
   parentMessageId: string;
   timestamp: string;
   status: MessageStatus;
@@ -22,9 +25,11 @@ export type DirectMessage = {
   round: number;
 }
 
+
 export type DMState = {
-  conversationsByPubkey: Record<string, Conversation>;
-  messagesByPubkey: Record<string, DirectMessage[]>;
+  conversationsByPubkey: Record<PubKey, Conversation>;
+  messagesByPubkey: Record<PubKey, Record<DirectMessage['uuid'], DirectMessage>>;
+  missedMessagesByPubkey: Record<PubKey, boolean>;
 };
 
 declare module 'src/store/types' {
