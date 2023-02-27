@@ -31,5 +31,5 @@ const slice = createSlice({
 });
 
 export default slice.reducer;
-
+export * as selectors from './selectors';
 export const actions = slice.actions;

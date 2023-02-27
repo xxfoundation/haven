@@ -23,7 +23,10 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 
 const HoveredMention = ({ codename }: { codename: string }) => {
   const contributors = useAppSelector(selectors.allContributors);
-  const mentioned = useMemo(() => contributors.find((c) => c.codename === codename), [codename, contributors]);
+  const mentioned = useMemo(
+    () => contributors.find((c) => c.codename === codename),
+    [codename, contributors]
+  );
   return mentioned ? (
     <Identity {...mentioned} />
   ) : null;
@@ -94,12 +97,12 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
                 replied to
               </span>
               {repliedToMessage
-                ? <Identity {...repliedToMessage} />
+                ? <Identity clickable {...repliedToMessage} />
                 : <span className={cn(s.separator, '')}><strong>deleted/unknown</strong></span>}
 
             </>
           ) : (
-            <Identity {...message} />
+            <Identity clickable {...message} />
           )}
 
           <span className={cn(s.messageTimestamp)}>
@@ -148,7 +151,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
             >
               {repliedToMessage && replyMarkup ? (
                 <>
-                  <Identity {...repliedToMessage} />
+                  <Identity clickable {...repliedToMessage} />
                   <Clamp lines={3}>
                     <p
                       className='message'

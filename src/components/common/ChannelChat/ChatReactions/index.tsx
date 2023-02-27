@@ -48,11 +48,10 @@ const ChatReactions: FC<Props> = ({ message }) => {
           <div className={cn(s.icon)}>{emoji}</div>
           <p>
             {users.slice(0, Math.max(1, users.length - 1))
-              .map((u, i) => <>{i > 0 && ', '}<Identity pubkey={u.pubkey} codeset={u.codeset} /></>)}
+              .map((u, i) => <>{i > 0 && ', '}<Identity key={u.pubkey} pubkey={u.pubkey} codeset={u.codeset} /></>)}
             {users.length > 1 && (
-              <> and <Identity {...users[users.length - 1]} /></> 
+              <> and <Identity clickable {...users[users.length - 1]} /></> 
             )}
-            
           </p>
         </Tooltip>
       ))}
