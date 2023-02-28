@@ -22,6 +22,7 @@ const upsertConversation = (state: DMState, conversation: Conversation) => ({
 const upsertMessage = (state: DMState, message: DirectMessage) => ({
   ...state,
   messagesByPubkey: {
+    ...state.messagesByPubkey,
     [message.conversationId]: {
       ...state.messagesByPubkey[message.conversationId],
       [message.uuid]: {

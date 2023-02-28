@@ -63,8 +63,8 @@ export type DatabaseCipher = {
 export type ChannelManager = {
   GetChannels: () => Uint8Array;
   GetID: () => number;
-  JoinChannel: (channelId: string) => Uint8Array;
-  LeaveChannel: (channelId: Uint8Array) => void;
+  JoinChannel: (channelId: string) => Promise<Uint8Array>;
+  LeaveChannel: (channelId: Uint8Array) => Promise<void>;
   GetMutedUsers: (channelId: Uint8Array) => Uint8Array;
   Muted: (channelId: Uint8Array) => boolean;
   MuteUser: (
@@ -318,13 +318,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
     [getShareURL, getShareUrlType]
   );
   
-  const joinChannel = useCallback((
+  const joinChannel = useCallback(async (
     prettyPrint: string,
     appendToCurrent = true
   ) => {
     if (prettyPrint && channelManager && channelManager.JoinChannel) {
       const chanInfo = JSON.parse(
-        decoder.decode(channelManager.JoinChannel(prettyPrint))
+        decoder.decode(await channelManager.JoinChannel(prettyPrint))
       ) as ChannelJSON;
 
       if (appendToCurrent) {
@@ -352,7 +352,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     bc.onmessage = async event => {
       if (event.data?.prettyPrint) {
         try {
-          joinChannel(event.data.prettyPrint);
+          await joinChannel(event.data.prettyPrint);
         } catch (error) {}
       }
     };
@@ -830,7 +830,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           prettyPrint: channelPrettyPrint,
         };
 
-        joinChannel(channelPrettyPrint, false);
+        await joinChannel(channelPrettyPrint, false);
         savePrettyPrint(channel.id, channelPrettyPrint);
         dispatch(channels.actions.upsert(channel));
         dispatch(app.actions.selectChannel(channel.id));
@@ -842,7 +842,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const leaveCurrentChannel = useCallback(async () => {
     if (currentChannel && channelManager && channelManager.LeaveChannel && utils) {
       try {
-        channelManager.LeaveChannel(
+        await channelManager.LeaveChannel(
           utils.Base64ToUint8Array(currentChannel.id)
         );
         
@@ -1161,7 +1161,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const [isMuted, setIsMuted] = useState(false);
   useEffect(() => {
-    const checkMuted = () => setIsMuted(getMuted);
+    const checkMuted = () => setIsMuted(getMuted());
     if (currentChannel?.id) {
       checkMuted();
     }
