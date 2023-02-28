@@ -23,6 +23,7 @@ export type DMClient = {
   GetIdentity: () => Uint8Array;
   SetNickname: (nickname: string) => void;
   GetNickname: () => string;
+  GetStorageTag: () => string;
 }
 
 export type DummyTraffic = {

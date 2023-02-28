@@ -8,6 +8,7 @@ import classes from './Identity.module.scss';
 import { useNetworkClient } from '@contexts/network-client-context';
 import { useAppDispatch } from 'src/store/hooks';
 import * as app from 'src/store/app';
+import { useUtils } from '@contexts/utils-context';
 
 type Props = {
   disableMuteStyles?: boolean;
@@ -19,7 +20,8 @@ type Props = {
 }
 
 const Identity: FC<Props> = ({ clickable = false, codeset, disableMuteStyles, nickname, pubkey }) => {
-  const { getCodeNameAndColor, userIsMuted } = useNetworkClient();
+  const { getCodeNameAndColor } = useUtils();
+  const { userIsMuted } = useNetworkClient();
   const dispatch = useAppDispatch();
   const isMuted = useMemo(
     () => !disableMuteStyles && userIsMuted(pubkey),

@@ -71,23 +71,21 @@ export type MessagePinEvent = Message;
 export type MessageUnPinEvent = Message;
 
 export type DMReceivedEvent = {
-  messageId: string;
+  messageUuid: string;
   pubkey: Uint8Array;
   update: boolean;
 }
 
 export const onDmReceived = (
-  messageId: string,
+  messageUuid: string,
   pubkey: Uint8Array,
   update: boolean
 ) => {
   const messageEvent: DMReceivedEvent = {
-    messageId,
+    messageUuid,
     pubkey,
     update
   }
-
-  console.error('DM_RECEIVED', messageEvent)
 
   bus.emit(Event.DM_RECEIVED, messageEvent);
 }

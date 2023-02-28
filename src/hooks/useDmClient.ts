@@ -1,21 +1,73 @@
-import type { DMClient } from 'src/types';
+import type { DBConversation, DBDirectMessage, DMClient } from 'src/types';
+import type { Conversation, DirectMessage } from 'src/store/dms/types';
 
-import { useUtils } from '@contexts/utils-context';
-import { useEffect, useState } from 'react';
-import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH } from 'src/constants';
+import { useUtils, XXDKContext } from '@contexts/utils-context';
+import { useEffect, useMemo, useState } from 'react';
+import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_STORAGE_TAG } from 'src/constants';
 import { decoder } from '@utils/index';
-import { onDmReceived } from 'src/events';
+import { onDmReceived, DMReceivedEvent, Event, bus } from 'src/events';
+import { useDb } from '@contexts/db-context';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import * as dms from 'src/store/dms';
+import * as app from 'src/store/app';
+import useLocalStorage from './useLocalStorage';
 
 type DatabaseCipher = {
   id: number;
   decrypt: (encrypted: string) => string;
 };
 
-const useDmClient = (cmixId?: number, privateIdentity?: Uint8Array, decryptedInternalPassword?: Uint8Array) => {
+const makeConversationMapper = (codenameConverter: XXDKContext['getCodeNameAndColor']) => (conversation: DBConversation): Conversation => ({
+  ...codenameConverter(conversation.pub_key, conversation.codeset_version || 0),
+  pubkey: conversation.pub_key,
+  token: conversation.token,
+  blocked: conversation.blocked,
+  codeset: conversation.codeset_version || 0,
+  nickname: conversation.nickname,
+});
+
+const makeMessageMapper = (codenameConverter: XXDKContext['getCodeNameAndColor'], cipher: DatabaseCipher) => (message: DBDirectMessage): DirectMessage => ({
+  ...codenameConverter(message.sender_pub_key, message.codeset_version || 0),
+  uuid: message.id,
+  messageId: message.message_id,
+  status: message.status,
+  type: message.type,
+  conversationId: message.conversation_pub_key,
+  parentMessageId: message.parent_message_id === 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' ? null : message.parent_message_id,
+  timestamp: message.timestamp,
+  body: cipher.decrypt(message.text),
+  round: message.round,
+  pubkey: message.sender_pub_key,
+  codeset: message.codeset_version || 0,
+})
+
+const useDmClient = (
+  cmixId?: number,
+  privateIdentity?: Uint8Array,
+  decryptedInternalPassword?: Uint8Array
+) => {
+  const dmsDb = useDb('dm');
+  const dispatch = useAppDispatch();
+  const currentConversationId = useAppSelector(app.selectors.currentConversationId);
   const [client, setClient] = useState<DMClient | undefined>();
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
-  const { utils } = useUtils();
+  const { getCodeNameAndColor, utils } = useUtils();
   const { NewDMClientWithIndexedDb } = utils;
+  const [dmsStorageTag, setStorageTag] = useLocalStorage<string | null>(DMS_STORAGE_TAG, null);
+  const conversationMapper = useMemo(() => getCodeNameAndColor && makeConversationMapper(getCodeNameAndColor), [getCodeNameAndColor])
+  const messageMapper = useMemo(
+    () => databaseCipher && getCodeNameAndColor && makeMessageMapper(
+      getCodeNameAndColor,
+      databaseCipher
+    ),
+    [databaseCipher, getCodeNameAndColor]
+  );
+
+  useEffect(() => {
+    if (client && !dmsStorageTag) {
+      setStorageTag(client.GetStorageTag());
+    }
+  }, [client, dmsStorageTag, setStorageTag]);
 
   useEffect(() => {
     if (cmixId !== undefined && decryptedInternalPassword) {
@@ -48,6 +100,78 @@ const useDmClient = (cmixId?: number, privateIdentity?: Uint8Array, decryptedInt
       console.error('Failed to create DM client:', e);
     }
   }, [client, NewDMClientWithIndexedDb, cmixId, databaseCipher, privateIdentity])
+
+  useEffect(() => {
+    if (dmsDb && conversationMapper) {
+      dmsDb.table<DBConversation>('conversations')
+        .toArray()
+        .then((conversations) => {
+          dispatch(dms.actions.upsertManyConversations(
+            conversations.map(conversationMapper))
+          )
+        })
+    }
+  }, [conversationMapper, dispatch, dmsDb]);
+
+  useEffect(() => {
+    if (dmsDb && messageMapper && currentConversationId !== null) {
+      dmsDb.table<DBDirectMessage>('messages')
+        .where('conversation_pub_key')
+        .equals(currentConversationId)
+        .toArray()
+        .then((messages) => {
+          
+          dispatch(dms.actions.upsertManyDirectMessages(messages.map(messageMapper)))
+        })
+    }
+  }, [currentConversationId, dispatch, dmsDb, messageMapper])
+
+  useEffect(() => {
+    if (!dmsDb || !messageMapper || !conversationMapper) {
+      return;
+    }
+
+    const listener = (e: DMReceivedEvent) => {
+      Promise.all([
+        dmsDb.table<DBDirectMessage>('messages')
+          .where('id')
+          .equals(e.messageUuid)
+          .first(),
+        dmsDb.table<DBConversation>('conversations')
+          .where('id')
+          .equals(e.pubkey)
+          .first()
+      ]).then(([message, conversation]) => {
+          if (!conversation || !message) {
+            console.error('Couldn\'t find conversation or message in database.');
+            return;
+          }
+
+          dispatch(
+            dms.actions.upsertConversation(
+              conversationMapper(conversation)
+            )
+          );
+
+          if (currentConversationId !== conversation.pub_key) {
+            dispatch(dms.actions.notifyNewMessage(conversation.pub_key));
+          }
+
+          dispatch(dms.actions.upsertDirectMessage(messageMapper(message)));
+      });
+    }
+
+    bus.addListener(Event.DM_RECEIVED, listener);
+
+    return () => { bus.removeListener(Event.DM_RECEIVED, listener) };
+  }, [
+    conversationMapper,
+    messageMapper,
+    currentConversationId,
+    dispatch,
+    dmsDb,
+    getCodeNameAndColor
+  ]);
 
   return client;
 }

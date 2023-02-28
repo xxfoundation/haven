@@ -11,6 +11,7 @@ import MessagesContainer from './MessagesContainer';
 import PinnedMessage from './PinnedMessage';
 import ChannelHeader from '../ChannelHeader';
 import * as channels from 'src/store/channels';
+import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
 import Identity from '../Identity';
@@ -21,11 +22,12 @@ type Props = {
 }
 
 const ChannelChat: FC<Props> = ({ messages }) => {
-  const { currentDmRecipient, pagination } = useNetworkClient();
+  const { pagination } = useNetworkClient();
   const {  reset } = pagination;
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const joinedChannels = useAppSelector(channels.selectors.channels);
+  const currentConversation = useAppSelector(dms.selectors.currentConversation)
   const paginatedItems = useMemo(() => pagination.paginate(messages), [messages, pagination]);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
 
   return (
     <div className={s.root}>
-      {currentChannel || currentDmRecipient ? (
+      {currentChannel || currentConversation ? (
         <>
           {currentChannel && (
             <>
@@ -54,11 +56,11 @@ const ChannelChat: FC<Props> = ({ messages }) => {
               />
             </>
           )}
-          {currentDmRecipient && (
+          {currentConversation && (
             <ChannelHeader
-              id={currentDmRecipient.pubkey}
+              id={currentConversation.pubkey}
               isAdmin={false}
-              name={<Identity {...currentDmRecipient} />}
+              name={<Identity {...currentConversation} />}
               description=''
               privacyLevel={null} />
           )}
