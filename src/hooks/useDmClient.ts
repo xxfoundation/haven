@@ -10,6 +10,7 @@ import { useDb } from '@contexts/db-context';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as dms from 'src/store/dms';
 import * as app from 'src/store/app';
+import * as identity from 'src/store/identity';
 import useLocalStorage from './useLocalStorage';
 
 type DatabaseCipher = {
@@ -62,6 +63,7 @@ const useDmClient = (
     ),
     [databaseCipher, getCodeNameAndColor]
   );
+  const userIdentity = useAppSelector(identity.selectors.identity);
 
   useEffect(() => {
     if (client && !dmsStorageTag) {
@@ -132,15 +134,15 @@ const useDmClient = (
     }
 
     const listener = (e: DMReceivedEvent) => {
+      const pubkey = Buffer.from(e.pubkey).toString('base64');
       Promise.all([
         dmsDb.table<DBDirectMessage>('messages')
           .where('id')
           .equals(e.messageUuid)
           .first(),
         dmsDb.table<DBConversation>('conversations')
-          .where('id')
-          .equals(e.pubkey)
-          .first()
+          .filter((c) => c.pub_key === pubkey)
+          .last()
       ]).then(([message, conversation]) => {
           if (!conversation || !message) {
             console.error('Couldn\'t find conversation or message in database.');
@@ -153,7 +155,7 @@ const useDmClient = (
             )
           );
 
-          if (currentConversationId !== conversation.pub_key) {
+          if (currentConversationId !== conversation.pub_key && pubkey !== userIdentity?.pubkey) {
             dispatch(dms.actions.notifyNewMessage(conversation.pub_key));
           }
 
@@ -166,6 +168,7 @@ const useDmClient = (
     return () => { bus.removeListener(Event.DM_RECEIVED, listener) };
   }, [
     conversationMapper,
+    userIdentity,
     messageMapper,
     currentConversationId,
     dispatch,
