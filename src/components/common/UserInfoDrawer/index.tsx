@@ -5,7 +5,6 @@ import { contrastColor as getContrastColor } from 'contrast-color';
 import cn from 'classnames';
 
 import s from './UserInfoDrawer.module.scss';
-import { useNetworkClient } from '@contexts/network-client-context';
 import { byTimestamp } from 'src/store/utils';
 import { Close, Elixxir } from '@components/icons';
 import * as app from 'src/store/app';
@@ -14,6 +13,7 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { useOnClickOutside } from 'usehooks-ts';
 import Envelope from '@components/icons/Envelope';
 import Slash from '@components/icons/Slash';
+import { useUtils } from '@contexts/utils-context';
 
 const calculateContrastColor = (color?: string) => getContrastColor({
   bgColor: color ?? '#000',
@@ -39,7 +39,7 @@ type CommonChannel = {
 const UserInfoDrawer = () => {
   const db = useDb();
   const dmDb = useDb('dm');
-  const { getCodeNameAndColor } = useNetworkClient();
+  const { getCodeNameAndColor } = useUtils();
   const dispatch = useAppDispatch();
   const containerRef = useRef<HTMLDivElement>(null);
   const {
@@ -58,16 +58,18 @@ const UserInfoDrawer = () => {
   const selectDm = useCallback(() => {
     if (userInfo && userInfo.dmToken) {
       if (!existingConversation) {
-        dispatch(dms.actions.createConversation({
+        dispatch(dms.actions.upsertConversation({
           pubkey: userInfo.pubkey,
           token: userInfo.dmToken,
           codeset: userInfo.codeset,
           codename: userInfo.codename,
+          color: userInfo.color,
           blocked: false,
         }));
       }
 
       dispatch(app.actions.selectConversation(userInfo.pubkey));
+      setDrawerState('closed');
     }
   }, [dispatch, existingConversation, userInfo])
 
@@ -155,9 +157,8 @@ const UserInfoDrawer = () => {
             color,
             dmToken: conversation.token,
             pubkey: conversation.pub_key,
-            nickname: conversation.pub_key
+            nickname: conversation.nickname
           });
-          setDrawerState('open');
         }
       })
     }
@@ -171,8 +172,12 @@ const UserInfoDrawer = () => {
     selectedUserPubkey
   ]);
 
-  return  (
-    <div ref={containerRef} className={cn(s.drawer)} style={{ bottom: drawerState === 'closed' ? `-${containerRef.current?.offsetHeight}px` : 0}}>
+  const offsetHeight = containerRef.current ? `-${containerRef.current?.offsetHeight}px` : '-100%';
+  return (
+    <div
+      ref={containerRef}
+      className={cn(s.drawer)}
+      style={{ bottom: drawerState === 'closed' ? offsetHeight : 0}}>
       <div className={s.header} style={{ backgroundColor: `${userInfo?.color}` }}>
         <Close onClick={closeDrawer} color={contrastColor} className={s.closeIcon} />
         <span style={{ color: contrastColor, opacity: 1 }}>

@@ -5,7 +5,7 @@ import { Dexie } from 'dexie';
 import { createContext, useCallback, useState } from 'react';
 
 import useLocalStorage from 'src/hooks/useLocalStorage';
-import { ELIXXIR_USERS_TAGS } from 'src/constants';
+import { CHANNELS_STORAGE_TAG, DMS_STORAGE_TAG } from 'src/constants';
 
 export type DBMessage = {
   id: number;
@@ -35,6 +35,7 @@ type DBContextType = {
   db?: Dexie | undefined;
   dmDb?: Dexie | undefined;
   initDb: (storageTag: string) => void;
+  initDmsDb: (storageTag: string) => void;
 }
 
 export const DBContext = createContext<DBContextType>({ initDb: () => {} } as unknown as DBContextType);
@@ -42,8 +43,9 @@ export const DBContext = createContext<DBContextType>({ initDb: () => {} } as un
 export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [db, setDb] = useState<Dexie>();
   const [dmDb, setDmDb] = useState<Dexie>();
-  const [storageTags] = useLocalStorage<string[]>(ELIXXIR_USERS_TAGS, []);
+  const [storageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
   const storageTag = useMemo(() => storageTags?.[0], [storageTags]);
+  const [dmsStorageTag] = useLocalStorage<string | null>(DMS_STORAGE_TAG, null);
   
   const initDb = useCallback((tag: string) => {
     const instance = new Dexie(`${tag}_speakeasy`);
@@ -54,23 +56,35 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
     });
   
     setDb(instance);
+  }, []);
 
-    const dmInstance = new Dexie(`${tag}_speakeasy_dm`);
+  const initDmsDb = useCallback((dbName: string) => {
+    const dmInstance = new Dexie(dbName);
     dmInstance.version(0.1).stores({
       conversations: '++id',
       messages: '++id,conversation_pub_key,&message_id,parent_message_id,timestamp'
     });
     setDmDb(dmInstance);
-  }, []);
+  }, [])
 
   useEffect(() => {
     if (storageTag) {
       initDb(storageTag);
     }
-  }, [initDb, storageTag]);
+
+    // if (dmsStorageTag) {
+    //   initDmsDb(dmsStorageTag);
+    // }
+
+    if (storageTag) {
+      const tag = storageTag.split('-')[1].replace('=', '');
+      const dbName = `${tag}_speakeasy_dm`;
+      initDmsDb(dbName);
+    }
+  }, [dmsStorageTag, initDb, initDmsDb, storageTag]);
 
   return (
-    <DBContext.Provider value={{ db, dmDb, initDb }}>
+    <DBContext.Provider value={{ db, dmDb, initDb, initDmsDb }}>
       {children}
     </DBContext.Provider>
   )
