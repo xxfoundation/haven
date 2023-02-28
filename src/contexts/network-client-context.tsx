@@ -2,7 +2,7 @@ import type { CMix, DBMessage, DBChannel } from 'src/types';
 import { Message } from 'src/store/messages/types';
 import { MessageStatus, MessageType } from 'src/types';
 
-import { ChannelJSON, VersionJSON } from 'src/contexts/utils-context';
+import { ChannelJSON, IdentityJSON, VersionJSON } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
 
 import _ from 'lodash';
@@ -28,7 +28,6 @@ import * as dms from 'src/store/dms';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
-import { Conversation } from 'src/store/dms/types';
 
 const BATCH_COUNT = 1000;
 
@@ -119,15 +118,7 @@ export type ChannelManager = {
   ImportChannelAdminKey: (channelId: Uint8Array, encryptionPassword: string, privateKey: Uint8Array) => void;
 }
 
-export type IdentityJSON = {
-  PubKey: string;
-  Codename: string;
-  Color: string;
-  Extension: string;
-  CodesetVersion: number;
-}
-
-type NetworkContext = {
+export type NetworkContext = {
   // state
   mutedUsers: User[] | undefined;
   userIsMuted: (pubkey: string) => boolean;
@@ -150,12 +141,10 @@ type NetworkContext = {
   upgradeAdmin: () => void;
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
   exportChannelAdminKeys: (encryptionPassword: string) => string;
-  getCodeNameAndColor: (publicKey: string, codeSet: number) => { codename: string, color: string };
   generateIdentities: (amountOfIdentites: number) => {
     privateIdentity: Uint8Array;
     codename: string;
   }[];
-  currentDmRecipient: Conversation & { codename: string, color: string } | null;
   initialize: (password: string) => Promise<void>;
   getMuted: () => boolean;
   isMuted: boolean;
@@ -220,7 +209,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     storageTag,
   } = useAuthentication();
   const { messagePinned, messageReplied, notifyMentioned } = useNotification();
-  const { utils } = useUtils();
+  const { getCodeNameAndColor, utils } = useUtils();
   const [mutedUsers, setMutedUsers] = useState<User[]>();
   const {
     cipher,
@@ -245,7 +234,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     () => (channelManager && rawPassword) ? utils.ImportPrivateIdentity(rawPassword, channelManager.ExportPrivateIdentity(rawPassword)) : undefined,
     [channelManager, rawPassword, utils]
   );
-  
   const dmClient = useDmClient(cmixId, privateIdentity, decryptedPassword);
 
   const initialize = useCallback(async (password: string) => {
@@ -353,36 +341,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
   }, [channelManager, dispatch, getPrivacyLevel, utils]);
-
-  const getCodeNameAndColor = useCallback((publicKey: string, codeset: number) => {
-    try {
-      assert(utils && typeof utils.ConstructIdentity === 'function' && utils.Base64ToUint8Array)
-      const identityJson = JSON.parse(
-        decoder.decode(
-          utils.ConstructIdentity(
-            utils.Base64ToUint8Array(publicKey),
-            codeset
-          )
-        )
-      ) as IdentityJSON;
-
-      return {
-        codename: identityJson.Codename,
-        color: identityJson.Color.replace('0x', '#')
-      };
-    } catch (error) {
-      console.error('Failed to get codename and color', error);
-      throw error;
-    }
-  }, [utils]);
-
-  const currentDmRecipient = useMemo(
-    () => currentConversation && ({
-      ...currentConversation,
-      ...getCodeNameAndColor(currentConversation.pubkey, currentConversation.codeset)
-    }),
-    [currentConversation, getCodeNameAndColor]
-  );
 
   useEffect(() => {
     if (channelManager && userIdentity) {
@@ -915,11 +873,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
 
-    if (dmClient && message.length && currentDmRecipient) {
+    if (dmClient && message.length && currentConversation) {
       try {
         await dmClient.SendText(
-          utils.Base64ToUint8Array(currentDmRecipient.pubkey),
-          currentDmRecipient.token,
+          utils.Base64ToUint8Array(currentConversation.pubkey),
+          currentConversation.token,
           message,
           MESSAGE_LEASE,
           new Uint8Array()
@@ -928,7 +886,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         console.error('Error sending dm', e);
       }
     }
-  }, [channelManager, currentChannel, currentDmRecipient, dmClient, utils]);
+  }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
 
   const sendReply = useCallback(async (reply: string, replyToMessageId: string) => {
     if (
@@ -1235,7 +1193,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     decryptMessageContent: cipher?.decrypt,
     getMutedUsers,
     initialize,
-    currentDmRecipient,
     mutedUsers,
     isMuted,
     exportChannelAdminKeys,
@@ -1269,7 +1226,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     getClientVersion,
     loadMoreChannelData,
     exportPrivateIdentity,
-    getCodeNameAndColor,
     isNetworkHealthy: cmixStatus === NetworkStatus.CONNECTED,
     checkRegistrationReadiness,
     pinMessage,

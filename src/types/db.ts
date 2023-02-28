@@ -41,6 +41,8 @@ export type DBDirectMessage = {
   message_id: string;
   conversation_pub_key: string;
   parent_message_id: string;
+  codeset_version: number;
+  sender_pub_key: string;
   timestamp: string;
   status: MessageStatus;
   text: string;

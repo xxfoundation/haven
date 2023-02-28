@@ -3,6 +3,7 @@ import { MessageStatus, MessageType } from 'src/types';
 type PubKey = string;
 
 export type Conversation = {
+  color: string;
   pubkey: PubKey;
   nickname?: string;
   token: number;
@@ -15,9 +16,13 @@ export type ConversationId = Conversation['pubkey'];
 
 export type DirectMessage = {
   uuid: number;
+  color: string;
   messageId: string;
+  codename: string;
   pubkey: PubKey;
-  parentMessageId: string;
+  codeset: number;
+  conversationId: Conversation['pubkey'];
+  parentMessageId: string | null;
   timestamp: string;
   status: MessageStatus;
   body: string;

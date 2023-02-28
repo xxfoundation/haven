@@ -2,7 +2,8 @@ import type { CMix, DummyTraffic, WithChildren } from '@types';
 import type { ChannelManager } from './network-client-context';
 import type { DMClient } from 'src/types';
 
-import React, { FC, useState } from 'react';
+import React, { FC, useCallback, useState } from 'react';
+import { decoder } from '@utils/index';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -92,11 +93,12 @@ const initialUtils = {
   shouldRenderImportCodeNameScreen: false,
 } as unknown as XXDKUtils;
 
-type XXDKContext = {
+export type XXDKContext = {
   utils: XXDKUtils;
   setUtils: (utils: XXDKUtils) => void;
   utilsLoaded: boolean;
   setUtilsLoaded: (loaded: boolean) => void;
+  getCodeNameAndColor: (publicKey: string, codeset: number) => { codename: string, color: string };
 }
 
 export const UtilsContext = React.createContext<XXDKContext>({
@@ -107,9 +109,42 @@ export const UtilsContext = React.createContext<XXDKContext>({
 
 UtilsContext.displayName = 'UtilsContext';
 
+export type IdentityJSON = {
+  PubKey: string;
+  Codename: string;
+  Color: string;
+  Extension: string;
+  CodesetVersion: number;
+}
+
 export const UtilsProvider: FC<WithChildren> = ({ children }) => {
   const [utils, setUtils] = useState<XXDKUtils>(initialUtils);
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
+
+  const getCodeNameAndColor = useCallback((publicKey: string, codeset: number) => {
+    if (!utils || !utils.ConstructIdentity || !utils.Base64ToUint8Array) {
+      return { codename: '', color: 'var(--text-primary)' };
+    }
+
+    try {
+      const identityJson = JSON.parse(
+        decoder.decode(
+          utils.ConstructIdentity(
+            utils.Base64ToUint8Array(publicKey),
+            codeset
+          )
+        )
+      ) as IdentityJSON;
+
+      return {
+        codename: identityJson.Codename,
+        color: identityJson.Color.replace('0x', '#')
+      };
+    } catch (error) {
+      console.error('Failed to get codename and color', error);
+      throw error;
+    }
+  }, [utils]);
 
   return (
     <UtilsContext.Provider
@@ -118,6 +153,7 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
         setUtils,
         utilsLoaded,
         setUtilsLoaded,
+        getCodeNameAndColor,
       }}
     >
       {children}
