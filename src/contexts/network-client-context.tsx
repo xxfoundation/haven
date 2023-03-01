@@ -232,6 +232,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const currentChannels = useAppSelector(channels.selectors.channels);
   const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
+  const currentDms = useAppSelector(dms.selectors.currentDirectMessages);
   const [rawPassword, setRawPassword] = useState<string>();
   const userIdentity = useAppSelector(identity.selectors.identity);
   const privateIdentity = useMemo(
@@ -912,7 +913,22 @@ export const NetworkProvider: FC<WithChildren> = props => {
         console.error(`Test failed to reply to messageId ${replyToMessageId}`);
       }
     }
-  }, [channelManager, currentChannel, utils]);
+
+    if (reply.length && dmClient && currentConversation) {
+      try {
+        await dmClient.SendReply(
+          utils.Base64ToUint8Array(currentConversation.pubkey),
+          currentConversation.token,
+          utils.Base64ToUint8Array(replyToMessageId),
+          reply,
+          30000,
+          new Uint8Array()
+        );
+      } catch (error) {
+        console.error(`Test failed to reply to messageId ${replyToMessageId}`);
+      }
+    }
+  }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
 
   const deleteMessage = useCallback(async ({ channelId, id }: Pick<Message, 'channelId' | 'id'>) => {
     await channelManager?.DeleteMessage(
@@ -927,31 +943,60 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const sendReaction = useCallback(async (reaction: string, reactToMessageId: string) => {
     if (channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
      const foundReaction = allMessages.find(
-      (m) => m.pubkey === userIdentity?.pubkey
-        && m.channelId === currentChannel?.id
-        && m.body === reaction
-        && m.type === MessageType.Reaction
-        && m.repliedTo === reactToMessageId
-    );
+        (m) => m.pubkey === userIdentity?.pubkey
+          && m.channelId === currentChannel?.id
+          && m.body === reaction
+          && m.type === MessageType.Reaction
+          && m.repliedTo === reactToMessageId
+      );
 
-    if (currentChannel && foundReaction) {
-      await deleteMessage({ channelId: currentChannel.id, id: foundReaction.id })
-    } else {
-      try {
-        await channelManager.SendReaction(
-          utils.Base64ToUint8Array(currentChannel.id),
-          reaction,
-          utils.Base64ToUint8Array(reactToMessageId),
-          new Uint8Array()
-        );
-      } catch (error) {
-        console.error(
-          `Test failed to react to messageId ${reactToMessageId}`,
-          error
-        );
+      if (currentChannel && foundReaction) {
+        await deleteMessage({ channelId: currentChannel.id, id: foundReaction.id })
+      } else {
+        try {
+          await channelManager.SendReaction(
+            utils.Base64ToUint8Array(currentChannel.id),
+            reaction,
+            utils.Base64ToUint8Array(reactToMessageId),
+            new Uint8Array()
+          );
+        } catch (error) {
+          console.error(
+            `Test failed to react to messageId ${reactToMessageId}`,
+            error
+          );
+        }
       }
     }
-      
+
+    if (dmClient && currentConversationId !== null && currentDms) {
+      const foundReaction = currentDms.find(
+        (m) => m.pubkey === userIdentity?.pubkey
+          && m.channelId === currentChannel?.id
+          && m.body === reaction
+          && m.type === MessageType.Reaction
+          && m.repliedTo === reactToMessageId
+      );
+
+      if (currentConversation && foundReaction) {
+        // No delete function yet
+      } else if (currentConversation) {
+        try {
+          await dmClient.SendReaction(
+            utils.Base64ToUint8Array(currentConversation.pubkey),
+            currentConversation.token,
+            utils.Base64ToUint8Array(reactToMessageId),
+            reaction,
+            new Uint8Array()
+          );
+        } catch (error) {
+          console.error(
+            `Test failed to react to messageId ${reactToMessageId}`,
+            error
+          );
+        }
+      }
+
     }
   }, [
     allMessages,

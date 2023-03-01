@@ -87,81 +87,76 @@ const UserInfoDrawer = () => {
       return;
     }
 
-    if (selectedChannelId !== null) {
-      db.table<DBMessage>('messages')
-        .filter((msg) => msg.pubkey === selectedUserPubkey)
-        .toArray()
-        .then((msgs) => {
-          const sortedMessages = msgs.sort(byTimestamp);
-          const recentMessage = sortedMessages[msgs.length - 1];
-          
-          if (recentMessage) {
-            const { codename, color } = getCodeNameAndColor(recentMessage.pubkey, recentMessage.codeset_version);
-            setUserInfo({
-              codeset: recentMessage.codeset_version,
-              codename,
-              dmToken: recentMessage.dm_token === 0 ? undefined : recentMessage.dm_token,
-              nickname: recentMessage.nickname,
-              color,
-              pubkey: recentMessage.pubkey
-            });
-            setDrawerState('open');
-             
-            const latestMessageByChannelId = sortedMessages.reverse().reduce((acc, cur) => ({
-              ...acc,
-              [cur.channel_id]: acc[cur.channel_id] || cur,
-            }), {} as Record<string, DBMessage>);
+    setCommonChannels([]);
 
-            const channelIds = Object.keys(latestMessageByChannelId);
-
-            db.table<DBChannel>('channels')
-              .where('id')
-              .anyOf(channelIds)
-              .toArray()
-              .then((channels) => {
-                setCommonChannels(
-                  channels.map((c) => ({
-                    id: c.id,
-                    channelName: c.name,
-                    nickname: latestMessageByChannelId[c.id]?.nickname,
-                    codename: codename
-                  }))
-                )
-              });
-
-          }
-      });
-    }
-
-    if (selectedConversationId !== null) {
-      if (!dmDb) { return }
-      Promise.all([
-        dmDb.table<DBConversation>('conversations')
-          .filter((convo) => convo.pub_key === selectedConversationId)
-          .first(),
-        dmDb.table<DBDirectMessage>('messages')
-          .where('conversation_pub_key')
-          .equals(selectedConversationId)
-          .toArray()
-          .then((msgs) => {
-            const recentMessage: DBDirectMessage | undefined = msgs.sort(byTimestamp)[msgs.length - 1];
-            
-            return recentMessage;
-          })
-      ]).then(([conversation, recentMessage]) => {
-        if (conversation && recentMessage) {
-          const { codename, color } = getCodeNameAndColor(conversation.pub_key, conversation.codeset_version);
+    db.table<DBMessage>('messages')
+      .filter((msg) => msg.pubkey === selectedUserPubkey)
+      .toArray()
+      .then((msgs) => {
+        const sortedMessages = msgs.sort(byTimestamp);
+        const recentMessage = sortedMessages[msgs.length - 1];
+        
+        if (recentMessage) {
+          const { codename, color } = getCodeNameAndColor(recentMessage.pubkey, recentMessage.codeset_version);
           setUserInfo({
-            codeset: conversation?.codeset_version,
+            codeset: recentMessage.codeset_version,
             codename,
+            dmToken: recentMessage.dm_token === 0 ? undefined : recentMessage.dm_token,
+            nickname: recentMessage.nickname,
             color,
-            dmToken: conversation.token,
-            pubkey: conversation.pub_key,
-            nickname: conversation.nickname
+            pubkey: recentMessage.pubkey
           });
+          setDrawerState('open');
+            
+          const latestMessageByChannelId = sortedMessages.reverse().reduce((acc, cur) => ({
+            ...acc,
+            [cur.channel_id]: acc[cur.channel_id] || cur,
+          }), {} as Record<string, DBMessage>);
+
+          const channelIds = Object.keys(latestMessageByChannelId);
+
+          db.table<DBChannel>('channels')
+            .where('id')
+            .anyOf(channelIds)
+            .toArray()
+            .then((channels) => {
+              setCommonChannels(
+                channels.map((c) => ({
+                  id: c.id,
+                  channelName: c.name,
+                  nickname: latestMessageByChannelId[c.id]?.nickname,
+                  codename: codename
+                }))
+              )
+            });
+
         }
-      })
-    }
+    });
+
+    if (!dmDb) { return }
+    Promise.all([
+      dmDb.table<DBConversation>('conversations')
+        .filter((convo) => convo.pub_key === selectedUserPubkey)
+        .first(),
+      dmDb.table<DBDirectMessage>('messages')
+        .filter((msg) => msg.sender_pub_key === selectedUserPubkey)
+        // .where('sender_pub_key')
+        // .equals(selectedUserPubkey)
+        .last()
+    ]).then(([conversation, recentMessage]) => {
+      if (conversation && recentMessage) {
+        const { codename, color } = getCodeNameAndColor(conversation.pub_key, conversation.codeset_version);
+        setUserInfo({
+          codeset: conversation?.codeset_version,
+          codename,
+          color,
+          dmToken: conversation.token,
+          pubkey: conversation.pub_key,
+          nickname: conversation.nickname
+        });
+        setDrawerState('open');
+      }
+    })
   }, [
     closeDrawer,
     db,
@@ -216,41 +211,43 @@ const UserInfoDrawer = () => {
           )}
         </h5>
       </div>
-      <div className={s.spaces}>
-        <div className={cn(s.divider, 'inline-flex items-center justify-center w-full')}>
-          <hr className='w-full' />
-          <span className={cn(s.textMuted, 'px-3 text-xs whitespace-nowrap uppercase')}>
-            Spaces in common
-          </span>
-          <hr className='w-full' />
+      {commonChannels && commonChannels.length > 0 && (
+        <div className={s.spaces}>
+          <div className={cn(s.divider, 'inline-flex items-center justify-center w-full')}>
+            <hr className='w-full' />
+            <span className={cn(s.textMuted, 'px-3 text-xs whitespace-nowrap uppercase')}>
+              Spaces in common
+            </span>
+            <hr className='w-full' />
+          </div>
+          <div className='flex justify-between mb-2'>
+            <span className={cn(s.textMuted, 'text-xs whitespace-nowrap uppercase')}>
+              Space name
+            </span>
+            <span className={cn(s.textMuted, 'text-xs whitespace-nowrap uppercase')}>
+              Also known as
+            </span>
+          </div>
+          <ul style={{ maxHeight: 186, overflow: 'auto'}}>
+            {commonChannels?.map((c) => (
+              <React.Fragment key={c.id}>
+                <li className='py-2 border-indigo-500 text-sm'>
+                  <span
+                    className='font-medium w-1/2 inline-block pr-1 text-ellipsis overflow-hidden whitespace-nowrap'>
+                    {c.channelName}
+                  </span>
+                  <span
+                    title={c.nickname || c.codename}
+                    className={cn(s.textMuted, 'w-1/2 inline-block text-right pl-1 text-ellipsis  overflow-hidden whitespace-nowrap')}>
+                    {c.nickname || <><Elixxir style={{ display: 'inline' }} fill='var(--text-muted)' /> {c.codename}</>}
+                  </span>
+                </li>
+                <hr className='mb-1' />
+              </React.Fragment>
+            ))}
+          </ul>
         </div>
-        <div className='flex justify-between mb-2'>
-          <span className={cn(s.textMuted, 'text-xs whitespace-nowrap uppercase')}>
-            Space name
-          </span>
-          <span className={cn(s.textMuted, 'text-xs whitespace-nowrap uppercase')}>
-            Also known as
-          </span>
-        </div>
-        <ul style={{ maxHeight: 186, overflow: 'auto'}}>
-          {commonChannels?.map((c) => (
-            <React.Fragment key={c.id}>
-              <li className='py-2 border-indigo-500 text-sm'>
-                <span
-                  className='font-medium w-1/2 inline-block pr-1 text-ellipsis overflow-hidden whitespace-nowrap'>
-                  {c.channelName}
-                </span>
-                <span
-                  title={c.nickname || c.codename}
-                  className={cn(s.textMuted, 'w-1/2 inline-block text-right pl-1 text-ellipsis  overflow-hidden whitespace-nowrap')}>
-                  {c.nickname || <><Elixxir style={{ display: 'inline' }} fill='var(--text-muted)' /> {c.codename}</>}
-                </span>
-              </li>
-              <hr className='mb-1' />
-            </React.Fragment>
-          ))}
-        </ul>
-      </div>
+      )}
     </div>
   );
 }

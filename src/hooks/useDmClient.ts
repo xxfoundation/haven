@@ -118,13 +118,10 @@ const useDmClient = (
   useEffect(() => {
     if (dmsDb && messageMapper && currentConversationId !== null) {
       dmsDb.table<DBDirectMessage>('messages')
-        // Index is missing for this.
-        // .where('conversation_pub_key')
-        // .equals(currentConversationId)
-        .filter((m) => m.conversation_pub_key === currentConversationId)
+        .where('conversation_pub_key')
+        .equals(currentConversationId)
         .toArray()
         .then((messages) => {
-          
           dispatch(dms.actions.upsertManyDirectMessages(messages.map(messageMapper)))
         })
     }
@@ -136,7 +133,7 @@ const useDmClient = (
     }
 
     const listener = (e: DMReceivedEvent) => {
-      console.log('DM_RECEIVED', e);
+      console.log('DM_RECEIVED FIRED');
       const pubkey = Buffer.from(e.pubkey).toString('base64');
       Promise.all([
         dmsDb.table<DBDirectMessage>('messages')

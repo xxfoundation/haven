@@ -12,6 +12,8 @@ import { useUI } from 'src/contexts/ui-context';
 import classes from './MessageActions.module.scss';
 import { createPortal } from 'react-dom';
 import { useNetworkClient } from '@contexts/network-client-context';
+import { useAppSelector } from 'src/store/hooks';
+import * as app from 'src/store/app';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
@@ -37,6 +39,7 @@ const MessageActions: FC<Props> = ({
   onReplyClicked,
   ...props
 }) => {
+  const isDms = !!useAppSelector(app.selectors.currentConversationId);
   const { isMuted: userIsMuted } = useNetworkClient();
   const { closeModal, openModal, setModalView } = useUI();
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -120,7 +123,7 @@ const MessageActions: FC<Props> = ({
             onClick={onMuteUser}
           />
         )}
-        {(isAdmin && !isPinned) && (
+        {(isAdmin && !isPinned && !isDms) && (
           <Pin
             onClick={() => onPinMessage()}
           />
@@ -128,7 +131,7 @@ const MessageActions: FC<Props> = ({
         {(isAdmin && isPinned) && (
           <Unpin onClick={onUnpin}/>
         )}
-        {(isOwn || isAdmin) && !isPinned && !userIsMuted && (
+        {(isOwn || isAdmin) && !isPinned && !userIsMuted && !isDms && (
           <Delete
             onClick={onDeleteMessage}
           />
