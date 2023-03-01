@@ -5,7 +5,7 @@ import { Dexie } from 'dexie';
 import { createContext, useCallback, useState } from 'react';
 
 import useLocalStorage from 'src/hooks/useLocalStorage';
-import { CHANNELS_STORAGE_TAG, DMS_STORAGE_TAG } from 'src/constants';
+import { CHANNELS_STORAGE_TAG, DMS_DATABASE_NAME } from 'src/constants';
 
 export type DBMessage = {
   id: number;
@@ -45,7 +45,7 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [dmDb, setDmDb] = useState<Dexie>();
   const [storageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
   const storageTag = useMemo(() => storageTags?.[0], [storageTags]);
-  const [dmsDatabaseName] = useLocalStorage<string | null>(DMS_STORAGE_TAG, null);
+  const [dmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
   
   const initDb = useCallback((tag: string) => {
     const instance = new Dexie(`${tag}_speakeasy`);
@@ -72,14 +72,8 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
       initDb(storageTag);
     }
 
-    // if (dmsStorageTag) {
-    //   initDmsDb(dmsStorageTag);
-    // }
-
-    if (storageTag) {
-      const tag = storageTag.split('-')[1].replace('=', '');
-      const dbName = `${tag}_speakeasy_dm`;
-      initDmsDb(dbName);
+    if (dmsDatabaseName) {
+      initDmsDb(dmsDatabaseName);
     }
   }, [dmsDatabaseName, initDb, initDmsDb, storageTag]);
 
