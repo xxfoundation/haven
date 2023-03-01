@@ -3,7 +3,7 @@ import type { Conversation, DirectMessage } from 'src/store/dms/types';
 
 import { useUtils, XXDKContext } from '@contexts/utils-context';
 import { useEffect, useMemo, useState } from 'react';
-import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_STORAGE_TAG as DMS_DATABASE_NAME } from 'src/constants';
+import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_DATABASE_NAME as DMS_DATABASE_NAME } from 'src/constants';
 import { decoder } from '@utils/index';
 import { onDmReceived, DMReceivedEvent, Event, bus } from 'src/events';
 import { useDb } from '@contexts/db-context';
