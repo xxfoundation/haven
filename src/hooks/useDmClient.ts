@@ -3,7 +3,7 @@ import type { Conversation, DirectMessage } from 'src/store/dms/types';
 
 import { useUtils, XXDKContext } from '@contexts/utils-context';
 import { useEffect, useMemo, useState } from 'react';
-import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_STORAGE_TAG } from 'src/constants';
+import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_STORAGE_TAG as DMS_DATABASE_NAME } from 'src/constants';
 import { decoder } from '@utils/index';
 import { onDmReceived, DMReceivedEvent, Event, bus } from 'src/events';
 import { useDb } from '@contexts/db-context';
@@ -54,7 +54,7 @@ const useDmClient = (
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
   const { getCodeNameAndColor, utils } = useUtils();
   const { NewDMClientWithIndexedDb } = utils;
-  const [dmsStorageTag, setStorageTag] = useLocalStorage<string | null>(DMS_STORAGE_TAG, null);
+  const [dmsDatabaseName, setDmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
   const conversationMapper = useMemo(() => getCodeNameAndColor && makeConversationMapper(getCodeNameAndColor), [getCodeNameAndColor])
   const messageMapper = useMemo(
     () => databaseCipher && getCodeNameAndColor && makeMessageMapper(
@@ -66,10 +66,10 @@ const useDmClient = (
   const userIdentity = useAppSelector(identity.selectors.identity);
 
   useEffect(() => {
-    if (client && !dmsStorageTag) {
-      setStorageTag(client.GetStorageTag());
+    if (client && !dmsDatabaseName) {
+      setDmsDatabaseName(client.GetDatabaseName());
     }
-  }, [client, dmsStorageTag, setStorageTag]);
+  }, [client, dmsDatabaseName, setDmsDatabaseName]);
 
   useEffect(() => {
     if (cmixId !== undefined && decryptedInternalPassword) {
@@ -118,8 +118,10 @@ const useDmClient = (
   useEffect(() => {
     if (dmsDb && messageMapper && currentConversationId !== null) {
       dmsDb.table<DBDirectMessage>('messages')
-        .where('conversation_pub_key')
-        .equals(currentConversationId)
+        // Index is missing for this.
+        // .where('conversation_pub_key')
+        // .equals(currentConversationId)
+        .filter((m) => m.conversation_pub_key === currentConversationId)
         .toArray()
         .then((messages) => {
           
@@ -134,6 +136,7 @@ const useDmClient = (
     }
 
     const listener = (e: DMReceivedEvent) => {
+      console.log('DM_RECEIVED', e);
       const pubkey = Buffer.from(e.pubkey).toString('base64');
       Promise.all([
         dmsDb.table<DBDirectMessage>('messages')
