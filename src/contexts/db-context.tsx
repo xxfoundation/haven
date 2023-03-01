@@ -45,7 +45,7 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [dmDb, setDmDb] = useState<Dexie>();
   const [storageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
   const storageTag = useMemo(() => storageTags?.[0], [storageTags]);
-  const [dmsStorageTag] = useLocalStorage<string | null>(DMS_STORAGE_TAG, null);
+  const [dmsDatabaseName] = useLocalStorage<string | null>(DMS_STORAGE_TAG, null);
   
   const initDb = useCallback((tag: string) => {
     const instance = new Dexie(`${tag}_speakeasy`);
@@ -81,7 +81,7 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
       const dbName = `${tag}_speakeasy_dm`;
       initDmsDb(dbName);
     }
-  }, [dmsStorageTag, initDb, initDmsDb, storageTag]);
+  }, [dmsDatabaseName, initDb, initDmsDb, storageTag]);
 
   return (
     <DBContext.Provider value={{ db, dmDb, initDb, initDmsDb }}>

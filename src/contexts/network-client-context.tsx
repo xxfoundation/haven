@@ -63,6 +63,9 @@ export type DatabaseCipher = {
 export type ChannelManager = {
   GetChannels: () => Uint8Array;
   GetID: () => number;
+  AreDMsEnabled: (channelId: Uint8Array) => boolean;
+  DisableDirectMessages: (channelId: Uint8Array) => void;
+  EnableDirectMessages: (channelId: Uint8Array) => void;
   JoinChannel: (channelId: string) => Promise<Uint8Array>;
   LeaveChannel: (channelId: Uint8Array) => Promise<void>;
   GetMutedUsers: (channelId: Uint8Array) => Uint8Array;
@@ -172,6 +175,7 @@ export type NetworkContext = {
   exportPrivateIdentity: (password: string) => Uint8Array | false;
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
+  channelManager?: ChannelManager;
 };
 
 export const NetworkClientContext = React.createContext<NetworkContext>({
@@ -1191,6 +1195,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const ctx: NetworkContext = {
     decryptMessageContent: cipher?.decrypt,
+    channelManager,
     getMutedUsers,
     initialize,
     mutedUsers,
