@@ -133,7 +133,6 @@ const useDmClient = (
     }
 
     const listener = (e: DMReceivedEvent) => {
-      console.log('DM_RECEIVED FIRED');
       const pubkey = Buffer.from(e.pubkey).toString('base64');
       Promise.all([
         dmsDb.table<DBDirectMessage>('messages')

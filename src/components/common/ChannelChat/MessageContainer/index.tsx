@@ -118,11 +118,13 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
         {message.status !== MessageStatus.Unsent && (
           <div className={classes.container}>
             <MessageActions
+              pubkey={message.pubkey}
               onMouseEnter={() => setShowActionsWrapper(true)}
               onMouseLeave={() => setShowActionsWrapper(false)}
               className={cn(classes.actions, {
                 [classes.show]: showActionsWrapper
               })}
+              dmsEnabled={message.dmToken !== undefined}
               isPinned={message.pinned}
               isMuted={userIsMuted(message.pubkey)}
               onMuteUser={muteUserModalToggle.toggleOn}
