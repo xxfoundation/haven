@@ -55,6 +55,14 @@ const UserInfoDrawer = () => {
   const [commonChannels, setCommonChannels] = useState<CommonChannel[]>();
   const [drawerState, setDrawerState] = useState<'open' | 'closed'>('closed');
   const existingConversation = useAppSelector(dms.selectors.currentConversation);
+  
+  const closeDrawer = useCallback(() => {
+    if (drawerState === 'open') {
+      setDrawerState('closed');
+      dispatch(app.actions.selectUser(null));
+    }
+  }, [dispatch, drawerState]);
+
   const selectDm = useCallback(() => {
     if (userInfo && userInfo.dmToken) {
       if (!existingConversation) {
@@ -69,16 +77,10 @@ const UserInfoDrawer = () => {
       }
 
       dispatch(app.actions.selectConversation(userInfo.pubkey));
-      setDrawerState('closed');
+      closeDrawer();
     }
-  }, [dispatch, existingConversation, userInfo])
+  }, [dispatch, existingConversation, userInfo, closeDrawer])
 
-  const closeDrawer = useCallback(() => {
-    if (drawerState === 'open') {
-      setDrawerState('closed');
-      dispatch(app.actions.selectUser(null));
-    }
-  }, [dispatch, drawerState]);
   
   useOnClickOutside(containerRef, closeDrawer);
 
