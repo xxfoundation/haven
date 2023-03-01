@@ -9,14 +9,10 @@ const UpdatesModal = () => {
   
   return showModal ? (
     <Modal className={s.root} onClose={() => setShowModal(false)}>
-      <h2 className='text-center'>Version 0.2.8 already?</h2>
-      <h4 className='mb-4 text-center'>Yep. They really do grow up so fast.</h4>
+      <h2 className='text-center'>Version 0.2.11</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>
-          🗣️ Mentions are here. Use the @ symbol to try it out.
-        </li>
-        <li className='text-center'>
-          🧈 Infinite scrolling now feels a lot smoother.
+          💬 Dms are finally here. Enable it in channel settings.
         </li>
       </ul>
       <div className='text-center'>

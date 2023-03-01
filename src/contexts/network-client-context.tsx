@@ -999,6 +999,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
     }
   }, [
+    currentConversationId,
+    currentConversation,
+    currentDms,
+    dmClient,
     allMessages,
     channelManager,
     currentChannel,

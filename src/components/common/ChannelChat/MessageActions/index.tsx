@@ -12,14 +12,17 @@ import { useUI } from 'src/contexts/ui-context';
 import classes from './MessageActions.module.scss';
 import { createPortal } from 'react-dom';
 import { useNetworkClient } from '@contexts/network-client-context';
-import { useAppSelector } from 'src/store/hooks';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
+import Envelope from '@components/icons/Envelope';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
   isAdmin: boolean;
   isOwn: boolean;
   isPinned: boolean;
+  dmsEnabled: boolean;
+  pubkey: string;
   onReplyClicked: () => void;
   onReactToMessage: (emoji: string) => void;
   onDeleteMessage: () => void;
@@ -28,6 +31,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 }
 
 const MessageActions: FC<Props> = ({
+  dmsEnabled,
   isAdmin,
   isMuted,
   isOwn,
@@ -37,8 +41,10 @@ const MessageActions: FC<Props> = ({
   onPinMessage,
   onReactToMessage,
   onReplyClicked,
+  pubkey,
   ...props
 }) => {
+  const dispatch = useAppDispatch();
   const isDms = !!useAppSelector(app.selectors.currentConversationId);
   const { isMuted: userIsMuted } = useNetworkClient();
   const { closeModal, openModal, setModalView } = useUI();
@@ -96,6 +102,10 @@ const MessageActions: FC<Props> = ({
     })
   }, []);
 
+  const dmUser = useCallback(() => {
+    dispatch(app.actions.selectUser(pubkey));
+  }, [dispatch, pubkey])
+
   useEffect(() => {
     if (loading) {
       setModalView('LOADING');
@@ -118,6 +128,9 @@ const MessageActions: FC<Props> = ({
   return (
     <div  {...props} className={cn(props.className, classes.root)}>
       <>
+        {dmsEnabled && (
+          <Envelope style={{ cursor: 'pointer' }} width='20px' color='var(--cyan)' onClick={dmUser} />
+        )}
         {isAdmin && !isOwn && !isMuted && (
           <Mute
             onClick={onMuteUser}
