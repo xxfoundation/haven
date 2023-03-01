@@ -11,6 +11,7 @@ import CommentSlash from '@components/icons/CommentSlash';
 import RightFromBracket from '@components/icons/RightFromBracket';
 import { useNetworkClient } from '@contexts/network-client-context';
 import CheckboxToggle from '@components/common/CheckboxToggle';
+import { Spinner } from '@components/common';
 
 const ChannelSettingsView: FC = () => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
@@ -43,9 +44,12 @@ const ChannelSettingsView: FC = () => {
       >
         <h2 className='mt-9 mb-8'>Channel Settings</h2>
         <div className={s.wrapper}>
+
           <div>
             <h3 className='headline--sm'>Enable Direct Messages</h3>
-            <CheckboxToggle checked={!!dmsEnabled} onChange={toggleDms} />
+            {dmsEnabled === null ? <Spinner className='m-0 mr-1' /> : (
+              <CheckboxToggle checked={dmsEnabled} onChange={toggleDms} />
+            )}
           </div>
           {currentChannel?.isAdmin ? (
             <div>
