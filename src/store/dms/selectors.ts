@@ -43,7 +43,10 @@ export const currentDirectMessages = createSelector(
   }
 )
 
-export const currentReactions = (state: RootState): EmojiReactions => {
+export const currentDmReactions = (state: RootState): EmojiReactions | undefined => {
+  if (state.app.selectedConversationId === null) {
+    return undefined;
+  }
   const reactions = allCurrentMessages(state)
     .filter((msg) => msg.type === MessageType.Reaction
   );

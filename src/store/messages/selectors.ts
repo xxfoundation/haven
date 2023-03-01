@@ -2,11 +2,16 @@
 import type { RootState,  EmojiReactions } from 'src/store/types';
 import type { Message } from './types';
 
+import { createSelector } from '@reduxjs/toolkit';
+import assert from 'assert';
+import { uniqBy } from 'lodash';
+
+import { currentDirectMessages, currentDmReactions } from '../dms/selectors';
+
 import { byTimestamp } from '../utils';
 import { MessageType } from 'src/types';
 
-import assert from 'assert';
-import { uniqBy } from 'lodash';
+
 
 export const allMessages = (state: RootState) => Object.values(state.messages.byId);
 
@@ -23,7 +28,11 @@ export const currentChannelMessages = (state: RootState) => {
     ).sort(byTimestamp);
 }
 
-export const channelReactions = (state: RootState): EmojiReactions => {
+export const channelReactions = (state: RootState): EmojiReactions | undefined => {
+  if (state.app.selectedChannelId === null) {
+    return undefined;
+  }
+
   const reactions = Object.values(state.messages.byId)
     .filter((msg) =>
       !msg.hidden
@@ -46,14 +55,28 @@ export const channelReactions = (state: RootState): EmojiReactions => {
     }, {} as EmojiReactions);
 }
 
-export const reactionsTo = (message: Message) => (state: RootState) => {
-  const reactions = channelReactions(state)?.[message.id];
-  return Object.entries(reactions ?? {}).sort((a, b) => b[1].length - a[1].length)
-}
+export const reactionsTo = (message: Message) =>
+  createSelector(
+    channelReactions,
+    currentDmReactions,
+    (currentChannelReactions, dmReactions) => {
+      const channReactions = currentChannelReactions?.[message.id];
+      const dmReacts = dmReactions?.[message.id];
+      return Object.entries(channReactions ?? dmReacts ?? {}).sort((a, b) => b[1].length - a[1].length)
+    }
+  );
 
-export const repliedTo = (message: Message) => (state: RootState) => 
-  message.repliedTo && Object.values(state.messages.byId).find((msg) => msg.id === message.repliedTo);
-
+export const repliedTo = (message: Message) => createSelector(
+  currentChannelMessages,
+  currentDirectMessages,
+  (msgs, dms) => {
+    return message.repliedTo && (
+     msgs?.find((msg) => msg.id === message.repliedTo)
+     || dms?.find((msg) => msg.id === message.repliedTo)
+    );
+  }
+)
+  
 export const currentPinnedMessages = (state: RootState) => currentChannelMessages(state)?.filter((msg) => msg.pinned);
 
 export const allContributors = (state: RootState) => {
