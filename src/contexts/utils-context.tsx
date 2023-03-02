@@ -126,11 +126,19 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
       return { codename: '', color: 'var(--text-primary)' };
     }
 
+    let pubkeyUintArray: Uint8Array;
+    try {
+      pubkeyUintArray = utils.Base64ToUint8Array(publicKey);
+    } catch (e) {
+      const msg = `Invalid public key: ${publicKey}`;
+      throw new Error(msg);
+    }
+
     try {
       const identityJson = JSON.parse(
         decoder.decode(
           utils.ConstructIdentity(
-            utils.Base64ToUint8Array(publicKey),
+            pubkeyUintArray,
             codeset
           )
         )
@@ -140,9 +148,9 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
         codename: identityJson.Codename,
         color: identityJson.Color.replace('0x', '#')
       };
-    } catch (error) {
-      console.error('Failed to get codename and color', error);
-      throw error;
+    } catch (e) {
+      const msg = `Failed to construct identity from: ${JSON.stringify({ publicKey, codeset })}`
+      throw new Error(msg);
     }
   }, [utils]);
 

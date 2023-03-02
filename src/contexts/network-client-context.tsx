@@ -267,7 +267,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       dispatch(identity.actions.set({
         codename: parsed.Codename,
         pubkey: parsed.PubKey,
-        codesetVersion: parsed.CodesetVersion,
+        codeset: parsed.CodesetVersion,
         color: parsed.Color.replace('0x', '#'),
         extension: parsed.Extension
       }));
@@ -1023,8 +1023,26 @@ export const NetworkProvider: FC<WithChildren> = props => {
         return false;
       }
     }
+
+    if (dmClient && currentConversation) {
+      try {
+        dmClient.SetNickname(nickName);
+        dispatch(dms.actions.setUserNickname(nickName));
+        return true;
+      } catch (e) {
+        console.error('Error setting DM nickname', e);
+        return false;
+      }
+    }
     return false;
-  }, [channelManager, currentChannel?.id, utils]);
+  }, [
+    channelManager,
+    currentChannel?.id,
+    currentConversation,
+    dispatch,
+    dmClient,
+    utils
+  ]);
 
   const getNickName = useCallback(() => {
     let nickName = '';
@@ -1037,8 +1055,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
         nickName = '';
       }
     }
+
+    if (currentConversation && dmClient) {
+      try {
+        nickName = dmClient?.GetNickname();
+      } catch (error) {
+        nickName = '';
+      }
+    }
     return nickName;
-  }, [channelManager, currentChannel, utils]);
+  }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
 
   // Identity object is combination of private identity and code name
   const generateIdentities = useCallback((amountOfIdentities: number) => {

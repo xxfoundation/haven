@@ -43,35 +43,29 @@ export const currentDirectMessages = createSelector(
   }
 )
 
-export const currentDmReactions = (state: RootState): EmojiReactions | undefined => {
-  if (state.app.selectedConversationId === null) {
-    return undefined;
-  }
-  const reactions = allCurrentMessages(state)
-    .filter((msg) => msg.type === MessageType.Reaction
+export const currentDmReactions =
+  createSelector(
+    allCurrentMessages,
+     (messages) => {
+      const reactions = messages.filter((msg) => msg.type === MessageType.Reaction);
+      return reactions
+        .filter((m) => typeof m.parentMessageId === 'string')
+        .reduce((map, { body: emoji, codeset, parentMessageId, pubkey }) => {
+          assert(typeof parentMessageId === 'string');
+          return {
+            ...map,
+            [parentMessageId]: {
+              ...map[parentMessageId],
+              [emoji]: uniqBy(map[parentMessageId]?.[emoji]?.concat({ codeset, pubkey }) ?? [{ codeset, pubkey }], (i) => i.pubkey),
+            }
+          };
+        }, {} as EmojiReactions);
+    }
   );
-
-  const codeset = currentConversation(state)?.codeset;
-
-  if (!codeset) {
-    return {};
-  }
-
-  return reactions
-    .filter((m) => typeof m.parentMessageId === 'string')
-    .reduce((map, { body: emoji, parentMessageId, pubkey }) => {
-      assert(typeof parentMessageId === 'string');
-      return {
-        ...map,
-        [parentMessageId]: {
-          ...map[parentMessageId],
-          [emoji]: uniqBy(map[parentMessageId]?.[emoji]?.concat({ codeset, pubkey }) ?? [pubkey], (i) => i.pubkey),
-        }
-      };
-    }, {} as EmojiReactions);
-}
 
 export const newDmsNotifications = (state: RootState) => Object.keys(state.dms.conversationsByPubkey).reduce((notifications, pubkey) => ({
   ...notifications,
   [pubkey]: state.dms.missedMessagesByPubkey[pubkey] || false,
 }), {} as Record<string, boolean>);
+
+export const dmNickname = (state: RootState) => state.dms.nickname;
