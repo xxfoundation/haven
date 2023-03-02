@@ -12,6 +12,7 @@ import Identity from '../Identity';
 import * as channels from 'src/store/channels';
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
+import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
 
 type Props = {
@@ -22,11 +23,13 @@ type Props = {
 
 const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
-  const { codename, color } = useAppSelector(identity.selectors.identity) ?? {};
+  const { codename, color, pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const { getNickName } = useNetworkClient();
   const contributors = useAppSelector(messages.selectors.currentContributors);
   const { openModal, setModalView } = useUI();
-  const nickName = currentChannel && getNickName();
+  const channelNickname = currentChannel && getNickName();
+  const dmNickname = useAppSelector(dms.selectors.dmNickname);
+  const nickname = currentChannel ? channelNickname : dmNickname;
   const Icon = collapsed ? DoubleLeftArrows : DoubleRightArrows;
 
   const openSettingsModal = useCallback(() => {
@@ -67,48 +70,46 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
         </div>
       </div>
       <div className={s.content}>
-        {currentChannel && (
-          <Collapse title='Recent Contributors' defaultActive>
-            <div className='flex flex-col'>
-              <div className={cn(s.channelPill, 'headline--xs flex flex-col')}>
-                {nickName?.length ? (
-                  <span style={{ color }} className={s.currentUser}>
-                    {nickName} (you)
-                  </span>
-                ) : (
-                  <span
-                    style={{ color }}
-                    className={cn('flex items-center', s.currentUser)}
-                  >
-                    <Elixxir style={{ fill: color, width: '10px' }} />
-                    {codename} (you)
-                  </span>
-                )}
-
-                <span
-                  style={{
-                    color: 'var(--cyan)'
-                  }}
-                  className='cursor-pointer underline mt-1'
-                  onClick={() => {
-                    setModalView('SET_NICK_NAME');
-                    openModal();
-                  }}
-                >
-                  {nickName?.length ? 'CHANGE' : 'SET NICKNAME'}
+        <Collapse title='Recent Contributors' defaultActive>
+          <div className='flex flex-col'>
+            <div className={cn(s.channelPill, 'headline--xs flex flex-col')}>
+              {nickname?.length ? (
+                <span style={{ color }} className={s.currentUser}>
+                  {nickname} (you)
                 </span>
-              </div>
+              ) : (
+                <span
+                  style={{ color }}
+                  className={cn('flex items-center', s.currentUser)}
+                >
+                  <Elixxir style={{ fill: color, width: '10px' }} />
+                  {codename} (you)
+                </span>
+              )}
 
-              {contributors
-                .filter((c) => c.codename !== codename)
-                .map((c) =>  (
-                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  <Identity clickable {...c} />
-                </div>
-              ))}
+              <span
+                style={{
+                  color: 'var(--cyan)'
+                }}
+                className='cursor-pointer underline mt-1'
+                onClick={() => {
+                  setModalView('SET_NICK_NAME');
+                  openModal();
+                }}
+              >
+                {nickname?.length ? 'CHANGE' : 'SET NICKNAME'}
+              </span>
             </div>
-          </Collapse>
-        )}
+
+            {contributors
+              .filter((c) => c.pubkey !== pubkey)
+              .map((c) =>  (
+              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <Identity clickable {...c} />
+              </div>
+            ))}
+          </div>
+        </Collapse>
       </div>
     </div>
   );

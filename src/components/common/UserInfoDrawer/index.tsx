@@ -186,13 +186,12 @@ const UserInfoDrawer = () => {
       <div className={s.content}>
         <h5>
           {userInfo?.dmToken ? (
-            <span className={s.option}>
+            <button onClick={selectDm} className={s.option}>
               <Envelope
-                onClick={selectDm}
                 className={cn(s.actionIcon, 'mr-3 cursor-pointer')}
                 size='sm' color='var(--orange)' />
               Direct Message
-            </span>
+            </button>
           ) : (
             <span className={s.option}>
               <span className={cn(s.combinedIcons, 'fa-2x mr-3')}>
