@@ -4,14 +4,14 @@ import type { Message } from './types';
 
 import { createSelector } from '@reduxjs/toolkit';
 import assert from 'assert';
-import { uniqBy } from 'lodash';
+import { pick, uniqBy } from 'lodash';
 
-import { currentDirectMessages, currentDmReactions } from '../dms/selectors';
+import { currentConversation, currentDirectMessages, currentDmReactions } from '../dms/selectors';
 
 import { byTimestamp } from '../utils';
 import { MessageType } from 'src/types';
-
-
+import { currentChannelId } from '../app/selectors';
+import { identity } from '../identity/selectors';
 
 export const allMessages = (state: RootState) => Object.values(state.messages.byId);
 
@@ -83,14 +83,33 @@ export const allContributors = (state: RootState) => {
   return Object.values(state.messages.byId)
     .sort(byTimestamp)
     .reverse()
-    .reduce((acc, cur) => uniqBy(
-      acc.concat(cur)
-        .sort(byTimestamp)
-        .reverse(),
-      (m) => m.codename
+    .reduce(
+      (acc, cur) => uniqBy(
+        acc.concat(cur)
+          .sort(byTimestamp)
+          .reverse(),
+        (m) => m.codename
       ),
       [] as Message[]
     );
 }
 
-export const currentContributors = (state: RootState) => allContributors(state).filter((m) => m.channelId === state.app.selectedChannelId);
+export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 'codeset'>[] = createSelector(
+  allContributors,
+  currentChannelId,
+  currentConversation,
+  identity,
+  (contributors, channelId, conversation, userIdentity) => {
+    const contribs = contributors
+      .filter((m) => m.channelId === channelId)
+      .map((m) => pick(m, ['pubkey', 'codeset']));
+
+    if (conversation && userIdentity) {
+      contribs.push(pick(conversation, ['pubkey', 'codeset']));
+      contribs.push(pick(userIdentity, ['pubkey', 'codeset']))
+    }
+
+    return contribs;
+  }
+);
+ 

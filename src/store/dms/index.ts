@@ -64,7 +64,11 @@ export const slice = createSlice({
     upsertManyDirectMessages: (
       state: DMState,
       { payload: messages }: PayloadAction<DirectMessage[]>
-    ) => messages.reduce(upsertMessage, state)
+    ) => messages.reduce(upsertMessage, state),
+    setUserNickname: (state: DMState, { payload: nickname }: PayloadAction<string>) => ({
+      ...state,
+      nickname
+    })
   }
 });
 

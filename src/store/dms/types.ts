@@ -19,6 +19,7 @@ export type DirectMessage = {
   color: string;
   messageId: string;
   codename: string;
+  nickname?: string;
   pubkey: PubKey;
   codeset: number;
   conversationId: Conversation['pubkey'];
@@ -32,6 +33,7 @@ export type DirectMessage = {
 
 
 export type DMState = {
+  nickname?: string;
   conversationsByPubkey: Record<PubKey, Conversation>;
   messagesByPubkey: Record<PubKey, Record<DirectMessage['uuid'], DirectMessage>>;
   missedMessagesByPubkey: Record<PubKey, boolean>;
