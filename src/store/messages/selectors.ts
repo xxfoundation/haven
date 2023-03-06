@@ -94,7 +94,7 @@ export const allContributors = (state: RootState) => {
     );
 }
 
-export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 'codeset'>[] = createSelector(
+export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 'codeset' | 'codename'>[] = createSelector(
   allContributors,
   currentChannelId,
   currentConversation,
@@ -102,11 +102,11 @@ export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 
   (contributors, channelId, conversation, userIdentity) => {
     const contribs = contributors
       .filter((m) => m.channelId === channelId)
-      .map((m) => pick(m, ['pubkey', 'codeset']));
+      .map((m) => pick(m, ['pubkey', 'codeset', 'codename']));
 
     if (conversation && userIdentity) {
-      contribs.push(pick(conversation, ['pubkey', 'codeset']));
-      contribs.push(pick(userIdentity, ['pubkey', 'codeset']))
+      contribs.push(pick(conversation, ['pubkey', 'codeset', 'codename']));
+      contribs.push(pick(userIdentity, ['pubkey', 'codeset', 'codename']))
     }
 
     return contribs;
