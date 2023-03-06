@@ -1,4 +1,4 @@
-import type { DBConversation, DBDirectMessage, DMClient, Identity } from 'src/types';
+import type { DBConversation, DBDirectMessage, DMClient } from 'src/types';
 import type { Conversation, DirectMessage } from 'src/store/dms/types';
 
 import { useUtils, XXDKContext } from '@contexts/utils-context';
@@ -31,11 +31,8 @@ const makeConversationMapper = (codenameConverter: XXDKContext['getCodeNameAndCo
 const makeMessageMapper = (
   codenameConverter: XXDKContext['getCodeNameAndColor'],
   cipher: DatabaseCipher,
-  userIdentity: Identity,
-  userNickname?: string
-) => (message: DBDirectMessage, conversation: Conversation): DirectMessage => ({
+) => (message: DBDirectMessage): DirectMessage => ({
   ...codenameConverter(message.sender_pub_key, message.codeset_version),
-  nickname: message.sender_pub_key === userIdentity.pubkey ? userNickname : conversation.nickname,
   uuid: message.id,
   messageId: message.message_id,
   status: message.status,
@@ -66,21 +63,27 @@ const useDmClient = (
   const [dmsDatabaseName, setDmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
   const conversationMapper = useMemo(() => getCodeNameAndColor && makeConversationMapper(getCodeNameAndColor), [getCodeNameAndColor])
   const userIdentity = useAppSelector(identity.selectors.identity);
-  const userNickname = useAppSelector(dms.selectors.dmNickname);
   const messageMapper = useMemo(
     () => databaseCipher
       && client
-      && userIdentity
       && getCodeNameAndColor
       && makeMessageMapper
       && makeMessageMapper(
       getCodeNameAndColor,
       databaseCipher,
-      userIdentity,
-      userNickname,
     ),
-    [client, databaseCipher, getCodeNameAndColor, userIdentity, userNickname]
+    [client, databaseCipher, getCodeNameAndColor]
   );
+
+  useEffect(() => {
+    if (client) {
+      try {
+        dispatch(dms.actions.setUserNickname(client.GetNickname()));
+      } catch (e) {
+        // no nickname found
+      }
+    }
+  }, [client, dispatch]);
 
   useEffect(() => {
     if (client && !dmsDatabaseName) {
@@ -139,7 +142,7 @@ const useDmClient = (
         .equals(currentConversationId)
         .toArray()
         .then((messages) => {
-          dispatch(dms.actions.upsertManyDirectMessages(messages.map((message) => messageMapper(message, currentConversation))))
+          dispatch(dms.actions.upsertManyDirectMessages(messages.map(messageMapper)))
         })
     }
   }, [currentConversationId, currentConversation, dispatch, dmsDb, messageMapper])
@@ -176,7 +179,7 @@ const useDmClient = (
           if (currentConversationId !== conversation.pub_key && pubkey !== userIdentity?.pubkey) {
             dispatch(dms.actions.notifyNewMessage(conversation.pub_key));
           }
-          const decryptedMessage = messageMapper(message, mappedConversation);
+          const decryptedMessage = messageMapper(message);
           dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
 
           if (decryptedMessage.pubkey !== userIdentity?.pubkey && currentConversationId !== conversation.pub_key) {
@@ -198,12 +201,6 @@ const useDmClient = (
     dmsDb,
     getCodeNameAndColor
   ]);
-
-  useEffect(() => {
-    if (client) {
-      dispatch(dms.actions.setUserNickname(client.GetNickname()));
-    }
-  }, [client, dispatch]);
 
   return client;
 }
