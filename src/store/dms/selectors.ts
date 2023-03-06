@@ -5,10 +5,12 @@ import { uniqBy } from 'lodash';
 import assert from 'assert';
 import { createSelector } from '@reduxjs/toolkit';
 
-import {  MessageType } from 'src/types';
+import { MessageType } from 'src/types';
 import { byTimestamp } from '../utils';
 import { Conversation } from './types';
+import { identity } from '../identity/selectors';
 
+export const dmNickname = (state: RootState) => state.dms.nickname;
 export const currentConversation = (state: RootState): Conversation | null => state.dms.conversationsByPubkey[state.app.selectedConversationId ?? ''] || null;
 export const conversations = (state: RootState) => Object.values(state.dms.conversationsByPubkey);
 const allCurrentMessages = (state: RootState) => Object.values(state.dms.messagesByPubkey[state.app.selectedConversationId ?? ''] ?? {});
@@ -16,7 +18,9 @@ const allCurrentMessages = (state: RootState) => Object.values(state.dms.message
 export const currentDirectMessages = createSelector(
   currentConversation,
   allCurrentMessages,
-  (conversation, allMessages) => {
+  identity,
+  dmNickname,
+  (conversation, allMessages, userIdentity, nickname) => {
     if (!conversation) {
       return undefined;
     }
@@ -26,12 +30,14 @@ export const currentDirectMessages = createSelector(
         [MessageType.Normal, MessageType.Reply].includes(msg.type)
         && conversation.pubkey === msg.conversationId
       ).map((msg): Message => ({
+        nickname: msg.pubkey === userIdentity?.pubkey ? nickname : conversation.nickname,
         id: msg.messageId,
         uuid: msg.uuid,
         repliedTo: msg.parentMessageId,
         codename: msg.codename,
         type: msg.type,
         channelId: msg.pubkey,
+        status: msg.status,
         round: msg.round,
         body: msg.body,
         timestamp: msg.timestamp,
@@ -68,4 +74,3 @@ export const newDmsNotifications = (state: RootState) => Object.keys(state.dms.c
   [pubkey]: state.dms.missedMessagesByPubkey[pubkey] || false,
 }), {} as Record<string, boolean>);
 
-export const dmNickname = (state: RootState) => state.dms.nickname;
