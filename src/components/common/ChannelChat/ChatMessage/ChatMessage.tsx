@@ -22,7 +22,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 }
 
 const HoveredMention = ({ codename }: { codename: string }) => {
-  const contributors = useAppSelector(selectors.allContributors);
+  const contributors = useAppSelector(selectors.currentContributors);
   const mentioned = useMemo(
     () => contributors.find((c) => c.codename === codename),
     [codename, contributors]

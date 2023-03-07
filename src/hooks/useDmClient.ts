@@ -56,6 +56,7 @@ const useDmClient = (
   const dispatch = useAppDispatch();
   const currentConversationId = useAppSelector(app.selectors.currentConversationId);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
+  const allDms = useAppSelector((state) => state.dms.messagesByPubkey)
   const [client, setClient] = useState<DMClient | undefined>();
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
   const { getCodeNameAndColor, utils } = useUtils();
@@ -168,6 +169,7 @@ const useDmClient = (
             return;
           }
 
+
           const mappedConversation = conversationMapper(conversation);
 
           dispatch(
@@ -176,10 +178,19 @@ const useDmClient = (
             )
           );
 
-          if (currentConversationId !== conversation.pub_key && pubkey !== userIdentity?.pubkey) {
+          const messageIsNew = !allDms[message.conversation_pub_key]?.[message.id];
+
+          if (
+            currentConversationId !== conversation.pub_key
+            && message.sender_pub_key !== userIdentity?.pubkey
+            && messageIsNew
+          ) {
             dispatch(dms.actions.notifyNewMessage(conversation.pub_key));
           }
+
           const decryptedMessage = messageMapper(message);
+
+          console.log('DM_RECEIVED', decryptedMessage);
           dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
 
           if (decryptedMessage.pubkey !== userIdentity?.pubkey && currentConversationId !== conversation.pub_key) {
@@ -192,6 +203,7 @@ const useDmClient = (
 
     return () => { bus.removeListener(Event.DM_RECEIVED, listener) };
   }, [
+    allDms,
     conversationMapper,
     dmReceived,
     userIdentity,

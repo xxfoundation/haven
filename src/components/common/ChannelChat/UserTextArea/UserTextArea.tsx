@@ -114,9 +114,9 @@ const UserTextArea: FC<Props> = ({
   replyToMessage,
   setReplyToMessage,
 }) => {
-  const contributors = useAppSelector(messages.selectors.currentContributors);
+  const contributors = useAppSelector(messages.selectors.currentMessagesUniqueByContributor);
   useEffect(() => {
-    atMentions = contributors.map((c) => ({ id: c.pubkey, value: c.codename }))
+    atMentions = contributors?.map((c) => ({ id: c.pubkey, value: c.codename })) ?? [];
   }, [contributors]);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { openModal, setModalView } = useUI();
