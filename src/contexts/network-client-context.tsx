@@ -28,7 +28,6 @@ import * as dms from 'src/store/dms';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
-import delay from 'delay';
 
 const BATCH_COUNT = 1000;
 
