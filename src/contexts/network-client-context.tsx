@@ -28,6 +28,7 @@ import * as dms from 'src/store/dms';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
+import delay from 'delay';
 
 const BATCH_COUNT = 1000;
 
@@ -553,9 +554,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const channelReactions = await db?.table<DBMessage>('messages')
         .where('channel_id')
         .equals(currentChannel?.id)
-        .filter((e) => {
-          return !e.hidden && e.type === MessageType.Reaction;
-        })
+        .filter((e) =>  !e.hidden && e.type === MessageType.Reaction)
         .toArray() ?? [];
         
       const reactions = channelReactions?.filter((r) => r.parent_message_id !== null)
@@ -863,12 +862,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
       currentChannel
     ) {
       try {
-        await channelManager.SendMessage(
-          utils.Base64ToUint8Array(currentChannel.id),
-          message,
-          MESSAGE_LEASE,
-          new Uint8Array()
-        );
+        for (let i = 0; i < 1000; i++) {
+          const msg = `<p>${i}</p>`;
+          await channelManager.SendMessage(
+            utils.Base64ToUint8Array(currentChannel.id),
+            msg,
+            MESSAGE_LEASE,
+            new Uint8Array()
+          );
+        }
       } catch (e) {
         console.error('Error sending message', e);
       }

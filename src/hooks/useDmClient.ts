@@ -190,7 +190,6 @@ const useDmClient = (
 
           const decryptedMessage = messageMapper(message);
 
-          console.log('DM_RECEIVED', decryptedMessage);
           dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
 
           if (decryptedMessage.pubkey !== userIdentity?.pubkey && currentConversationId !== conversation.pub_key) {
