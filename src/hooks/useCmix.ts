@@ -3,7 +3,7 @@ import type { CMix, DummyTraffic } from 'src/types';
 import { useUtils } from '@contexts/utils-context';
 import { decoder } from '@utils/index';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
+import { DUMMY_TRAFFIC_ARGS, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
 import { ndf } from 'src/sdk-utils/ndf';
 
 const cmixPreviouslyInitialized = () => {
@@ -144,9 +144,7 @@ const useCmix = () => {
       try {
         setDummyTrafficManager(utils.NewDummyTrafficManager(
           cmixId,
-          3,
-          15000,
-          7000
+          ...DUMMY_TRAFFIC_ARGS
         ));
       } catch (error) {
         console.error('error while creating the Dummy Traffic Object:', error);
