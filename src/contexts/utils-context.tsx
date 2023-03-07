@@ -130,7 +130,7 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
     try {
       pubkeyUintArray = utils.Base64ToUint8Array(publicKey);
     } catch (e) {
-      const msg = `Invalid public key: ${publicKey}`;
+      const msg = `Invalid public key: ${publicKey}: ${e}`;
       throw new Error(msg);
     }
 

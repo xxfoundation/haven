@@ -2,15 +2,18 @@ import type { Message, MessagesState } from './types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
 
-const initialState: MessagesState = { byId: {} };
+const initialState: MessagesState = { byChannelId: {} };
 
 const upsert = (state: MessagesState, message: Message) => ({
   ...state,
-  byId: {
-    ...state.byId,
-    [message.uuid]: {
-      ...state.byId[message.uuid],
-      ...message
+  byChannelId: {
+    ...state.byChannelId,
+    [message.channelId]: {
+      ...state.byChannelId[message.channelId],
+      [message.uuid]: {
+        ...state.byChannelId[message.channelId]?.[message.uuid],
+        ...message
+      }
     },
   }
 });
@@ -23,10 +26,19 @@ export const slice = createSlice({
     upsertMany: (state: MessagesState, { payload: messages }: PayloadAction<Message[]>) =>
       messages.reduce(upsert, state),
     delete: (state: MessagesState, { payload: messageId }: PayloadAction<Message['id']>): MessagesState => {
-      const found = Object.values(state.byId).find((message) => message.id === messageId);
-      return {
+      let found: Message | undefined;
+      Object.values(state.byChannelId)
+        .some((channelMessages) => {
+          found = Object.values(channelMessages).find((msg) => msg.id === messageId)
+          return !!found;
+        });
+      
+      return !found ? state : {
         ...state,
-        byId: found ? omit(state.byId, found.uuid) : state.byId
+        byChannelId: {
+          ...state.byChannelId,
+          [found.channelId]: omit(state.byChannelId[found.channelId], found.uuid),
+        }
       }
     }
   }

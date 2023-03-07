@@ -28,6 +28,7 @@ import * as dms from 'src/store/dms';
 import { ChannelId, ChannelInfo } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
+import delay from 'delay';
 
 const BATCH_COUNT = 1000;
 
@@ -227,6 +228,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   } = useCmix();
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
+  const allMessagesByChannelId = useAppSelector((state) => state.messages.byChannelId);
   const currentConversationId = useAppSelector(app.selectors.currentConversationId);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentChannels = useAppSelector(channels.selectors.channels);
@@ -240,7 +242,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     [channelManager, rawPassword, utils]
   );
   const dmClient = useDmClient(cmixId, privateIdentity, decryptedPassword);
-
+  
   const initialize = useCallback(async (password: string) => {
     const statePassEncoded = checkUser(password);
     if (!statePassEncoded) {
@@ -402,8 +404,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [db, dbMessageMapper, dispatch]);
 
-  const allMessages = useAppSelector(messages.selectors.allMessages);
-
   const handleMessageEvent = useCallback(async ({ messageId }: MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
       const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
@@ -434,7 +434,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
           }
         }
       }
-     
 
       if (
           receivedMessage?.type !== MessageType.Reaction && // Remove emoji reactions, Ben thinks theyre annoying
@@ -453,7 +452,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }
       }
 
-      const oldMessage = allMessages.find(({ uuid }) => receivedMessage?.id === uuid);
+      const oldMessage = allMessagesByChannelId[receivedMessage?.channel_id]?.[receivedMessage.id];
 
       // notify new pinned messages
       if (!oldMessage?.pinned && receivedMessage?.pinned) {
@@ -478,7 +477,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
   }, [
-    allMessages,
+    allMessagesByChannelId,
     cipher,
     currentChannel?.id,
     currentChannels,
@@ -550,16 +549,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return mappedMessages;
   }, [db, dbMessageMapper, dispatch]);
 
-  useEffect(() => {}, []);
-
   const fetchReactions = useCallback(async () => {
     if (currentChannel?.id !== undefined) {
       const channelReactions = await db?.table<DBMessage>('messages')
         .where('channel_id')
         .equals(currentChannel?.id)
-        .filter((e) => {
-          return !e.hidden && e.type === 3;
-        })
+        .filter((e) =>  !e.hidden && e.type === MessageType.Reaction)
         .toArray() ?? [];
         
       const reactions = channelReactions?.filter((r) => r.parent_message_id !== null)
@@ -867,12 +862,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
       currentChannel
     ) {
       try {
-        await channelManager.SendMessage(
-          utils.Base64ToUint8Array(currentChannel.id),
-          message,
-          MESSAGE_LEASE,
-          new Uint8Array()
-        );
+        for (let i = 0; i < 1000; i++) {
+          const msg = `<p>${i}</p>`;
+          await channelManager.SendMessage(
+            utils.Base64ToUint8Array(currentChannel.id),
+            msg,
+            MESSAGE_LEASE,
+            new Uint8Array()
+          );
+        }
       } catch (e) {
         console.error('Error sending message', e);
       }
@@ -942,9 +940,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const sendReaction = useCallback(async (reaction: string, reactToMessageId: string) => {
     if (channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
-     const foundReaction = allMessages.find(
+     const foundReaction = currentMessages?.find(
         (m) => m.pubkey === userIdentity?.pubkey
-          && m.channelId === currentChannel?.id
           && m.body === reaction
           && m.type === MessageType.Reaction
           && m.repliedTo === reactToMessageId
@@ -1003,7 +1000,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     currentConversation,
     currentDms,
     dmClient,
-    allMessages,
+    currentMessages,
     channelManager,
     currentChannel,
     deleteMessage,

@@ -10,21 +10,17 @@ import { currentConversation, currentDirectMessages, currentDmReactions } from '
 
 import { byTimestamp } from '../utils';
 import { MessageType } from 'src/types';
-import { currentChannelId } from '../app/selectors';
 import { identity } from '../identity/selectors';
-
-export const allMessages = (state: RootState) => Object.values(state.messages.byId);
 
 export const currentChannelMessages = (state: RootState) => {
   if (state.app.selectedChannelId === null) {
     return undefined;
   }
 
-  return Object.values(state.messages.byId)
+  return Object.values(state.messages.byChannelId[state.app.selectedChannelId] ?? {})
     .filter((msg) =>
       !msg.hidden
       && [MessageType.Normal, MessageType.Reply].includes(msg.type)
-      && msg.channelId === state.app.selectedChannelId
     ).sort(byTimestamp);
 }
 
@@ -33,11 +29,10 @@ export const channelReactions = (state: RootState): EmojiReactions | undefined =
     return undefined;
   }
 
-  const reactions = Object.values(state.messages.byId)
+  const reactions = Object.values(state.messages.byChannelId[state.app.selectedChannelId] ?? {})
     .filter((msg) =>
       !msg.hidden
       && msg.type === MessageType.Reaction
-      && msg.channelId === state.app.selectedChannelId
     );
 
   return reactions
@@ -79,9 +74,9 @@ export const repliedTo = (message: Message) => createSelector(
   
 export const currentPinnedMessages = (state: RootState) => currentChannelMessages(state)?.filter((msg) => msg.pinned);
 
-export const allContributors = (state: RootState) => {
-  return Object.values(state.messages.byId)
-    .sort(byTimestamp)
+export const currentMessagesUniqueByContributor = createSelector(
+  currentChannelMessages,
+  (messages) => messages?.sort(byTimestamp)
     .reverse()
     .reduce(
       (acc, cur) => uniqBy(
@@ -91,21 +86,21 @@ export const allContributors = (state: RootState) => {
         (m) => m.codename
       ),
       [] as Message[]
-    );
-}
+    )
+);
 
-export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 'codeset' | 'codename'>[] = createSelector(
-  allContributors,
-  currentChannelId,
+
+export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 'codeset' | 'codename' | 'nickname'>[] = createSelector(
+  currentMessagesUniqueByContributor,
   currentConversation,
   identity,
-  (contributors, channelId, conversation, userIdentity) => {
-    const contribs = contributors
-      .filter((m) => m.channelId === channelId)
-      .map((m) => pick(m, ['pubkey', 'codeset', 'codename']));
+  (contributors, conversation, userIdentity) => {
+    const contribs = contributors?.map(
+      (m) => pick(m, ['pubkey', 'codeset', 'codename', 'nickname'])
+    ) ?? [];
 
     if (conversation && userIdentity) {
-      contribs.push(pick(conversation, ['pubkey', 'codeset', 'codename']));
+      contribs.push(pick(conversation, ['pubkey', 'codeset', 'codename', 'nickname']));
       contribs.push(pick(userIdentity, ['pubkey', 'codeset', 'codename']))
     }
 

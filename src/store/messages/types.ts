@@ -24,7 +24,7 @@ export type MessageUuid = Message['uuid'];
 export type MessageId = Message['id'];
 
 export type MessagesState = {
-  byId: Record<MessageUuid, Message>;
+  byChannelId: Record<Message['channelId'], Record<MessageUuid, Message>>;
 };
 
 declare module 'src/store/types' {
