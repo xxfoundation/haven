@@ -861,15 +861,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
       currentChannel
     ) {
       try {
-        for (let i = 0; i < 1000; i++) {
-          const msg = `<p>${i}</p>`;
-          await channelManager.SendMessage(
-            utils.Base64ToUint8Array(currentChannel.id),
-            msg,
-            MESSAGE_LEASE,
-            new Uint8Array()
-          );
-        }
+        await channelManager.SendMessage(
+          utils.Base64ToUint8Array(currentChannel.id),
+          message,
+          MESSAGE_LEASE,
+          new Uint8Array()
+        );
       } catch (e) {
         console.error('Error sending message', e);
       }
