@@ -99,6 +99,7 @@ export type ChannelManager = {
     channelId: Uint8Array,
     reaction: string,
     messageToReactTo: Uint8Array,
+    messageValidityTimeoutMilliseconds: number,
     cmixParams: Uint8Array
   ) => Promise<Uint8Array>;
   SendReply: (
@@ -951,6 +952,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
             utils.Base64ToUint8Array(currentChannel.id),
             reaction,
             utils.Base64ToUint8Array(reactToMessageId),
+            utils.ValidForever(),
             new Uint8Array()
           );
         } catch (error) {
