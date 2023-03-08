@@ -234,7 +234,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const currentChannels = useAppSelector(channels.selectors.channels);
   const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const currentDms = useAppSelector(dms.selectors.currentDirectMessages);
   const [rawPassword, setRawPassword] = useState<string>();
   const userIdentity = useAppSelector(identity.selectors.identity);
   const privateIdentity = useMemo(
@@ -937,72 +936,45 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const sendReaction = useCallback(async (reaction: string, reactToMessageId: string) => {
     if (channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
-     const foundReaction = currentMessages?.find(
-        (m) => m.pubkey === userIdentity?.pubkey
-          && m.body === reaction
-          && m.type === MessageType.Reaction
-          && m.repliedTo === reactToMessageId
-      );
-
-      if (currentChannel && foundReaction) {
-        await deleteMessage({ channelId: currentChannel.id, id: foundReaction.id })
-      } else {
-        try {
-          await channelManager.SendReaction(
-            utils.Base64ToUint8Array(currentChannel.id),
-            reaction,
-            utils.Base64ToUint8Array(reactToMessageId),
-            utils.ValidForever(),
-            new Uint8Array()
-          );
-        } catch (error) {
-          console.error(
-            `Test failed to react to messageId ${reactToMessageId}`,
-            error
-          );
-        }
+      try {
+        await channelManager.SendReaction(
+          utils.Base64ToUint8Array(currentChannel.id),
+          reaction,
+          utils.Base64ToUint8Array(reactToMessageId),
+          utils.ValidForever(),
+          new Uint8Array()
+        );
+      } catch (error) {
+        console.error(
+          `Test failed to react to messageId ${reactToMessageId}`,
+          error
+        );
       }
     }
 
-    if (dmClient && currentConversationId !== null && currentDms) {
-      const foundReaction = currentDms.find(
-        (m) => m.pubkey === userIdentity?.pubkey
-          && m.channelId === currentChannel?.id
-          && m.body === reaction
-          && m.type === MessageType.Reaction
-          && m.repliedTo === reactToMessageId
-      );
-
-      if (currentConversation && foundReaction) {
-        // No delete function yet
-      } else if (currentConversation) {
-        try {
-          await dmClient.SendReaction(
-            utils.Base64ToUint8Array(currentConversation.pubkey),
-            currentConversation.token,
-            utils.Base64ToUint8Array(reactToMessageId),
-            reaction,
-            new Uint8Array()
-          );
-        } catch (error) {
-          console.error(
-            `Test failed to react to messageId ${reactToMessageId}`,
-            error
-          );
-        }
+    if (dmClient && currentConversationId !== null && currentConversation?.token !== undefined) {
+      try {
+        await dmClient.SendReaction(
+          utils.Base64ToUint8Array(currentConversationId),
+          currentConversation.token,
+          utils.Base64ToUint8Array(reactToMessageId),
+          reaction,
+          new Uint8Array()
+        );
+      } catch (error) {
+        console.error(
+          `Test failed to react to messageId ${reactToMessageId}`,
+          error
+        );
       }
 
     }
   }, [
     currentConversationId,
-    currentConversation,
-    currentDms,
+    currentConversation?.token,
     dmClient,
-    currentMessages,
     channelManager,
     currentChannel,
-    deleteMessage,
-    userIdentity?.pubkey,
     utils
   ]);
 

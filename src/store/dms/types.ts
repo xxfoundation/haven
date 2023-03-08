@@ -1,4 +1,5 @@
-import { MessageStatus, MessageType } from 'src/types';
+import { EmojiReactions } from 'src/store/types';
+import { Message, MessageStatus, MessageType } from 'src/types';
 
 type PubKey = string;
 
@@ -35,8 +36,9 @@ export type DirectMessage = {
 export type DMState = {
   nickname?: string;
   conversationsByPubkey: Record<PubKey, Conversation>;
-  messagesByPubkey: Record<PubKey, Record<DirectMessage['uuid'], DirectMessage>>;
+  messagesByPubkey: Record<PubKey, Record<Message['uuid'], Message>>;
   missedMessagesByPubkey: Record<PubKey, boolean>;
+  reactions: EmojiReactions;
 };
 
 declare module 'src/store/types' {
