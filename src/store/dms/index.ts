@@ -1,11 +1,16 @@
-import type { Conversation, DirectMessage, DMState } from './types';
+import type { Conversation, DMState } from './types';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Message } from '../messages/types';
+
+import { reactionsReducer } from '../utils';
+import { MessageType } from '@types';
 
 const initialState: DMState = {
   conversationsByPubkey: {},
   messagesByPubkey: {},
-  missedMessagesByPubkey: {}
+  missedMessagesByPubkey: {},
+  reactions: {}
 };
 
 const upsertConversation = (state: DMState, conversation: Conversation) => ({
@@ -19,18 +24,21 @@ const upsertConversation = (state: DMState, conversation: Conversation) => ({
   }
 });
 
-const upsertMessage = (state: DMState, message: DirectMessage) => ({
+const upsertMessage = (state: DMState, message: Message) => ({
   ...state,
-  messagesByPubkey: {
-    ...state.messagesByPubkey,
-    [message.conversationId]: {
-      ...state.messagesByPubkey[message.conversationId],
-      [message.uuid]: {
-        ...state.messagesByPubkey[message.conversationId]?.[message.uuid],
-        ...message
+  reactions: reactionsReducer(state.reactions, message),
+  ...(message.type !== MessageType.Reaction && {
+      messagesByPubkey: {
+      ...state.messagesByPubkey,
+      [message.channelId]: {
+        ...state.messagesByPubkey[message.channelId],
+        [message.uuid]: {
+          ...state.messagesByPubkey[message.channelId]?.[message.uuid],
+          ...message
+        }
       }
     }
-  }
+  })
 });
 
 export const slice = createSlice({
@@ -59,11 +67,11 @@ export const slice = createSlice({
         [pubkey]: false,
       }
     }),
-    upsertDirectMessage: (state: DMState, { payload: message }: PayloadAction<DirectMessage>) => 
+    upsertDirectMessage: (state: DMState, { payload: message }: PayloadAction<Message>) => 
       upsertMessage(state, message),
     upsertManyDirectMessages: (
       state: DMState,
-      { payload: messages }: PayloadAction<DirectMessage[]>
+      { payload: messages }: PayloadAction<Message[]>
     ) => messages.reduce(upsertMessage, state),
     setUserNickname: (state: DMState, { payload: nickname }: PayloadAction<string>) => ({
       ...state,

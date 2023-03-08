@@ -1,4 +1,5 @@
-import { MessageStatus, MessageType } from 'src/types';
+import { EmojiReactions } from 'src/store/types';
+import { ChannelId, MessageStatus, MessageType } from 'src/types';
 
 export interface Message {
   id: string;
@@ -23,7 +24,11 @@ export interface Message {
 export type MessageUuid = Message['uuid'];
 export type MessageId = Message['id'];
 
+export type Contributor = Pick<Message, 'pubkey' | 'codeset' | 'codename' | 'nickname' | 'timestamp'>;
+
 export type MessagesState = {
+  reactions: EmojiReactions;
+  contributorsByChannelId: Record<ChannelId, Contributor[]>;
   byChannelId: Record<Message['channelId'], Record<MessageUuid, Message>>;
 };
 

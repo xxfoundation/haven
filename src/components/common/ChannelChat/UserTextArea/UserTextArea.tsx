@@ -114,7 +114,7 @@ const UserTextArea: FC<Props> = ({
   replyToMessage,
   setReplyToMessage,
 }) => {
-  const contributors = useAppSelector(messages.selectors.currentMessagesUniqueByContributor);
+  const contributors = useAppSelector(messages.selectors.currentContributors);
   useEffect(() => {
     atMentions = contributors?.map((c) => ({ id: c.pubkey, value: c.codename })) ?? [];
   }, [contributors]);
