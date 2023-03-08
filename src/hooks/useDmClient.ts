@@ -1,5 +1,5 @@
-import type { DBConversation, DBDirectMessage, DMClient } from 'src/types';
-import type { Conversation, DirectMessage } from 'src/store/dms/types';
+import type { DBConversation, DBDirectMessage, DMClient, Identity, Message } from 'src/types';
+import type { Conversation } from 'src/store/dms/types';
 
 import { useUtils, XXDKContext } from '@contexts/utils-context';
 import { useEffect, useMemo, useState } from 'react';
@@ -31,19 +31,25 @@ const makeConversationMapper = (codenameConverter: XXDKContext['getCodeNameAndCo
 const makeMessageMapper = (
   codenameConverter: XXDKContext['getCodeNameAndColor'],
   cipher: DatabaseCipher,
-) => (message: DBDirectMessage): DirectMessage => ({
+  userIdentity: Identity,
+  conversation: Conversation,
+  nickname?: string
+) => (message: DBDirectMessage): Message => ({
+  nickname:  message.sender_pub_key === userIdentity?.pubkey ? nickname : conversation.nickname,
   ...codenameConverter(message.sender_pub_key, message.codeset_version),
   uuid: message.id,
-  messageId: message.message_id,
+  id: message.message_id,
   status: message.status,
   type: message.type,
-  conversationId: message.conversation_pub_key,
-  parentMessageId: message.parent_message_id === 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' ? null : message.parent_message_id,
+  channelId: message.conversation_pub_key,
+  repliedTo: message.parent_message_id === 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' ? null : message.parent_message_id,
   timestamp: message.timestamp,
   body: cipher.decrypt(message.text),
   round: message.round,
   pubkey: message.sender_pub_key,
   codeset: message.codeset_version,
+  pinned: false,
+  hidden: false
 })
 
 const useDmClient = (
@@ -54,6 +60,7 @@ const useDmClient = (
   const { dmReceived } = useNotification();
   const dmsDb = useDb('dm');
   const dispatch = useAppDispatch();
+  const dmNickname = useAppSelector(dms.selectors.dmNickname);
   const currentConversationId = useAppSelector(app.selectors.currentConversationId);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const allDms = useAppSelector((state) => state.dms.messagesByPubkey)
@@ -69,11 +76,16 @@ const useDmClient = (
       && client
       && getCodeNameAndColor
       && makeMessageMapper
+      && currentConversation
+      && userIdentity
       && makeMessageMapper(
       getCodeNameAndColor,
       databaseCipher,
+      userIdentity,
+      currentConversation,
+      dmNickname
     ),
-    [client, databaseCipher, getCodeNameAndColor]
+    [client, currentConversation, databaseCipher, dmNickname, getCodeNameAndColor, userIdentity]
   );
 
   useEffect(() => {
@@ -168,7 +180,6 @@ const useDmClient = (
             console.error('Couldn\'t find conversation or message in database.');
             return;
           }
-
 
           const mappedConversation = conversationMapper(conversation);
 
