@@ -163,7 +163,6 @@ const useDmClient = (
     }
 
     const listener = (e: DMReceivedEvent) => {
-      console.log('DM_RECEIVED', e);
       const pubkey = Buffer.from(e.pubkey).toString('base64');
       Promise.all([
         dmsDb.table<DBDirectMessage>('messages')
@@ -178,8 +177,6 @@ const useDmClient = (
             console.error('Couldn\'t find conversation or message in database.');
             return;
           }
-
-          console.log('DM_RECEIVED', message, conversation);
 
           const mappedConversation = conversationMapper(conversation);
 
