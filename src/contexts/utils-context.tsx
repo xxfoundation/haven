@@ -32,7 +32,7 @@ export type VersionJSON = {
 export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
 export type MessageDeletedCallback = (uuid: Uint8Array) => void;
 export type UserMutedCallback = (channelId: Uint8Array, pubkey: string, unmute: boolean) => void;
-export type DMReceivedCallback = (uuid: string, pubkey: Uint8Array, update: boolean) => void;
+export type DMReceivedCallback = (uuid: string, pubkey: Uint8Array, update: boolean, updateConversation: boolean) => void;
 
 export type XXDKUtils = {
   NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => Promise<void>;
