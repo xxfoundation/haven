@@ -32,10 +32,9 @@ const makeMessageMapper = (
   codenameConverter: XXDKContext['getCodeNameAndColor'],
   cipher: DatabaseCipher,
   userIdentity: Identity,
-  conversation: Conversation,
   nickname?: string
-) => (message: DBDirectMessage): Message => ({
-  nickname:  message.sender_pub_key === userIdentity?.pubkey ? nickname : conversation.nickname,
+) => (message: DBDirectMessage, conversation: Conversation): Message => ({
+  nickname:  message.sender_pub_key === userIdentity?.pubkey ? nickname : conversation?.nickname,
   ...codenameConverter(message.sender_pub_key, message.codeset_version),
   uuid: message.id,
   id: message.message_id,
@@ -61,8 +60,8 @@ const useDmClient = (
   const dmsDb = useDb('dm');
   const dispatch = useAppDispatch();
   const dmNickname = useAppSelector(dms.selectors.dmNickname);
-  const currentConversationId = useAppSelector(app.selectors.currentConversationId);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
+  const currentConversationId = useAppSelector(app.selectors.currentConversationId);
   const allDms = useAppSelector((state) => state.dms.messagesByPubkey)
   const [client, setClient] = useState<DMClient | undefined>();
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
@@ -76,16 +75,14 @@ const useDmClient = (
       && client
       && getCodeNameAndColor
       && makeMessageMapper
-      && currentConversation
       && userIdentity
       && makeMessageMapper(
       getCodeNameAndColor,
       databaseCipher,
       userIdentity,
-      currentConversation,
       dmNickname
     ),
-    [client, currentConversation, databaseCipher, dmNickname, getCodeNameAndColor, userIdentity]
+    [client, databaseCipher, dmNickname, getCodeNameAndColor, userIdentity]
   );
 
   useEffect(() => {
@@ -149,16 +146,16 @@ const useDmClient = (
   }, [conversationMapper, dispatch, dmsDb]);
 
   useEffect(() => {
-    if (dmsDb && messageMapper && currentConversationId !== null && currentConversation) {
+    if (dmsDb && messageMapper && currentConversation && currentConversationId !== null) {
       dmsDb.table<DBDirectMessage>('messages')
         .where('conversation_pub_key')
         .equals(currentConversationId)
         .toArray()
         .then((messages) => {
-          dispatch(dms.actions.upsertManyDirectMessages(messages.map(messageMapper)))
+          dispatch(dms.actions.upsertManyDirectMessages(messages.map((m) => messageMapper(m, currentConversation))))
         })
     }
-  }, [currentConversationId, currentConversation, dispatch, dmsDb, messageMapper])
+  }, [currentConversation, currentConversationId, dispatch, dmsDb, messageMapper])
 
   useEffect(() => {
     if (!dmsDb || !messageMapper || !conversationMapper) {
@@ -166,6 +163,7 @@ const useDmClient = (
     }
 
     const listener = (e: DMReceivedEvent) => {
+      console.log('DM_RECEIVED', e);
       const pubkey = Buffer.from(e.pubkey).toString('base64');
       Promise.all([
         dmsDb.table<DBDirectMessage>('messages')
@@ -181,13 +179,17 @@ const useDmClient = (
             return;
           }
 
+          console.log('DM_RECEIVED', message, conversation);
+
           const mappedConversation = conversationMapper(conversation);
 
-          dispatch(
-            dms.actions.upsertConversation(
-              mappedConversation
-            )
-          );
+          if (e.conversationUpdated) {
+            dispatch(
+              dms.actions.upsertConversation(
+                mappedConversation
+              )
+            );
+          }
 
           const messageIsNew = !allDms[message.conversation_pub_key]?.[message.id];
 
@@ -199,7 +201,7 @@ const useDmClient = (
             dispatch(dms.actions.notifyNewMessage(conversation.pub_key));
           }
 
-          const decryptedMessage = messageMapper(message);
+          const decryptedMessage = messageMapper(message, mappedConversation);
 
           dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
 

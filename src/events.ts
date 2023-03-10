@@ -74,17 +74,20 @@ export type DMReceivedEvent = {
   messageUuid: string;
   pubkey: Uint8Array;
   update: boolean;
+  conversationUpdated: boolean;
 }
 
 export const onDmReceived = (
   messageUuid: string,
   pubkey: Uint8Array,
-  update: boolean
+  update: boolean,
+  conversationUpdated: boolean
 ) => {
   const messageEvent: DMReceivedEvent = {
     messageUuid,
     pubkey,
-    update
+    update,
+    conversationUpdated
   }
 
   bus.emit(Event.DM_RECEIVED, messageEvent);

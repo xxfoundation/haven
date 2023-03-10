@@ -103,7 +103,7 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
 
             {contributors?.filter((c) => c.pubkey !== pubkey)
               .map((c) =>  (
-              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div key={c.pubkey} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 <Identity clickable {...c} />
               </div>
             ))}

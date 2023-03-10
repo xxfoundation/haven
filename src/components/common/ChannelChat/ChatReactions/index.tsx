@@ -41,7 +41,7 @@ const ChatReactions: FC<Props> = ({ message }) => {
       <div className={cn(s.wrapper)}>
         {reactions?.map(([emoji, reactionInfos]) => reactionInfos?.length > 0 && (
           <div
-            key={`${message.id}-${emoji}`}
+            key={`${id}-${message.id}-${emoji}`}
             id={`${id}-${message.id}-${emoji}-emojis-users-reactions`}
             className={cn(s.emoji)}
             onClick={() => toggleReaction(emoji, message.id)}
