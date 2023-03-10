@@ -19,7 +19,7 @@ const ShareChannelView: FC = () => {
     url: '',
     password: ''
   });
-  const credentialsDivRef = useRef<HTMLDivElement>(null);
+  const urlElement = useRef<HTMLSpanElement>(null);
   const [copied, copy] = useCopyClipboard(700);
 
   useEffect(() => {
@@ -51,10 +51,12 @@ const ShareChannelView: FC = () => {
           <span className='font-bold mr-1'>Speakeasy id:</span>
           <span>{currentChannel?.id || ''}</span>
         </div>
-        <div className={cn(s.channelCredentials)} ref={credentialsDivRef}>
+        <div className={cn(s.channelCredentials)}>
           <span className='text--sm font-bold'>Speakeasy invite link:</span>
           {credentials.url.length > 0 && (
-            <span className={cn('text text--xs')}>{credentials.url}</span>
+            <span ref={urlElement} className={cn('text text--xs')}>
+              {credentials.url}
+            </span>
           )}
           {credentials.password.length > 0 && (
             <>
@@ -76,8 +78,8 @@ const ShareChannelView: FC = () => {
           buttonCopy='Copy'
           cssClass={cn(s.button)}
           onClick={() => {
-            if (credentialsDivRef?.current) {
-              copy(credentialsDivRef?.current.innerText);
+            if (urlElement?.current) {
+              copy(urlElement?.current.innerText);
             }
           }}
         />
