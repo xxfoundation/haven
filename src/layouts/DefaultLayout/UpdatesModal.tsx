@@ -12,11 +12,14 @@ const UpdatesModal = () => {
       <h2 className='text-center'>Version 0.2.11</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>
-          💬 Dms are finally here. Enable it in channel settings.
+          💬 Dms are finally here. Click a username to try it out. You can disable them in your channel settings.
+        </li>
+        <li className='text-center'>
+          💪  Performance enhancements for large channels.
         </li>
       </ul>
       <div className='text-center'>
-        <Button onClick={() => setShowModal(false)}>Cool beans.</Button>
+        <Button onClick={() => setShowModal(false)}>Later gator.</Button>
       </div>
     </Modal>
   ) : null;
