@@ -5,11 +5,11 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 import s from './UpdatesModal.module.scss';
 
 const UpdatesModal = () => {
-  const [showModal, setShowModal] = useLocalStorage('update-notice_0.2.12', true);
+  const [showModal, setShowModal] = useLocalStorage('update-notice_0.3.0', true);
   
   return showModal ? (
     <Modal className={s.root} onClose={() => setShowModal(false)}>
-      <h2 className='text-center'>Version 0.2.12</h2>
+      <h2 className='text-center'>Version 0.3.0</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>
           💬 Dms are finally here. Click a username to try it out. You can disable them in your channel settings.
