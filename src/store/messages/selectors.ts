@@ -4,12 +4,12 @@ import type { Message } from './types';
 
 import { createSelector } from '@reduxjs/toolkit';
 
-import { currentDirectMessages, dmReactions, currentConversationContributors } from '../dms/selectors';
+import { allDms, dmReactions, currentConversationContributors } from '../dms/selectors';
 
 import { byTimestamp } from '../utils';
-import { MessageType } from 'src/types';
 import { currentChannelId } from '../app/selectors';
 
+export const allMessages = (state: RootState) => state.messages.byChannelId;
 export const reactions = (state: RootState) => state.messages.reactions;
 export const contributors = (state: RootState) => state.messages.contributorsByChannelId;
 
@@ -19,10 +19,7 @@ export const currentChannelMessages = (state: RootState) => {
   }
 
   return Object.values(state.messages.byChannelId[state.app.selectedChannelId] ?? {})
-    .filter((msg) =>
-      !msg.hidden
-      && [MessageType.Normal, MessageType.Reply].includes(msg.type)
-    ).sort(byTimestamp);
+    .sort(byTimestamp);
 }
 
 export const reactionsTo = (message: Message) =>
@@ -37,12 +34,12 @@ export const reactionsTo = (message: Message) =>
   );
 
 export const repliedTo = (message: Message) => createSelector(
-  currentChannelMessages,
-  currentDirectMessages,
+  allMessages,
+  allDms,
   (msgs, dms) => {
     return message.repliedTo && (
-     msgs?.find((msg) => msg.id === message.repliedTo)
-     || dms?.find((msg) => msg.id === message.repliedTo)
+     msgs[message.channelId]?.[message.uuid]
+     || dms[message.channelId]?.[message.uuid]
     );
   }
 )

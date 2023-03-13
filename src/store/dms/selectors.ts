@@ -11,7 +11,7 @@ import { currentConversationId } from '../app/selectors';
 export const dmNickname = (state: RootState) => state.dms.nickname;
 export const currentConversation = (state: RootState): Conversation | null => state.dms.conversationsByPubkey[state.app.selectedConversationId ?? ''] || null;
 export const conversations = (state: RootState) => Object.values(state.dms.conversationsByPubkey);
-const allDms = (state: RootState) => state.dms.messagesByPubkey;
+export const allDms = (state: RootState) => state.dms.messagesByPubkey;
 export const dmReactions = (state: RootState) => state.dms.reactions;
 
 export const currentDirectMessages = createSelector(
