@@ -1,23 +1,11 @@
-import type { WithChildren } from '@types';
+import type { MessageStatus, MessageType, WithChildren } from 'src/types';
 import { FC, useContext, useEffect, useMemo } from 'react';
 
 import { Dexie } from 'dexie';
 import { createContext, useCallback, useState } from 'react';
 
 import useLocalStorage from 'src/hooks/useLocalStorage';
-import { ELIXXIR_USERS_TAGS } from 'src/constants';
-
-enum DBMessageType {
-  Normal = 1,
-  Reply = 2,
-  Reaction = 3
-}
-
-enum DBMessageStatus {
-  Sending = 1,
-  Sent = 2,
-  Delivered = 3
-}
+import { CHANNELS_STORAGE_TAG, DMS_DATABASE_NAME } from 'src/constants';
 
 export type DBMessage = {
   id: number;
@@ -27,11 +15,11 @@ export type DBMessage = {
   parent_message_id: null | string;
   timestamp: string;
   lease: number;
-  status: DBMessageStatus;
+  status: MessageStatus;
   hidden: boolean,
   pinned: boolean;
   text: string;
-  type: DBMessageType;
+  type: MessageType;
   round: number;
   pubkey: string;
   codeset_version: number;
@@ -45,39 +33,56 @@ export type DBChannel = {
 
 type DBContextType = {
   db?: Dexie | undefined;
+  dmDb?: Dexie | undefined;
   initDb: (storageTag: string) => void;
+  initDmsDb: (storageTag: string) => void;
 }
 
 export const DBContext = createContext<DBContextType>({ initDb: () => {} } as unknown as DBContextType);
 
 export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [db, setDb] = useState<Dexie>();
-  const [storageTags] = useLocalStorage<string[]>(ELIXXIR_USERS_TAGS, []);
+  const [dmDb, setDmDb] = useState<Dexie>();
+  const [storageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
   const storageTag = useMemo(() => storageTags?.[0], [storageTags]);
+  const [dmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
   
   const initDb = useCallback((tag: string) => {
     const instance = new Dexie(`${tag}_speakeasy`);
-      instance.version(0.1).stores({
-        channels: '++id',
-        messages:
-          '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
-      });
+    instance.version(0.1).stores({
+      channels: '++id',
+      messages:
+        '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
+    });
   
-      setDb(instance);
+    setDb(instance);
+  }, []);
+
+  const initDmsDb = useCallback((dbName: string) => {
+    const dmInstance = new Dexie(dbName);
+    dmInstance.version(0.1).stores({
+      conversations: '++id',
+      messages: '++id,conversation_pub_key,&message_id,parent_message_id,timestamp'
+    });
+    setDmDb(dmInstance);
   }, [])
 
   useEffect(() => {
     if (storageTag) {
       initDb(storageTag);
     }
-  }, [initDb, storageTag]);
+
+    if (dmsDatabaseName) {
+      initDmsDb(dmsDatabaseName);
+    }
+  }, [dmsDatabaseName, initDb, initDmsDb, storageTag]);
 
   return (
-    <DBContext.Provider value={{ db, initDb }}>
+    <DBContext.Provider value={{ db, dmDb, initDb, initDmsDb }}>
       {children}
     </DBContext.Provider>
   )
 }
 
-export const useDb = () => useContext(DBContext).db;
+export const useDb = (type: 'dm' | 'channels' = 'channels') => useContext(DBContext)[type === 'channels' ? 'db' : 'dmDb'];
 

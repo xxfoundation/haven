@@ -3,7 +3,7 @@ export type Identity = {
   codename: string;
   color: string;
   extension: string;
-  codesetVersion: number;
+  codeset: number;
 }
 
 export type IdentityState = { identity?: Identity };

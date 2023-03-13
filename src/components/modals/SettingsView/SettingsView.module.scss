@@ -4,6 +4,8 @@
     margin-bottom: 180px;
 
     & > div {
+      margin: 0 auto;
+      max-width: 30rem;
       display: flex;
       justify-content: space-between;
       align-items: center;

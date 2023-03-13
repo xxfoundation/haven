@@ -1,7 +1,7 @@
 import { WithChildren } from '@types';
 
 import React, { FC, useCallback, useState } from 'react';
-import { ELIXXIR_USERS_TAGS, STATE_PATH } from '../constants';
+import { CHANNELS_STORAGE_TAG, STATE_PATH } from '../constants';
 import { useUtils } from 'src/contexts/utils-context';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 
@@ -27,7 +27,7 @@ const statePathExists = () => {
 export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const { utils } = useUtils();
-  const [storageTags, setStorageTags] = useLocalStorage<string[]>(ELIXXIR_USERS_TAGS, []);
+  const [storageTags, setStorageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
 
   const checkUser = useCallback((password: string) => {
     try {

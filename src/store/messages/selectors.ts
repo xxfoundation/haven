@@ -1,72 +1,61 @@
-import { EmojiReactions, MessageType } from './types';
+
 import type { RootState } from 'src/store/types';
 import type { Message } from './types';
 
-import assert from 'assert';
-import { uniq, uniqBy } from 'lodash';
+import { createSelector } from '@reduxjs/toolkit';
 
-const byTimestamp = <T extends { timestamp: string }>(a: T, b: T) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+import { allDms, dmReactions, currentConversationContributors } from '../dms/selectors';
 
-export const allMessages = (state: RootState) => Object.values(state.messages.byId);
+import { byTimestamp } from '../utils';
+import { currentChannelId } from '../app/selectors';
+
+export const allMessages = (state: RootState) => state.messages.byChannelId;
+export const reactions = (state: RootState) => state.messages.reactions;
+export const contributors = (state: RootState) => state.messages.contributorsByChannelId;
 
 export const currentChannelMessages = (state: RootState) => {
-  if (state.channels.currentChannelId === undefined) {
+  if (state.app.selectedChannelId === null) {
     return undefined;
   }
 
-  return Object.values(state.messages.byId)
-    .filter((msg) =>
-      !msg.hidden
-      && [MessageType.Normal, MessageType.Reply].includes(msg.type)
-      && msg.channelId === state.channels.currentChannelId
-    ).sort(byTimestamp);
+  return Object.values(state.messages.byChannelId[state.app.selectedChannelId] ?? {})
+    .sort(byTimestamp);
 }
 
-export const channelReactions = (state: RootState): EmojiReactions => {
-  const reactions = Object.values(state.messages.byId)
-    .filter((msg) =>
-      !msg.hidden
-      && msg.type === MessageType.Reaction
-      && msg.channelId === state.channels.currentChannelId
+export const reactionsTo = (message: Message) =>
+  createSelector(
+    reactions,
+    dmReactions,
+    (allReactions, allDmReactions) => {
+      const channReactions = allReactions?.[message.id];
+      const dmReacts = allDmReactions?.[message.id];
+      return Object.entries(channReactions ?? dmReacts ?? {}).sort((a, b) => b[1].length - a[1].length)
+    }
+  );
+
+export const repliedTo = (message: Message) => createSelector(
+  allMessages,
+  allDms,
+  (msgs, dms) => {
+    return message.repliedTo && (
+     msgs[message.channelId]?.[message.uuid]
+     || dms[message.channelId]?.[message.uuid]
     );
-
-  return reactions
-    .filter((m) => typeof m.repliedTo === 'string')
-    .reduce((map, { body: emoji, codename, repliedTo }) => {
-      assert(repliedTo);
-
-      return {
-        ...map,
-        [repliedTo]: {
-          ...map[repliedTo],
-          [emoji]: uniq(map[repliedTo]?.[emoji]?.concat(codename) ?? [codename]),
-        }
-      };
-    }, {} as EmojiReactions);
-}
-
-export const reactionsTo = (message: Message) => (state: RootState) => {
-  const reactions = channelReactions(state)?.[message.id];
-  return Object.entries(reactions ?? {}).sort((a, b) => b[1].length - a[1].length)
-}
-
-export const repliedTo = (message: Message) => (state: RootState) => 
-  message.repliedTo && Object.values(state.messages.byId).find((msg) => msg.id === message.repliedTo);
-
+  }
+)
+  
 export const currentPinnedMessages = (state: RootState) => currentChannelMessages(state)?.filter((msg) => msg.pinned);
 
-export const allContributors = (state: RootState) => {
-  return Object.values(state.messages.byId)
-    .sort(byTimestamp)
-    .reverse()
-    .reduce((acc, cur) => uniqBy(
-      acc.concat(cur)
-        .sort(byTimestamp)
-        .reverse(),
-      (m) => m.codename
-      ),
-      [] as Message[]
-    );
-}
+export const currentChannelContributors = createSelector(
+  currentChannelId,
+  contributors,
+  (channelId, allContributors) => channelId !== null && allContributors[channelId] ? allContributors[channelId] : []
+);
 
-export const currentContributors = (state: RootState) => allContributors(state).filter((m) => m.channelId === state.channels.currentChannelId);
+
+export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 'codeset' | 'codename' | 'nickname'>[] = createSelector(
+  currentChannelContributors,
+  currentConversationContributors,
+  (channelContributors, conversationContributors) =>  channelContributors.concat(conversationContributors)
+);
+ 

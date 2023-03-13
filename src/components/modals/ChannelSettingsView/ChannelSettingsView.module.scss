@@ -1,0 +1,21 @@
+.root {
+  .wrapper {
+    width: 100%;
+    margin-bottom: 180px;
+
+    & > div {
+      margin: 0 auto;
+      max-width: 30rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 36px;
+      svg {
+        cursor: pointer;
+        color: var(--orange);
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+    }
+  }
+}

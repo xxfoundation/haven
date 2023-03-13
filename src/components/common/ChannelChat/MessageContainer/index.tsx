@@ -1,4 +1,4 @@
-import type { Message } from 'src/types';
+import { Message, MessageStatus } from 'src/types';
 import type{ FC } from 'react';
 
 import { useCallback, useState } from 'react';
@@ -115,24 +115,28 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
             onConfirm={pinSelectedMessage}
             onCancel={hidePinModal} />
         )}
-        <div className={classes.container}>
-          <MessageActions
-            onMouseEnter={() => setShowActionsWrapper(true)}
-            onMouseLeave={() => setShowActionsWrapper(false)}
-            className={cn(classes.actions, {
-              [classes.show]: showActionsWrapper
-            })}
-            isPinned={message.pinned}
-            isMuted={userIsMuted(message.pubkey)}
-            onMuteUser={muteUserModalToggle.toggleOn}
-            onPinMessage={handlePinMessage}
-            onReactToMessage={handleEmojiReaction}
-            onReplyClicked={onReplyMessage}
-            isAdmin={currentChannel?.isAdmin ?? false}
-            isOwn={pubkey === message.pubkey}
-            onDeleteMessage={showDeleteMessageModal}
-          />
-        </div>
+        {message.status !== MessageStatus.Unsent && (
+          <div className={classes.container}>
+            <MessageActions
+              pubkey={message.pubkey}
+              onMouseEnter={() => setShowActionsWrapper(true)}
+              onMouseLeave={() => setShowActionsWrapper(false)}
+              className={cn(classes.actions, {
+                [classes.show]: showActionsWrapper
+              })}
+              dmsEnabled={message.dmToken !== undefined}
+              isPinned={message.pinned}
+              isMuted={userIsMuted(message.pubkey)}
+              onMuteUser={muteUserModalToggle.toggleOn}
+              onPinMessage={handlePinMessage}
+              onReactToMessage={handleEmojiReaction}
+              onReplyClicked={onReplyMessage}
+              isAdmin={currentChannel?.isAdmin ?? false}
+              isOwn={pubkey === message.pubkey}
+              onDeleteMessage={showDeleteMessageModal}
+            />
+          </div>
+        )}
       </>
     )}
     <ChatMessage
