@@ -1,5 +1,4 @@
 import type { WithChildren } from 'src/types';
-import type { Channel } from 'src/types';
 
 import cn from 'classnames';
 import React, { FC, useEffect, useMemo } from 'react';
@@ -22,7 +21,7 @@ import {
   ShareChannelView,
   LeaveChannelConfirmationView,
   NickNameSetView,
-  ChannelActionsView,
+  ChannelSettingsView,
   SettingsView,
   ExportCodenameView,
   NetworkNotReadyView,
@@ -37,15 +36,13 @@ import s from './DefaultLayout.module.scss';
 import ViewMutedUsers from '@components/modals/ViewMutedUsers';
 import UpdatesModal from './UpdatesModal';
 import SecretModal from './SecretModal';
-import { useAppSelector } from 'src/store/hooks';
-import * as channels from 'src/store/channels';
 import useToggle from 'src/hooks/useToggle';
+import ConnectingDimmer from './ConnectingDimmer';
+import UserInfoDrawer from '@components/common/UserInfoDrawer';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
-const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
-  currentChannel
-}) => {
+const AuthenticatedUserModals: FC = () => {
   const { closeModal, displayModal, modalView = '' } = useUI();
   const modalClass = modalView?.toLowerCase().replace(/_/g, '-');
 
@@ -59,15 +56,15 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
     LOGOUT: <LogoutView />,
     LOADING: <LoadingView />,
     LEAVE_CHANNEL_CONFIRMATION: <LeaveChannelConfirmationView />,
-    SET_NICK_NAME: currentChannel && <NickNameSetView />,
-    CHANNEL_ACTIONS: <ChannelActionsView />,
+    SET_NICK_NAME: <NickNameSetView />,
+    CHANNEL_SETTINGS: <ChannelSettingsView />,
     SETTINGS: <SettingsView />,
     NETWORK_NOT_READY: <NetworkNotReadyView />,
     JOIN_CHANNEL_SUCCESS: <JoinChannelSuccessView />,
     USER_WAS_MUTED: <UserWasMuted />,
     VIEW_MUTED_USERS: <ViewMutedUsers />,
     VIEW_PINNED_MESSAGES: <ViewPinnedMessages />
-  }), [currentChannel]);
+  }), []);
 
   return displayModal && modalView && modalView !== 'IMPORT_CODENAME' ? (
     <Modal className={s[modalClass]} onClose={closeModal}>
@@ -79,7 +76,6 @@ const AuthenticatedUserModals: FC<{ currentChannel?: Channel }> = ({
 const DefaultLayout: FC<WithChildren> = ({
   children,
 }) => {
-  const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const router = useRouter();
   const { isAuthenticated, storageTag } = useAuthentication();
   const { utilsLoaded } = useUtils();
@@ -143,13 +139,15 @@ const DefaultLayout: FC<WithChildren> = ({
         {utilsLoaded ? (
           isAuthenticated ? (
             <>
+              <ConnectingDimmer />
+              <UserInfoDrawer />
               <LeftSideBar cssClasses={s.leftSideBar} />
               <main>{children}</main>
               <RightSideBar
                 collapsed={rightSideCollapsed}
                 onToggle={toggle}
                 cssClasses={s.rightSideBar} />
-              <AuthenticatedUserModals currentChannel={currentChannel} />
+              <AuthenticatedUserModals />
             </>
           ) : (
             <AuthenticationUI />

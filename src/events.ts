@@ -5,6 +5,7 @@ import delay from 'delay';
 export const bus = new EventEmitter();
 
 export enum Event {
+  DM_RECEIVED = 'dm-message',
   MESSAGE_RECEIVED = 'message',
   USER_MUTED = 'muted',
   MESSAGE_DELETED = 'delete',
@@ -65,8 +66,33 @@ export const onMessageUnpinned = (message: Message) => {
   bus.emit(Event.MESSAGE_UNPINNED, message);
 }
 
+
 export type MessagePinEvent = Message;
 export type MessageUnPinEvent = Message;
+
+export type DMReceivedEvent = {
+  messageUuid: string;
+  pubkey: Uint8Array;
+  update: boolean;
+  conversationUpdated: boolean;
+}
+
+export const onDmReceived = (
+  messageUuid: string,
+  pubkey: Uint8Array,
+  update: boolean,
+  conversationUpdated: boolean
+) => {
+  const messageEvent: DMReceivedEvent = {
+    messageUuid,
+    pubkey,
+    update,
+    conversationUpdated
+  }
+
+  bus.emit(Event.DM_RECEIVED, messageEvent);
+}
+
 
 export const awaitEvent = async (evt: Event) => {
   let listener: () => void = () => {};

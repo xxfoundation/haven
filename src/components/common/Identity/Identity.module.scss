@@ -1,5 +1,4 @@
 .root {
-  font-size: 14px;
   font-weight: 700;
 
   svg {
@@ -11,4 +10,8 @@
 
 .muted {
   text-decoration: line-through;
+}
+
+.clickable {
+  cursor: pointer;
 }

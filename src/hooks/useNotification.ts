@@ -55,11 +55,16 @@ const useNotification = () => {
   const request = useCallback(() => {
     Notification.requestPermission()
       .then((permission) => setIsPermissionGranted(permission === 'granted'));
-  }, [setIsPermissionGranted])
+  }, [setIsPermissionGranted]);
+
+  const dmReceived = useCallback((username: string, message: string) => {
+    notify(`${username} just sent you a direct message`, { icon, body: getText(message) });
+  }, [notify])
 
   return {
     isPermissionGranted,
     permissionIgnored,
+    dmReceived,
     setPermissionIgnored,
     setIsPermissionGranted,
     notifyMentioned,

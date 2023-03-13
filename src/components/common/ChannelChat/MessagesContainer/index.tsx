@@ -8,10 +8,7 @@ import _ from 'lodash';
 import cn from 'classnames';
 
 import MessageContainer from '../MessageContainer';
-import { Spinner } from 'src/components/common';
 import { byEntryTimestamp } from 'src/utils/index';
-import * as channels from 'src/store/channels';
-import { useAppSelector } from 'src/store/hooks';
 
 import s from './MessagesContainer.module.scss';
 
@@ -27,8 +24,6 @@ const MessagesContainer: FC<Props> = ({
   messages,
   ...props
 }) => {
-  const currentChannel = useAppSelector(channels.selectors.currentChannel);
-  
   const sortedGroupedMessagesPerDay = useMemo(() => {
     const groupedMessagesPerDay = _.groupBy(
       messages,
@@ -42,32 +37,23 @@ const MessagesContainer: FC<Props> = ({
       .sort(byEntryTimestamp);
   }, [messages]);
 
-
   return (
     <>
-      {!currentChannel ? (
-        <div className='m-auto flex w-full h-full justify-center items-center'>
-          <Spinner />
-        </div>
-      ) : (
-        <>
-          {sortedGroupedMessagesPerDay.map(([key, message]) => (
-            <div className={cn(s.dayMessagesWrapper)} key={key}>
-              <div className={s.separator}></div>
-              <span className={cn(s.currentDay)}>
-                {moment(key).format('dddd MMMM Do, YYYY')}
-              </span>
-              {message.map((m) => (
-                <MessageContainer
-                  readonly={readonly}
-                  key={m.id}
-                  handleReplyToMessage={handleReplyToMessage}
-                  message={m} />
-              ))}
-            </div>
+      {sortedGroupedMessagesPerDay.map(([key, message]) => (
+        <div className={cn(s.dayMessagesWrapper)} key={key}>
+          <div className={s.separator}></div>
+          <span className={cn(s.currentDay)}>
+            {moment(key).format('dddd MMMM Do, YYYY')}
+          </span>
+          {message.map((m) => (
+            <MessageContainer
+              readonly={readonly}
+              key={m.id}
+              handleReplyToMessage={handleReplyToMessage}
+              message={m} />
           ))}
-        </>
-      )}
+        </div>
+      ))}
       {props.children}
     </>
   );

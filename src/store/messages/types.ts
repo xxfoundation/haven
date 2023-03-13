@@ -1,15 +1,5 @@
-export enum MessageType {
-  Normal = 1,
-  Reply = 2,
-  Reaction = 3
-}
-
-export enum MessageStatus {
-  Unsent    = 0,
-  Sent      = 1,
-  Delivered = 2,
-  Failed    = 3
-}
+import { EmojiReactions } from 'src/store/types';
+import { ChannelId, MessageStatus, MessageType } from 'src/types';
 
 export interface Message {
   id: string;
@@ -27,17 +17,20 @@ export interface Message {
   pubkey: string;
   pinned: boolean;
   hidden: boolean;
+  codeset: number;
+  dmToken?: number;
 }
 
 export type MessageUuid = Message['uuid'];
 export type MessageId = Message['id'];
 
-export type MessagesState = {
-  byId: Record<MessageUuid, Message>;
-};
+export type Contributor = Pick<Message, 'pubkey' | 'codeset' | 'codename' | 'nickname' | 'timestamp'>;
 
-// { [messageId]: { [emoji]: codename[] } }
-export type EmojiReactions =  Record<string, Record<string, string[]>>;
+export type MessagesState = {
+  reactions: EmojiReactions;
+  contributorsByChannelId: Record<ChannelId, Contributor[]>;
+  byChannelId: Record<Message['channelId'], Record<MessageUuid, Message>>;
+};
 
 declare module 'src/store/types' {
   interface RootState {

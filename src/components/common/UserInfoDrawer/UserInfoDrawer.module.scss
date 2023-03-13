@@ -1,0 +1,70 @@
+.drawer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  background: var(--dark-1);
+  color: var(--text-primary);
+  border-radius: 2rem 2rem 0 0;
+  overflow: hidden;
+  transition: all 0.3s linear;
+  min-width: 30rem;
+}
+
+.closed {
+  bottom: -30%;
+}
+
+.header {
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  padding-right: 3rem;
+}
+
+.content {
+  padding: 1.5rem;
+  margin-bottom: 0.75rem;
+  h5 {
+    font-weight: 500;
+  };
+}
+
+.spaces {
+  padding: 1.5rem;
+
+  hr {
+    border-color: #2E3137;
+  }
+}
+
+.closeIcon {
+  cursor: pointer;
+  position: absolute;
+  top: 0.7rem;
+  right: 0.9rem;
+  width: 0.8rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+}
+
+.actionIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.slash {
+  z-index: 1;
+  position: absolute;
+}
+
+.divider {
+  margin-bottom: 0.75rem;
+}
+
+.textMuted {
+  font-weight: 500;
+  color: var(--text-muted);
+}
