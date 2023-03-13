@@ -9,7 +9,7 @@ const UpdatesModal = () => {
   
   return showModal ? (
     <Modal className={s.root} onClose={() => setShowModal(false)}>
-      <h2 className='text-center'>Version 0.2.11</h2>
+      <h2 className='text-center'>Version 0.3.0</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>
           💬 Dms are finally here. Enable it in channel settings.
