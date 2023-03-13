@@ -22,8 +22,11 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 }
 
 const HoveredMention = ({ codename }: { codename: string }) => {
-  const contributors = useAppSelector(selectors.allContributors);
-  const mentioned = useMemo(() => contributors.find((c) => c.codename === codename), [codename, contributors]);
+  const contributors = useAppSelector(selectors.currentContributors);
+  const mentioned = useMemo(
+    () => contributors.find((c) => c.codename === codename),
+    [codename, contributors]
+  );
   return mentioned ? (
     <Identity {...mentioned} />
   ) : null;
@@ -94,12 +97,12 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
                 replied to
               </span>
               {repliedToMessage
-                ? <Identity {...repliedToMessage} />
+                ? <Identity clickable {...repliedToMessage} />
                 : <span className={cn(s.separator, '')}><strong>deleted/unknown</strong></span>}
 
             </>
           ) : (
-            <Identity {...message} />
+            <Identity clickable {...message} />
           )}
 
           <span className={cn(s.messageTimestamp)}>
@@ -125,6 +128,10 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
               Show mix
             </a>
           )}
+          &nbsp;
+          {message.status === MessageStatus.Failed && (
+            <span className='text-xs' style={{ color: 'var(--red)' }}>(Failed)</span>
+          )}
         </div>
 
         <div className={cn('message-body', s.body)}>
@@ -148,7 +155,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
             >
               {repliedToMessage && replyMarkup ? (
                 <>
-                  <Identity {...repliedToMessage} />
+                  <Identity clickable {...repliedToMessage} />
                   <Clamp lines={3}>
                     <p
                       className='message'
@@ -179,7 +186,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
             lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
             {markup ? <p
               className={cn('message', s.messageBody, {
-                [s.messageBody__failed]: message.status === 3
+                [s.messageBody__failed]: message.status === MessageStatus.Failed
               })}
               dangerouslySetInnerHTML={{
                 __html: markup

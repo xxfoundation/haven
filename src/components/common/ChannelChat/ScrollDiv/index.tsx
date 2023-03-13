@@ -5,7 +5,7 @@ import cn from 'classnames';
 import s from './scrolldiv.module.scss';
 import { useElementSize } from 'usehooks-ts';
 
-const SCROLL_BOX_MIN_HEIGHT = 20;
+const THUMB_MIN_HEIGHT = 20;
 
 type Props = HTMLProps<HTMLDivElement> & {
   nearTop: () => void;
@@ -15,7 +15,7 @@ type Props = HTMLProps<HTMLDivElement> & {
 };
 
 const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBottom, nearTop, setAutoScrollBottom, ...rest }) => {
-  const [scrollBoxHeight, setScrollBoxHeight] = useState(SCROLL_BOX_MIN_HEIGHT);
+  const [thumbHeight, setThumbHeight] = useState(THUMB_MIN_HEIGHT);
   const [scrollThumbTop, setThumbTop] = useState(0);
   const [lastScrollThumbPosition, setScrollThumbPosition] = useState(0);
   const [isDragging, setDragging] = useState(false);
@@ -52,7 +52,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
       setThumbTop(
         Math.min(
           Math.max(0, scrollThumbTop + deltaY),
-          offsetHeight - scrollBoxHeight
+          offsetHeight - thumbHeight
         )
       );
 
@@ -64,7 +64,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
 
       scrollHostElement.scrollTop = scrollTop;
     }
-  }, [lastScrollThumbPosition, scrollBoxHeight, scrollThumbTop])
+  }, [lastScrollThumbPosition, thumbHeight, scrollThumbTop])
 
   const handleDocumentMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -93,10 +93,10 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     const { offsetHeight, scrollHeight, scrollTop } = scrollHostElement;
     
     let newTop = (scrollTop / scrollHeight) * offsetHeight;
-    newTop = Math.min(newTop, offsetHeight - scrollBoxHeight);
+    newTop = Math.min(newTop, offsetHeight - thumbHeight);
 
     setThumbTop(newTop);
-  }, [scrollBoxHeight])
+  }, [thumbHeight])
 
   const onScroll = useCallback(() => {
     if (!scrollHostRef || !scrollHostRef.current || !scrollThumb.current) {
@@ -142,9 +142,9 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
     const scrollThumbPercentage = clientHeight / scrollHeight;
     const scrollThumbHeight = Math.max(
       scrollThumbPercentage * clientHeight,
-      SCROLL_BOX_MIN_HEIGHT
+      THUMB_MIN_HEIGHT
     );
-    setScrollBoxHeight(scrollThumbHeight);
+    setThumbHeight(scrollThumbHeight);
   }, []);
 
   // React to changes in the items container changing dimensions
@@ -201,7 +201,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
         <div
           ref={scrollThumb}
           className={s['scroll-thumb']}
-          style={{ height: scrollBoxHeight, top: scrollThumbTop }}
+          style={{ height: thumbHeight, top: scrollThumbTop }}
           onMouseDown={handleScrollThumbMouseDown}
         />
       </div>

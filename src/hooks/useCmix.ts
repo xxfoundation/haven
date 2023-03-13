@@ -3,10 +3,8 @@ import type { CMix, DummyTraffic } from 'src/types';
 import { useUtils } from '@contexts/utils-context';
 import { decoder } from '@utils/index';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { STATE_PATH } from 'src/constants';
+import { DUMMY_TRAFFIC_ARGS, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
 import { ndf } from 'src/sdk-utils/ndf';
-
-const MAXIMUM_PAYLOAD_BLOCK_SIZE = 725;
 
 const cmixPreviouslyInitialized = () => {
   return localStorage && localStorage.getItem(STATE_PATH) !== null;
@@ -31,6 +29,7 @@ const useCmix = () => {
   const { utils } = useUtils();
   const cmixId = useMemo(() => cmix?.GetID(), [cmix]);
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
+  const [decryptedPassword, setDecryptedPasword] = useState<Uint8Array>();
 
   const createDatabaseCipher = useCallback(
     (id: number, decryptedInternalPassword: Uint8Array) => {
@@ -48,7 +47,7 @@ const useCmix = () => {
       })
     },
     [utils]
-  )
+  );
   
   const loadCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
     try {
@@ -61,12 +60,13 @@ const useCmix = () => {
         setCmix(loadedCmix);
       });
     } catch (e) {
-      console.error('Failed to load Cmix: ' + e);
+      console.error('Failed to load Cmix:', e);
       setStatus(NetworkStatus.FAILED);
     }
   }, [createDatabaseCipher, utils]);
 
   const initializeCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
+    setDecryptedPasword(decryptedInternalPassword);
     try {
       if (!cmixPreviouslyInitialized()) {
         await utils.NewCmix(ndf, STATE_PATH, decryptedInternalPassword, '');
@@ -144,9 +144,7 @@ const useCmix = () => {
       try {
         setDummyTrafficManager(utils.NewDummyTrafficManager(
           cmixId,
-          3,
-          15000,
-          7000
+          ...DUMMY_TRAFFIC_ARGS
         ));
       } catch (error) {
         console.error('error while creating the Dummy Traffic Object:', error);
@@ -158,6 +156,7 @@ const useCmix = () => {
     connect,
     cmix,
     cipher: databaseCipher,
+    decryptedPassword,
     disconnect,
     id: cmixId,
     initializeCmix,

@@ -1,11 +1,12 @@
 import { FC } from 'react';
 import cn from 'classnames';
 
-import { ModalCtaButton, Spinner } from 'src/components/common';
+import { ModalCtaButton } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
 
 import s from './DeleteMessage.module.scss';
 import { useCallback, useState } from 'react';
+import { LoadingView } from '..';
 
 type Props = {
   onConfirm: () => Promise<void>;
@@ -27,7 +28,7 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
       <div
         className={cn('w-full flex flex-col justify-center items-center')}
       >
-        {loading ? <div className='my-32'><Spinner /></div> : (
+        {loading ? <LoadingView /> : (
           <>
             <h2 className={cn('mt-9 mb-4')}>Warning</h2>
             <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
