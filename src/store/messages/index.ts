@@ -37,7 +37,7 @@ const upsert = (state: MessagesState, message: Message) => ({
   ...state,
   contributorsByChannelId: contributorsReducer(state.contributorsByChannelId, message),
   reactions: reactionsReducer(state.reactions, message),
-  ...(message.type !== MessageType.Reaction && {
+  ...(message.type !== MessageType.Reaction && !message.hidden && {
       byChannelId: {
       ...state.byChannelId,
       [message.channelId]: {
