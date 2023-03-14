@@ -146,8 +146,10 @@ export type NetworkContext = {
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
   exportChannelAdminKeys: (encryptionPassword: string) => string;
   generateIdentities: (amountOfIdentites: number) => {
-    privateIdentity: Uint8Array;
-    codename: string;
+    codename: string,
+    privateIdentity: Uint8Array,
+    codeset: number
+    pubkey: string,
   }[];
   initialize: (password: string) => Promise<void>;
   getMuted: () => boolean;
@@ -1035,7 +1037,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   // Identity object is combination of private identity and code name
   const generateIdentities = useCallback((amountOfIdentities: number) => {
-    const identitiesObjects = [];
+    const identitiesObjects: ReturnType<NetworkContext['generateIdentities']> = [];
     if (utils && utils.GenerateChannelIdentity && cmix) {
       for (let i = 0; i < amountOfIdentities; i++) {
         const createdPrivateIdentity = utils.GenerateChannelIdentity(cmix?.GetID());
@@ -1046,7 +1048,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
         const codename = identityJson.Codename;
         identitiesObjects.push({
           privateIdentity: createdPrivateIdentity,
-          codename
+          codename,
+          codeset: identityJson.CodesetVersion,
+          pubkey: identityJson.PubKey
         });
       }
     }
