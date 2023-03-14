@@ -24,6 +24,9 @@ const UpdatesModal = () => {
           👀 Few UX tweaks, channel settings are now in the channel header and
           account settings are now in the top right corner.
         </li>
+        <li className='text-center'>
+          🪲 Fix emojis appearing over reply box, fix mentions dropdown appearing under reply box.
+        </li>
       </ul>
       <div className='text-center'>
         <Button onClick={() => setShowModal(false)}>Later gator.</Button>
