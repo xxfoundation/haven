@@ -27,8 +27,8 @@ export const reactionsTo = (message: Message) =>
     reactions,
     dmReactions,
     (allReactions, allDmReactions) => {
-      const channReactions = allReactions?.[message.id];
-      const dmReacts = allDmReactions?.[message.id];
+      const channReactions = allReactions?.[message.repliedTo ?? ''];
+      const dmReacts = allDmReactions?.[message.repliedTo ?? ''];
       return Object.entries(channReactions ?? dmReacts ?? {}).sort((a, b) => b[1].length - a[1].length)
     }
   );
