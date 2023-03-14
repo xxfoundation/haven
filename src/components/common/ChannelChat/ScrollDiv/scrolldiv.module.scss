@@ -6,6 +6,7 @@
   position: relative;
   height: 100%;
   padding-right: 0.5rem;
+  z-index: 0;
 
   &:hover {
     .scroll-bar {
