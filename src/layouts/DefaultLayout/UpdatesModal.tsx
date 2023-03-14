@@ -27,6 +27,10 @@ const UpdatesModal = () => {
         <li className='text-center'>
           🪲 Fix emoji icons appearing over reply box and fix mentions dropdown appearing over reply box.
         </li>
+
+        <li className='text-center'>
+          🌈 You can now see what color you'll get when selecting an identity.
+        </li>
       </ul>
       <div className='text-center'>
         <Button onClick={() => setShowModal(false)}>Later gator.</Button>
