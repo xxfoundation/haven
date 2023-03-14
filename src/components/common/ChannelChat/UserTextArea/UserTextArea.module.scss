@@ -63,4 +63,6 @@
   background-color: var(--dark-3);
   border-radius: 5px;
   padding: 0.2rem;
+  position: relative;
+  z-index: 2;
 }
