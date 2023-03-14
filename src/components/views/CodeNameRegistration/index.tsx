@@ -6,6 +6,7 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Spinner } from 'src/components/common';
 
 import s from './CodeNameRegistration.module.scss';
+import Identity from 'src/components/common/Identity';
 
 const CodenameRegistration: FC = () => {
   const {
@@ -90,22 +91,22 @@ const CodenameRegistration: FC = () => {
             s.codeContainers
           )}
         >
-          {identities.map((i) => {
-            return (
-              <div
-                key={i.codename}
-                className={cn(s.codename, {
-                  [s.selected]: i.codename === selectedCodeName
-                })}
-                onClick={() => {
-                  setSelectedCodeName(i.codename);
-                  setSelectedPrivateIdentity(i.privateIdentity);
-                }}
-              >
-                <span>{i.codename}</span>
-              </div>
-            );
-          })}
+          {identities.map((i) => (
+            <div
+              key={i.codename}
+              className={cn(s.codename, {
+                [s.selected]: i.codename === selectedCodeName
+              })}
+              onClick={() => {
+                setSelectedCodeName(i.codename);
+                setSelectedPrivateIdentity(i.privateIdentity);
+              }}
+            >
+              <span className='text-xs'>
+                <Identity className={s.identity} {...i} />
+              </span>
+            </div>
+          ))}
         </div>
       ) : (
         <div className={s.loading}>
