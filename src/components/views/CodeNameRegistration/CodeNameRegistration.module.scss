@@ -40,11 +40,25 @@
     &:hover {
       background-color: var(--cyan);
       cursor: pointer;
+
+      .identity span {
+        color: white !important;
+      }
+      .identity svg  {
+        fill: white !important;
+      }
     }
 
     &.selected {
       background-color: var(--cyan);
       outline: 2px solid var(--white);
+
+      .identity span {
+        color: white !important;
+      }
+      .identity svg  {
+        fill: white !important;
+      }
     }
   }
 
