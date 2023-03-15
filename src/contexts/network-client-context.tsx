@@ -128,7 +128,7 @@ export type NetworkContext = {
   userIsMuted: (pubkey: string) => boolean;
   setMutedUsers: React.Dispatch<React.SetStateAction<User[] | undefined>>;
   cmix?: CMix;
-  networkStatus?: NetworkStatus,
+  networkStatus?: NetworkStatus;
   isNetworkHealthy: boolean | undefined;
   // api
   checkRegistrationReadiness: (

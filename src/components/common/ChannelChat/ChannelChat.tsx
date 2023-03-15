@@ -65,6 +65,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
               privacyLevel={null} />
           )}
           <ScrollDiv
+            canSetAutoScroll={pagination.page === 1}
             autoScrollBottom={autoScroll}
             setAutoScrollBottom={setAutoScroll}
             nearBottom={pagination.previous}
