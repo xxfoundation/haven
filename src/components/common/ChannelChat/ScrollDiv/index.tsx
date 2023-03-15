@@ -10,11 +10,12 @@ const THUMB_MIN_HEIGHT = 20;
 type Props = HTMLProps<HTMLDivElement> & {
   nearTop: () => void;
   nearBottom: () => void;
-  autoScrollBottom: boolean,
+  autoScrollBottom: boolean;
+  canSetAutoScroll: boolean;
   setAutoScrollBottom: (autoscroll: boolean) => void
 };
 
-const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBottom, nearTop, setAutoScrollBottom, ...rest }) => {
+const ScrollDiv: FC<Props> = ({ autoScrollBottom, canSetAutoScroll, children, className, nearBottom, nearTop, setAutoScrollBottom, ...rest }) => {
   const [thumbHeight, setThumbHeight] = useState(THUMB_MIN_HEIGHT);
   const [scrollThumbTop, setThumbTop] = useState(0);
   const [lastScrollThumbPosition, setScrollThumbPosition] = useState(0);
@@ -116,9 +117,10 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, children, className, nearBotto
       nearBottom();
     }
 
-    setAutoScrollBottom(scrollPercent === 1);
+    setAutoScrollBottom(canSetAutoScroll && scrollPercent === 1);
     setThumbPosition();
   }, [
+    canSetAutoScroll,
     setThumbPosition,
     nearTop,
     nearBottom,

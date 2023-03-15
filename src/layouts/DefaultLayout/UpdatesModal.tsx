@@ -25,7 +25,7 @@ const UpdatesModal = () => {
           account settings are now in the top right corner.
         </li>
         <li className='text-center'>
-          🪲 Fix emoji icons appearing over reply box and fix mentions dropdown appearing over reply box.
+          🪲 Fix emoji icons appearing over reply box and fix mentions dropdown appearing under the reply box.
         </li>
 
         <li className='text-center'>
