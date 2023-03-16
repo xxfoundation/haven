@@ -72,7 +72,7 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
         </div>
       </div>
       <div className={s.content}>
-        <Collapse title='Recent Contributors' defaultActive>
+        <Collapse title={t('Recent Contributors')} defaultActive>
           <div className='flex flex-col'>
             <div className={cn(s.channelPill, 'headline--xs flex flex-col')}>
               {nickname?.length ? (

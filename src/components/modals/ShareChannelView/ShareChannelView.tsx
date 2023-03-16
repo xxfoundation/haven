@@ -1,11 +1,13 @@
 import { FC, useEffect, useState, useRef } from 'react';
-import s from './ShareChannelView.module.scss';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
+
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import useCopyClipboard from 'src/hooks/useCopyToClipboard';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
+import s from './ShareChannelView.module.scss';
 
 interface ICredentials {
   url: string;
@@ -13,6 +15,7 @@ interface ICredentials {
 }
 
 const ShareChannelView: FC = () => {
+  const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { getShareURL } = useNetworkClient();
   const [credentials, setCredentials] = useState<ICredentials>({
@@ -39,7 +42,9 @@ const ShareChannelView: FC = () => {
     <div
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
-      <h2 className='mt-9 mb-6'>Share Speakeasy</h2>
+      <h2 className='mt-9 mb-6'>
+        {t('Share Speakeasy')}
+      </h2>
       <div>
         <div className={cn('mb-4')}>
           <h4>{currentChannel?.name || ''}</h4>
@@ -48,11 +53,14 @@ const ShareChannelView: FC = () => {
           </p>
         </div>
         <div className={cn('text text--sm mb-2')}>
-          <span className='font-bold mr-1'>Speakeasy id:</span>
+          <span className='font-bold mr-1'>
+            {t('Speakeasy id')}:</span>
           <span>{currentChannel?.id || ''}</span>
         </div>
         <div className={cn(s.channelCredentials)}>
-          <span className='text--sm font-bold'>Speakeasy invite link:</span>
+          <span className='text--sm font-bold'>
+            {t('Speakeasy invite link')}:
+          </span>
           {credentials.url.length > 0 && (
             <span ref={urlElement} className={cn('text text--xs')}>
               {credentials.url}
@@ -61,7 +69,7 @@ const ShareChannelView: FC = () => {
           {credentials.password.length > 0 && (
             <>
               <span className='text--sm font-bold mt-1'>
-                Speakeasy passphrase:
+                {t('Speakeasy passphrase')}:
               </span>
               <span className={cn('text text--xs')}>
                 {credentials.password}
@@ -72,7 +80,7 @@ const ShareChannelView: FC = () => {
       </div>
       <div className='mb-7 mt-8' style={{ textAlign: 'center'}}>
         <div className='mb-5' style={{ color: 'var(--green)', opacity: copied ? 1 : 0, transition: 'all 0.2s ease-out' }}>
-          Copied!
+          {t('Copied!')}
         </div>
         <ModalCtaButton
           buttonCopy='Copy'
@@ -88,9 +96,9 @@ const ShareChannelView: FC = () => {
         className={cn('mb-8 text text--xs', s.warn)}
         style={{ color: 'var(--cyan)', lineHeight: '13px' }}
       >
-        Warning: With these credentials anyone can read and send to this
+        {t(`Warning: With these credentials anyone can read and send to this
         speakeasy, make sure to keep it safe! Consider only sharing it under
-        end-to-end connection.
+        end-to-end connection.`)}
       </p>
     </div>
   );

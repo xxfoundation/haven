@@ -1,6 +1,7 @@
 import type { WithChildren } from '@types';
 import { FC, HTMLProps, useRef } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import s from './Modal.module.scss';
 import { Close } from 'src/components/icons';
@@ -17,6 +18,7 @@ const Modal: FC<WithChildren & ModalProps & HTMLProps<HTMLDivElement>> = ({
   onClose,
   ...props
 }) => {
+  const { t } = useTranslation();
   const ref = useRef() as React.MutableRefObject<HTMLDivElement>;
 
   return (
@@ -24,7 +26,7 @@ const Modal: FC<WithChildren & ModalProps & HTMLProps<HTMLDivElement>> = ({
       <div className={cn('drop-shadow-xl', s.modal, className)} role='dialog' ref={ref}>
         <Close
           onClick={onClose}
-          aria-label='Close panel'
+          aria-label={t('Close panel')}
           className={s.close}
         />
         <div className='w-full'>{children}</div>

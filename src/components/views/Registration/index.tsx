@@ -1,4 +1,7 @@
 import { FC, useCallback, useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
+import cn from 'classnames';
+
 import { ModalCtaButton, Spinner } from 'src/components/common';
 
 import {
@@ -7,7 +10,6 @@ import {
   NormalHash,
   RoadMap,
 } from 'src/components/icons';
-import cn from 'classnames';
 import { useUI } from 'src/contexts/ui-context';
 
 import s from './Registration.module.scss';
@@ -17,6 +19,7 @@ type Props = {
 };
 
 const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
+  const { t } = useTranslation();
   const { openModal, setModalView } = useUI();
 
   const [password, setPassword] = useState<string>('');
@@ -26,7 +29,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
 
   const onContinue = useCallback(() => {
     if (passwordConfirm !== password) {
-      setError('Password doesn\'t match confirmation.');
+      setError(t('Password doesn\'t match confirmation.'));
     } else {
       if (password.length) {
         setIsLoading(true);
@@ -37,7 +40,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
       }
       setError('');
     }
-  }, [onPasswordConfirmation, password, passwordConfirm])
+  }, [t, onPasswordConfirmation, password, passwordConfirm])
   
 
   return (
@@ -48,33 +51,39 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
-            <span className={cn(s.golden)}>True Freedom</span>
-            <span className={cn(s.thick)}>to express yourself,</span>
-            <span className={cn(s.golden)}>your thoughts, your beliefs.</span>
-            <span className={cn(s.normal)}>
-              Speak easily to a group of friends or a global community.{' '}
-              <span className={cn(s.highlighted)}>
-                Talk about what you want.
+            <Trans>
+              <span className={cn(s.golden)}>True Freedom</span>
+              <span className={cn(s.thick)}>to express yourself,</span>
+              <span className={cn(s.golden)}>your thoughts, your beliefs.</span>
+              <span className={cn(s.normal)}>
+                Speak easily to a group of friends or a global community.{' '}
+                <span className={cn(s.highlighted)}>
+                  Talk about what you want.
+                </span>
               </span>
-            </span>
-            <span className={cn(s.normal)}>
-              Surveillance free. Censorship proof.
-              <span className={cn(s.highlighted)}>
-                Your speakeasy is yours.
+            </Trans>
+            <Trans>
+              <span className={cn(s.normal)}>
+                Surveillance free. Censorship proof.
+                <span className={cn(s.highlighted)}>
+                  Your speakeasy is yours.
+                </span>
               </span>
-            </span>
+            </Trans>
           </div>
           <div className='col-span-3 pl-3'>
-            <h2 className='mb-2'>Join the alpha</h2>
+            <h2 className='mb-2'>
+              {t('Join the alpha')}
+            </h2>
             <p
               className='mb-8 text'
               style={{ color: '#5B5D62', lineHeight: '17px' }}
             >
-              Enter a password to secure your sovereign speakeasy identity
+              {t('Enter a password to secure your sovereign speakeasy identity')}
             </p>
             <input
               type='password'
-              placeholder='Enter your password'
+              placeholder={t('Enter your password')}
               className=''
               value={password}
               onKeyDown={(e) => {
@@ -89,7 +98,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
 
             <input
               type='password'
-              placeholder='Confirm your password'
+              placeholder={t('Confirm your password')}
               className='mt-4'
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -119,7 +128,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
 
             <div className='flex flex-col mt-4'>
               <ModalCtaButton
-                buttonCopy='Continue'
+                buttonCopy={t('Continue')}
                 cssClass={s.button}
                 disabled={isLoading}
                 onClick={onContinue}
@@ -139,7 +148,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                   openModal();
                 }}
               >
-                Already have a codename?
+                {t('Already have a codename?')}
               </div>
             </div>
           </div>
@@ -152,9 +161,11 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             className={cn('flex flex-col col-span-4', s.perkCard)}
           >
             <OpenSource />
-            <span className={cn(s.perkCard__title)}>Open Source</span>
+            <span className={cn(s.perkCard__title)}>
+              {t('Open Source')}
+            </span>
             <span className={cn(s.perkCard__description)}>
-              Every line — open source. Forever.
+              {t('Every line — open source. Forever.')}
             </span>
           </a>
           <a
@@ -165,10 +176,10 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
           >
             <NormalHash />
             <span className={cn(s.perkCard__title)}>
-              Fundamentally Different
+              {t('Fundamentally Different')}
             </span>
             <span className={cn(s.perkCard__description)}>
-              Powered by the first decentralized mixnet-blockchain
+              {t('Powered by the first decentralized mixnet-blockchain')}
             </span>
           </a>
           <a
@@ -178,23 +189,25 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             className={cn('flex flex-col col-span-4', s.perkCard)}
           >
             <RoadMap />
-            <span className={cn(s.perkCard__title)}>Roadmap</span>
+            <span className={cn(s.perkCard__title)}>
+              {t('Roadmap')}
+            </span>
             <span className={cn(s.perkCard__description)}>
-              Building to the future
+              {t('Building to the future')}
             </span>
           </a>
         </div>
       </div>
       <div className={cn(s.links)}>
         <a href='https://xx.network/' target='_blank' rel='noreferrer'>
-          xx network
+          {t('xx network')}
         </a>
         <a
           href='https://www.speakeasy.tech/privacy-policy/'
           target='_blank'
           rel='noreferrer'
         >
-          Privacy Policy
+          {t('Privacy Policy')}
         </a>
 
         <a
@@ -202,21 +215,21 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
           target='_blank'
           rel='noreferrer'
         >
-          Terms of Use
+          {t('Terms of Use')}
         </a>
 
         <a href='https://xxfoundation.org/' target='_blank' rel='noreferrer'>
-          xx foundation
+          {t('xx foundation')}
         </a>
         <a href='https://elixxir.io/' target='_blank' rel='noreferrer'>
-          xx messenger
+          {t('xx messenger')}
         </a>
         <a
           href='https://twitter.com/speakeasy_tech'
           target='_blank'
           rel='noreferrer'
         >
-          twitter
+          Twitter
         </a>
       </div>
     </div>
