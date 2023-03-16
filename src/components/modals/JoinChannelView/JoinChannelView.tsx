@@ -1,12 +1,15 @@
 import { FC, useState, useEffect } from 'react';
 import s from './JoinChannelView.module.scss';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
+
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
-import { useUtils } from 'src/contexts/utils-context';
+import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 
 const JoinChannelView: FC = ({}) => {
+  const { t } = useTranslation();
   const { channelInviteLink, closeModal, setChannelInviteLink } = useUI();
 
   const [url, setUrl] = useState<string>(channelInviteLink || '');
@@ -17,7 +20,6 @@ const JoinChannelView: FC = ({}) => {
   const [password, setPassword] = useState('');
 
   useEffect(() => {
-    // TODO look into this
     return () => {
       if (channelInviteLink?.length) {
         setChannelInviteLink('');
@@ -33,9 +35,7 @@ const JoinChannelView: FC = ({}) => {
     if (!needPassword) {
       const res = getShareUrlType(url);
 
-      if (res === 0) {
-        // Public then we should proceed
-
+      if (res === PrivacyLevel.Public) {
         try {
           const prettyPrint = utils.DecodePublicURL(url);
           joinChannel(prettyPrint);
@@ -43,17 +43,17 @@ const JoinChannelView: FC = ({}) => {
           closeModal();
         } catch (e) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          console.error((e as any).message);
-          setError('Something wrong happened, please check your details.');
+          console.error((e as Error).message);
+          setError(t('Something wrong happened, please check your details.'));
         }
       } else if (res === 2) {
         // Secret then needs to capture password
         setNeedPassword(true);
         return;
       } else if (res === 1) {
-        // ToDO: Private channel
+        // Private channel
       } else {
-        setError('Something wrong happened, please check your details.');
+        setError(t('Something wrong happened, please check your details.'));
       }
     } else {
       if (url && password) {
@@ -65,8 +65,8 @@ const JoinChannelView: FC = ({}) => {
           closeModal();
         } catch (e) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          console.error((e as any).message);
-          setError('Something wrong happened, please check your details.');
+          console.error((e as Error).message);
+          setError(t('Something wrong happened, please check your details.'));
         }
       }
     }
@@ -76,10 +76,12 @@ const JoinChannelView: FC = ({}) => {
     <div
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
-      <h2 className='mt-9 mb-4'>Join a Speakeasy</h2>
+      <h2 className='mt-9 mb-4'>
+        {t('Join a Speakeasy')}
+      </h2>
       <input
         name=''
-        placeholder='Enter invite link'
+        placeholder={t('Enter invite link')}
         value={url}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
@@ -94,7 +96,7 @@ const JoinChannelView: FC = ({}) => {
         <input
           className='mt-3 mb-4'
           name=''
-          placeholder='Enter passphrase'
+          placeholder={t('Enter passphrase')}
           value={password}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -104,7 +106,7 @@ const JoinChannelView: FC = ({}) => {
           onChange={e => {
             setPassword(e.target.value);
           }}
-        ></input>
+        />
       )}
 
       {error && (
@@ -116,7 +118,7 @@ const JoinChannelView: FC = ({}) => {
         </div>
       )}
       <ModalCtaButton
-        buttonCopy={needPassword ? 'Join' : 'Go'}
+        buttonCopy={needPassword ? t('Join') : t('Go')}
         cssClass={cn('mt-12 mb-10', s.button)}
         onClick={handleSubmit}
       />

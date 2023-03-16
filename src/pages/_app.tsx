@@ -6,6 +6,7 @@ import { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Provider } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 import store from 'src/store';
 import { ManagedUIContext } from 'src/contexts/ui-context';
@@ -20,6 +21,7 @@ import 'src/assets/scss/quill-overrides.scss';
 import 'react-tooltip/dist/react-tooltip.css'
 import ErrorBoundary from 'src/components/common/ErrorBoundary';
 import { DBProvider } from '@contexts/db-context';
+import '../i18n';
 
 const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
 const isDesktop = () => {
@@ -29,26 +31,29 @@ const isDesktop = () => {
 
 const Noop: FC<WithChildren> = ({ children }) => <>{children}</>;
 
-export const WarningComponent: FC<WithChildren> = ({ children }) => (
-  <>
-    <Head>
-      <title>internet speakeasy</title>
-      <link rel='icon' href='/favicon.svg' />
-    </Head>
-    <div className='h-screen w-full flex justify-center items-center px-20'>
-      <h1
-        className='headline m-auto text-center'
-        style={{
-          fontSize: '48px',
-          color: 'var(--cyan)',
-          lineHeight: '1.2'
-        }}
-      >
-        {children}
-      </h1>
-    </div>
-  </>
-);
+export const WarningComponent: FC<WithChildren> = ({ children }) => {
+  const { t } = useTranslation();
+  return (
+    <>
+      <Head>
+        <title>{t('Internet speakeasy')}</title>
+        <link rel='icon' href='/favicon.svg' />
+      </Head>
+      <div className='h-screen w-full flex justify-center items-center px-20'>
+        <h1
+          className='headline m-auto text-center'
+          style={{
+            fontSize: '48px',
+            color: 'var(--cyan)',
+            lineHeight: '1.2'
+          }}
+        >
+          {children}
+        </h1>
+      </div>
+    </>
+  )
+};
 
 
 const SEO = () => {
@@ -79,6 +84,7 @@ const SEO = () => {
 };
 
 const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
+  const { t } = useTranslation();
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
@@ -102,7 +108,7 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
     return (
       <ErrorBoundary>
         <Head>
-          <title>internet speakeasy</title>
+          <title>{t('internet speakeasy')}</title>
           <link rel='icon' href='/favicon.svg' />
         </Head>
         <SEO />
@@ -116,8 +122,9 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
                       {!skipDuplicateTabCheck &&
                       isDuplicatedWindow(15000, 10000, 'MyApp') ? (
                         <WarningComponent>
-                          Speakeasy can only run with one tab/window at a time.<br />
-                          Return to your Speakeasy home tab to continue.
+                          {t('Speakeasy can only run with one tab/window at a time.')}
+                          <br />
+                          {t('Return to your Speakeasy home tab to continue.')}
                         </WarningComponent>
                       ) : (
                         <Layout pageProps={{ ...pageProps }}>

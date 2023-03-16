@@ -4,6 +4,7 @@ import type { Message } from 'src/types';
 import { Pin } from 'src/components/icons';
 import React, { useCallback } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import s from './PinnedMessage.module.scss';
 import Button from 'src/components/common/Button';
@@ -18,6 +19,7 @@ type Props = {
 }
 
 const PinnedMessage: FC<Props> = (props) => {
+  const { t } = useTranslation();
   const { openModal, setModalView } = useUI();
   const pinnedMessages = useAppSelector(messages.selectors.currentPinnedMessages);
 
@@ -37,7 +39,7 @@ const PinnedMessage: FC<Props> = (props) => {
           onClick={openPinnedMessagesModal}
           size='sm'
           className={cn(s.button, 'whitespace-nowrap')}>
-          View all ({pinnedMessages.length})
+          {t('View all')} ({pinnedMessages.length})
         </Button>
       </div>
     </div>

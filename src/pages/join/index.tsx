@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import cn from 'classnames';
 import Cookies from 'js-cookie';
+import { useTranslation } from 'react-i18next';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { ChannelJSON, PrivacyLevel, useUtils } from 'src/contexts/utils-context';
@@ -15,6 +16,7 @@ import { decoder } from 'src/utils';
 import s from './join.module.scss';
 
 const Join: NextPage = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [withLink, setWithLink] = useState(false);
@@ -100,8 +102,9 @@ const Join: NextPage = () => {
   if (withLink && typeof channelType !== 'number') {
     return (
       <WarningComponent>
-        This invite link is invalid.<br />
-        Return to your Speakeasy home tab to continue.
+        {t('This invite link is invalid.')}
+        <br />
+        {t('Return to your Speakeasy home tab to continue.')}
       </WarningComponent>
     );
   }
@@ -126,19 +129,18 @@ const Join: NextPage = () => {
         {!channelInfoJson && window?.location?.href && channelType === 2 && (
           <div className={s.passwordWrapper}>
             <h2 className='mt-9 mb-6'>
-              This Speakeasy requires a passphrase to join
+              {('This Speakeasy requires a passphrase to join')}
             </h2>
             <input
               className='mt-3 mb-4'
               name=''
               type='password'
-
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   onConfirm();
                 }
               }}
-              placeholder='Enter passphrase'
+              placeholder={t('Enter passphrase')}
               value={password}
               onChange={e => {
                 setPassword(e.target.value);
@@ -162,14 +164,15 @@ const Join: NextPage = () => {
       </>
     ) : (
       <WarningComponent>
-        Cannot join a speakeasy, when the user is not logged in.
-        Return to the signup page to create an identity or log in
+        {t('Cannot join a speakeasy, when the user is not logged in.')}
+        {t('Return to the signup page to create an identity or log in.')}
       </WarningComponent>
     )
   ) : (
     <WarningComponent>
-      Speakeasy can only run with one tab/window at a time.
-      <br /> Return to your Speakeasy home tab to continue.
+      {t('Speakeasy can only run with one tab/window at a time.')}
+      <br />
+      {t('Return to your Speakeasy home tab to continue.')}
     </WarningComponent>
   );
 };
