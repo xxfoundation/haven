@@ -1,11 +1,14 @@
 import { FC, useCallback, useState } from 'react';
+import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
+
 import s from './ExportCodenameView.module.scss';
 import { ModalCtaButton } from 'src/components/common';
-import cn from 'classnames';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 
 const ExportCodenameView: FC = () => {
+  const { t } = useTranslation();
   const { closeModal } = useUI();
   const { exportPrivateIdentity } = useNetworkClient();
   const [password, setPassword] = useState<string>('');
@@ -18,23 +21,25 @@ const ExportCodenameView: FC = () => {
       if (result) {
         closeModal();
       } else {
-        setError('Incorrect password');
+        setError(t('Incorrect password'));
       }
     }
-  }, [closeModal, exportPrivateIdentity, password]);
+  }, [t, closeModal, exportPrivateIdentity, password]);
 
   return (
     <div
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
-      <h2 className='mt-9 mb-4'>Export codename</h2>
+      <h2 className='mt-9 mb-4'>
+        {t('Export codename')}
+      </h2>
       <p className='mb-8'>
-        You can export your codename for backup or to use your codename on a
-        second device.
+        {t(`You can export your codename for backup or to use your codename on a
+        second device.`)}
       </p>
       <input
         type='password'
-        placeholder='Unlock export with your password'
+        placeholder={t('Unlock export with your password')}
         value={password}
         onKeyDown={(evt) => {
           if (evt.key === 'Enter') {
@@ -52,7 +57,7 @@ const ExportCodenameView: FC = () => {
         </div>
       )}
       <ModalCtaButton
-        buttonCopy='Export'
+        buttonCopy={t('Export')}
         cssClass={cn('mt-5', s.button)}
         onClick={handleSubmit}
       />

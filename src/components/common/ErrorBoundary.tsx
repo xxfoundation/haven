@@ -2,7 +2,9 @@ import type { FC } from 'react';
 import type { WithChildren } from 'src/types';
 
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorBoundary as LibBoundary } from 'react-error-boundary';
+
 import { Download } from '@components/icons';
 import Button from './Button';
 
@@ -11,6 +13,7 @@ type ErrorProps = {
 }
 
 const ErrorComponent: FC<ErrorProps> = ({ resetErrorBoundary }) => {
+  const { t } = useTranslation();
   const exportLogs = useCallback(async () => {
     if (!window.getCrashedLogFile) {
       console.error('Log file required');
@@ -35,16 +38,18 @@ const ErrorComponent: FC<ErrorProps> = ({ resetErrorBoundary }) => {
   return (
     <div className='flex w-full h-screen content-center justify-center flex-col'>
       <div className='text-center space-y-2'>
-        <h2 className='mb-6'>Oops, something went wrong!</h2>
+        <h2 className='mb-6'>
+          {t('Oops, something went wrong!')}</h2>
         <p className='space-x-4'>
           <Button onClick={exportLogs}>
-            Logs for the nerds <Download height='1rem' className='inline ml-1' />
+            {t('Logs for the nerds')}
+            <Download height='1rem' className='inline ml-1' />
           </Button>
           <Button
             type='button'
             onClick={resetErrorBoundary}
           >
-            Try again?
+            {t('Try again?')}
           </Button>
         </p>
       </div>

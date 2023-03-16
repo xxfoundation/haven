@@ -5,6 +5,7 @@ import { Collapse } from 'src/components/common';
 import { SpeakEasy, Plus, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
+import { useTranslation } from 'react-i18next';
 
 import s from './LeftSideBar.module.scss';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
@@ -42,9 +43,9 @@ const ChannelListItem: FC<ChannelListItemProps> = ({ currentId, id, name, notifi
 }
 
 const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { openModal, setModalView } = useUI();
-
   const {
     getClientVersion,
     getVersion,
@@ -71,7 +72,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
 
   const channelsTitle = useMemo(() => (
     <div className={cn('flex justify-between uppercase')}>
-      <span>Joined</span>
+      <span>{t('Joined')}</span>
       <div className='flex items-center'>
         <Plus
           className={cn('mr-1', s.plus, {})}
@@ -86,13 +87,13 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
         
       </div>
     </div>
-  ), []);
+  ), [t]);
 
   const dmsTitle = useMemo(() => (
     <div className={cn('flex justify-between uppercase')}>
-      <span>Direct Messages</span>
+      <span>{t('Direct Messages')}</span>
     </div>
-  ), []);
+  ), [t]);
 
   return (
     <div className={cn(s.root, cssClasses)}>
@@ -112,7 +113,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
                   openModal();
                   setShowCreateNewChannel(false);
                 }}>
-                  Create new
+                  {t('Create new')}
                 </button>
               </li>
               <li className='px-2 py-1'>
@@ -121,7 +122,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
                   openModal();
                   setShowCreateNewChannel(false);
                 }}>
-                  Join existing by url
+                  {t('Join existing by url')}
                 </button>
               </li>
             </ul>
@@ -156,9 +157,9 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
       </div>
       <div className={s.footer}>
         <div className={cn(s.version)}>
-          {getClientVersion() && <span>XXDK version {getClientVersion()}</span>}
-          {getVersion() && <span>Wasm version {getVersion()}</span>}
-          <span>App version 0.3.1</span>
+          {getClientVersion() && <span>{t('XXDK version {{version}}', { version: getClientVersion() })}</span>}
+          {getVersion() && <span>{t('Wasm version {{version}}', { version: getVersion() })}</span>}
+          <span>{t('App version {{version}}', { version: '0.3.1' })}</span>
         </div>
       </div>
     </div>

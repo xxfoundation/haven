@@ -1,5 +1,6 @@
 import { FC, useCallback } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import { Collapse } from 'src/components/common';
 import { DoubleLeftArrows, DoubleRightArrows, Settings } from 'src/components/icons';
@@ -22,6 +23,7 @@ type Props = {
 }
 
 const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
+  const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { codename, color, pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const { getNickName } = useNetworkClient();
@@ -50,7 +52,7 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
           className={cn('w-full flex justify-between items-center', s.settingsWrapper)}
         >
           <p>
-            You are connected as
+            {t('You are connected as')}
             <br />
             <span
               style={{ color }}
@@ -75,7 +77,7 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
             <div className={cn(s.channelPill, 'headline--xs flex flex-col')}>
               {nickname?.length ? (
                 <span style={{ color }} className={s.currentUser}>
-                  {nickname} (you)
+                  {nickname} ({t('you')})
                 </span>
               ) : (
                 <span
@@ -83,7 +85,7 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
                   className={cn('flex items-center', s.currentUser)}
                 >
                   <Elixxir style={{ fill: color, width: '10px' }} />
-                  {codename} (you)
+                  {codename} ({t('you')})
                 </span>
               )}
 
@@ -91,13 +93,13 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
                 style={{
                   color: 'var(--cyan)'
                 }}
-                className='cursor-pointer underline mt-1'
+                className='cursor-pointer uppercase underline mt-1'
                 onClick={() => {
                   setModalView('SET_NICK_NAME');
                   openModal();
                 }}
               >
-                {nickname?.length ? 'CHANGE' : 'SET NICKNAME'}
+                {nickname?.length ? t('Change') : t('Set nickname')}
               </span>
             </div>
 

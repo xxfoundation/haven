@@ -7,8 +7,10 @@ import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
+import { useTranslation } from 'react-i18next';
 
 const NickNameSetView: FC = () => {
+  const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const { getNickName, setNickName } = useNetworkClient();
@@ -22,21 +24,26 @@ const NickNameSetView: FC = () => {
     if (success) {
       closeModal();
     } else {
-      setError('Invalid nickname');
+      setError(t('Invalid nickname'));
     }
-  }, [closeModal, localNickname, setNickName]);
+  }, [t, closeModal, localNickname, setNickName]);
 
   return (
     <div
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
-      <h2 className='mt-9 mb-4'>Set Nickname</h2>
+      <h2 className='mt-9 mb-4'>
+        {t('Set Nickname')}
+      </h2>
       <p className='mb-8 text text--xs' style={{ color: 'var(--cyan)' }}>
-        Set your nickname for {currentChannel?.name || ''} {currentConversation ? 'all direct messages' : 'channel'}
+        {currentConversation
+         ? t('Set your nickname for the {{channelName}} channel', { channelName: currentChannel?.name })
+         : t('Set your nickname for all direct messages')
+        }
       </p>
       <input
         type='text'
-        placeholder='Enter your nickname'
+        placeholder={t('Enter your nickname')}
         className='mt-1'
         value={localNickname}
         onKeyDown={(e) => {
@@ -55,7 +62,7 @@ const NickNameSetView: FC = () => {
         </div>
       )}
       <ModalCtaButton
-        buttonCopy='Save'
+        buttonCopy={t('Save')}
         cssClass='my-7'
         onClick={onSubmit}
       />

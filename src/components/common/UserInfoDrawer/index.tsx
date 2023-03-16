@@ -3,6 +3,7 @@ import { useDb } from '@contexts/db-context';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { contrastColor as getContrastColor } from 'contrast-color';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import s from './UserInfoDrawer.module.scss';
 import { byTimestamp } from 'src/store/utils';
@@ -37,6 +38,7 @@ type CommonChannel = {
 }
 
 const UserInfoDrawer = () => {
+  const { t } = useTranslation();
   const db = useDb();
   const dmDb = useDb('dm');
   const { getCodeNameAndColor } = useUtils();
@@ -131,7 +133,6 @@ const UserInfoDrawer = () => {
                 }))
               )
             });
-
         }
     });
 
@@ -191,7 +192,7 @@ const UserInfoDrawer = () => {
               <Envelope
                 className={cn(s.actionIcon, 'mr-3 cursor-pointer')}
                 size='sm' color='var(--orange)' />
-              Direct Message
+              {t('Direct Message')}
             </button>
           ) : (
             <span className={s.option}>
@@ -207,7 +208,7 @@ const UserInfoDrawer = () => {
                 />
               </span>
               <span>
-                User has not enabled direct messages.
+                {t('User has not enabled direct messages.')}
               </span>
             </span>
           )}
@@ -218,16 +219,16 @@ const UserInfoDrawer = () => {
           <div className={cn(s.divider, 'inline-flex items-center justify-center w-full')}>
             <hr className='w-full' />
             <span className={cn(s.textMuted, 'px-3 text-xs whitespace-nowrap uppercase')}>
-              Spaces in common
+              {t('Spaces in common')}
             </span>
             <hr className='w-full' />
           </div>
           <div className='flex justify-between mb-2'>
             <span className={cn(s.textMuted, 'text-xs whitespace-nowrap uppercase')}>
-              Space name
+              {t('Space name')}
             </span>
             <span className={cn(s.textMuted, 'text-xs whitespace-nowrap uppercase')}>
-              Also known as
+              {t('Also known as')}
             </span>
           </div>
           <ul style={{ maxHeight: 186, overflow: 'auto'}}>

@@ -1,17 +1,20 @@
 import { FC, useCallback, useRef, useState } from 'react';
 import cn from 'classnames';
 import { saveAs } from 'file-saver';
+import { useTranslation } from 'react-i18next';
 
-import s from './styles.module.scss';
 import { ModalCtaButton } from 'src/components/common';
 import useStep from 'src/hooks/useStep';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import useInput from 'src/hooks/useInput';
-import { useNetworkClient } from '@contexts/network-client-context';
+import { useNetworkClient } from 'src/contexts/network-client-context';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
 
+import s from './styles.module.scss';
+
 const ExportCodenameView: FC = () => {
+  const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { exportChannelAdminKeys } = useNetworkClient();
   const { checkUser } = useAuthentication();
@@ -27,13 +30,13 @@ const ExportCodenameView: FC = () => {
       setError('');
       next();
     } else {
-      setError('Invalid Password');
+      setError(t('Invalid Password'));
     }
-  }, [checkUser, next, password]);
+  }, [t, checkUser, next, password]);
 
   const onExport = useCallback(() => {
     if (encryptionPassword !== encryptionPasswordConfirmation) {
-      return setError('Encryption password does not match confirmation.');
+      return setError(t('Encryption password does not match confirmation.'));
     }
 
     const filename = `${currentChannel?.name}_AdminKeys.txt`;
@@ -42,6 +45,7 @@ const ExportCodenameView: FC = () => {
     saveAs(blob, filename);
     next();
   }, [
+    t,
     currentChannel?.name,
     encryptionPassword,
     encryptionPasswordConfirmation,
@@ -53,7 +57,9 @@ const ExportCodenameView: FC = () => {
     <div
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
-      <h2 className='mb-10'>Export Channel Admin Keys</h2>
+      <h2 className='mb-10'>
+        {t('Export Channel Admin Keys')}
+      </h2>
       {step === 1 && (
         <>
           {error && (
@@ -63,13 +69,13 @@ const ExportCodenameView: FC = () => {
           )}
           <input
             type='password'
-            placeholder='Unlock export with your password'
+            placeholder={t('Unlock export with your password')}
             onKeyDown={(e) => e.key === 'Enter' && checkPassword()}
             value={password}
             onChange={setPassword}
           />
           <ModalCtaButton
-            buttonCopy='Unlock'
+            buttonCopy={t('Unlock')}
             cssClass={cn('mt-5', s.button)}
             onClick={checkPassword}
           />
@@ -78,12 +84,12 @@ const ExportCodenameView: FC = () => {
       {step === 2 && (
         <>
           <h3 className='mb-6' style={{ color: 'var(--red)' }}>
-            Warning!
+            {t('Warning!')}
           </h3>
           <p style={{ color: 'var(--red)' }}>
-            Anyone with these keys and encryption password can be an admin
+            {t(`Anyone with these keys and encryption password can be an admin
             of this channel, they can pin messages, delete messages, and mute
-            users.
+            users.`)}
           </p>
           <div className='mt-10'>
             {error && (
@@ -93,13 +99,13 @@ const ExportCodenameView: FC = () => {
             )}
             <input
               type='password'
-              placeholder='Password to encrypt the exported file'
+              placeholder={t('Password to encrypt the exported file')}
               value={encryptionPassword}
               onChange={setEncryptionPassword}
             />
             <input
               type='password'
-              placeholder='Confirm encryption password'
+              placeholder={t('Confirm encryption password')}
               value={encryptionPasswordConfirmation}
               onChange={setEncryptionPasswordConfirmation}
             />
@@ -112,13 +118,13 @@ const ExportCodenameView: FC = () => {
           <div className='space-x-4 flex'>
             <ModalCtaButton
               style={{ borderColor: 'var(--cyan)', color: 'white' }}
-              buttonCopy='Cancel'
+              buttonCopy={t('Cancel')}
               cssClass={cn('mt-5', s.button)}
               onClick={reset}
             />
 
             <ModalCtaButton
-              buttonCopy='Export'
+              buttonCopy={t('Export')}
               cssClass={cn('mt-5', s.button)}
               onClick={onExport}
             />
@@ -129,10 +135,10 @@ const ExportCodenameView: FC = () => {
       {step === 3 && (
         <>
           <h3 className='mb-6' style={{ color: 'var(--green)' }}>
-            Success!
+            {t('Success!')}
           </h3>
           <p style={{ textAlign: 'center' }}>
-            The admin keys to {currentChannel?.name} were successfully exported.
+            {t('The admin keys to {{channelName}} were successfully exported.', { channelName: currentChannel?.name })}
           </p>
         </>
       )}

@@ -1,5 +1,7 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
+
 import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
@@ -14,6 +16,7 @@ import CheckboxToggle from '@components/common/CheckboxToggle';
 import { Spinner } from '@components/common';
 
 const ChannelSettingsView: FC = () => {
+  const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { openModal, setModalView } = useUI();
   const { channelManager } = useNetworkClient();
@@ -42,18 +45,23 @@ const ChannelSettingsView: FC = () => {
       <div
         className={cn(s.root, 'w-full flex flex-col justify-center items-center')}
       >
-        <h2 className='mt-9 mb-8'>Channel Settings</h2>
+        <h2 className='mt-9 mb-8'>
+          {t('Channel Settings')}</h2>
         <div className={s.wrapper}>
 
           <div>
-            <h3 className='headline--sm'>Enable Direct Messages</h3>
+            <h3 className='headline--sm'>
+              {t('Enable Direct Messages')}
+            </h3>
             {dmsEnabled === null ? <Spinner className='m-0 mr-1' /> : (
               <CheckboxToggle checked={dmsEnabled} onChange={toggleDms} />
             )}
           </div>
           {currentChannel?.isAdmin ? (
             <div>
-              <h3 className='headline--sm'>Export Admin Keys</h3>
+              <h3 className='headline--sm'>
+                {t('Export Admin Keys')}
+              </h3>
               <Keys
                 onClick={() => {
                   setModalView('EXPORT_ADMIN_KEYS');
@@ -63,7 +71,8 @@ const ChannelSettingsView: FC = () => {
             </div>
           ) : (
             <div>
-              <h3 className='headline--sm'>Claim Admin Keys</h3>
+              <h3 className='headline--sm'>
+                {t('Claim Admin Keys')}</h3>
               <LockOpen onClick={() => {
                 setModalView('CLAIM_ADMIN_KEYS');
                 openModal();
@@ -71,7 +80,9 @@ const ChannelSettingsView: FC = () => {
             </div>
           )}
           <div>
-            <h3 className='headline--sm'>View Muted Users</h3>
+            <h3 className='headline--sm'>
+              {t('View Muted Users')}
+            </h3>
             <CommentSlash
               onClick={() => {
                 setModalView('VIEW_MUTED_USERS');
@@ -80,7 +91,9 @@ const ChannelSettingsView: FC = () => {
             />
           </div>
           <div>
-            <h3 className='headline--sm'>Leave Channel</h3>
+            <h3 className='headline--sm'>
+              {t('Leave Channel')}
+            </h3>
             <RightFromBracket
               onClick={() => {
                 if (currentChannel) {
