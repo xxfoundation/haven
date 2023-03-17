@@ -145,7 +145,7 @@ const useDmClient = (
           )
         })
     }
-  }, [conversationMapper, dispatch, dmsDb]);
+  }, [conversationMapper, dispatch, dmsDb, currentConversationId]);
 
   useEffect(() => {
     if (dmsDb && messageMapper && currentConversation && currentConversationId !== null) {
