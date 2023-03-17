@@ -19,7 +19,9 @@ type DatabaseCipher = {
   decrypt: (encrypted: string) => string;
 };
 
-const makeConversationMapper = (codenameConverter: XXDKContext['getCodeNameAndColor']) => (conversation: DBConversation): Conversation => ({
+const makeConversationMapper = (
+  codenameConverter: XXDKContext['getCodeNameAndColor']
+) => (conversation: DBConversation): Conversation => ({
   ...codenameConverter(conversation.pub_key, conversation.codeset_version || 0),
   pubkey: conversation.pub_key,
   token: conversation.token,
@@ -68,7 +70,7 @@ const useDmClient = (
   const { getCodeNameAndColor, utils } = useUtils();
   const { NewDMClientWithIndexedDb } = utils;
   const [dmsDatabaseName, setDmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
-  const conversationMapper = useMemo(() => getCodeNameAndColor && makeConversationMapper(getCodeNameAndColor), [getCodeNameAndColor])
+  const conversationMapper = useMemo(() => makeConversationMapper(getCodeNameAndColor), [getCodeNameAndColor])
   const userIdentity = useAppSelector(identity.selectors.identity);
   const messageMapper = useMemo(
     () => databaseCipher

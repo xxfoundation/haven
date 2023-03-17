@@ -4,6 +4,7 @@ import type { DMClient } from 'src/types';
 
 import React, { FC, useCallback, useState } from 'react';
 import { decoder } from '@utils/index';
+import Loading from '@components/modals/LoadingView';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -164,7 +165,7 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
         getCodeNameAndColor,
       }}
     >
-      {children}
+      {utils ? children : <Loading />}
     </UtilsContext.Provider>
   );
 };
@@ -178,7 +179,3 @@ export const useUtils = () => {
 
   return context;
 };
-
-export const ManagedUtilsContext: FC<WithChildren> = ({ children }) => (
-  <UtilsProvider>{children}</UtilsProvider>
-);
