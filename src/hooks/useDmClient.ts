@@ -20,9 +20,11 @@ type DatabaseCipher = {
 };
 
 const makeConversationMapper = (
-  codenameConverter: XXDKContext['getCodeNameAndColor']
+  codenameConverter?: XXDKContext['getCodeNameAndColor']
 ) => (conversation: DBConversation): Conversation => ({
-  ...codenameConverter(conversation.pub_key, conversation.codeset_version || 0),
+  codename: '',
+  color: 'var(--text-primary)',
+  ...(codenameConverter && codenameConverter(conversation.pub_key, conversation.codeset_version || 0)),
   pubkey: conversation.pub_key,
   token: conversation.token,
   blocked: conversation.blocked,
