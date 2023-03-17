@@ -12,7 +12,7 @@ import store from 'src/store';
 import { ManagedUIContext } from 'src/contexts/ui-context';
 import { ManagedNetworkContext } from 'src/contexts/network-client-context';
 import { ManagedAuthenticationContext } from 'src/contexts/authentication-context';
-import { ManagedUtilsContext } from 'src/contexts/utils-context';
+import { UtilsProvider } from 'src/contexts/utils-context';
 import { isDuplicatedWindow } from 'src/utils/oneTabEnforcer';
 import { WebAssemblyRunner } from 'src/components/common';
 
@@ -114,7 +114,7 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
         <SEO />
         <DBProvider>
           <Provider store={store}>
-            <ManagedUtilsContext>
+            <UtilsProvider>
               <ManagedAuthenticationContext>
                 <ManagedNetworkContext>
                   <ManagedUIContext>
@@ -135,7 +135,7 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
                   </ManagedUIContext>
                 </ManagedNetworkContext>
               </ManagedAuthenticationContext>
-            </ManagedUtilsContext>
+            </UtilsProvider>
           </Provider>
         </DBProvider>
       </ErrorBoundary>
