@@ -38,7 +38,7 @@ const CodenameRegistration: FC = () => {
         checkRegistrationReadiness(
           selectedPrivateIdentity,
           (isReadyInfo) => {
-            if (isReadyInfo.IsReady) {
+            if (isReadyInfo.isReady) {
               setTimeout(() => {
                 setLoading(false);
                 // Dont mess with this, it needs exactly 3 seconds
@@ -46,7 +46,7 @@ const CodenameRegistration: FC = () => {
               }, 3000)
             }
             setReadyProgress(
-              Math.ceil((isReadyInfo?.HowClose || 0) * 100)
+              Math.ceil((isReadyInfo?.howClose || 0) * 100)
             );
           }
         );

@@ -34,8 +34,8 @@ const AuthenticationUI: FC = () => {
       checkRegistrationReadiness(
         importedIdentity,
         (isReadyInfo) => {
-          setReadyProgress(Math.ceil((isReadyInfo?.HowClose || 0) * 100));
-          if (isReadyInfo.IsReady) {
+          setReadyProgress(Math.ceil((isReadyInfo?.howClose || 0) * 100));
+          if (isReadyInfo.isReady) {
             setLoading(false);  
             setReadyProgress(0);
             setIsAuthenticated(true);
