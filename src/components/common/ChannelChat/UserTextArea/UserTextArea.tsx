@@ -142,7 +142,7 @@ const UserTextArea: FC<Props> = ({
   const { t } = useTranslation();
   const contributors = useAppSelector(messages.selectors.currentContributors);
   useEffect(() => {
-    atMentions = contributors?.map((c) => ({ id: c.pubkey, value: c.codename })) ?? [];
+    atMentions = contributors?.map((c) => ({ id: c.pubkey, value: c.nickname ? `${c.nickname} (${c.codename})` : c.codename })) ?? [];
   }, [contributors]);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { openModal, setModalView } = useUI();
@@ -272,7 +272,7 @@ const UserTextArea: FC<Props> = ({
       source: function(searchTerm: string, renderList: (values: { id: string, value: string }[], search: string) => void) {
         const matches = atMentions.filter((v) => v.value.toLocaleLowerCase().startsWith(searchTerm.toLocaleLowerCase()));
         renderList(matches, searchTerm);
-      }
+      },
     },
     keyboard: {
       bindings: {
