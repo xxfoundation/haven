@@ -31,6 +31,7 @@ const ChannelSettingsView: FC = () => {
     if (!currentChannel) {
       return;
     }
+    
     if (dmsEnabled) {
       channelManager?.DisableDirectMessages(Buffer.from(currentChannel.id, 'base64'));
       setDmsEnabled(channelManager?.AreDMsEnabled(Buffer.from(currentChannel?.id, 'base64')) ?? null);

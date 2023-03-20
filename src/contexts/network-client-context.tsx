@@ -139,7 +139,8 @@ export type NetworkContext = {
   createChannel: (
     channelName: string,
     channelDescription: string,
-    privacyLevel: 0 | 2
+    privacyLevel: 0 | 2,
+    enableDms: boolean
   ) => void;
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
@@ -154,7 +155,7 @@ export type NetworkContext = {
   initialize: (password: string) => Promise<void>;
   getMuted: () => boolean;
   isMuted: boolean;
-  joinChannel: (prettyPrint: string, appendToCurrent?: boolean) => void;
+  joinChannel: (prettyPrint: string, appendToCurrent?: boolean, enabledms?: boolean) => void;
   importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
   getMutedUsers: () => Promise<User[]>;
   muteUser: (pubkey: string, unmute: boolean) => Promise<void>;
@@ -328,24 +329,31 @@ export const NetworkProvider: FC<WithChildren> = props => {
   
   const joinChannel = useCallback(async (
     prettyPrint: string,
-    appendToCurrent = true
+    appendToCurrent = true,
+    enableDms = true,
   ) => {
     if (prettyPrint && channelManager && channelManager.JoinChannel) {
       const chanInfo = JSON.parse(
         decoder.decode(await channelManager.JoinChannel(prettyPrint))
       ) as ChannelJSON;
 
-      if (appendToCurrent) {
-        const channel: ChannelInfo = {
-          id: chanInfo.ChannelID,
-          name: chanInfo.Name,
-          privacyLevel: getPrivacyLevel(chanInfo.ChannelID),
-          description: chanInfo.Description,
-          isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
-        };
+      const channel: ChannelInfo = {
+        id: chanInfo.ChannelID,
+        name: chanInfo.Name,
+        privacyLevel: getPrivacyLevel(chanInfo.ChannelID),
+        description: chanInfo.Description,
+        isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.ChannelID)),
+      };
 
+      if (appendToCurrent) {
         dispatch(channels.actions.upsert(channel));
         dispatch(app.actions.selectChannel(channel.id));
+      }
+
+      if (enableDms) {
+        channelManager.EnableDirectMessages(utils.Base64ToUint8Array(channel.id));
+      } else {
+        channelManager.DisableDirectMessages(utils.Base64ToUint8Array(channel.id));
       }
     }
   }, [channelManager, dispatch, getPrivacyLevel, utils]);
@@ -811,7 +819,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const createChannel = useCallback(async (
     channelName: string,
     channelDescription: string,
-    privacyLevel: PrivacyLevel.Public | PrivacyLevel.Secret
+    privacyLevel: PrivacyLevel.Public | PrivacyLevel.Secret,
+    enableDms = true
   ) => {
       if (cmix && channelName && channelManager) {
         const channelPrettyPrint = await channelManager?.GenerateChannel(
@@ -835,8 +844,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
         savePrettyPrint(channel.id, channelPrettyPrint);
         dispatch(channels.actions.upsert(channel));
         dispatch(app.actions.selectChannel(channel.id));
+        
+        if (enableDms) {
+          channelManager.EnableDirectMessages(utils.Base64ToUint8Array(channel.id));
+        } else {
+          channelManager.DisableDirectMessages(utils.Base64ToUint8Array(channel.id));
+        }
       }
-  }, [cmix, channelManager, getChannelInfo, joinChannel, dispatch]);
+  }, [cmix, channelManager, getChannelInfo, joinChannel, dispatch, utils]);
 
   const shareChannel = () => {};
 
