@@ -1,3 +1,4 @@
+import type { ChannelInfo } from '@types';
 import { NextPage } from 'next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
@@ -6,7 +7,7 @@ import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
-import { ChannelJSON, PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
 import JoinChannelView from 'src/components/views/JoinChannel';
 import { ModalCtaButton } from 'src/components/common';
@@ -15,6 +16,7 @@ import { decoder } from 'src/utils';
 
 import s from './join.module.scss';
 import CheckboxToggle from '@components/common/CheckboxToggle';
+import { channelDecoder } from '@utils/decoders';
 
 const Join: NextPage = () => {
   const { t } = useTranslation();
@@ -26,7 +28,7 @@ const Join: NextPage = () => {
   const [password, setPassword] = useState('');
   const [channelType, setChannelType] = useState<null | PrivacyLevel>(null);
   const { utils, utilsLoaded } = useUtils();
-  const [channelInfoJson, setChannelInfoJson] = useState<ChannelJSON>();
+  const [channelInfoJson, setChannelInfoJson] = useState<ChannelInfo>();
   const [channelPrettyPrint, setChannelPrettyPrint] = useState('');
   const broadcastChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('join_channel'), []);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,9 +69,9 @@ const Join: NextPage = () => {
   useEffect(() => {
     if (channelType === PrivacyLevel.Public && broadcastChannel) {
       const prettyPrinted = utils.DecodePublicURL(window.location.href);
-      const infoJson = JSON.parse(
+      const infoJson = channelDecoder(JSON.parse(
         decoder.decode(utils.GetChannelJSON(prettyPrinted))
-      ) as ChannelJSON;
+      ));
       setChannelPrettyPrint(prettyPrinted);
       setChannelInfoJson(infoJson);
     }
@@ -82,9 +84,9 @@ const Join: NextPage = () => {
           window.location.href,
           password
         );
-        const infoJson = JSON.parse(
+        const infoJson = channelDecoder(JSON.parse(
           decoder.decode(utils.GetChannelJSON(prettyPrinted))
-        );
+        ));
         setChannelPrettyPrint(prettyPrinted);
         setChannelInfoJson(infoJson);
       } catch (e) {

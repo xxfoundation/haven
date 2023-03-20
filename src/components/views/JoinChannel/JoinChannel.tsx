@@ -1,4 +1,4 @@
-import type { ChannelJSON } from '@contexts/utils-context';
+import type { ChannelInfo } from 'src/types';
 import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
@@ -10,7 +10,7 @@ import s from './JoinChannel.module.scss';
 import CheckboxToggle from '@components/common/CheckboxToggle';
 
 type Props = {
-  channelInfo: ChannelJSON;
+  channelInfo: ChannelInfo;
   url: string;
   onConfirm: () => void;
   dmsEnabled: boolean;
@@ -59,16 +59,16 @@ const JoinChannelView: FC<Props> = ({ channelInfo, dmsEnabled, onConfirm, onDmsE
       </h2>
       <div>
         <div className={cn('mb-4')}>
-          <h4>{channelInfo?.Name || ''}</h4>
+          <h4>{channelInfo?.name || ''}</h4>
           <p className={cn('mt-2 text text--xs')}>
-            {channelInfo?.Description || ''}
+            {channelInfo?.description || ''}
           </p>
         </div>
         <div className={cn('text text--sm mb-2')}>
           <span className='font-bold mr-1'>
             {t('Speakeasy id')}:
           </span>
-          <span>{channelInfo?.ReceptionID || ''}</span>
+          <span>{channelInfo?.receptionId || ''}</span>
         </div>
         <div className={cn(s.channelCredentials)}>
           <span className='text--sm font-bold'>

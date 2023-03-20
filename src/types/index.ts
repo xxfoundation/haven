@@ -33,6 +33,7 @@ export type DummyTraffic = {
 }
 
 export * from './db';
+export * from './json';
 export * from 'src/store/channels/types';
 export * from 'src/store/identity/types';
 export * from 'src/store/messages/types';
