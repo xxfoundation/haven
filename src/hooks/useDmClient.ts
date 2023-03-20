@@ -177,7 +177,6 @@ const useDmClient = (
           .filter((c) => c.pub_key === pubkey)
           .last()
       ]).then(([message, conversation]) => {
-          // console.log('DM_RECEIVED', message);
           if (!conversation || !message) {
             console.error('Couldn\'t find conversation or message in database.');
             return;

@@ -7,8 +7,9 @@ import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import CheckboxToggle from '@components/common/CheckboxToggle';
 
-const JoinChannelView: FC = ({}) => {
+const JoinChannelView: FC = () => {
   const { t } = useTranslation();
   const { channelInviteLink, closeModal, setChannelInviteLink } = useUI();
 
@@ -18,6 +19,7 @@ const JoinChannelView: FC = ({}) => {
   const [error, setError] = useState('');
   const [needPassword, setNeedPassword] = useState(false);
   const [password, setPassword] = useState('');
+  const [dmsEnabled, setDmsEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     return () => {
@@ -38,7 +40,7 @@ const JoinChannelView: FC = ({}) => {
       if (res === PrivacyLevel.Public) {
         try {
           const prettyPrint = utils.DecodePublicURL(url);
-          joinChannel(prettyPrint);
+          joinChannel(prettyPrint, true, !!dmsEnabled);
           setUrl('');
           closeModal();
         } catch (e) {
@@ -108,7 +110,12 @@ const JoinChannelView: FC = ({}) => {
           }}
         />
       )}
-
+      <div className='flex justify-between mt-8 w-full px-3'>
+        <h3 className='headline--sm'>
+          {t('Enable Direct Messages')}
+        </h3>
+        <CheckboxToggle checked={dmsEnabled} onChange={() => setDmsEnabled((e) => !e)} />
+      </div>
       {error && (
         <div
           className={cn('text text--xs mt-2', s.error)}
