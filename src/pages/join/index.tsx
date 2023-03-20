@@ -14,6 +14,7 @@ import { Spinner } from 'src/components/common';
 import { decoder } from 'src/utils';
 
 import s from './join.module.scss';
+import CheckboxToggle from '@components/common/CheckboxToggle';
 
 const Join: NextPage = () => {
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ const Join: NextPage = () => {
   const [channelPrettyPrint, setChannelPrettyPrint] = useState('');
   const broadcastChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('join_channel'), []);
   const [isLoading, setIsLoading] = useState(true);
+  const [dmsEnabled, setDmsEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     if (Cookies.get('userAuthenticated')) {
@@ -115,12 +117,15 @@ const Join: NextPage = () => {
       <>
         {channelInfoJson && window?.location?.href && (
           <JoinChannelView
+            dmsEnabled={dmsEnabled}
+            onDmsEnabledChange={setDmsEnabled}
             channelInfo={channelInfoJson}
             url={window.location.href}
             onConfirm={() => {
               if (channelPrettyPrint && broadcastChannel) {
                 broadcastChannel.postMessage({
-                  prettyPrint: channelPrettyPrint
+                  prettyPrint: channelPrettyPrint,
+                  dmsEnabled
                 });
               }
             }}
@@ -145,7 +150,14 @@ const Join: NextPage = () => {
               onChange={e => {
                 setPassword(e.target.value);
               }}
-            ></input>
+            />
+
+            <div className='flex justify-between mt-8 w-full px-3'>
+              <h3 className='headline--sm'>
+                {t('Enable Direct Messages')}
+              </h3>
+              <CheckboxToggle checked={dmsEnabled} onChange={() => setDmsEnabled((e) => !e)} />
+            </div>
             {error && (
               <div
                 className={'text text--xs mt-2 text-center'}
@@ -155,7 +167,7 @@ const Join: NextPage = () => {
               </div>
             )}
             <ModalCtaButton
-              buttonCopy='Confirm'
+              buttonCopy={t('Confirm')}
               cssClass={cn('mb-7 mt-8 mr-4', s.button)}
               onClick={onConfirm}
             />

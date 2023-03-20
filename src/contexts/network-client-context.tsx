@@ -366,9 +366,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   useEffect(() => {
     bc.onmessage = async event => {
-      if (event.data?.prettyPrint) {
+      if (event.data) {
         try {
-          await joinChannel(event.data.prettyPrint);
+          await joinChannel(event.data.prettyPrint, true, event.data.dmsEnabled);
         } catch (error) {}
       }
     };
