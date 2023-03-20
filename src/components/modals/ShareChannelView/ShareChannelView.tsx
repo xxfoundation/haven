@@ -9,7 +9,7 @@ import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
 import s from './ShareChannelView.module.scss';
 
-interface ICredentials {
+interface Credentials {
   url: string;
   password: string;
 }
@@ -18,11 +18,10 @@ const ShareChannelView: FC = () => {
   const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { getShareURL } = useNetworkClient();
-  const [credentials, setCredentials] = useState<ICredentials>({
+  const [credentials, setCredentials] = useState<Credentials>({
     url: '',
     password: ''
   });
-  const urlElement = useRef<HTMLSpanElement>(null);
   const [copied, copy] = useCopyClipboard(700);
 
   useEffect(() => {
@@ -62,7 +61,7 @@ const ShareChannelView: FC = () => {
             {t('Speakeasy invite link')}:
           </span>
           {credentials.url.length > 0 && (
-            <span ref={urlElement} className={cn('text text--xs')}>
+            <span className={cn('text text--xs')}>
               {credentials.url}
             </span>
           )}
@@ -71,7 +70,7 @@ const ShareChannelView: FC = () => {
               <span className='text--sm font-bold mt-1'>
                 {t('Speakeasy passphrase')}:
               </span>
-              <span className={cn('text text--xs')}>
+              <span  className={cn('text text--xs')}>
                 {credentials.password}
               </span>
             </>
@@ -83,12 +82,12 @@ const ShareChannelView: FC = () => {
           {t('Copied!')}
         </div>
         <ModalCtaButton
-          buttonCopy='Copy'
+          buttonCopy={t('Copy')}
           cssClass={cn(s.button)}
           onClick={() => {
-            if (urlElement?.current) {
-              copy(urlElement?.current.innerText);
-            }
+            copy(credentials.password
+                ? `${credentials.url} Passphrase: ${credentials.password}`
+                : credentials.url);
           }}
         />
       </div>
