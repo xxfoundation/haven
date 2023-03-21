@@ -6,7 +6,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 const initialState: AppState = {
   selectedChannelId: null,
   selectedConversationId: null,
-  selectedUserPubkey: null
+  selectedUserPubkey: null,
+  messageDraftsByChannelId: {},
 };
 
 const slice = createSlice({
@@ -26,6 +27,25 @@ const slice = createSlice({
     selectUser: (state: AppState, { payload: pubkey }: PayloadAction<string | null>) => ({
       ...state,
       selectedUserPubkey: pubkey
+    }),
+    updateMessageDraft: (state: AppState, { payload: { channelId, text }}: PayloadAction<{ channelId: ChannelId, text: string }>) => 
+    // quill sends an update when it rerenders. If the current channel isnt the one
+    // receiving an update then ignore it
+    (channelId !== state.selectedChannelId && channelId !== state.selectedConversationId)
+      ? state
+      : ({
+        ...state,
+        messageDraftsByChannelId: {
+          ...state.messageDraftsByChannelId,
+          [channelId]: text
+        }
+      }),
+    clearMessageDraft: (state: AppState, { payload: channelId }: PayloadAction<ChannelId>) => ({
+      ...state,
+      messageDraftsByChannelId: {
+        ...state.messageDraftsByChannelId,
+        [channelId]: ''
+      }
     })
   }
 });

@@ -21,23 +21,30 @@ type ChannelListItemProps = {
   name: React.ReactNode,
   onClick: (id: string) => void,
   notification: boolean;
+  hasDraft: boolean;
 }
-const ChannelListItem: FC<ChannelListItemProps> = ({ currentId, id, name, notification, onClick }) => {
+
+const ChannelListItem: FC<ChannelListItemProps> = ({ currentId, hasDraft, id, name, notification, onClick }) => {
   return(
     <div className='flex justify-between items-center' key={id}>
       <span
-        className={cn(s.channelPill, 'headline--xs', {
+        className={cn(s.channelPill, 'headline--xs flex justify-between items-center', {
           [s.channelPill__active]:  id === currentId
         })}
         onClick={() => onClick(id)}
       >
         {name}
-      </span>
       {notification && (
         <span className='mr-2'>
           <MissedMessagesIcon></MissedMessagesIcon>
         </span>
       )}
+      {!notification && hasDraft && (
+        <span className='mr-2'>
+          <MissedMessagesIcon muted={true}></MissedMessagesIcon>
+        </span>
+      )}
+      </span>
     </div>
   )
 }
@@ -54,6 +61,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   const allChannels = useAppSelector(channels.selectors.channels);
   const currentChannelId = useAppSelector(app.selectors.currentChannelId);
   const currentConversationId = useAppSelector(app.selectors.currentConversationId);
+  const drafts = useAppSelector((state) => state.app.messageDraftsByChannelId);
   const newDmsNotification = useAppSelector(dms.selectors.newDmsNotifications);
 
   const selectChannel = useCallback((chId: string) => () => {
@@ -137,6 +145,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
                 currentId={currentChannelId}
                 onClick={selectChannel(ch.id)}
                 notification={!!ch.hasMissedMessages}
+                hasDraft={!!drafts[ch.id]}
               />
             )
           )}
@@ -151,6 +160,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
               onClick={selectDm(c.pubkey)}
               name={<Identity pubkey={c.pubkey} codeset={c.codeset} />}
               notification={newDmsNotification[c.pubkey]}
+              hasDraft={!!drafts[c.pubkey]}
             />
           ))}
         </Collapse>

@@ -20,3 +20,7 @@
   border-radius: 50%;
   display: block;
 }
+
+.muted:after {
+  background-color: var(--text-muted);
+}
