@@ -1,13 +1,14 @@
 import { FC, useCallback, useState } from 'react';
 import s from './NickNameSetView.module.scss';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
+
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
-import { useTranslation } from 'react-i18next';
 
 const NickNameSetView: FC = () => {
   const { t } = useTranslation();
