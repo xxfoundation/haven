@@ -29,8 +29,8 @@ const slice = createSlice({
       selectedUserPubkey: pubkey
     }),
     updateMessageDraft: (state: AppState, { payload: { channelId, text }}: PayloadAction<{ channelId: ChannelId, text: string }>) => 
-    // quill sends an update when it rerenders. If the current channel isnt the one
-    // receiving an update then ignore it
+    // quill sends a last update before it gets destroyed.
+    // If the current channel isnt the one receiving an update then ignore it
     (channelId !== state.selectedChannelId && channelId !== state.selectedConversationId)
       ? state
       : ({
