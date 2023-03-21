@@ -18,7 +18,7 @@ const UpdatesModal = () => {
           🏪 You can now enable/disable dms when joining and creating channels.
         </li>
         <li className='text-center'>
-          💬 Mentions now include user nicknames.
+          👤 Mentions now include user nicknames.
         </li>
       </ul>
       <div className='text-center'>
