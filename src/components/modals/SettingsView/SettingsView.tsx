@@ -2,17 +2,20 @@ import React, { FC, useCallback } from 'react';
 import s from './SettingsView.module.scss';
 import { Download, Export, Logout } from 'src/components/icons';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
+
 import { useUI } from 'src/contexts/ui-context';
 import CheckboxToggle from 'src/components/common/CheckboxToggle';
 import useNotification from 'src/hooks/useNotification';
 
 const SettingsView: FC = () => {
+  const { t } = useTranslation();
   const { openModal, setModalView } = useUI();
   const { isPermissionGranted, request, setIsPermissionGranted } = useNotification();
 
   const exportLogs = useCallback(async () => {
     if (!window.logger) {
-      throw new Error('Log file required');
+      throw new Error(t('Log file required'));
     }
 
     const filename = 'xxdk.log';
@@ -28,7 +31,7 @@ const SettingsView: FC = () => {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     }, 0);
-  }, []);
+  }, [t]);
 
   const onNotificationsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -42,21 +45,27 @@ const SettingsView: FC = () => {
     <div
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
-      <h2 className='mt-9 mb-8'>Settings</h2>
+      <h2 className='mt-9 mb-8'>
+        {t('Settings')}
+      </h2>
       <div className={s.wrapper}>
         <div>
-          <h3 className='headline--sm'>Notifications</h3>
+          <h3 className='headline--sm'>
+            {t('Notifications')}
+          </h3>
           <CheckboxToggle checked={isPermissionGranted} onChange={onNotificationsChange} />
         </div>
         <div>
-          <h3 className='headline--sm'>Download logs</h3>
+          <h3 className='headline--sm'>
+            {t('Download logs')}
+          </h3>
           <Download
             onClick={exportLogs}
           />
         </div>
         <div>
           <h3 className='headline--sm'>
-            Export my codename
+            {t('Export my codename')}
           </h3>
           <Export
             onClick={() => {
@@ -66,7 +75,9 @@ const SettingsView: FC = () => {
           />
         </div>
         <div>
-          <h3 className='headline--sm'>Logout</h3>
+          <h3 className='headline--sm'>
+            {t('Logout')}
+          </h3>
           <Logout
             onClick={() => {
               setModalView('LOGOUT');
@@ -81,7 +92,7 @@ const SettingsView: FC = () => {
           target='_blank'
           rel='noopener noreferrer'
         >
-          About
+          {t('About')}
         </a>
         |
         <a
@@ -89,11 +100,11 @@ const SettingsView: FC = () => {
           target='_blank'
           rel='noopener noreferrer'
         >
-          Roadmap
+          {t('Roadmap')}
         </a>
         |
         <a href='https://xx.network/' target='_blank' rel='noopener noreferrer'>
-          xx network
+          {t('xx network')}
         </a>
         |
         <a
@@ -101,7 +112,7 @@ const SettingsView: FC = () => {
           target='_blank'
           rel='noopener noreferrer'
         >
-          Privacy Policy
+          {t('Privacy Policy')}
         </a>
         |
         <a
@@ -109,7 +120,7 @@ const SettingsView: FC = () => {
           target='_blank'
           rel='noopener noreferrer'
         >
-          Terms of Use
+          {t('Terms of Use')}
         </a>
       </div>
     </div>

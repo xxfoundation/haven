@@ -15,6 +15,7 @@ import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
 import Identity from '../Identity';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   messages: Message[];
@@ -22,6 +23,7 @@ type Props = {
 }
 
 const ChannelChat: FC<Props> = ({ messages }) => {
+  const { t } = useTranslation();
   const { pagination } = useNetworkClient();
   const {  reset } = pagination;
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
@@ -65,6 +67,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
               privacyLevel={null} />
           )}
           <ScrollDiv
+            canSetAutoScroll={pagination.page === 1}
             autoScrollBottom={autoScroll}
             setAutoScrollBottom={setAutoScroll}
             nearBottom={pagination.previous}
@@ -96,8 +99,8 @@ const ChannelChat: FC<Props> = ({ messages }) => {
                   color: 'var(--text-primary)'
                 }}
               >
-                You haven't joined any channel yet. You can create or join a
-                channel to start the journey!
+                {t(`You haven't joined any channel yet. You can create or join a
+                channel to start the journey!`)}
               </div>
             </div>
           )}

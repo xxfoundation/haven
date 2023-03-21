@@ -5,35 +5,24 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 import s from './UpdatesModal.module.scss';
 
 const UpdatesModal = () => {
-  const [showModal, setShowModal] = useLocalStorage('update-notice_0.3.1', true);
+  const [showModal, setShowModal] = useLocalStorage('update-notice_0.3.2', true);
   
   return showModal ? (
     <Modal className={s.root} onClose={() => setShowModal(false)}>
-      <h2 className='text-center'>Version 0.3.1</h2>
+      <h2 className='text-center'>Version 0.3.2</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>
-          💬 Dms are finally here. Click a username to try it out. You can disable them in your channel settings.
+          ✏️ Message drafts persist when changing channels.
         </li>
         <li className='text-center'>
-          🔒 Control your DMs, what channels you can be DMed from and which Users can DM you
+          🏪 You can now enable/disable dms when joining and creating channels.
         </li>
         <li className='text-center'>
-          💪 Performance enhancements for large channels.
-        </li>
-        <li className='text-center'>
-          👀 Few UX tweaks, channel settings are now in the channel header and
-          account settings are now in the top right corner.
-        </li>
-        <li className='text-center'>
-          🪲 Fix emoji icons appearing over reply box and fix mentions dropdown appearing over reply box.
-        </li>
-
-        <li className='text-center'>
-          🌈 You can now see what color you'll get when selecting an identity.
+          👤 Mentions now include user nicknames.
         </li>
       </ul>
       <div className='text-center'>
-        <Button onClick={() => setShowModal(false)}>Later gator.</Button>
+        <Button onClick={() => setShowModal(false)}>Boom boom pow.</Button>
       </div>
     </Modal>
   ) : null;

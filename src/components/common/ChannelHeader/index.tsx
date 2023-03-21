@@ -1,7 +1,8 @@
 import type { Channel } from 'src/store/channels/types';
 
-import React, { FC, useCallback } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import { PrivacyLevel } from 'src/contexts/utils-context';
 import Ellipsis from '@components/icons/Ellipsis';
@@ -11,18 +12,6 @@ import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 
 import s from './styles.module.scss';
-
-const privacyLevelLabels: Record<PrivacyLevel, string> = {
-  [PrivacyLevel.Private]: 'Private',
-  [PrivacyLevel.Public]: 'Public',
-  [PrivacyLevel.Secret]: 'Secret'
-};
-
-const privacyLevelDescriptions: Record<PrivacyLevel, string> = {
-  [PrivacyLevel.Private]: '',
-  [PrivacyLevel.Public]: 'Anyone can join this channel',
-  [PrivacyLevel.Secret]: 'Only people with a password can join this channel'
-};
 
 type Props = Omit<Channel, 'name' | 'currentPage'> & {
   name: React.ReactNode;
@@ -35,6 +24,7 @@ const ChannelHeader: FC<Props> = ({
   name,
   privacyLevel
 }) => {
+  const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { openModal, setModalView } = useUI();
   const openShareModal = useCallback(() => {
@@ -50,6 +40,18 @@ const ChannelHeader: FC<Props> = ({
       openModal();
     }
   }, [currentChannel, openModal, setModalView]);
+
+  const privacyLevelLabels: Record<PrivacyLevel, string> = useMemo(() => ({
+    [PrivacyLevel.Private]: t('Private'),
+    [PrivacyLevel.Public]: t('Public'),
+    [PrivacyLevel.Secret]: t('Secret')
+  }), [t]);
+  
+  const privacyLevelDescriptions: Record<PrivacyLevel, string> = useMemo(() => ({
+    [PrivacyLevel.Private]: t(''),
+    [PrivacyLevel.Public]: t('Anyone can join this channel'),
+    [PrivacyLevel.Secret]: t('Only people with a password can join this channel')
+  }), [t]);
 
   return (
     <div className={s.root}>
@@ -68,9 +70,9 @@ const ChannelHeader: FC<Props> = ({
           {isAdmin && (
             <span
               className={cn(s.badge, s.gold, s.outlined)}
-              title='You have admin privileges in this channel'
+              title={t('You have admin privileges in this channel')}
             >
-            Admin
+            {t('Admin')}
             </span>
           )}
           <span className={cn('mr-2', s.channelName)}>

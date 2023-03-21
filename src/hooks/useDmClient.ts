@@ -19,8 +19,12 @@ type DatabaseCipher = {
   decrypt: (encrypted: string) => string;
 };
 
-const makeConversationMapper = (codenameConverter: XXDKContext['getCodeNameAndColor']) => (conversation: DBConversation): Conversation => ({
-  ...codenameConverter(conversation.pub_key, conversation.codeset_version || 0),
+const makeConversationMapper = (
+  codenameConverter?: XXDKContext['getCodeNameAndColor']
+) => (conversation: DBConversation): Conversation => ({
+  codename: '',
+  color: 'var(--text-primary)',
+  ...(codenameConverter && codenameConverter(conversation.pub_key, conversation.codeset_version || 0)),
   pubkey: conversation.pub_key,
   token: conversation.token,
   blocked: conversation.blocked,
@@ -68,7 +72,7 @@ const useDmClient = (
   const { getCodeNameAndColor, utils } = useUtils();
   const { NewDMClientWithIndexedDb } = utils;
   const [dmsDatabaseName, setDmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
-  const conversationMapper = useMemo(() => getCodeNameAndColor && makeConversationMapper(getCodeNameAndColor), [getCodeNameAndColor])
+  const conversationMapper = useMemo(() => makeConversationMapper(getCodeNameAndColor), [getCodeNameAndColor])
   const userIdentity = useAppSelector(identity.selectors.identity);
   const messageMapper = useMemo(
     () => databaseCipher
@@ -143,7 +147,7 @@ const useDmClient = (
           )
         })
     }
-  }, [conversationMapper, dispatch, dmsDb]);
+  }, [conversationMapper, dispatch, dmsDb, currentConversationId]);
 
   useEffect(() => {
     if (dmsDb && messageMapper && currentConversation && currentConversationId !== null) {
@@ -173,7 +177,6 @@ const useDmClient = (
           .filter((c) => c.pub_key === pubkey)
           .last()
       ]).then(([message, conversation]) => {
-          // console.log('DM_RECEIVED', message);
           if (!conversation || !message) {
             console.error('Couldn\'t find conversation or message in database.');
             return;

@@ -1,5 +1,6 @@
 import { FC, useCallback, useState } from 'react';
 import cn from 'classnames';
+import { useTranslation, Trans } from 'react-i18next';
 
 import { ModalCtaButton, Spinner } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
@@ -14,7 +15,8 @@ import {
 } from 'src/components/icons';
 import { useAuthentication } from '@contexts/authentication-context';
 
-const LoginView: FC = ({}) => {
+const LoginView: FC = () => {
+  const { t } = useTranslation();
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const {
@@ -47,33 +49,39 @@ const LoginView: FC = ({}) => {
 
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
-            <span className={cn(s.golden)}>True Freedom</span>
-            <span className={cn(s.thick)}>to express yourself,</span>
-            <span className={cn(s.golden)}>your thoughts, your beliefs.</span>
-            <span className={cn(s.normal)}>
-              Speak easily to a group of friends or a global community.{' '}
-              <span className={cn(s.highlighted)}>
-                Talk about what you want.
+            <Trans>
+              <span className={cn(s.golden)}>True Freedom</span>
+              <span className={cn(s.thick)}>to express yourself,</span>
+              <span className={cn(s.golden)}>your thoughts, your beliefs.</span>
+              <span className={cn(s.normal)}>
+                Speak easily to a group of friends or a global community.{' '}
+                <span className={cn(s.highlighted)}>
+                  Talk about what you want.
+                </span>
               </span>
-            </span>
-            <span className={cn(s.normal)}>
-              Surveillance free. Censorship proof.
-              <span className={cn(s.highlighted)}>
-                Your speakeasy is yours.
+            </Trans>
+            <Trans>
+              <span className={cn(s.normal)}>
+                Surveillance free. Censorship proof.
+                <span className={cn(s.highlighted)}>
+                  Your speakeasy is yours.
+                </span>
               </span>
-            </span>
+            </Trans>
           </div>
           <div className='col-span-3 pl-3'>
-            <h2 className='mb-2'>Login</h2>
+            <h2 className='mb-2'>
+              {t('Login')}
+            </h2>
             <p
               className='mb-8 text'
               style={{ color: '#5B5D62', lineHeight: '17px' }}
             >
-              Use your password to unlock your speakeasy identity
+              {t('Use your password to unlock your speakeasy identity')}
             </p>
             <input
               type='password'
-              placeholder='Enter your password'
+              placeholder={t('Enter your password')}
               value={password}
               onChange={e => {
                 setPassword(e.target.value);
@@ -88,7 +96,7 @@ const LoginView: FC = ({}) => {
 
             <div className='flex flex-col mt-4'>
               <ModalCtaButton
-                buttonCopy='Login'
+                buttonCopy={t('Login')}
                 disabled={isLoading}
                 cssClass={s.button}
                 onClick={handleSubmit}
@@ -127,9 +135,11 @@ const LoginView: FC = ({}) => {
             className={cn('flex flex-col col-span-4', s.perkCard)}
           >
             <OpenSource />
-            <span className={cn(s.perkCard__title)}>Open Source</span>
+            <span className={cn(s.perkCard__title)}>
+              {t('Open Source')}
+            </span>
             <span className={cn(s.perkCard__description)}>
-              Every line — open source. Forever.
+              {t('Every line — open source. Forever.')}
             </span>
           </a>
           <a
@@ -140,10 +150,10 @@ const LoginView: FC = ({}) => {
           >
             <NormalHash />
             <span className={cn(s.perkCard__title)}>
-              Fundamentally Different
+              {t('Fundamentally Different')}
             </span>
             <span className={cn(s.perkCard__description)}>
-              Powered by the first decentralized mixnet-blockchain
+              {t('Powered by the first decentralized mixnet-blockchain')}
             </span>
           </a>
           <a
@@ -153,23 +163,25 @@ const LoginView: FC = ({}) => {
             className={cn('flex flex-col col-span-4', s.perkCard)}
           >
             <RoadMap />
-            <span className={cn(s.perkCard__title)}>Roadmap</span>
+            <span className={cn(s.perkCard__title)}>
+              {t('Roadmap')}
+            </span>
             <span className={cn(s.perkCard__description)}>
-              Building to the future
+              {t('Building to the future')}
             </span>
           </a>
         </div>
       </div>
       <div className={cn(s.links)}>
         <a href='https://xx.network/' target='_blank' rel='noreferrer'>
-          xx network
+          {t('xx network')}
         </a>
         <a
           href='https://www.speakeasy.tech/privacy-policy/'
           target='_blank'
           rel='noreferrer'
         >
-          Privacy Policy
+          {t('Privacy Policy')}
         </a>
 
         <a
@@ -177,21 +189,21 @@ const LoginView: FC = ({}) => {
           target='_blank'
           rel='noreferrer'
         >
-          Terms of Use
+          {t('Terms of Use')}
         </a>
 
         <a href='https://xxfoundation.org/' target='_blank' rel='noreferrer'>
-          xx foundation
+          {t('xx foundation')}
         </a>
         <a href='https://elixxir.io/' target='_blank' rel='noreferrer'>
-          xx messenger
+          {t('xx messenger')}
         </a>
         <a
           href='https://twitter.com/speakeasy_tech'
           target='_blank'
           rel='noreferrer'
         >
-          twitter
+          Twitter
         </a>
       </div>
     </div>

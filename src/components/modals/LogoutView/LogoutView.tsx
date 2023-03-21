@@ -1,13 +1,16 @@
 import { FC, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useRouter } from 'next/router';
+
 import s from './LogoutView.module.scss';
 import cn from 'classnames';
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
-import { useRouter } from 'next/router';
 import useInput from 'src/hooks/useInput';
 
 const LogoutView: FC = ({}) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { logout } = useNetworkClient();
   const { closeModal } = useUI();
@@ -22,10 +25,11 @@ const LogoutView: FC = ({}) => {
         closeModal();
         router.push('/');
       } else {
-        setError('Something wrong occured! Please check your details.');
+        setError(t('Something wrong occured! Please check your details.'));
       }
     }
   }, [
+    t,
     closeModal,
     logout,
     password,
@@ -36,11 +40,13 @@ const LogoutView: FC = ({}) => {
     <div
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
-      <h2 className='mt-9 mb-4'>Logout</h2>
+      <h2 className='mt-9 mb-4'>
+        {t('Logout')}
+      </h2>
       <p className='mb-8'>
-        Warning: By logging out, all of you current data will be deleted from
+        {t(`Warning: By logging out, all of you current data will be deleted from
         your browser. Please make sure you have a backup first. This can't be
-        undone.
+        undone.`)}
       </p>
       <input
         type='password'
@@ -51,7 +57,7 @@ const LogoutView: FC = ({}) => {
             handleSubmit();
           }
         }}
-        placeholder='Enter password'
+        placeholder={t('Enter password')}
         value={password}
         onChange={setPassword}
       />
@@ -65,7 +71,7 @@ const LogoutView: FC = ({}) => {
         </div>
       )}
       <ModalCtaButton
-        buttonCopy='Confirm'
+        buttonCopy={t('Confirm')}
         cssClass={cn('mt-12 mb-10', s.button)}
         onClick={handleSubmit}
       />

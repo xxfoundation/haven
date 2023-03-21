@@ -1,6 +1,8 @@
 import { FC, useCallback } from 'react';
 import s from './LeaveChannelConfirmationView.module.scss';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
+
 import { ModalCtaButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
@@ -8,6 +10,7 @@ import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
 
 const LeaveChannelConfirmationView: FC = () => {
+  const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const {  leaveCurrentChannel } = useNetworkClient();
   const { closeModal } = useUI();
@@ -22,12 +25,15 @@ const LeaveChannelConfirmationView: FC = () => {
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
       <span className='text font-bold mt-9 mb-4'>
-        Are you sure you want to leave {currentChannel?.name || ''} Speakeasy ?
+        {t(
+          'Are you sure you want to leave {{channelName}} Speakeasy?',
+          { channelName: currentChannel?.name }
+        )}
       </span>
 
       <div className='flex'>
         <ModalCtaButton
-          buttonCopy='Cancel'
+          buttonCopy={t('Cancel')}
           cssClass='mt-5 mb-10 mr-5'
           style={{
             borderColor: 'var(--red)'
@@ -35,7 +41,7 @@ const LeaveChannelConfirmationView: FC = () => {
           onClick={closeModal}
         />
         <ModalCtaButton
-          buttonCopy='Leave'
+          buttonCopy={t('Leave')}
           cssClass='mt-5 mb-10'
           onClick={onLeave}
         />
