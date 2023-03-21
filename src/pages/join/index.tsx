@@ -1,11 +1,13 @@
+import type { ChannelJSON } from '@types';
 import { NextPage } from 'next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import cn from 'classnames';
 import Cookies from 'js-cookie';
+import { useTranslation } from 'react-i18next';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
-import { ChannelJSON, PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
 import JoinChannelView from 'src/components/views/JoinChannel';
 import { ModalCtaButton } from 'src/components/common';
@@ -13,8 +15,11 @@ import { Spinner } from 'src/components/common';
 import { decoder } from 'src/utils';
 
 import s from './join.module.scss';
+import CheckboxToggle from '@components/common/CheckboxToggle';
+import { channelDecoder } from '@utils/decoders';
 
 const Join: NextPage = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [withLink, setWithLink] = useState(false);
@@ -27,6 +32,7 @@ const Join: NextPage = () => {
   const [channelPrettyPrint, setChannelPrettyPrint] = useState('');
   const broadcastChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('join_channel'), []);
   const [isLoading, setIsLoading] = useState(true);
+  const [dmsEnabled, setDmsEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     if (Cookies.get('userAuthenticated')) {
@@ -63,9 +69,9 @@ const Join: NextPage = () => {
   useEffect(() => {
     if (channelType === PrivacyLevel.Public && broadcastChannel) {
       const prettyPrinted = utils.DecodePublicURL(window.location.href);
-      const infoJson = JSON.parse(
+      const infoJson = channelDecoder(JSON.parse(
         decoder.decode(utils.GetChannelJSON(prettyPrinted))
-      ) as ChannelJSON;
+      ));
       setChannelPrettyPrint(prettyPrinted);
       setChannelInfoJson(infoJson);
     }
@@ -78,9 +84,9 @@ const Join: NextPage = () => {
           window.location.href,
           password
         );
-        const infoJson = JSON.parse(
+        const infoJson = channelDecoder(JSON.parse(
           decoder.decode(utils.GetChannelJSON(prettyPrinted))
-        );
+        ));
         setChannelPrettyPrint(prettyPrinted);
         setChannelInfoJson(infoJson);
       } catch (e) {
@@ -100,8 +106,9 @@ const Join: NextPage = () => {
   if (withLink && typeof channelType !== 'number') {
     return (
       <WarningComponent>
-        This invite link is invalid.<br />
-        Return to your Speakeasy home tab to continue.
+        {t('This invite link is invalid.')}
+        <br />
+        {t('Return to your Speakeasy home tab to continue.')}
       </WarningComponent>
     );
   }
@@ -112,12 +119,15 @@ const Join: NextPage = () => {
       <>
         {channelInfoJson && window?.location?.href && (
           <JoinChannelView
+            dmsEnabled={dmsEnabled}
+            onDmsEnabledChange={setDmsEnabled}
             channelInfo={channelInfoJson}
             url={window.location.href}
             onConfirm={() => {
               if (channelPrettyPrint && broadcastChannel) {
                 broadcastChannel.postMessage({
-                  prettyPrint: channelPrettyPrint
+                  prettyPrint: channelPrettyPrint,
+                  dmsEnabled
                 });
               }
             }}
@@ -126,24 +136,30 @@ const Join: NextPage = () => {
         {!channelInfoJson && window?.location?.href && channelType === 2 && (
           <div className={s.passwordWrapper}>
             <h2 className='mt-9 mb-6'>
-              This Speakeasy requires a passphrase to join
+              {('This Speakeasy requires a passphrase to join')}
             </h2>
             <input
               className='mt-3 mb-4'
               name=''
               type='password'
-
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   onConfirm();
                 }
               }}
-              placeholder='Enter passphrase'
+              placeholder={t('Enter passphrase')}
               value={password}
               onChange={e => {
                 setPassword(e.target.value);
               }}
-            ></input>
+            />
+
+            <div className='flex justify-between mt-8 w-full px-3'>
+              <h3 className='headline--sm'>
+                {t('Enable Direct Messages')}
+              </h3>
+              <CheckboxToggle checked={dmsEnabled} onChange={() => setDmsEnabled((e) => !e)} />
+            </div>
             {error && (
               <div
                 className={'text text--xs mt-2 text-center'}
@@ -153,7 +169,7 @@ const Join: NextPage = () => {
               </div>
             )}
             <ModalCtaButton
-              buttonCopy='Confirm'
+              buttonCopy={t('Confirm')}
               cssClass={cn('mb-7 mt-8 mr-4', s.button)}
               onClick={onConfirm}
             />
@@ -162,14 +178,15 @@ const Join: NextPage = () => {
       </>
     ) : (
       <WarningComponent>
-        Cannot join a speakeasy, when the user is not logged in.
-        Return to the signup page to create an identity or log in
+        {t('Cannot join a speakeasy, when the user is not logged in.')}
+        {t('Return to the signup page to create an identity or log in.')}
       </WarningComponent>
     )
   ) : (
     <WarningComponent>
-      Speakeasy can only run with one tab/window at a time.
-      <br /> Return to your Speakeasy home tab to continue.
+      {t('Speakeasy can only run with one tab/window at a time.')}
+      <br />
+      {t('Return to your Speakeasy home tab to continue.')}
     </WarningComponent>
   );
 };

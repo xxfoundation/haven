@@ -10,7 +10,7 @@ export type CMix = {
   AddHealthCallback: (callback: HealthCallback) => number;
   GetID: () => number;
   IsReady: (threshold: number) => Uint8Array;
-  ReadyToSend: () => boolean,
+  ReadyToSend: () => boolean;
   StartNetworkFollower: (timeoutMilliseconds: number) => void;
   StopNetworkFollower: () => void;
   WaitForNetwork: (timeoutMilliseconds: number) => Promise<void>;
@@ -33,6 +33,7 @@ export type DummyTraffic = {
 }
 
 export * from './db';
+export * from './json';
 export * from 'src/store/channels/types';
 export * from 'src/store/identity/types';
 export * from 'src/store/messages/types';

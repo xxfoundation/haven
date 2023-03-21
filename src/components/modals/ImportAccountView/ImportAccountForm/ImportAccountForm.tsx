@@ -1,15 +1,18 @@
 import React, { FC, useState, useRef, useCallback } from 'react';
-import s from './ImportAccountForm.module.scss';
-import { ModalCtaButton } from 'src/components/common';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import { Upload } from 'src/components/icons';
+import { ModalCtaButton } from 'src/components/common';
+
+import s from './ImportAccountForm.module.scss';
 
 type Props = {
   onSubmit: (value: { password: string, identity: string }) => Promise<void>;
 }
 
 const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
+  const { t } = useTranslation();
   const fileInputLabelRef = useRef<HTMLSpanElement>(null);
   const [password, setPassword] = useState<string>('');
   const [privateIdentity, setPrivateIdentity] = useState<string>('');
@@ -19,9 +22,9 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
     try {
       await onSubmit({ password, identity: privateIdentity });
     } catch (e) {
-      setError('Incorrect file and/or password');
+      setError(t('Incorrect file and/or password'));
     }
-  }, [onSubmit, password, privateIdentity])
+  }, [t, onSubmit, password, privateIdentity])
 
   const onFileChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
     const targetFile = e.target.files?.[0];
@@ -55,10 +58,12 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
       onSubmit={handleSubmission}
       className={cn('w-full flex flex-col items-center', s.root)}
     >
-      <h2 className='mt-9 mb-4'>Import your account</h2>
+      <h2 className='mt-9 mb-4'>
+        {t('Import your account')}
+      </h2>
       <p className='mb-8'>
-        Note that importing your account will only restore your codename. You
-        need to rejoin manually any previously joined channel
+        {t(`Note that importing your account will only restore your codename. You
+        need to rejoin manually any previously joined channel`)}
       </p>
       {error && (
         <div
@@ -72,19 +77,19 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
         required
         id='identityFile'
         type='file'
-        placeholder='Choose a file '
+        placeholder={t('Choose a file')}
         onChange={onFileChange}
       />
       <label htmlFor='identityFile' className='flex justify-between'>
         <span ref={fileInputLabelRef}>
-          Choose a file
+          {t('Choose a file')}
         </span>
         <Upload />
       </label>
       <input
         required
         type='password'
-        placeholder='Unlock export with your password'
+        placeholder={t('Unlock export with your password')}
         value={password}
         onChange={(e) => {
           setPassword(e.target.value);
@@ -92,7 +97,7 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
       />
       <ModalCtaButton
         type='submit'
-        buttonCopy='Import'
+        buttonCopy={t('Import')}
         cssClass={cn('mt-5', s.button)}
       />
     </form>

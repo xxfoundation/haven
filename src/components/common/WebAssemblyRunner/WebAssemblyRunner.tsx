@@ -6,8 +6,12 @@ import { useUtils } from 'src/contexts/utils-context';
 
 type Logger = {
   LogToFile: (level: number, maxLogFileSizeBytes: number) => void,
-  LogToFileWorker: (level: number, maxLogFileSizeBytes: number,
-                    wasmJsPath: string, workerName: string) => Promise<void>,
+  LogToFileWorker: (
+    level: number,
+    maxLogFileSizeBytes: number,
+    wasmJsPath: string,
+    workerName: string
+  ) => Promise<void>,
   StopLogging: () => void,
   GetFile: () => Promise<string>,
   Threshold: () => number,

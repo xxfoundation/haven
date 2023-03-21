@@ -1,12 +1,12 @@
-import { FC } from 'react';
+import { FC, useCallback, useState } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import { ModalCtaButton } from 'src/components/common';
 import Modal from 'src/components/modals';
+import Loading from '../LoadingView';
 
 import s from './MuteUser.module.scss';
-import { useCallback, useState } from 'react';
-import Loading from '../LoadingView';
 
 export type MuteUserAction = 'mute' | 'mute+delete';
 
@@ -16,6 +16,7 @@ type Props = {
 }
 
 const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
+  const { t } = useTranslation();
   const [loading, setLoading]  = useState(false);
 
   const handleConfirmation = useCallback((action: MuteUserAction) => async () => {
@@ -32,27 +33,31 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
       >
         {loading ? <Loading /> : (
           <>
-            <h2 className={cn('mt-9 mb-4')}>Warning</h2>
+            <h2 className={cn('mt-9 mb-4')}>
+              {t('Warning')}
+            </h2>
             <p className='mb-4'>
-              Muting a user will revoke their ability to send messages.
-              They will, however, still be able to view messages.
+              {t(`
+                Muting a user will revoke their ability to send messages.
+                They will, however, still be able to view messages.
+              `)}
             </p>
             <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
-              ** Important to note that deleting messages cannot be undone. **
+              ** {t('Important to note that deleting messages cannot be undone.')} **
             </p>
             <div className={cn('mb-6', s.buttonGroup)}>
               <ModalCtaButton
-                buttonCopy='Mute and delete the last message'
+                buttonCopy={t('Mute and delete the last message')}
                 style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)'  }}
                 onClick={handleConfirmation('mute+delete')}
               />
               <ModalCtaButton
-                buttonCopy='Just Mute'
+                buttonCopy={t('Just Mute')}
                 onClick={handleConfirmation('mute')}
               />
               <ModalCtaButton
                 style={{ backgroundColor: 'transparent', color: 'var(--orange)', borderColor: 'var(--orange)' }}
-                buttonCopy='Cancel'
+                buttonCopy={t('Cancel')}
                 onClick={onCancel}
               />
             </div>

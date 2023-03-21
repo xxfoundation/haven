@@ -4,6 +4,8 @@ import type { DMClient } from 'src/types';
 
 import React, { FC, useCallback, useState } from 'react';
 import { decoder } from '@utils/index';
+import Loading from '@components/modals/LoadingView';
+import { identityDecoder } from '@utils/decoders';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -14,19 +16,6 @@ export enum PrivacyLevel {
 export type Cipher = {
   GetID: () => number;
   Decrypt: (plaintext: Uint8Array) => Uint8Array;
-}
-
-export type ChannelJSON = {
-  ReceptionID?: string;
-  ChannelID: string;
-  Name: string;
-  Description: string;
-}
-
-export type VersionJSON = {
-  current: string;
-  updated: boolean;
-  old: string;
 }
 
 export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
@@ -135,18 +124,18 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
     }
 
     try {
-      const identityJson = JSON.parse(
+      const identityJson = identityDecoder(JSON.parse(
         decoder.decode(
           utils.ConstructIdentity(
             pubkeyUintArray,
             codeset
           )
         )
-      ) as IdentityJSON;
+      ));
 
       return {
-        codename: identityJson.Codename,
-        color: identityJson.Color.replace('0x', '#')
+        codename: identityJson.codename,
+        color: identityJson.color.replace('0x', '#')
       };
     } catch (e) {
       const msg = `Failed to construct identity from: ${JSON.stringify({ publicKey, codeset })}`
@@ -164,7 +153,7 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
         getCodeNameAndColor,
       }}
     >
-      {children}
+      {utils ? children : <Loading />}
     </UtilsContext.Provider>
   );
 };
@@ -178,7 +167,3 @@ export const useUtils = () => {
 
   return context;
 };
-
-export const ManagedUtilsContext: FC<WithChildren> = ({ children }) => (
-  <UtilsProvider>{children}</UtilsProvider>
-);

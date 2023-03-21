@@ -2,6 +2,7 @@ import { FC, useCallback } from 'react';
 
 import React, { useMemo } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import { Elixxir } from 'src/components/icons';
 import classes from './Identity.module.scss';
@@ -21,6 +22,7 @@ type Props = {
 }
 
 const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMuteStyles, nickname, pubkey }) => {
+  const { t } = useTranslation();
   const { getCodeNameAndColor } = useUtils();
   const { userIsMuted } = useNetworkClient();
   const dispatch = useAppDispatch();
@@ -69,7 +71,7 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
       {isMuted && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>(muted)</span>
+          <span style={{ color: 'var(--red)'}}>({t('muted')})</span>
         </>
       )}
     </span>

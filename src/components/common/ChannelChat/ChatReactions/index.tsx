@@ -4,6 +4,7 @@ import React, { FC, useCallback, useMemo } from 'react';
 import cn from 'classnames';
 import { Tooltip } from 'react-tooltip';
 import { uniqueId } from 'lodash';
+import { useTranslation } from 'react-i18next';
 
 import s from './styles.module.scss';
 import * as messages from 'src/store/messages';
@@ -19,6 +20,7 @@ type Props = {
 }
 
 const ChatReactions: FC<Props> = ({ message }) => {
+  const { t } = useTranslation();
   const { deleteMessage, sendReaction } = useNetworkClient();
   const userPubkey = useAppSelector(identity.selectors.identity)?.pubkey;
   const currentChannelId = useAppSelector(app.selectors.currentChannelId);
@@ -69,7 +71,7 @@ const ChatReactions: FC<Props> = ({ message }) => {
             {users.slice(0, Math.max(1, users.length - 1))
               .map((u, i) => <>{i > 0 && ', '}<Identity key={u.pubkey} pubkey={u.pubkey} codeset={u.codeset} /></>)}
             {users.length > 1 && (
-              <> and <Identity clickable {...users[users.length - 1]} /></> 
+              <> {t('and')} <Identity clickable {...users[users.length - 1]} /></> 
             )}
           </p>
         </Tooltip>

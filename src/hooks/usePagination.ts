@@ -21,7 +21,7 @@ type PaginationResult = {
   offset: number;
 };
 
-export const DEFAULT_ROWS_PER_PAGE = 10;
+export const DEFAULT_ROWS_PER_PAGE = 20;
 const DEFAULT_SHOWN_PAGES = 3;
 
 function usePagination(options?: PaginationOptions): PaginationResult {

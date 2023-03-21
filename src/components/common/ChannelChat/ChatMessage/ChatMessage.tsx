@@ -5,6 +5,7 @@ import cn from 'classnames';
 import 'moment-timezone';
 import moment from 'moment';
 import Clamp from 'react-multiline-clamp';
+import { useTranslation } from 'react-i18next';
 
 import Identity from 'src/components/common/Identity';
 import s from './ChatMessage.module.scss';
@@ -33,6 +34,7 @@ const HoveredMention = ({ codename }: { codename: string }) => {
 }
 
 const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
+  const { t } = useTranslation();
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
   const markup = useMemo(
     () => inflate(message.body),
@@ -92,14 +94,19 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
             <>
-              <Identity {...message} />
+              <Identity clickable {...message} />
               <span className={cn(s.separator, 'mx-1')}>
-                replied to
+                {t('replied to')}
               </span>
-              {repliedToMessage
+              {
+              repliedToMessage
                 ? <Identity clickable {...repliedToMessage} />
-                : <span className={cn(s.separator, '')}><strong>deleted/unknown</strong></span>}
-
+                : (
+                  <span className={cn(s.separator, '')}>
+                    <strong>{t('deleted/unknown')}</strong>
+                  </span>
+                )
+              }
             </>
           ) : (
             <Identity clickable {...message} />
@@ -125,12 +132,14 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
                 marginBottom: '1px'
               }}
             >
-              Show mix
+              {t('Show mix')}
             </a>
           )}
           &nbsp;
           {message.status === MessageStatus.Failed && (
-            <span className='text-xs' style={{ color: 'var(--red)' }}>(Failed)</span>
+            <span className='text-xs' style={{ color: 'var(--red)' }}>
+              ({t('Failed')})
+            </span>
           )}
         </div>
 
@@ -166,25 +175,25 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
                   </Clamp>
                 </>
               ) : (
-                <>This message is unknown/deleted</>
+                <>{t('This message is unknown/deleted')}</>
               )}
             </p>
           )}
           <Clamp
             showMoreElement={({ toggle }: { toggle: () => void }) => (
               <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
-                Show more
+                {t('Show more')}
               </button>
             )}
             showLessElement={({ toggle }: { toggle: () => void }) => (
               <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
-                Show less
+                {t('Show less')}
               </button>
             )}
             maxLines={Number.MAX_SAFE_INTEGER}
             withToggle={clamped}
             lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
-            {markup ? <p
+            {markup ? <div
               className={cn('message', s.messageBody, {
                 [s.messageBody__failed]: message.status === MessageStatus.Failed
               })}
