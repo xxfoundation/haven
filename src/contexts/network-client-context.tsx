@@ -257,7 +257,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     try {
       const json = decoder.decode(manager?.GetIdentity());
 
-      const parsed = JSON.parse(json) as IdentityJSON;
+      const parsed = identityDecoder(JSON.parse(json));
 
       dispatch(identity.actions.set({
         codename: parsed.codename,

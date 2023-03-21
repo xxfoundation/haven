@@ -1,4 +1,4 @@
-import type { ChannelInfo } from 'src/types';
+import type { ChannelJSON } from 'src/types';
 import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
@@ -10,7 +10,7 @@ import s from './JoinChannel.module.scss';
 import CheckboxToggle from '@components/common/CheckboxToggle';
 
 type Props = {
-  channelInfo: ChannelInfo;
+  channelInfo: ChannelJSON;
   url: string;
   onConfirm: () => void;
   dmsEnabled: boolean;

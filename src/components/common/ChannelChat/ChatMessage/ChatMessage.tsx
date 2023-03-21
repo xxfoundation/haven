@@ -94,7 +94,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
             <>
-              <Identity {...message} />
+              <Identity clickable {...message} />
               <span className={cn(s.separator, 'mx-1')}>
                 {t('replied to')}
               </span>
@@ -193,7 +193,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
             maxLines={Number.MAX_SAFE_INTEGER}
             withToggle={clamped}
             lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
-            {markup ? <p
+            {markup ? <div
               className={cn('message', s.messageBody, {
                 [s.messageBody__failed]: message.status === MessageStatus.Failed
               })}

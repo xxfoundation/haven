@@ -1,4 +1,4 @@
-import type { ChannelInfo } from '@types';
+import type { ChannelJSON } from '@types';
 import { NextPage } from 'next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
@@ -28,7 +28,7 @@ const Join: NextPage = () => {
   const [password, setPassword] = useState('');
   const [channelType, setChannelType] = useState<null | PrivacyLevel>(null);
   const { utils, utilsLoaded } = useUtils();
-  const [channelInfoJson, setChannelInfoJson] = useState<ChannelInfo>();
+  const [channelInfoJson, setChannelInfoJson] = useState<ChannelJSON>();
   const [channelPrettyPrint, setChannelPrettyPrint] = useState('');
   const broadcastChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('join_channel'), []);
   const [isLoading, setIsLoading] = useState(true);
