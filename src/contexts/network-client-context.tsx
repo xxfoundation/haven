@@ -1,4 +1,4 @@
-import type { CMix, DBMessage, DBChannel, ChannelJSON, IdentityJSON, ShareURLJSON, IsReadyInfoJSON } from 'src/types';
+import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON } from 'src/types';
 
 import { Message } from 'src/store/messages/types';
 import { MessageStatus, MessageType } from 'src/types';
