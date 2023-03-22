@@ -923,8 +923,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         await dmClient.SendReply(
           utils.Base64ToUint8Array(currentConversation.pubkey),
           currentConversation.token,
-          utils.Base64ToUint8Array(replyToMessageId),
           reply,
+          utils.Base64ToUint8Array(replyToMessageId),
           30000,
           new Uint8Array()
         );
