@@ -1,7 +1,6 @@
 import type { Message } from 'src/types';
 import type { Quill, RangeStatic, StringMap } from 'quill';
 import type { QuillAutoDetectUrlOptions } from 'quill-auto-detect-url'
-
 import React, { FC, useEffect, useState, useCallback, useMemo } from 'react';
 import cn from 'classnames';
 import Clamp from 'react-multiline-clamp';
@@ -177,8 +176,10 @@ const UserTextArea: FC<Props> = ({
     await import('quill-mention');
     const Quill = (await import('react-quill')).default.Quill;
     const DetectUrl = (await import('quill-auto-detect-url')).default;
+    const ShortNameEmoji = (await import('src/quill/ShortNameEmoji')).default;
     const Link = Quill.import('formats/link')
     const icons = Quill.import('ui/icons');
+    const EmojiBlot = (await import('src/quill/EmojiBlot')).default;
 
     icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fill-rule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clip-rule=\'evenodd\'></path></svg>';
     Link.PROTOCOL_WHITELIST = ['http', 'https', 'mailto', 'tel', 'radar', 'rdar', 'smb', 'sms']
@@ -198,8 +199,11 @@ const UserTextArea: FC<Props> = ({
       }
     }
 
+    Quill.register('formats/emoji', EmojiBlot);
+    Quill.register('modules/shortNameEmoji', ShortNameEmoji);
     Quill.register(CustomLinkSanitizer, true)
     Quill.register('modules/autoDetectUrl', DetectUrl);
+    
 
     setEditorLoaded(true);
   }, []);
@@ -271,6 +275,7 @@ const UserTextArea: FC<Props> = ({
     toolbar: {
       container: '#custom-toolbar'
     },
+    shortNameEmoji: true,
     autoDetectUrl: {
       urlRegularExpression: /(https?:\/\/|www\.)[\w-.]+\.[\w-.]+[\S]+/i,
     } as QuillAutoDetectUrlOptions,
@@ -368,7 +373,8 @@ const UserTextArea: FC<Props> = ({
     'list', 'bullet',
     'link',
     'code', 'code-block',
-    'mention'
+    'mention',
+    'emoji'
   ], []);
 
   return (
