@@ -1,14 +1,18 @@
 import type { Message } from 'src/types';
+import { default as ReactQuill, ReactQuillProps } from 'react-quill';
 import type { Quill, RangeStatic, StringMap } from 'quill';
 import type { QuillAutoDetectUrlOptions } from 'quill-auto-detect-url'
-import React, { FC, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { FC, useEffect, useState, useCallback, useMemo, CSSProperties, useRef } from 'react';
 import cn from 'classnames';
 import Clamp from 'react-multiline-clamp';
 import dynamic from 'next/dynamic';
 import EventEmitter from 'events';
 import { Tooltip } from 'react-tooltip';
 import { useTranslation } from 'react-i18next';
+import { createPortal } from 'react-dom';
+import Picker from '@emoji-mart/react';
 
+import data from 'public/integrations/assets/emojiSet.json';
 import { Close } from 'src/components/icons';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
@@ -22,13 +26,20 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import Spinner from 'src/components/common/Spinner';
 
 import { deflate, inflate } from 'src/utils/index';
+import classes from 'src/components/common/ChannelChat/MessageActions/MessageActions.module.scss';
+import { useOnClickOutside } from 'usehooks-ts';
+
 
 export const bus = new EventEmitter();
 
 const enterEvent = () => bus.emit('enter');
 
 const Editor = dynamic(
-  () => import('react-quill').then((mod) => mod.default),
+  async () => {
+    const { default: RQ } = await import('react-quill');
+
+    return ({ forwardedRef, ...props }: ReactQuillProps & { forwardedRef: React.LegacyRef<ReactQuill>}) => <RQ {...props}  ref={forwardedRef} />;
+  },
   { ssr: false, loading: () => <Spinner /> },
 );
 
@@ -40,8 +51,36 @@ type Props = {
 
 const MESSAGE_MAX_SIZE = 700;
 
-const CustomToolbar = () => {
+const CustomToolbar: FC<{ onEmojiPicked: (emoji: { native: string }) => void }> = ({ onEmojiPicked }) => {
   const { t } = useTranslation();
+  const emojiPortalElement = document.getElementById('emoji-portal');
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [style, setStyle] = useState<CSSProperties>({});
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const pickerButtonRef = useRef<HTMLButtonElement>(null);
+  useOnClickOutside(pickerRef, () => setPickerVisible(false));
+
+  const adjustPickerPosition = useCallback(() => {
+    const iconRect = pickerButtonRef.current?.getBoundingClientRect();
+
+    return iconRect && setStyle({
+      position: 'absolute',
+      zIndex: 3,
+      top: Math.min(iconRect?.bottom + 5, window.innerHeight - 440),
+      left: iconRect.left - 350
+    })
+  }, []);
+
+  const onOpenEmojiMart = useCallback(() => {
+    adjustPickerPosition();
+    setPickerVisible((visibile) => !visibile);
+  }, [adjustPickerPosition]);
+
+  const onPickEmoji = useCallback((emoji: { native: string }) => {
+    onEmojiPicked(emoji);
+    setPickerVisible(false);
+  }, [onEmojiPicked])
+
   return (
     <div id='custom-toolbar'>
       <span className='ql-formats'>
@@ -127,6 +166,32 @@ const CustomToolbar = () => {
         </Tooltip>
         <button id='code-block-button' className='ql-code-block' />
       </span>
+      <span className='ql-formats'>
+        <button ref={pickerButtonRef} onClick={onOpenEmojiMart}>
+          <svg viewBox='0 0 18 18'>
+            <circle className='ql-fill' cx='7' cy='7' r='1'></circle>
+            <circle className='ql-fill' cx='11' cy='7' r='1'></circle>
+            <path className='ql-stroke' d='M7,10a2,2,0,0,0,4,0H7Z'></path>
+            <circle className='ql-stroke' cx='9' cy='9' r='6'></circle>
+          </svg>
+        </button>
+      </span>
+      {pickerVisible && emojiPortalElement &&
+        createPortal(
+          <div
+            ref={pickerRef}
+            style={style}
+            className={cn(classes.emojisPickerWrapper)}
+          >
+            <Picker
+              data={data}
+              previewPosition='none'
+              onEmojiSelect={onPickEmoji}
+            />
+          </div>,
+          emojiPortalElement
+        )
+      }
     </div>
   );
 };
@@ -171,6 +236,16 @@ const UserTextArea: FC<Props> = ({
     const isMac = navigator?.userAgent.indexOf('Mac') !== -1;
     return isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
   }, []);
+  const editorRef = useRef<ReactQuill>(null);
+
+  const onEmojiPicked = useCallback((emoji: { native: string }) => {
+    const quill = editorRef.current?.editor;
+    if (!quill) { return }
+    const { index } = quill.getSelection(true);
+    
+    quill.insertEmbed(index, 'emoji', emoji.native, 'user');
+    setTimeout(() => quill.setSelection(index + emoji.native.length, 0), 0);
+  }, [])
   
   const loadQuillModules = useCallback(async () => {
     await import('quill-mention');
@@ -204,7 +279,6 @@ const UserTextArea: FC<Props> = ({
     Quill.register(CustomLinkSanitizer, true)
     Quill.register('modules/autoDetectUrl', DetectUrl);
     
-
     setEditorLoaded(true);
   }, []);
 
@@ -399,9 +473,11 @@ const UserTextArea: FC<Props> = ({
         </div>
       )}
       <div className={cn('editor', s.editorWrapper)}>
-        <CustomToolbar />
+        <CustomToolbar onEmojiPicked={onEmojiPicked} />
         {editorLoaded && (
           <Editor
+            forwardedRef={editorRef}
+            id='editor'
             preserveWhitespace
             value={message}
             theme='snow'
