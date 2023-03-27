@@ -1,15 +1,26 @@
 import type { Channel, ChannelId, ChannelsState } from './types';
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { pickBy, omit } from 'lodash';
+import { pickBy, omit, uniqBy } from 'lodash';
 
 const initialState: ChannelsState = {
   byId: {},
+  sortedChannels: [],
+  missedMessages: {},
+  currentPages: {},
 };
 
 const initialChannelState = {
-  currentPage: 1,
   hasMissedMessages: false
 };
+
+const sortedChannelsReducer = (state: ChannelsState['sortedChannels'], channel: Omit<Channel, 'currentPage' | 'missedMessages'>) => {
+  let copy = state.slice();
+  copy.push(channel)
+  copy = uniqBy(copy, (c) => c.id);
+  copy.sort((a, b) => a.name.localeCompare(b.name))
+  return copy;
+}
 
 export const slice = createSlice({
   initialState,
@@ -24,7 +35,8 @@ export const slice = createSlice({
             ...(state.byId[payload.id] || initialChannelState),
             ...payload,
           }
-        }
+        },
+        sortedChannels: sortedChannelsReducer(state.sortedChannels, payload)
       }
     },
     incrementPage: (state: ChannelsState, { payload }: PayloadAction<ChannelId>): ChannelsState => {
@@ -34,12 +46,9 @@ export const slice = createSlice({
 
       return {
         ...state,
-        byId: {
-          ...state.byId,
-          [payload]: {
-            ...state.byId[payload],
-            currentPage: state.byId[payload].currentPage + 1
-          }
+        currentPages: {
+          ...state.currentPages,
+          [payload]: (state.currentPages[payload] ?? 1) + 1
         }
       }
     },
@@ -52,13 +61,10 @@ export const slice = createSlice({
     dismissNewMessagesNotification: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
       return {
         ...state,
-        byId: {
-          ...state.byId,
-          [channelId]: {
-            ...state.byId[channelId],
-            hasMissedMessages: false,
-          }
-        },
+        missedMessages: {
+          ...state.missedMessages,
+          [channelId]: false,
+        }
       };
     },
     leaveChannel: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
@@ -70,15 +76,12 @@ export const slice = createSlice({
       }
       
     },
-    notifyNewMessage: (state: ChannelsState, action: PayloadAction<ChannelId>): ChannelsState => {
-      return !state.byId[action.payload] ? state : ({
+    notifyNewMessage: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
+      return !state.byId[channelId] ? state : ({
         ...state,
-        byId: {
-          ...state.byId,
-          [action.payload]: {
-            ...state.byId[action.payload],
-            hasMissedMessages: true,
-          }
+        missedMessages: {
+          ...state.missedMessages,
+          [channelId]: true
         }
       });
     },

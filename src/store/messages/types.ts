@@ -30,6 +30,7 @@ export type MessagesState = {
   reactions: EmojiReactions;
   contributorsByChannelId: Record<ChannelId, Contributor[]>;
   byChannelId: Record<Message['channelId'], Record<MessageUuid, Message>>;
+  sortedMessagesByChannelId: Record<Message['channelId'], Array<Message>>;
 };
 
 declare module 'src/store/types' {

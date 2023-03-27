@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Quill, { DeltaOperation, RangeStatic, Sources } from 'quill';
+import Quill, { DeltaStatic, RangeStatic, Sources } from 'quill';
 import Fuse from 'fuse.js';
 import emojiMap from '../../public/integrations/assets/emojiSet.json';
 
@@ -15,9 +15,11 @@ const MIN_MATCH_LENGTH = 1;
 class ShortNameEmoji extends Module {
   container: HTMLUListElement;
 
+  quill: Quill & { container?: any };
+
   fuse: Fuse<string>;
 
-  constructor(quill: any, options: any) {
+  constructor(quill: Quill, options: any) {
     super(quill, options);
 
     this.fuse = new Fuse(allEmojiKeys, {
@@ -51,7 +53,7 @@ class ShortNameEmoji extends Module {
     }
   }
 
-  onTextChange(delta: DeltaOperation, oldDelta: DeltaOperation, source: Sources) {
+  onTextChange(delta: DeltaStatic, oldDelta: DeltaStatic, source: Sources) {
     if (source === 'user') {
       this.onSomethingChange();
     }
@@ -59,11 +61,17 @@ class ShortNameEmoji extends Module {
 
 
   getTextBeforeCursor(cursorPos: number): string {
-    const startPos = Math.max(0, this.quill.getSelection().index - MAX_LOOKBACK_CHARS);
-    const textBeforeCursorPos = this.quill.getText(
+    const startPos = Math.max(0, (this.quill.getSelection()?.index ?? 0) - MAX_LOOKBACK_CHARS);
+
+    const content = this.quill.getContents(
       startPos,
       cursorPos - startPos
     );
+
+    // embeds take up exactly 1 character space as far as indexes are concerned,
+    // so we add a blank character in their place.
+    const textBeforeCursorPos = content.ops?.map((op) => typeof op.insert === 'string' ? op.insert : ' ').join('') ?? '';
+
 
     return textBeforeCursorPos;
   }
@@ -88,13 +96,13 @@ class ShortNameEmoji extends Module {
       const match = matches[matches.length - 1];
       const start = textBeforeCursor.lastIndexOf(match)
       const end = start + match.length;
-      const code = textBeforeCursor.slice(start, ).replaceAll(':', '');
 
+      const code = textBeforeCursor.slice(start, end).replaceAll(':', '');
       const emoji = emojiMap.emojis[code as keyof typeof emojiMap.emojis]?.skins[0]?.native;
       if (emoji) {
         this.quill.deleteText(start, end, 'user');
         this.quill.insertEmbed(start, 'emoji', emoji, 'user');
-        setTimeout(() => this.quill.setSelection(start + emoji.length), 0);
+        setTimeout(() => this.quill.setSelection(start + emoji.length, 0), 0);
       }
 
       return;
@@ -161,7 +169,7 @@ class ShortNameEmoji extends Module {
   }
 
   update() {
-    const sel = this.quill.getSelection().index;
+    const sel = this.quill.getSelection()?.index ?? 0;
     if (this.triggerIndex >= sel) {
       return this.close(null);
     }
