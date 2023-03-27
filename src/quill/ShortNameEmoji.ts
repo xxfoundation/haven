@@ -38,7 +38,6 @@ class ShortNameEmoji extends Module {
     this.container.style.display = 'none';
 
     quill.on('text-change', this.onTextChange.bind(this));
-    quill.on('selection-change', this.onSelectionChange.bind(this));
 
     this.open = false;
     this.triggerIndex = null;
@@ -76,14 +75,6 @@ class ShortNameEmoji extends Module {
     return textBeforeCursorPos;
   }
 
-  onSelectionChange(range: RangeStatic) {
-    if (range && range.length === 0) {
-      this.onSomethingChange();
-    } else {
-      this.close(null);;
-    }
-  }
-
   onSomethingChange() {
     const range = this.quill.getSelection();
     if (range == null) return;
@@ -102,6 +93,7 @@ class ShortNameEmoji extends Module {
       if (emoji) {
         this.quill.deleteText(start, end, 'user');
         this.quill.insertEmbed(start, 'emoji', emoji, 'user');
+
         setTimeout(() => this.quill.setSelection(start + emoji.length, 0), 0);
       }
 

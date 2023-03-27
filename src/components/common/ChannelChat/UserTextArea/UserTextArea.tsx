@@ -51,35 +51,18 @@ type Props = {
 
 const MESSAGE_MAX_SIZE = 700;
 
-const CustomToolbar: FC<{ onEmojiPicked: (emoji: { native: string }) => void }> = ({ onEmojiPicked }) => {
+type CustomToolbarProps = {
+  onEmojiButtonClicked: (ref: HTMLButtonElement | null) => void;
+}
+
+const CustomToolbar: FC<CustomToolbarProps> = ({ onEmojiButtonClicked }) => {
   const { t } = useTranslation();
-  const emojiPortalElement = document.getElementById('emoji-portal');
-  const [pickerVisible, setPickerVisible] = useState(false);
-  const [style, setStyle] = useState<CSSProperties>({});
-  const pickerRef = useRef<HTMLDivElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
-  useOnClickOutside(pickerRef, () => setPickerVisible(false));
 
-  const adjustPickerPosition = useCallback(() => {
-    const iconRect = pickerButtonRef.current?.getBoundingClientRect();
+  const onClick = useCallback(() => {
+    onEmojiButtonClicked(pickerButtonRef.current);
+  }, [onEmojiButtonClicked]);
 
-    return iconRect && setStyle({
-      position: 'absolute',
-      zIndex: 3,
-      top: Math.min(iconRect?.bottom + 5, window.innerHeight - 440),
-      left: iconRect.left - 350
-    })
-  }, []);
-
-  const onOpenEmojiMart = useCallback(() => {
-    adjustPickerPosition();
-    setPickerVisible((visibile) => !visibile);
-  }, [adjustPickerPosition]);
-
-  const onPickEmoji = useCallback((emoji: { native: string }) => {
-    onEmojiPicked(emoji);
-    setPickerVisible(false);
-  }, [onEmojiPicked])
 
   return (
     <div id='custom-toolbar'>
@@ -167,7 +150,7 @@ const CustomToolbar: FC<{ onEmojiPicked: (emoji: { native: string }) => void }> 
         <button id='code-block-button' className='ql-code-block' />
       </span>
       <span className='ql-formats'>
-        <button ref={pickerButtonRef} onClick={onOpenEmojiMart}>
+        <button ref={pickerButtonRef} onClick={onClick}>
           <svg viewBox='0 0 18 18'>
             <circle className='ql-fill' cx='7' cy='7' r='1'></circle>
             <circle className='ql-fill' cx='11' cy='7' r='1'></circle>
@@ -176,22 +159,6 @@ const CustomToolbar: FC<{ onEmojiPicked: (emoji: { native: string }) => void }> 
           </svg>
         </button>
       </span>
-      {pickerVisible && emojiPortalElement &&
-        createPortal(
-          <div
-            ref={pickerRef}
-            style={style}
-            className={cn(classes.emojisPickerWrapper)}
-          >
-            <Picker
-              data={data}
-              previewPosition='none'
-              onEmojiSelect={onPickEmoji}
-            />
-          </div>,
-          emojiPortalElement
-        )
-      }
     </div>
   );
 };
@@ -238,7 +205,27 @@ const UserTextArea: FC<Props> = ({
   }, []);
   const editorRef = useRef<ReactQuill>(null);
 
-  const onEmojiPicked = useCallback((emoji: { native: string }) => {
+  const emojiPortalElement = document.getElementById('emoji-portal');
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [pickerStyle, setPickerStyle] = useState<CSSProperties>({});
+  const pickerRef = useRef<HTMLDivElement>(null);
+  useOnClickOutside(pickerRef, () => setPickerVisible(false));
+
+  const onEmojiButtonClicked = useCallback((button: HTMLButtonElement | null) => {
+    const iconRect = button?.getBoundingClientRect();
+
+    if (iconRect) {
+      setPickerStyle({
+        position: 'absolute',
+        zIndex: 3,
+        top: Math.min(iconRect?.bottom + 5, window.innerHeight - 440),
+        left: iconRect.left - 350
+      });
+      setPickerVisible(true);
+    }
+  }, [])
+
+  const inserEmoji = useCallback((emoji: { native: string }) => {
     const quill = editorRef.current?.editor;
     if (!quill) { return }
     const { index } = quill.getSelection(true);
@@ -247,6 +234,11 @@ const UserTextArea: FC<Props> = ({
     setTimeout(() => quill.setSelection(index + emoji.native.length, 0), 0);
   }, [])
   
+  const onPickEmoji = useCallback((emoji: { native: string }) => {
+    inserEmoji(emoji);
+    setPickerVisible(false);
+  }, [inserEmoji]);
+
   const loadQuillModules = useCallback(async () => {
     await import('quill-mention');
     const Quill = (await import('react-quill')).default.Quill;
@@ -472,8 +464,24 @@ const UserTextArea: FC<Props> = ({
           />
         </div>
       )}
+      {pickerVisible && emojiPortalElement &&
+        createPortal(
+          <div
+            ref={pickerRef}
+            style={pickerStyle}
+            className={cn(classes.emojisPickerWrapper)}
+          >
+            <Picker
+              data={data}
+              previewPosition='none'
+              onEmojiSelect={onPickEmoji}
+            />
+          </div>,
+          emojiPortalElement
+        )
+      }
       <div className={cn('editor', s.editorWrapper)}>
-        <CustomToolbar onEmojiPicked={onEmojiPicked} />
+        <CustomToolbar onEmojiButtonClicked={onEmojiButtonClicked} />
         {editorLoaded && (
           <Editor
             forwardedRef={editorRef}
