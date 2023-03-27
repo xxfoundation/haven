@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext", "es2018.regexp"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -28,6 +28,6 @@
       "@sdk/*": ["sdk-utils/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/quill/constants.js"],
   "exclude": ["node_modules"]
 }
