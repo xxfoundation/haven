@@ -209,4 +209,4 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
   );
 };
 
-export default ChatMessage;
+export default React.memo(ChatMessage);

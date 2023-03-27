@@ -1,6 +1,6 @@
 import type { BaseEmoji } from 'emoji-mart';
 
-import { FC, useCallback, useEffect, useRef, useState, HTMLAttributes, CSSProperties } from 'react';
+import React, { FC, useCallback, useEffect, useRef, useState, HTMLAttributes, CSSProperties } from 'react';
 import data from 'public/integrations/assets/emojiSet.json';
 import Picker from '@emoji-mart/react';
 import cn from 'classnames';
@@ -180,4 +180,4 @@ const MessageActions: FC<Props> = ({
   );
 };
 
-export default MessageActions;
+export default React.memo(MessageActions);

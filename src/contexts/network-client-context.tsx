@@ -26,7 +26,7 @@ import * as channels from 'src/store/channels'
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import * as dms from 'src/store/dms';
-import { ChannelId, ChannelInfo } from 'src/store/channels/types';
+import { ChannelId, Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
@@ -223,6 +223,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
   const allMessagesByChannelId = useAppSelector((state) => state.messages.byChannelId);
+  const currentChannelPages = useAppSelector(channels.selectors.channelPages);
   const currentConversationId = useAppSelector(app.selectors.currentConversationId);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentChannels = useAppSelector(channels.selectors.channels);
@@ -330,7 +331,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       const chanInfo = channelDecoder(chanInfoJson);
 
-      const channel: ChannelInfo = {
+      const channel: Channel = {
         id: chanInfo.channelId,
         name: chanInfo.name,
         privacyLevel: getPrivacyLevel(chanInfo.channelId),
@@ -742,7 +743,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     if (db) {
       const foundChannel = currentChannels.find(ch => ch.id === chId);
       if (foundChannel) {
-        const offset = (foundChannel.currentPage + 1) * BATCH_COUNT;
+        const offset = (currentChannelPages[foundChannel.id] + 1) * BATCH_COUNT;
 
         const newMessages = await db
           .table<DBMessage>('messages')
@@ -763,7 +764,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }
       }
     }
-  }, [db, currentChannels, dispatch, dbMessageMapper]);
+  }, [db, currentChannels, currentChannelPages, dispatch, dbMessageMapper]);
 
   useEffect(() => {
     if (currentChannel?.id !== undefined && pagination.end >= (currentMessages?.length ?? 0) && hasMore) {
@@ -824,7 +825,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
    
         const channelInfo = getChannelInfo(channelPrettyPrint || '') as ChannelJSON;
 
-        const channel: ChannelInfo = {
+        const channel: Channel = {
           id: channelInfo?.channelId,
           name: channelInfo?.name,
           isAdmin: true,

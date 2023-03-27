@@ -6,7 +6,6 @@ import { createSelector } from '@reduxjs/toolkit';
 
 import { currentDirectMessages, dmReactions, currentConversationContributors } from '../dms/selectors';
 
-import { byTimestamp } from '../utils';
 import { currentChannelId } from '../app/selectors';
 
 export const reactions = (state: RootState) => state.messages.reactions;
@@ -17,8 +16,7 @@ export const currentChannelMessages = (state: RootState) => {
     return undefined;
   }
 
-  return Object.values(state.messages.byChannelId[state.app.selectedChannelId] ?? {})
-    .sort(byTimestamp);
+  return state.messages.sortedMessagesByChannelId[state.app.selectedChannelId];
 }
 
 export const reactionsTo = (message: Message) =>

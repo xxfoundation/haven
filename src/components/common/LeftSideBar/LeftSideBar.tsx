@@ -58,6 +58,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
     getVersion,
   } = useNetworkClient();
 
+  const missedMessages = useAppSelector(channels.selectors.missedMessages);
   const allChannels = useAppSelector(channels.selectors.channels);
   const currentChannelId = useAppSelector(app.selectors.currentChannelId);
   const currentConversationId = useAppSelector(app.selectors.currentConversationId);
@@ -144,7 +145,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
                 {...ch}
                 currentId={currentChannelId}
                 onClick={selectChannel(ch.id)}
-                notification={!!ch.hasMissedMessages}
+                notification={!!missedMessages[ch.id]}
                 hasDraft={!!drafts[ch.id]}
               />
             )

@@ -258,3 +258,27 @@
   }
 }
 
+.emoji-completions {
+  max-width: 12rem;
+  display: flex;
+  flex-wrap: wrap;
+  li {
+    border-radius: 5px;
+    padding: 0.25rem 0.6rem;
+    flex-basis: 0 0 24%;
+    margin: 0;
+    text-indent: 0;
+    list-style-type: none;
+    font-size: 1rem;
+
+    &:hover {
+      background-color: var(--dark-3);
+      
+    }
+  }
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+  padding: 0.75rem;
+  background-color: var(--dark-1);
+}
+

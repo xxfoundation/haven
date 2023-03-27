@@ -25,7 +25,7 @@ type Props = {
 const ChannelChat: FC<Props> = ({ messages }) => {
   const { t } = useTranslation();
   const { pagination } = useNetworkClient();
-  const {  reset } = pagination;
+  const { reset } = pagination;
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const joinedChannels = useAppSelector(channels.selectors.channels);
