@@ -7,7 +7,8 @@ import { MessageId, MessageType } from '@types';
 const initialState: MessagesState = {
   reactions: {},
   contributorsByChannelId: {},
-  byChannelId: {}
+  byChannelId: {},
+  sortedMessagesByChannelId: {}
 };
 
 const contributorMapper = (message: Message): Contributor => pick(message, ['nickname', 'timestamp', 'pubkey', 'codeset', 'codename'])
@@ -33,10 +34,25 @@ const contributorsReducer = (state: MessagesState['contributorsByChannelId'], ms
   }
 }
 
+const sortedMessagesReducer = (state: MessagesState['sortedMessagesByChannelId'], msg: Message) => {
+  const messages = state[msg.channelId]?.slice() || []
+  const index = messages.findIndex((m) => new Date(m.timestamp).getTime() >= new Date(msg.timestamp).getTime() || msg.uuid === m.uuid)
+  messages.splice(
+    index === -1 ? messages.length - 1 : index,
+    messages[index]?.uuid === msg.uuid ? 1 : 0,
+    msg
+  );
+  return {
+    ...state,
+    [msg.channelId]: messages
+  };
+}
+
 const upsert = (state: MessagesState, message: Message) => ({
   ...state,
   contributorsByChannelId: contributorsReducer(state.contributorsByChannelId, message),
   reactions: reactionsReducer(state.reactions, message),
+  sortedMessagesByChannelId: sortedMessagesReducer(state.sortedMessagesByChannelId, message),
   ...(message.type !== MessageType.Reaction && !message.hidden && {
       byChannelId: {
       ...state.byChannelId,
