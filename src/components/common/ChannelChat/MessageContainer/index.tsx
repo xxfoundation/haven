@@ -115,7 +115,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
             onConfirm={pinSelectedMessage}
             onCancel={hidePinModal} />
         )}
-        {message.status !== MessageStatus.Unsent && (
+        {message.status === MessageStatus.Delivered && (
           <div className={classes.container}>
             <MessageActions
               pubkey={message.pubkey}
