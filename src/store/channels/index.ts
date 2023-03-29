@@ -55,7 +55,8 @@ export const slice = createSlice({
     delete: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
       return {
         ...state,
-        byId: pickBy(state.byId, ({ id }) => id !== channelId)
+        byId: pickBy(state.byId, ({ id }) => id !== channelId),
+        sortedChannels: state.sortedChannels.filter((ch) => ch.id !== channelId)
       }
     },
     dismissNewMessagesNotification: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
