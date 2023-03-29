@@ -170,7 +170,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
         <div className={cn(s.version)}>
           {getClientVersion() && <span>{t('XXDK version {{version}}', { version: getClientVersion() })}</span>}
           {getVersion() && <span>{t('Wasm version {{version}}', { version: getVersion() })}</span>}
-          <span>{t('App version {{version}}', { version: '0.3.3' })}</span>
+          <span>{t('App version {{version}}', { version: process.env.NEXT_PUBLIC_APP_VERSION })}</span>
         </div>
       </div>
     </div>
