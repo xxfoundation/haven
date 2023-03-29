@@ -936,13 +936,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
 
   const deleteMessage = useCallback(async ({ channelId, id }: Pick<Message, 'channelId' | 'id'>) => {
-    const lol = await channelManager?.DeleteMessage(
+    await channelManager?.DeleteMessage(
       utils.Base64ToUint8Array(channelId),
       utils.Base64ToUint8Array(id),
       utils.GetDefaultCMixParams()
     );
-
-    console.log(lol, channelId, id);
 
     dispatch(messages.actions.delete(id));
   }, [channelManager, dispatch, utils]);
