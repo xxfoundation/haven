@@ -968,8 +968,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         await dmClient.SendReaction(
           utils.Base64ToUint8Array(currentConversationId),
           currentConversation.token,
-          utils.Base64ToUint8Array(reactToMessageId),
           reaction,
+          utils.Base64ToUint8Array(reactToMessageId),
           new Uint8Array()
         );
       } catch (error) {
