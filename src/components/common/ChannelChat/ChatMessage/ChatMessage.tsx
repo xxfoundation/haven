@@ -115,7 +115,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
           <span className={cn(s.messageTimestamp)}>
             {moment(message.timestamp).format('hh:mm A')}
           </span>
-          {message.status === MessageStatus.Unsent && (
+          {message.status === MessageStatus.Unsent || message.status === MessageStatus.Sent && (
             <Spinner size='xs' />
           )}
           {message.round !== 0 && (
