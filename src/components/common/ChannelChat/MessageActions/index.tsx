@@ -1,7 +1,7 @@
 import type { BaseEmoji } from 'emoji-mart';
 
 import React, { FC, useCallback, useEffect, useRef, useState, HTMLAttributes, CSSProperties } from 'react';
-import data from '@emoji-mart/data';
+import data from 'public/integrations/assets/emojiSet.json';
 import Picker from '@emoji-mart/react';
 import cn from 'classnames';
 

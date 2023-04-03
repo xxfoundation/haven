@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Quill, { DeltaStatic, RangeStatic, Sources } from 'quill';
 import Fuse from 'fuse.js';
-import emojiMap from '@emoji-mart/data';
+import emojiMap from '../../public/integrations/assets/emojiSet.json';
 
 const allEmojiKeys = Object.keys(emojiMap.emojis);
 
