@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import Picker from '@emoji-mart/react';
 
-import emojiMap from '@emoji-mart/data';
+import data from 'public/integrations/assets/emojiSet.json';
 import { Close } from 'src/components/icons';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
@@ -472,7 +472,7 @@ const UserTextArea: FC<Props> = ({
             className={cn(classes.emojisPickerWrapper)}
           >
             <Picker
-              data={emojiMap}
+              data={data}
               previewPosition='none'
               onEmojiSelect={onPickEmoji}
             />
