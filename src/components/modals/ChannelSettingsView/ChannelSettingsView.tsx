@@ -49,7 +49,6 @@ const ChannelSettingsView: FC = () => {
         <h2 className='mt-9 mb-8'>
           {t('Channel Settings')}</h2>
         <div className={s.wrapper}>
-
           <div>
             <h3 className='headline--sm'>
               {t('Enable Direct Messages')}

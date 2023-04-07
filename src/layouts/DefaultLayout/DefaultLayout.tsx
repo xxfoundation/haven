@@ -9,7 +9,7 @@ import Modal from 'src/components/modals/Modal';
 import { ModalViews, useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { PrivacyLevel } from 'src/contexts/utils-context';
 import AuthenticationUI from './AuthenticationUI';
 import NotificationBanner from 'src/components/common/NotificationBanner';
 
@@ -39,6 +39,8 @@ import SecretModal from './SecretModal';
 import useToggle from 'src/hooks/useToggle';
 import ConnectingDimmer from './ConnectingDimmer';
 import UserInfoDrawer from '@components/common/UserInfoDrawer';
+import AccountSyncView from '@components/modals/AccountSync';
+import useAccountSync from 'src/hooks/useAccountSync';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -47,6 +49,7 @@ const AuthenticatedUserModals: FC = () => {
   const modalClass = modalView?.toLowerCase().replace(/_/g, '-');
 
   const modals = useMemo<ModalMap>(() => ({
+    ACCOUNT_SYNC: <AccountSyncView />,
     CLAIM_ADMIN_KEYS: <ClaimAdminKeys />,
     EXPORT_CODENAME:  <ExportCodenameView />,
     EXPORT_ADMIN_KEYS: <ExportAdminKeys />,
@@ -67,7 +70,9 @@ const AuthenticatedUserModals: FC = () => {
   }), []);
 
   return displayModal && modalView && modalView !== 'IMPORT_CODENAME' ? (
-    <Modal className={s[modalClass]} onClose={closeModal}>
+    <Modal
+      closeable={modalView === 'ACCOUNT_SYNC' ? false : true}
+      className={s[modalClass]} onClose={closeModal}>
       {modals[modalView]}
     </Modal>
   ) : null;
@@ -76,9 +81,9 @@ const AuthenticatedUserModals: FC = () => {
 const DefaultLayout: FC<WithChildren> = ({
   children,
 }) => {
+  useAccountSync();
   const router = useRouter();
   const { isAuthenticated, storageTag } = useAuthentication();
-  const { utilsLoaded } = useUtils();
   const {
     cmix,
     getShareUrlType,
@@ -136,24 +141,20 @@ const DefaultLayout: FC<WithChildren> = ({
       <UpdatesModal />
       <SecretModal />
       <div className={cn(s.root, { [s.collapsed]: rightSideCollapsed } )}>
-        {utilsLoaded ? (
-          isAuthenticated ? (
-            <>
-              <ConnectingDimmer />
-              <UserInfoDrawer />
-              <LeftSideBar cssClasses={s.leftSideBar} />
-              <main>{children}</main>
-              <RightSideBar
-                collapsed={rightSideCollapsed}
-                onToggle={toggle}
-                cssClasses={s.rightSideBar} />
-              <AuthenticatedUserModals />
-            </>
-          ) : (
-            <AuthenticationUI />
-          )
+        {isAuthenticated ? (
+          <>
+            <ConnectingDimmer />
+            <UserInfoDrawer />
+            <LeftSideBar cssClasses={s.leftSideBar} />
+            <main>{children}</main>
+            <RightSideBar
+              collapsed={rightSideCollapsed}
+              onToggle={toggle}
+              cssClasses={s.rightSideBar} />
+            <AuthenticatedUserModals />
+          </>
         ) : (
-          null
+          <AuthenticationUI />
         )}
       </div>
     </>
