@@ -3,7 +3,7 @@ import { FC, ButtonHTMLAttributes } from 'react';
 import { Button } from 'src/components/common';
 
 interface IModalCtaButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  buttonCopy: string;
+  buttonCopy: React.ReactNode;
   cssClass?: string;
 }
 const ModalCtaButton: FC<IModalCtaButtonProps> = ({
