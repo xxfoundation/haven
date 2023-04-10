@@ -1,7 +1,7 @@
 import type { CMix, DummyTraffic } from 'src/types';
 
 import { useUtils } from '@contexts/utils-context';
-import { decoder } from '@utils/index';
+import { encoder, decoder } from '@utils/index';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DUMMY_TRAFFIC_ARGS, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
 import { ndf } from 'src/sdk-utils/ndf';
@@ -51,10 +51,13 @@ const useCmix = () => {
   
   const loadCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
     try {
+      const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams()))
+      params.Network.EnableEphemeralRegistration = true
+      console.error('params:',params)
       await utils.LoadCmix(
         STATE_PATH,
         decryptedInternalPassword,
-        utils.GetDefaultCMixParams()
+        encoder.encode(JSON.stringify(params))
       ).then((loadedCmix) => {
         createDatabaseCipher(loadedCmix.GetID(), decryptedInternalPassword);
         setCmix(loadedCmix);
