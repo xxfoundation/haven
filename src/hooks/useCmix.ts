@@ -52,7 +52,7 @@ const useCmix = () => {
   const loadCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
     try {
       const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams()))
-      params.Network.EnableEphemeralRegistration = true
+      params.Network.EnableImmediateSending = true
       console.error('params:',params)
       await utils.LoadCmix(
         STATE_PATH,
