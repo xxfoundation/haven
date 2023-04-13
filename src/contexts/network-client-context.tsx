@@ -716,6 +716,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         cmix.GetID(),
         CHANNELS_WORKER_JS_PATH,
         privIdentity,
+        new Uint8Array,
         onMessageReceived,
         onMessageDelete,
         onMutedUser,
