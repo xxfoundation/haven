@@ -33,6 +33,7 @@ export type XXDKUtils = {
     cmixId: number,
     wasmJsPath: string,
     privateIdentity: Uint8Array,
+    extensionBuilderIDsJSON: Uint8Array,
     onMessage: MessageReceivedCallback,
     onDelete: MessageDeletedCallback,
     onMuted: UserMutedCallback,
