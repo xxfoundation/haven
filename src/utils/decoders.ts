@@ -4,7 +4,7 @@ import { Err, JsonDecoder } from 'ts.data.json';
 export const makeDecoder = <T>(decoder: JsonDecoder.Decoder<T>) => (thing: unknown): T => {
   const result = decoder.decode(thing);
   if (result instanceof Err) {
-    throw new Error(result.error);
+    throw new Error(`Unexpected JSON: ${JSON.stringify(thing)}, Error: ${result.error}`);
   } else {
     return result.value;
   }
@@ -13,7 +13,7 @@ export const makeDecoder = <T>(decoder: JsonDecoder.Decoder<T>) => (thing: unkno
 export const channelDecoder = makeDecoder(JsonDecoder.object<ChannelJSON>(
   {
     receptionId: JsonDecoder.optional(JsonDecoder.string),
-    channelId: JsonDecoder.string,
+    channelId: JsonDecoder.optional(JsonDecoder.string),
     name: JsonDecoder.string,
     description: JsonDecoder.string,
   },

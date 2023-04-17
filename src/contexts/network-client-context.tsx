@@ -57,7 +57,7 @@ export type ChannelManager = {
   AreDMsEnabled: (channelId: Uint8Array) => boolean;
   DisableDirectMessages: (channelId: Uint8Array) => void;
   EnableDirectMessages: (channelId: Uint8Array) => void;
-  JoinChannel: (channelId: string) => Promise<Uint8Array>;
+  JoinChannel: (prettyPrint: string) => Promise<Uint8Array>;
   LeaveChannel: (channelId: Uint8Array) => Promise<void>;
   GetMutedUsers: (channelId: Uint8Array) => Uint8Array;
   Muted: (channelId: Uint8Array) => boolean;
@@ -330,6 +330,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       );
 
       const chanInfo = channelDecoder(chanInfoJson);
+      if (chanInfo.channelId === undefined) {
+        throw new Error('ChannelID was not found');
+      }
 
       const channel: Channel = {
         id: chanInfo.channelId,
@@ -785,7 +788,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           decoder.decode(channelManager.JoinChannelFromURL(url, password))
         ));
 
-        if (chanInfo) {
+        if (chanInfo && chanInfo?.channelId) {
           dispatch(channels.actions.upsert({
             id: chanInfo?.channelId,
             name: chanInfo?.name,
@@ -825,6 +828,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
    
         const channelInfo = getChannelInfo(channelPrettyPrint || '') as ChannelJSON;
 
+        if (channelInfo.channelId === undefined) {
+          throw new Error('ChannelID was not found');
+        }
+  
         const channel: Channel = {
           id: channelInfo?.channelId,
           name: channelInfo?.name,
