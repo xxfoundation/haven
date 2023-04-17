@@ -13,7 +13,7 @@ export type IdentityJSON = {
 
 export type ChannelJSON = {
   receptionId?: string;
-  channelId: string;
+  channelId?: string;
   name: string;
   description: string;
 }
