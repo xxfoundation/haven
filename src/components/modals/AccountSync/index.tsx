@@ -3,7 +3,6 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCloud, faSync } from '@fortawesome/free-solid-svg-icons';
-import { faDropbox } from '@fortawesome/free-brands-svg-icons';
 import { useLocalStorage } from 'usehooks-ts';
 
 import { ModalCtaButton } from '@components/common';
@@ -11,6 +10,7 @@ import { useUI } from '@contexts/ui-context';
 import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE } from 'src/constants';
 import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 import GoogleButton from './GoogleButton';
+import DropboxButton from './DropboxButton';
 
 import s from './styles.module.scss';
 
@@ -23,7 +23,6 @@ const AccountSyncView: FC = () => {
     setAccountSyncStatus(AccountSyncStatus.Ignore);
     closeModal();
   }, [closeModal, setAccountSyncStatus]);
-
 
   return (
     <div
@@ -45,8 +44,7 @@ const AccountSyncView: FC = () => {
       </p>
       <p style={{ color: 'var(--orange)'}}>
         <strong>Warning!</strong> Once you choose a cloud provider you will
-        not be able to change to another service or revert to local-only with the
-        current feature set of this app.
+        not be able to change to another service or revert to local-only.
       </p>
       <div className='space-x-6 space-y-4'>
         <GoogleButton onSync={() => {
@@ -54,13 +52,11 @@ const AccountSyncView: FC = () => {
           setAccountSyncService(AccountSyncService.Google);
           closeModal();
         }} />
-        <ModalCtaButton
-          buttonCopy={<>
-          <FontAwesomeIcon icon={faDropbox} />
-          &nbsp;
-            {t('Dropbox')}
-          </>}
-        />
+        <DropboxButton onSync={() => {
+          setAccountSyncStatus(AccountSyncStatus.Synced);
+          setAccountSyncService(AccountSyncService.Dropbox);
+          closeModal();
+        }}  />
         <ModalCtaButton
           style={{ borderColor: 'var(--orange)', color: 'white' }}
           buttonCopy={t('Local-only')}

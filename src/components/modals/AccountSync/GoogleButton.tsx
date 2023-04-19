@@ -16,7 +16,6 @@ declare global {
   }
 }
 
-
 type Props = {
   onSync: () => void;
 }
@@ -89,8 +88,6 @@ const GoogleButton: FC<Props>  = ({ }) => {
     })
     
   }, [accessToken]);
-
-
 
   useEffect(() => {
     if (drive) {
