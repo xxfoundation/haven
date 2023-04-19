@@ -15,7 +15,7 @@ import { WithChildren } from 'src/types';
 import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
-import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH, CHANNELS_WORKER_JS_PATH } from '../constants';
+import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH, CHANNELS_WORKER_JS_PATH, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
 import useNotification from 'src/hooks/useNotification';
 import { useDb } from './db-context';
 import useCmix from 'src/hooks/useCmix';
@@ -57,7 +57,7 @@ export type ChannelManager = {
   AreDMsEnabled: (channelId: Uint8Array) => boolean;
   DisableDirectMessages: (channelId: Uint8Array) => void;
   EnableDirectMessages: (channelId: Uint8Array) => void;
-  JoinChannel: (channelId: string) => Promise<Uint8Array>;
+  JoinChannel: (prettyPrint: string) => Promise<Uint8Array>;
   LeaveChannel: (channelId: Uint8Array) => Promise<void>;
   GetMutedUsers: (channelId: Uint8Array) => Uint8Array;
   Muted: (channelId: Uint8Array) => boolean;
@@ -330,6 +330,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       );
 
       const chanInfo = channelDecoder(chanInfoJson);
+      if (chanInfo.channelId === undefined) {
+        throw new Error('ChannelID was not found');
+      }
 
       const channel: Channel = {
         id: chanInfo.channelId,
@@ -786,7 +789,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           decoder.decode(channelManager.JoinChannelFromURL(url, password))
         ));
 
-        if (chanInfo) {
+        if (chanInfo && chanInfo?.channelId) {
           dispatch(channels.actions.upsert({
             id: chanInfo?.channelId,
             name: chanInfo?.name,
@@ -826,6 +829,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
    
         const channelInfo = getChannelInfo(channelPrettyPrint || '') as ChannelJSON;
 
+        if (channelInfo.channelId === undefined) {
+          throw new Error('ChannelID was not found');
+        }
+  
         const channel: Channel = {
           id: channelInfo?.channelId,
           name: channelInfo?.name,
@@ -1107,7 +1114,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return new Promise<void>((resolve) => {
       const intervalId = setInterval(() => {
         if (cmix) {
-          const isReadyInfo = isReadyInfoDecoder(JSON.parse(decoder.decode(cmix?.IsReady(0.7))));
+          const isReadyInfo = isReadyInfoDecoder(
+            JSON.parse(
+              decoder.decode(
+                cmix?.IsReady(
+                  CMIX_NETWORK_READINESS_THRESHOLD
+                )
+              )
+            )
+          );
 
           onIsReadyInfoChange(isReadyInfo);
           if (isReadyInfo.isReady) {
