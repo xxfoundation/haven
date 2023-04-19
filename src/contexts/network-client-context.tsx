@@ -15,7 +15,7 @@ import { WithChildren } from 'src/types';
 import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
-import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH, CHANNELS_WORKER_JS_PATH } from '../constants';
+import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH, CHANNELS_WORKER_JS_PATH, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
 import useNotification from 'src/hooks/useNotification';
 import { useDb } from './db-context';
 import useCmix from 'src/hooks/useCmix';
@@ -1113,7 +1113,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return new Promise<void>((resolve) => {
       const intervalId = setInterval(() => {
         if (cmix) {
-          const isReadyInfo = isReadyInfoDecoder(JSON.parse(decoder.decode(cmix?.IsReady(0.7))));
+          const isReadyInfo = isReadyInfoDecoder(
+            JSON.parse(
+              decoder.decode(
+                cmix?.IsReady(
+                  CMIX_NETWORK_READINESS_THRESHOLD
+                )
+              )
+            )
+          );
 
           onIsReadyInfoChange(isReadyInfo);
           if (isReadyInfo.isReady) {
