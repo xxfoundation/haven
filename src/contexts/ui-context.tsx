@@ -19,7 +19,8 @@ export type ModalViews =
   | 'VIEW_PINNED_MESSAGES'
   | 'VIEW_MUTED_USERS'
   | 'EXPORT_ADMIN_KEYS'
-  | 'CLAIM_ADMIN_KEYS';
+  | 'CLAIM_ADMIN_KEYS'
+  | 'ACCOUNT_SYNC';
 
 export interface State {
   displayModal: boolean;

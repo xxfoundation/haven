@@ -1,6 +1,7 @@
 import type { WithChildren } from 'src/types';
 import React, { FC, useEffect, useState } from 'react';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { NextSeo } from 'next-seo';
 import { AppProps } from 'next/app';
 import Head from 'next/head';
@@ -112,32 +113,36 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
           <link rel='icon' href='/favicon.svg' />
         </Head>
         <SEO />
-        <DBProvider>
-          <Provider store={store}>
-            <UtilsProvider>
-              <ManagedAuthenticationContext>
-                <ManagedNetworkContext>
-                  <ManagedUIContext>
-                    <WebAssemblyRunner>
-                      {!skipDuplicateTabCheck &&
-                      isDuplicatedWindow(15000, 10000, 'MyApp') ? (
-                        <WarningComponent>
-                          {t('Speakeasy can only run with one tab/window at a time.')}
-                          <br />
-                          {t('Return to your Speakeasy home tab to continue.')}
-                        </WarningComponent>
-                      ) : (
-                        <Layout pageProps={{ ...pageProps }}>
-                          <Component {...pageProps} />
-                        </Layout>
-                      )}
-                    </WebAssemblyRunner>
-                  </ManagedUIContext>
-                </ManagedNetworkContext>
-              </ManagedAuthenticationContext>
-            </UtilsProvider>
-          </Provider>
-        </DBProvider>
+        <GoogleOAuthProvider
+          clientId={process.env.NEXT_PUBLIC_APP_GOOGLE_DRIVE_CLIENT_ID ?? ''}
+        >
+          <DBProvider>
+            <Provider store={store}>
+              <UtilsProvider>
+                <ManagedAuthenticationContext>
+                  <ManagedNetworkContext>
+                    <ManagedUIContext>
+                      <WebAssemblyRunner>
+                        {!skipDuplicateTabCheck &&
+                        isDuplicatedWindow(15000, 10000, 'MyApp') ? (
+                          <WarningComponent>
+                            {t('Speakeasy can only run with one tab/window at a time.')}
+                            <br />
+                            {t('Return to your Speakeasy home tab to continue.')}
+                          </WarningComponent>
+                        ) : (
+                          <Layout pageProps={{ ...pageProps }}>
+                            <Component {...pageProps} />
+                          </Layout>
+                        )}
+                      </WebAssemblyRunner>
+                    </ManagedUIContext>
+                  </ManagedNetworkContext>
+                </ManagedAuthenticationContext>
+              </UtilsProvider>
+            </Provider>
+          </DBProvider>
+        </GoogleOAuthProvider>
       </ErrorBoundary>
     );
   } else {
