@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useCallback } from 'react';
 import s from './JoinChannelView.module.scss';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
@@ -29,7 +29,7 @@ const JoinChannelView: FC = () => {
     };
   }, [channelInviteLink?.length, setChannelInviteLink]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (url.length === 0) {
       return;
     }
@@ -44,18 +44,15 @@ const JoinChannelView: FC = () => {
           setUrl('');
           closeModal();
         } catch (e) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           console.error((e as Error).message);
           setError(t('Something wrong happened, please check your details.'));
         }
-      } else if (res === 2) {
+      } else if (res === PrivacyLevel.Secret) {
         // Secret then needs to capture password
         setNeedPassword(true);
         return;
-      } else if (res === 1) {
-        // Private channel
       } else {
-        setError(t('Something wrong happened, please check your details.'));
+        setError(t('Unexpected channel type.'));
       }
     } else {
       if (url && password) {
@@ -72,7 +69,7 @@ const JoinChannelView: FC = () => {
         }
       }
     }
-  };
+  }, [closeModal, dmsEnabled, getShareUrlType, joinChannel, needPassword, password, t, url, utils]);
 
   return (
     <div
