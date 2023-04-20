@@ -1,18 +1,30 @@
 import type { RootState } from 'src/store/types';
 import type { Contributor } from 'src/types';
 
-import { pick } from 'lodash';
+import { pick, sortBy } from 'lodash';
 import { createSelector, Selector } from '@reduxjs/toolkit';
 
 import { Conversation } from './types';
 import { identity } from '../identity/selectors';
-import { currentConversationId } from '../app/selectors';
+import { channelFavorites, channelsSearch, currentConversationId } from '../app/selectors';
 
 export const dmNickname = (state: RootState) => state.dms.nickname;
 export const currentConversation = (state: RootState): Conversation | null => state.dms.conversationsByPubkey[state.app.selectedConversationId ?? ''] || null;
 export const conversations = (state: RootState) => Object.values(state.dms.conversationsByPubkey);
 export const allDms = (state: RootState) => state.dms.messagesByPubkey;
 export const dmReactions = (state: RootState) => state.dms.reactions;
+
+export const searchFilteredConversations = createSelector(
+  conversations,
+  channelsSearch,
+  channelFavorites,
+  (convos, search, favorites) => {
+    const sorted = sortBy(convos, (c) => (c.nickname ?? '').concat(c.codename.toLocaleLowerCase()), ['asc']);
+    const filtered = sorted.filter((c) => c.codename.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+    
+    return sortBy(filtered, (c) => favorites.includes(c.pubkey) ? 0 : 1)
+  }
+)
 
 export const currentDirectMessages = createSelector(
   currentConversationId,
@@ -34,7 +46,7 @@ export const newDmsNotifications = (state: RootState) => Object.keys(state.dms.c
 export const currentConversationContributors: Selector<RootState, Contributor[]> = createSelector(
   currentConversation,
   identity,
-  (conversation, userIdentity) => conversation ? [
+  (conversation, userIdentity) => conversation && userIdentity ? [
     {
       ...pick(userIdentity, ['pubkey', 'codeset', 'codename']),
       timestamp: '1970-01-01', // doesnt matter here because user is always first

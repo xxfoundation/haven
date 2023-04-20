@@ -22,7 +22,7 @@ type Props = {
 
 const bus = new EventEmitter();
 
-const GoogleButton: FC<Props>  = ({ }) => {
+const GoogleButton: FC<Props>  = () => {
   const { gapi } = useGoogleApi();
   const [accessToken, setAccessToken] = useState<string>();
   const { t } = useTranslation();
@@ -93,6 +93,7 @@ const GoogleButton: FC<Props>  = ({ }) => {
     if (drive) {
       uploadBinaryFile('test/balls', new Uint8Array([1,2,3,4])).then(() => {
         getBinaryFile('test/balls').then((file) => {
+          // eslint-disable-next-line no-console
           console.log('Google File:', file);
         });
       })

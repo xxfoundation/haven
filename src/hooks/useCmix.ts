@@ -53,7 +53,6 @@ const useCmix = () => {
     try {
       const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams()))
       params.Network.EnableImmediateSending = true
-      console.error('params:',params)
       await utils.LoadCmix(
         STATE_PATH,
         decryptedInternalPassword,

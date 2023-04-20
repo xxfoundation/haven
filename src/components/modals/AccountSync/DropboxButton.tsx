@@ -12,7 +12,7 @@ type Props = {
   onSync: () => void;
 }
 
-const DropboxButton: FC<Props> = ({ onSync }) => {
+const DropboxButton: FC<Props> = () => {
   const [dropbox, setDropbox] = useState<Dropbox>();
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const { t } = useTranslation();
@@ -66,6 +66,7 @@ const DropboxButton: FC<Props> = ({ onSync }) => {
     if (dropbox) {
       uploadBinaryFile('/test/balls', new Uint8Array([1,2,3,4])).then(() => {
         getBinaryFile('/test/balls').then((file) => {
+          // eslint-disable-next-line no-console
           console.log('Dropbox File:', file);
         });
       })

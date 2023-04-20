@@ -6,7 +6,7 @@ import { createSelector } from '@reduxjs/toolkit';
 
 import { currentDirectMessages, dmReactions, currentConversationContributors } from '../dms/selectors';
 
-import { currentChannelId } from '../app/selectors';
+import { contributorsSearch, currentChannelId } from '../app/selectors';
 
 export const reactions = (state: RootState) => state.messages.reactions;
 export const contributors = (state: RootState) => state.messages.contributorsByChannelId;
@@ -53,6 +53,16 @@ export const currentChannelContributors = createSelector(
 export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 'codeset' | 'codename' | 'nickname'>[] = createSelector(
   currentChannelContributors,
   currentConversationContributors,
-  (channelContributors, conversationContributors) =>  channelContributors.concat(conversationContributors)
+  contributorsSearch,
+  (channelContributors, conversationContributors, search) => {
+    // eslint-disable-next-line no-console
+    console.log(channelContributors, conversationContributors, search);
+    return channelContributors
+      .concat(conversationContributors)
+      .filter((c) =>
+        c.codename.toLocaleLowerCase().includes(search.toLocaleLowerCase())
+        || c.nickname?.toLocaleLowerCase().includes(search.toLocaleLowerCase())
+      )
+  }
 );
  
