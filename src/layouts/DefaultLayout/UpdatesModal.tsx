@@ -23,7 +23,7 @@ const UpdatesModal = () => {
         </li>
       </ul>
       <div className='text-center'>
-        <Button onClick={() => setShowModal(false)}>Gotcha.</Button>
+        <Button onClick={() => setShowModal(false)}>Roger that.</Button>
       </div>
     </Modal>
   ) : null;

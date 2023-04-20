@@ -166,6 +166,12 @@
 
 .ql-editor {
   padding: 0.5rem 0.5rem;
+
+  .emoji {
+    display: inline-block;
+    vertical-align: text-top;
+  }
+  
   ul li::before {
     display: none;
   }
