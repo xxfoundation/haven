@@ -55,8 +55,6 @@ export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 
   currentConversationContributors,
   contributorsSearch,
   (channelContributors, conversationContributors, search) => {
-    // eslint-disable-next-line no-console
-    console.log(channelContributors, conversationContributors, search);
     return channelContributors
       .concat(conversationContributors)
       .filter((c) =>
