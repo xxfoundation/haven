@@ -63,6 +63,7 @@
     "react-tooltip": "^5.7.4",
     "react-use-measure": "^2.1.1",
     "redux": "^4.2.0",
+    "redux-localstorage": "^0.4.1",
     "sass": "^1.54.8",
     "tailwindcss": "^3.1.8",
     "ts.data.json": "^2.2.0",

@@ -3,13 +3,16 @@ import type { Channel } from 'src/store/channels/types';
 import React, { FC, useCallback, useMemo } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faStar } from '@fortawesome/free-solid-svg-icons';
 
 import { PrivacyLevel } from 'src/contexts/utils-context';
 import Ellipsis from '@components/icons/Ellipsis';
 import Share from '@components/icons/Share';
 import { useUI } from '@contexts/ui-context';
-import { useAppSelector } from 'src/store/hooks';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
+import * as app from 'src/store/app';
 
 import s from './styles.module.scss';
 
@@ -25,7 +28,11 @@ const ChannelHeader: FC<Props> = ({
   privacyLevel
 }) => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const currentConversationId = useAppSelector(app.selectors.currentConversationId);
+  const channelId = currentChannel?.id || currentConversationId;
+  const isFavorite = useAppSelector(app.selectors.isChannelFavorited(channelId ?? ''))
   const { openModal, setModalView } = useUI();
   const openShareModal = useCallback(() => {
     if (currentChannel) {
@@ -40,6 +47,12 @@ const ChannelHeader: FC<Props> = ({
       openModal();
     }
   }, [currentChannel, openModal, setModalView]);
+
+  const toggleFavorite = useCallback(() => {
+    if (channelId && channelId !== undefined) {
+      dispatch(app.actions.toggleFavorite(channelId))
+    }
+  }, [channelId, dispatch])
 
   const privacyLevelLabels: Record<PrivacyLevel, string> = useMemo(() => ({
     [PrivacyLevel.Private]: t('Private'),
@@ -80,6 +93,9 @@ const ChannelHeader: FC<Props> = ({
           </span>
         </div>
         <div className='flex space-x-2 mt-1'>
+          <FontAwesomeIcon
+            onClick={toggleFavorite}
+            className={cn(s.icon, isFavorite ? s.gold : s.grey )} icon={faStar} />
           {currentChannel && (
             <>
               <Share
@@ -88,7 +104,6 @@ const ChannelHeader: FC<Props> = ({
               <Ellipsis onClick={openChannelSettings} className={s.icon} />
             </>
           )}
-          
         </div>
       </div>
       <p>

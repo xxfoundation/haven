@@ -74,6 +74,7 @@ export const slice = createSlice({
       return {
         ...state,
         byId: filtered,
+        sortedChannels: state.sortedChannels.filter((ch) => ch.id !== channelId)
       }
       
     },

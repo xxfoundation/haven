@@ -8,12 +8,29 @@ const initialState: AppState = {
   selectedConversationId: null,
   selectedUserPubkey: null,
   messageDraftsByChannelId: {},
+  channelsSearch: '',
+  contributorsSearch: '',
+  channelFavorites: [],
 };
 
 const slice = createSlice({
   name: 'app',
   initialState,
   reducers: {
+    toggleFavorite: (state: AppState, { payload: channelId }: PayloadAction<ChannelId>) => ({
+      ...state,
+      channelFavorites: state.channelFavorites.includes(channelId)
+        ? state.channelFavorites.filter((f) => f !== channelId)
+        : state.channelFavorites.concat(channelId)
+    }),
+    updateContributorsSearch: (state: AppState, { payload: contributorsSearch }: PayloadAction<string>) => ({
+      ...state,
+      contributorsSearch,
+    }),
+    updateChannelsSearch: (state: AppState, { payload: channelsSearch }: PayloadAction<string>) => ({
+      ...state,
+      channelsSearch
+    }),
     selectChannel: (state: AppState, { payload: channelId }: PayloadAction<ChannelId>) => ({
       ...state,
       selectedChannelId: channelId,

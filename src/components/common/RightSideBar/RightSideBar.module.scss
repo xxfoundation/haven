@@ -92,3 +92,24 @@
     display: inline;
   }
 }
+
+.search {
+  position: relative;
+  margin-bottom: 0.5rem;
+
+  input {
+    border-radius: 5px;
+    width: 100%;
+    display: block;
+    background-color: var(--dark-6);
+    padding: 0.25rem 0.5rem;
+
+    &::placeholder {
+      font-size: 12px;
+    }
+
+    &:focus-visible {
+      outline: none;
+    }
+  }
+}
