@@ -12,17 +12,18 @@ const UpdatesModal = () => {
       <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>
-         😜 Emoji toolbar button
+         ⭐ Favoriting channels or dms
         </li>
         <li className='text-center'>
-          🤙 Emoji codes such as :+1: will have autocomplete.
+         🔍 You can now search through your channels, dms, or contributors.
         </li>
         <li className='text-center'>
-         🪳 Input lag introduced in 0.3.2 is now fixed.
+         👨‍🦳 App state now persists, meaning it remembers your message drafts
+         and which channel you were on when you reload.
         </li>
       </ul>
       <div className='text-center'>
-        <Button onClick={() => setShowModal(false)}>Boom boom pow.</Button>
+        <Button onClick={() => setShowModal(false)}>Gotcha.</Button>
       </div>
     </Modal>
   ) : null;
