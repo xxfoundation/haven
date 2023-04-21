@@ -434,7 +434,6 @@ const UserTextArea: FC<Props> = ({
   }), [ctrlOrCmd]);
 
   const formats = useMemo(() => [
-    'header',
     'bold', 'italic', 'underline', 'strike', 'blockquote',
     'list', 'bullet',
     'link',
