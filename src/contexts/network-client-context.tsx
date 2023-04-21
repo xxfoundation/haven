@@ -224,7 +224,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
   const allMessagesByChannelId = useAppSelector((state) => state.messages.byChannelId);
   const currentChannelPages = useAppSelector(channels.selectors.channelPages);
-  const currentConversationId = useAppSelector(app.selectors.currentConversationId);
+  const currentConversationId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentChannels = useAppSelector(channels.selectors.channels);
   const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);

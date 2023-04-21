@@ -23,7 +23,7 @@ const ChatReactions: FC<Props> = ({ message }) => {
   const { t } = useTranslation();
   const { deleteMessage, sendReaction } = useNetworkClient();
   const userPubkey = useAppSelector(identity.selectors.identity)?.pubkey;
-  const currentChannelId = useAppSelector(app.selectors.currentChannelId);
+  const currentChannelId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const reactions = useAppSelector(messages.selectors.reactionsTo(message));
   const id = useMemo(() => uniqueId(), []);
 

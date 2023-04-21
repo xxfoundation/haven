@@ -70,9 +70,8 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   } = useNetworkClient();
 
   const channelFavorites = useAppSelector(app.selectors.channelFavorites);
-  const currentChannelId = useAppSelector(app.selectors.currentChannelId);
+  const currentId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const channelsSearch = useAppSelector(app.selectors.channelsSearch);
-  const currentConversationId = useAppSelector(app.selectors.currentConversationId);
   const drafts = useAppSelector((state) => state.app.messageDraftsByChannelId);
   const missedMessages = useAppSelector(channels.selectors.missedMessages);
   const allChannels = useAppSelector(channels.selectors.searchFilteredChannels);
@@ -164,7 +163,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
                   key={ch.id}
                   {...ch}
                   isFavorite={channelFavorites.includes(ch.id)}
-                  currentId={currentChannelId}
+                  currentId={currentId}
                   onClick={selectChannel(ch.id)}
                   notification={!!missedMessages[ch.id]}
                   hasDraft={!!drafts[ch.id]}
@@ -178,7 +177,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
             <ChannelListItem
               key={c.pubkey}
               id={c.pubkey}
-              currentId={currentConversationId}
+              currentId={currentId}
               isFavorite={channelFavorites.includes(c.pubkey)}
               onClick={selectDm(c.pubkey)}
               name={<Identity {...c} />}
