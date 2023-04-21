@@ -9,7 +9,7 @@ export const MAXIMUM_PAYLOAD_BLOCK_SIZE = 725;
 export const CHANNELS_WORKER_JS_PATH = '/integrations/assets/channelsIndexedDbWorker.js';
 export const DMS_WORKER_JS_PATH = '/integrations/assets/dmIndexedDbWorker.js';
 export const MESSAGE_LEASE = 30000;
-export const CMIX_NETWORK_READINESS_THRESHOLD = 0.25;
+export const CMIX_NETWORK_READINESS_THRESHOLD = 0.1;
 
 export const DUMMY_TRAFFIC_MAXIMUM_MESSAGES_PER_CYCLE = 3;
 export const DUMMY_TRAFFIC_DURATION_TO_WAIT_BETWEEN_SENDS_MILLISECONDS = 15000;
