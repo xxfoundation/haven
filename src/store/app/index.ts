@@ -2,21 +2,34 @@ import type { AppState } from './types';
 import type { ChannelId } from '../channels/types';
 import type { ConversationId } from '../dms/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { MessageId } from '../messages/types';
 
 const initialState: AppState = {
-  selectedChannelId: null,
-  selectedConversationId: null,
+  selectedChannelIdOrConversationId: null,
   selectedUserPubkey: null,
   messageDraftsByChannelId: {},
   channelsSearch: '',
   contributorsSearch: '',
   channelFavorites: [],
+  lastSeenMessagesByChannelId: {}
 };
+
+type LastSeenMessagePayload = {
+  channelId: ChannelId;
+  messageId: MessageId;
+}
 
 const slice = createSlice({
   name: 'app',
   initialState,
   reducers: {
+    updateLastSeenMessage: (state: AppState, { payload }: PayloadAction<LastSeenMessagePayload>) => ({
+      ...state,
+      lastSeenMessagesByChannelId: {
+        ...state.lastSeenMessagesByChannelId,
+        [payload.channelId]: payload.messageId
+      }
+    }),
     toggleFavorite: (state: AppState, { payload: channelId }: PayloadAction<ChannelId>) => ({
       ...state,
       channelFavorites: state.channelFavorites.includes(channelId)
@@ -33,13 +46,11 @@ const slice = createSlice({
     }),
     selectChannel: (state: AppState, { payload: channelId }: PayloadAction<ChannelId>) => ({
       ...state,
-      selectedChannelId: channelId,
-      selectedConversationId: null,
+      selectedChannelIdOrConversationId: channelId,
     }),
     selectConversation: (state: AppState, { payload: conversationId }: PayloadAction<ConversationId>) => ({
       ...state,
-      selectedConversationId: conversationId,
-      selectedChannelId: null,
+      selectedChannelIdOrConversationId: conversationId,
     }),
     selectUser: (state: AppState, { payload: pubkey }: PayloadAction<string | null>) => ({
       ...state,
@@ -48,7 +59,7 @@ const slice = createSlice({
     updateMessageDraft: (state: AppState, { payload: { channelId, text }}: PayloadAction<{ channelId: ChannelId, text: string }>) => 
     // quill sends a last update before it gets destroyed.
     // If the current channel isnt the one receiving an update then ignore it
-    (channelId !== state.selectedChannelId && channelId !== state.selectedConversationId)
+    (channelId !== state.selectedChannelIdOrConversationId && channelId !== state.selectedChannelIdOrConversationId)
       ? state
       : ({
         ...state,

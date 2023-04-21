@@ -65,7 +65,7 @@ const useDmClient = (
   const dispatch = useAppDispatch();
   const dmNickname = useAppSelector(dms.selectors.dmNickname);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const currentConversationId = useAppSelector(app.selectors.currentConversationId);
+  const currentConversationId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const allDms = useAppSelector((state) => state.dms.messagesByPubkey)
   const [client, setClient] = useState<DMClient | undefined>();
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();

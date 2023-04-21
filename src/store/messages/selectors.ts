@@ -6,17 +6,17 @@ import { createSelector } from '@reduxjs/toolkit';
 
 import { currentDirectMessages, dmReactions, currentConversationContributors } from '../dms/selectors';
 
-import { contributorsSearch, currentChannelId } from '../app/selectors';
+import { contributorsSearch, currentChannelOrConversationId } from '../app/selectors';
 
 export const reactions = (state: RootState) => state.messages.reactions;
 export const contributors = (state: RootState) => state.messages.contributorsByChannelId;
 
 export const currentChannelMessages = (state: RootState) => {
-  if (state.app.selectedChannelId === null) {
+  if (state.app.selectedChannelIdOrConversationId === null) {
     return undefined;
   }
 
-  return state.messages.sortedMessagesByChannelId[state.app.selectedChannelId];
+  return state.messages.sortedMessagesByChannelId[state.app.selectedChannelIdOrConversationId];
 }
 
 export const reactionsTo = (message: Message) =>
@@ -44,7 +44,7 @@ export const repliedTo = (message: Message) => createSelector(
 export const currentPinnedMessages = (state: RootState) => currentChannelMessages(state)?.filter((msg) => msg.pinned);
 
 export const currentChannelContributors = createSelector(
-  currentChannelId,
+  currentChannelOrConversationId,
   contributors,
   (channelId, allContributors) => channelId !== null && allContributors[channelId] ? allContributors[channelId] : []
 );

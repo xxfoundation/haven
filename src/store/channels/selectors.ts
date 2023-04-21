@@ -16,8 +16,8 @@ export const searchFilteredChannels = createSelector(
     return sortBy(filteredChannels, (c) => favorites.includes(c.id) ? 0 : 1);
   }
 )
-export const currentChannel = (state: RootState) => state.app.selectedChannelId !== null
-  ? state.channels.byId[state.app.selectedChannelId]
+export const currentChannel = (state: RootState) => state.app.selectedChannelIdOrConversationId !== null
+  ? state.channels.byId[state.app.selectedChannelIdOrConversationId]
   : undefined;
 
 export const missedMessages = (state: RootState) => state.channels.missedMessages;

@@ -45,7 +45,7 @@ const MessageActions: FC<Props> = ({
   ...props
 }) => {
   const dispatch = useAppDispatch();
-  const isDms = !!useAppSelector(app.selectors.currentConversationId);
+  const isDms = !!useAppSelector(app.selectors.currentChannelOrConversationId);
   const { isMuted: userIsMuted } = useNetworkClient();
   const { closeModal, openModal, setModalView } = useUI();
   const pickerRef = useRef<HTMLDivElement>(null);
