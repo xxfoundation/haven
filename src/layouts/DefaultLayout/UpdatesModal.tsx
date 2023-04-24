@@ -21,6 +21,10 @@ const UpdatesModal = () => {
          👨‍🦳 App state now persists, meaning it remembers your message drafts
          and which channel you were on when you reload.
         </li>
+        <li className='text-center'>
+         📣 New messages now separated by a divider so you know exactly which
+         of them are new to you.
+        </li>
       </ul>
       <div className='text-center'>
         <Button onClick={() => setShowModal(false)}>Roger that.</Button>
