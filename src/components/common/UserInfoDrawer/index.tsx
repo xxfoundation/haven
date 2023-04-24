@@ -45,8 +45,7 @@ const UserInfoDrawer = () => {
   const dispatch = useAppDispatch();
   const containerRef = useRef<HTMLDivElement>(null);
   const {
-    selectedChannelId,
-    selectedConversationId,
+    selectedChannelIdOrConversationId,
     selectedUserPubkey
   } = useAppSelector((state) => state.app);
   const [userInfo, setUserInfo] = useState<UserInfo>();
@@ -78,7 +77,7 @@ const UserInfoDrawer = () => {
         }));
       }
 
-      dispatch(app.actions.selectConversation(userInfo.pubkey));
+      dispatch(app.actions.selectChannel(userInfo.pubkey));
       closeDrawer();
     }
   }, [dispatch, existingConversation, userInfo, closeDrawer])
@@ -166,8 +165,7 @@ const UserInfoDrawer = () => {
     db,
     dmDb,
     getCodeNameAndColor,
-    selectedChannelId,
-    selectedConversationId,
+    selectedChannelIdOrConversationId,
     selectedUserPubkey
   ]);
 

@@ -41,11 +41,6 @@ export const currentDirectMessages = createSelector(
   }
 )
 
-export const newDmsNotifications = (state: RootState) => Object.keys(state.dms.conversationsByPubkey).reduce((notifications, pubkey) => ({
-  ...notifications,
-  [pubkey]: state.dms.missedMessagesByPubkey[pubkey] || false,
-}), {} as Record<string, boolean>);
-
 export const currentConversationContributors: Selector<RootState, Contributor[]> = createSelector(
   currentConversation,
   identity,

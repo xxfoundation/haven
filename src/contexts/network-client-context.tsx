@@ -475,10 +475,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
 
       if (receivedMessage) {
-        dispatch(messages.actions.upsert(dbMessageMapper(receivedMessage)));
+        const mappedMessage = dbMessageMapper(receivedMessage);
+        dispatch(messages.actions.upsert(mappedMessage));
 
         if (receivedMessage.channel_id !== currentChannel?.id) {
-          dispatch(channels.actions.notifyNewMessage(receivedMessage.channel_id))
+          dispatch(app.actions.notifyNewMessage(mappedMessage))
         }
       }
     }

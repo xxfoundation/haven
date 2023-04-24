@@ -6,7 +6,6 @@ import { pickBy, omit, uniqBy } from 'lodash';
 const initialState: ChannelsState = {
   byId: {},
   sortedChannels: [],
-  missedMessages: {},
   currentPages: {},
 };
 
@@ -59,15 +58,6 @@ export const slice = createSlice({
         sortedChannels: state.sortedChannels.filter((ch) => ch.id !== channelId)
       }
     },
-    dismissNewMessagesNotification: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
-      return {
-        ...state,
-        missedMessages: {
-          ...state.missedMessages,
-          [channelId]: false,
-        }
-      };
-    },
     leaveChannel: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
       const filtered = omit(state.byId, channelId) as ChannelsState['byId'];
 
@@ -77,15 +67,6 @@ export const slice = createSlice({
         sortedChannels: state.sortedChannels.filter((ch) => ch.id !== channelId)
       }
       
-    },
-    notifyNewMessage: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
-      return !state.byId[channelId] ? state : ({
-        ...state,
-        missedMessages: {
-          ...state.missedMessages,
-          [channelId]: true
-        }
-      });
     },
     upgradeAdmin: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>) => {
       return ({

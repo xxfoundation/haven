@@ -1,5 +1,6 @@
 import type { ChannelId } from '../channels/types';
-import { MessageId } from '../messages/types';
+import { ConversationId } from '../dms/types';
+import { Message } from '../messages/types';
 
 export type AppState = {
   selectedChannelIdOrConversationId: string | null;
@@ -8,7 +9,7 @@ export type AppState = {
   channelsSearch: string;
   contributorsSearch: string;
   channelFavorites: string[];
-  lastSeenMessagesByChannelId: Record<ChannelId, MessageId>;
+  oldestMissedMessageByChannelId?: Record<ChannelId | ConversationId, Message>;
 }
 
 declare module 'src/store/types' {

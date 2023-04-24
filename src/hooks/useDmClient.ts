@@ -194,16 +194,16 @@ const useDmClient = (
 
           const messageIsNew = !allDms[message.conversation_pub_key]?.[message.id];
 
+
+          const decryptedMessage = messageMapper(message, mappedConversation);
+
           if (
             currentConversationId !== conversation.pub_key
             && message.sender_pub_key !== userIdentity?.pubkey
             && messageIsNew
           ) {
-            dispatch(dms.actions.notifyNewMessage(conversation.pub_key));
+            dispatch(app.actions.notifyNewMessage(decryptedMessage));
           }
-
-          const decryptedMessage = messageMapper(message, mappedConversation);
-
           dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
 
           if (decryptedMessage.pubkey !== userIdentity?.pubkey && currentConversationId !== conversation.pub_key) {
