@@ -73,19 +73,12 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   const currentId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const channelsSearch = useAppSelector(app.selectors.channelsSearch);
   const drafts = useAppSelector((state) => state.app.messageDraftsByChannelId);
-  const missedMessages = useAppSelector(channels.selectors.missedMessages);
   const allChannels = useAppSelector(channels.selectors.searchFilteredChannels);
-    const newDmsNotification = useAppSelector(dms.selectors.newDmsNotifications);
+  const missedMessages = useAppSelector(app.selectors.missedMessages);
   const allConversations = useAppSelector(dms.selectors.searchFilteredConversations);
 
   const selectChannel = useCallback((chId: string) => () => {
     dispatch(app.actions.selectChannel(chId));
-    dispatch(channels.actions.dismissNewMessagesNotification(chId))
-  }, [dispatch]);
-
-  const selectDm = useCallback((pubkey: string) => () => {
-    dispatch(app.actions.selectConversation(pubkey));
-    dispatch(dms.actions.dismissNewMessages(pubkey));
   }, [dispatch]);
 
   const updateChannelsSearch = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -179,9 +172,9 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
               id={c.pubkey}
               currentId={currentId}
               isFavorite={channelFavorites.includes(c.pubkey)}
-              onClick={selectDm(c.pubkey)}
+              onClick={selectChannel(c.pubkey)}
               name={<Identity {...c} />}
-              notification={newDmsNotification[c.pubkey]}
+              notification={!!missedMessages[c.pubkey]}
               hasDraft={!!drafts[c.pubkey]}
             />
           ))}

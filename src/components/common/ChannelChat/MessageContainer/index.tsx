@@ -1,8 +1,9 @@
 import { Message, MessageStatus } from 'src/types';
-import type{ FC } from 'react';
+import{ FC, useEffect } from 'react';
 
 import { useCallback, useState } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import MessageActions from '../MessageActions';
 import ChatMessage from '../ChatMessage/ChatMessage';
@@ -12,11 +13,12 @@ import PinMessageModal from 'src/components/modals/PinMessageModal';
 import MuteUserModal, { MuteUserAction } from 'src/components/modals/MuteUser';
 import DeleteMessageModal from 'src/components/modals/DeleteMessage';
 import * as channels from 'src/store/channels';
-import { useAppSelector } from 'src/store/hooks';
-
-import classes from './MessageContainer.module.scss';
+import * as app from 'src/store/app';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
 import { awaitEvent, Event } from 'src/events';
+
+import classes from './MessageContainer.module.scss';
 
 
 type Props = {
@@ -28,6 +30,11 @@ type Props = {
 }
 
 const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, readonly }) => {
+  const { t } = useTranslation();
+
+  const dispatch = useAppDispatch();
+  const [isNewMessage, setIsNewMessage] = useState(false);
+  const missedMessages = useAppSelector(app.selectors.missedMessages);
   const { pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
@@ -83,7 +90,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     } else {
       showPinModal();
     }
-  }, [message, pinMessage, showPinModal])
+  }, [message, pinMessage, showPinModal]);
 
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
@@ -96,6 +103,13 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   const handleEmojiReaction = useCallback((emoji: string) => {
     sendReaction(emoji, message.id);
   }, [message.id, sendReaction]);
+
+  useEffect(() => {
+    if (missedMessages[message.channelId]?.id === message.id) {
+      setIsNewMessage(true);
+      dispatch(app.actions.dismissNewMessages(message.channelId));
+    }
+  }, [dispatch, message.channelId, message.id, missedMessages])
   
   return (
     <>{!readonly && (
@@ -138,6 +152,14 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
           </div>
         )}
       </>
+    )}
+    {isNewMessage && (
+      <div className='relative flex items-center px-4'>
+          <div className='flex-grow border-t' style={{ borderColor: 'var(--orange)'}}></div>
+          <span className='flex-shrink mx-4' style={{ color: 'var(--orange)'}}>
+            {t('New!')}
+          </span>
+      </div>
     )}
     <ChatMessage
       className={className}

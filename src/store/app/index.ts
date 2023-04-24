@@ -1,8 +1,12 @@
+
 import type { AppState } from './types';
 import type { ChannelId } from '../channels/types';
 import type { ConversationId } from '../dms/types';
+import type { Message } from '../messages/types';
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { MessageId } from '../messages/types';
+import { omit } from 'lodash';
+
 
 const initialState: AppState = {
   selectedChannelIdOrConversationId: null,
@@ -11,24 +15,33 @@ const initialState: AppState = {
   channelsSearch: '',
   contributorsSearch: '',
   channelFavorites: [],
-  lastSeenMessagesByChannelId: {}
+  oldestMissedMessageByChannelId: {},
 };
 
-type LastSeenMessagePayload = {
-  channelId: ChannelId;
-  messageId: MessageId;
-}
+type LastSeenMessagePayload = Message
 
 const slice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    updateLastSeenMessage: (state: AppState, { payload }: PayloadAction<LastSeenMessagePayload>) => ({
-      ...state,
-      lastSeenMessagesByChannelId: {
-        ...state.lastSeenMessagesByChannelId,
-        [payload.channelId]: payload.messageId
+    notifyNewMessage: (state: AppState, { payload: message }: PayloadAction<LastSeenMessagePayload>) => {
+      const currentMissedMessage = state.oldestMissedMessageByChannelId?.[message.channelId];
+
+      if (currentMissedMessage && new Date(currentMissedMessage.timestamp).getTime() < new Date(message.timestamp).getTime()) {
+        return state;
       }
+
+      return {
+        ...state,
+        oldestMissedMessageByChannelId: {
+          ...state.oldestMissedMessageByChannelId,
+          [message.channelId]: message,
+        }
+      }
+    },
+    dismissNewMessages: (state: AppState, { payload: messageId }: PayloadAction<ChannelId | ConversationId>) => ({
+      ...state,
+      oldestMissedMessageByChannelId: omit(state.oldestMissedMessageByChannelId, messageId)
     }),
     toggleFavorite: (state: AppState, { payload: channelId }: PayloadAction<ChannelId>) => ({
       ...state,
@@ -44,13 +57,9 @@ const slice = createSlice({
       ...state,
       channelsSearch
     }),
-    selectChannel: (state: AppState, { payload: channelId }: PayloadAction<ChannelId>) => ({
+    selectChannel: (state: AppState, { payload: channelId }: PayloadAction<ChannelId | ConversationId>) => ({
       ...state,
       selectedChannelIdOrConversationId: channelId,
-    }),
-    selectConversation: (state: AppState, { payload: conversationId }: PayloadAction<ConversationId>) => ({
-      ...state,
-      selectedChannelIdOrConversationId: conversationId,
     }),
     selectUser: (state: AppState, { payload: pubkey }: PayloadAction<string | null>) => ({
       ...state,

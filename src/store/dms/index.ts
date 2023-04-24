@@ -9,7 +9,6 @@ import { MessageType } from '@types';
 const initialState: DMState = {
   conversationsByPubkey: {},
   messagesByPubkey: {},
-  missedMessagesByPubkey: {},
   reactions: {}
 };
 
@@ -53,20 +52,6 @@ export const slice = createSlice({
       state: DMState,
       { payload: conversations }: PayloadAction<Conversation[]>
     ) => conversations.reduce(upsertConversation,state),
-    notifyNewMessage: (state: DMState, { payload: pubkey }: PayloadAction<Conversation['pubkey']>) => ({
-      ...state,
-      missedMessagesByPubkey: {
-        ...state.missedMessagesByPubkey,
-        [pubkey]: true,
-      }
-    }),
-    dismissNewMessages: (state: DMState, { payload: pubkey }: PayloadAction<Conversation['pubkey']>) => ({
-      ...state,
-      missedMessagesByPubkey: {
-        ...state.missedMessagesByPubkey,
-        [pubkey]: false,
-      }
-    }),
     upsertDirectMessage: (state: DMState, { payload: message }: PayloadAction<Message>) => 
       upsertMessage(state, message),
     upsertManyDirectMessages: (

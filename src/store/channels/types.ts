@@ -19,7 +19,6 @@ export type ChannelId = Channel['id'];
 export type ChannelsState = {
   byId: Record<ChannelId, Channel>;
   sortedChannels: Array<Channel>;
-  missedMessages: Record<ChannelId, boolean>;
   currentPages: Record<ChannelId, number>;
 };
 

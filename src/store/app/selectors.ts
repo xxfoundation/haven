@@ -8,3 +8,4 @@ export const messageDraft = (channelId?: ChannelId) => (state: RootState) => (ch
 export const channelFavorites = (state: RootState) => state.app.channelFavorites;
 export const isChannelFavorited = (channelId?: ChannelId) => (state: RootState) => state.app.channelFavorites.includes(channelId ?? '');
 export const currentChannelOrConversationId = (state: RootState) => state.app.selectedChannelIdOrConversationId;
+export const missedMessages = (state: RootState) => state.app.oldestMissedMessageByChannelId ?? {};

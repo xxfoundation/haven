@@ -20,5 +20,4 @@ export const currentChannel = (state: RootState) => state.app.selectedChannelIdO
   ? state.channels.byId[state.app.selectedChannelIdOrConversationId]
   : undefined;
 
-export const missedMessages = (state: RootState) => state.channels.missedMessages;
 export const channelPages = (state: RootState) => state.channels.currentPages;
