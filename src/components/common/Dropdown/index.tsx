@@ -14,7 +14,7 @@ const Dropdown: FC<Props> = ({ children, isOpen, onChange }) => {
   useOnClickOutside(dropdownRef, close);
 
   return (
-    <div ref={dropdownRef} className={cn({ hidden: !isOpen }, 'absolute p-2 w-full left-0 mt-6')}>
+    <div ref={dropdownRef} className={cn({ hidden: !isOpen }, 'absolute p-2 w-full left-0 mt-6 rounded drop-shadow-md')} style={{ backgroundColor: 'var(--dark-2)' }}>
       {children}
     </div>
   )
