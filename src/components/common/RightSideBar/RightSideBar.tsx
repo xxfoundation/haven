@@ -16,6 +16,7 @@ import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import * as dms from 'src/store/dms';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import SearchInput from '../SearchInput';
 
 type Props = {
   cssClasses?: string
@@ -82,15 +83,9 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
         </div>
       </div>
       <div className={s.content}>
-        <div className={s.search}>
-          <input
-            onChange={updateContributorsSearch}
-            value={contributorsSearch}
-            placeholder={t('Search...')} />
-          <div className='absolute inset-y-0 right-2 flex items-center pl-3 pointer-events-none'>
-            <svg aria-hidden='true' className='w-5 h-5 text-gray-500 dark:text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'></path></svg>
-          </div>
-        </div>
+        <SearchInput
+          onChange={updateContributorsSearch}
+          value={contributorsSearch}/>
         <Collapse title={t('Recent Contributors')} defaultActive>
           <div className='flex flex-col'>
             <div className={cn(s.channelPill, 'headline--xs flex flex-col')}>
