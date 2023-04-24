@@ -2,7 +2,7 @@ import { ChangeEvent, FC, useCallback, useMemo, useState } from 'react';
 import cn from 'classnames';
 import { Collapse } from 'src/components/common';
 
-import { SpeakEasy, Plus, MissedMessagesIcon, NetworkStatusIcon  } from 'src/components/icons';
+import { SpeakEasy, Plus, MissedMessagesIcon, NetworkStatusIcon, Close  } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useTranslation } from 'react-i18next';
@@ -14,9 +14,12 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
 import * as dms from 'src/store/dms';
+import * as msgs from 'src/store/messages';
 import Dropdown from '../Dropdown';
 import Identity from '../Identity';
 import SearchInput from '../SearchInput';
+import useInput from 'src/hooks/useInput';
+import { Contributor } from '@types';
 
 type ChannelListItemProps = {
   currentId: string | null,
@@ -61,7 +64,9 @@ const ChannelListItem: FC<ChannelListItemProps> = ({ currentId, hasDraft, id, is
 }
 
 const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
+  const [contributorsSearch, setContributorsSearch] = useInput('');
   const [showCreateNewChannel, setShowCreateNewChannel] = useState(false);
+  const [showSearchContributors, setShowContributors] = useState(false);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { openModal, setModalView } = useUI();
@@ -77,7 +82,14 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   const allChannels = useAppSelector(channels.selectors.searchFilteredChannels);
   const missedMessages = useAppSelector(app.selectors.missedMessages);
   const allConversations = useAppSelector(dms.selectors.searchFilteredConversations);
+  const messageableContributors = useAppSelector(msgs.selectors.messageableContributors);
 
+  const filteredMessageableContributors = useMemo(
+    () => messageableContributors.filter(
+      (c) => c.codename.toLocaleLowerCase().includes(contributorsSearch.toLocaleLowerCase())
+      || c.nickname?.toLocaleLowerCase().includes(contributorsSearch.toLocaleLowerCase())),
+    [contributorsSearch, messageableContributors]
+  )
   const selectChannel = useCallback((chId: string) => () => {
     dispatch(app.actions.selectChannel(chId));
   }, [dispatch]);
@@ -108,8 +120,37 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   const dmsTitle = useMemo(() => (
     <div className={cn('flex justify-between')}>
       <span>{t('Direct Messages')}</span>
+      <div className='flex items-center'>
+        <Plus
+          className={cn('mr-1', s.plus, {})}
+          onClick={(e) => {
+            if (e && e.stopPropagation) {
+              e.stopPropagation();
+            }
+
+            setShowContributors((v) => !v);
+          }}
+        />
+        
+      </div>
     </div>
   ), [t]);
+
+  const onSelectContributor = useCallback((c: Contributor) => () => {
+    const currentConversation = allConversations.find((convo) => convo.pubkey === c.pubkey);
+    if (!currentConversation && c.dmToken !== undefined) {
+      dispatch(dms.actions.upsertConversation({
+        pubkey: c.pubkey,
+        token: c.dmToken,
+        codeset: c.codeset,
+        codename: c.codename,
+        color: c.color ?? '#fefefe',
+        blocked: false,
+      }));
+    }
+    dispatch(app.actions.selectChannel(c.pubkey));
+    setShowContributors(false);
+  }, [allConversations, dispatch])
 
   return (
     <div className={cn(s.root, cssClasses)}>
@@ -150,19 +191,43 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
         <Collapse className='mb-3' title={channelsTitle} defaultActive>
           <div className='flex flex-col'>
             {allChannels.map((ch) => (
-                <ChannelListItem
-                  key={ch.id}
-                  {...ch}
-                  isFavorite={channelFavorites.includes(ch.id)}
-                  currentId={currentId}
-                  onClick={selectChannel(ch.id)}
-                  notification={!!missedMessages[ch.id]}
-                  hasDraft={!!drafts[ch.id]}
-                />
-              )
-            )}
+              <ChannelListItem
+                key={ch.id}
+                {...ch}
+                isFavorite={channelFavorites.includes(ch.id)}
+                currentId={currentId}
+                onClick={selectChannel(ch.id)}
+                notification={!!missedMessages[ch.id]}
+                hasDraft={!!drafts[ch.id]}
+              />
+            ))}
           </div>
         </Collapse>
+        {showSearchContributors && (
+          <Dropdown isOpen={showSearchContributors} onChange={setShowContributors}>
+            <div className='relative'>
+              <Close className='cursor-pointer absolute right-0 top-0' width='14' onClick={() => setShowContributors(false)} />
+              <div className='pr-6'>
+                <SearchInput value={contributorsSearch}  onChange={setContributorsSearch} />
+              </div>
+              <div className='flex flex-col overflow-y-auto overflow-x-hidden h-64'>
+                {filteredMessageableContributors.map((c) => (
+                  <button
+                    onClick={onSelectContributor(c)}
+                    className='text-left'
+                    key={c.pubkey}
+                    style={{
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      color: 'var(--text-muted)'
+                    }}>
+                    <Identity {...c} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </Dropdown>
+        )}
         <Collapse title={dmsTitle} defaultActive>
           {allConversations.map((c) => (
             <ChannelListItem

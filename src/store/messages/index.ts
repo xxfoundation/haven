@@ -11,7 +11,10 @@ const initialState: MessagesState = {
   sortedMessagesByChannelId: {}
 };
 
-const contributorMapper = (message: Message): Contributor => pick(message, ['nickname', 'timestamp', 'pubkey', 'codeset', 'codename'])
+const contributorMapper = (message: Message): Contributor => pick(
+  message,
+  ['nickname', 'timestamp', 'pubkey', 'codeset', 'codename', 'color', 'dmToken']
+);
 
 const contributorsReducer = (state: MessagesState['contributorsByChannelId'], msg: Message) => {
   const currentContributors = state[msg.channelId]?.slice() ?? [];
@@ -28,6 +31,7 @@ const contributorsReducer = (state: MessagesState['contributorsByChannelId'], ms
   }
 
   currentContributors.sort(byTimestamp).reverse();
+
   return {
     ...state,
     [msg.channelId]: currentContributors,

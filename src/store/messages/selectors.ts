@@ -1,7 +1,8 @@
 
 import type { RootState } from 'src/store/types';
-import type { Message } from './types';
+import type { Contributor, Message } from './types';
 
+import { flatten, sortBy, uniqBy } from 'lodash';
 import { createSelector } from '@reduxjs/toolkit';
 
 import { currentDirectMessages, dmReactions, currentConversationContributors } from '../dms/selectors';
@@ -49,8 +50,17 @@ export const currentChannelContributors = createSelector(
   (channelId, allContributors) => channelId !== null && allContributors[channelId] ? allContributors[channelId] : []
 );
 
+export const messageableContributors = createSelector(
+  contributors,
+  (mapped) => {
+    const flattened = flatten(Object.values(mapped))
+    .filter((c) => c.dmToken !== undefined);
 
-export const currentContributors: (root: RootState) => Pick<Message, 'pubkey' | 'codeset' | 'codename' | 'nickname'>[] = createSelector(
+    return sortBy(uniqBy(flattened, (c) => c.pubkey), (c) => `${c.nickname?.toLocaleLowerCase() ?? ''}${c.codename.toLocaleLowerCase()}`);
+  }
+);
+
+export const currentContributors: (root: RootState) => Contributor[] = createSelector(
   currentChannelContributors,
   currentConversationContributors,
   contributorsSearch,
