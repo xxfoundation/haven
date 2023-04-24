@@ -12,18 +12,22 @@ const UpdatesModal = () => {
       <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>
-         ⭐ Favoriting channels or dms
+          ⭐ Favoriting channels or dms
         </li>
         <li className='text-center'>
-         🔍 You can now search through your channels, dms, or contributors.
+          🔍 You can now search through your channels, dms, or contributors.
         </li>
         <li className='text-center'>
-         👨‍🦳 App state now persists, meaning it remembers your message drafts
-         and which channel you were on when you reload.
+          👨‍🦳 App state now persists, meaning it remembers your message drafts
+          and which channel you were on when you reload.
         </li>
         <li className='text-center'>
-         📣 New messages now separated by a divider so you know exactly which
-         of them are new to you.
+          📣 New messages now separated by a divider so you know exactly which
+          of them are new to you.
+        </li>
+        <li className='text-center'>
+          ✉️ You can now easily create a new dm by clicking on the + button
+          next to Direct Messages on the left.
         </li>
       </ul>
       <div className='text-center'>
