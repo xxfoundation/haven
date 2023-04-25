@@ -19,9 +19,7 @@ import { useUI } from 'src/contexts/ui-context';
 import s from './UserTextArea.module.scss';
 import SendButton from '../SendButton';
 import * as app from 'src/store/app';
-import * as channels from 'src/store/channels';
 import * as messages from 'src/store/messages';
-import * as dms from 'src/store/dms';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import Spinner from 'src/components/common/Spinner';
 
@@ -178,9 +176,7 @@ const UserTextArea: FC<Props> = ({
   useEffect(() => {
     atMentions = contributors?.map((c) => ({ id: c.pubkey, value: c.nickname ? `${c.nickname} (${c.codename})` : c.codename })) ?? [];
   }, [contributors]);
-  const currentChannel = useAppSelector(channels.selectors.currentChannel);
-  const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const channelId = currentChannel?.id || currentConversation?.pubkey;
+  const channelId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const { openModal, setModalView } = useUI();
   const {
     cmix,
@@ -189,7 +185,7 @@ const UserTextArea: FC<Props> = ({
     sendReply
   } = useNetworkClient();
   const [editorLoaded, setEditorLoaded] = useState(false);
-  const message = useAppSelector(app.selectors.messageDraft(channelId))
+  const message = useAppSelector(app.selectors.messageDraft(channelId ?? ''))
   const deflatedContent = useMemo(() => deflate(message), [message])
   const messageIsValid = useMemo(() => deflatedContent.length <= MESSAGE_MAX_SIZE, [deflatedContent])
   const placeholder = useMemo(
