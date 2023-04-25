@@ -29,6 +29,11 @@ const UpdatesModal = () => {
           ✉️ You can now easily create a new dm by clicking on the + button
           next to Direct Messages on the left.
         </li>
+        <li className='text-center'>
+          ⚠️ The text area now explicitly tells you when your message is too long.
+          It also now has a maximum height so you wont lose your send button when
+          trying to write your novel.
+        </li>
       </ul>
       <div className='text-center'>
         <Button onClick={() => setShowModal(false)}>Roger that.</Button>
