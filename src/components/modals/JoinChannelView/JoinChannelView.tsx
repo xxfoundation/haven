@@ -8,6 +8,7 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import CheckboxToggle from '@components/common/CheckboxToggle';
+import { useRouter } from 'next/router';
 
 const JoinChannelView: FC = () => {
   const { t } = useTranslation();
@@ -15,6 +16,7 @@ const JoinChannelView: FC = () => {
 
   const [url, setUrl] = useState<string>(channelInviteLink || '');
   const { getShareUrlType, joinChannel } = useNetworkClient();
+  const router = useRouter();
   const { utils } = useUtils();
   const [error, setError] = useState('');
   const [needPassword, setNeedPassword] = useState(false);
@@ -25,9 +27,10 @@ const JoinChannelView: FC = () => {
     return () => {
       if (channelInviteLink?.length) {
         setChannelInviteLink('');
+        router.replace('/', undefined, { shallow: true });
       }
     };
-  }, [channelInviteLink?.length, setChannelInviteLink]);
+  }, [channelInviteLink?.length, router, setChannelInviteLink]);
 
   const handleSubmit = useCallback(async () => {
     if (url.length === 0) {

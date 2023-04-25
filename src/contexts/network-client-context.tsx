@@ -325,19 +325,24 @@ export const NetworkProvider: FC<WithChildren> = props => {
     enableDms = true,
   ) => {
     if (prettyPrint && channelManager && channelManager.JoinChannel) {
-      const chanInfoJson = JSON.parse(
-        decoder.decode(await channelManager.JoinChannel(prettyPrint))
-      );
+      let chanInfo = channelDecoder(JSON.parse(decoder.decode(utils.GetChannelJSON(prettyPrint))));
 
-      const chanInfo = channelDecoder(chanInfoJson);
+      if (currentChannels.find((c) => c.id === chanInfo.receptionId)) {
+        return;
+      }
+
+      chanInfo = channelDecoder(JSON.parse(
+        decoder.decode(await channelManager.JoinChannel(prettyPrint))
+      ));
+
       if (chanInfo.channelId === undefined) {
         throw new Error('ChannelID was not found');
       }
 
       const channel: Channel = {
-        id: chanInfo.channelId,
+        id: chanInfo.receptionId || chanInfo.channelId,
         name: chanInfo.name,
-        privacyLevel: getPrivacyLevel(chanInfo.channelId),
+        privacyLevel: getPrivacyLevel(chanInfo.receptionId ||chanInfo.channelId),
         description: chanInfo.description,
         isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId)),
       };
@@ -353,13 +358,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         channelManager.DisableDirectMessages(utils.Base64ToUint8Array(channel.id));
       }
     }
-  }, [channelManager, dispatch, getPrivacyLevel, utils]);
-
-  useEffect(() => {
-    if (channelManager && userIdentity) {
-      Cookies.set('userAuthenticated', 'true', { path: '/' });
-    }
-  }, [channelManager, userIdentity]);
+  }, [channelManager, currentChannels, dispatch, getPrivacyLevel, utils]);
 
   useEffect(() => {
     bc.onmessage = async event => {

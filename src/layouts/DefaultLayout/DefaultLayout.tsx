@@ -9,7 +9,6 @@ import Modal from 'src/components/modals/Modal';
 import { ModalViews, useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
-import { PrivacyLevel } from 'src/contexts/utils-context';
 import AuthenticationUI from './AuthenticationUI';
 import NotificationBanner from 'src/components/common/NotificationBanner';
 
@@ -41,6 +40,7 @@ import ConnectingDimmer from './ConnectingDimmer';
 import UserInfoDrawer from '@components/common/UserInfoDrawer';
 import AccountSyncView from '@components/modals/AccountSync';
 import useAccountSync from 'src/hooks/useAccountSync';
+import { NetworkStatus } from 'src/hooks/useCmix';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -87,34 +87,30 @@ const DefaultLayout: FC<WithChildren> = ({
   const {
     cmix,
     getShareUrlType,
-    isNetworkHealthy
+    networkStatus
   } = useNetworkClient();
   const { openModal, setChannelInviteLink, setModalView } = useUI();
   const [rightSideCollapsed, { set: setRightSideCollapsed, toggle }] = useToggle(false);
 
   useEffect(() => {
     const privacyLevel = getShareUrlType(window.location.href);
+
     if (
       privacyLevel !== null &&
       cmix &&
-      isNetworkHealthy &&
+      networkStatus === NetworkStatus.CONNECTED &&
       isAuthenticated &&
       storageTag &&
-      window.location.search &&
-      [
-        PrivacyLevel.Private,
-        PrivacyLevel.Secret
-      ].includes(privacyLevel)
+      window.location.search
     ) {
       setChannelInviteLink(window.location.href);
       setModalView('JOIN_CHANNEL');
       openModal();
-      router.replace(window.location.pathname);
     }
   }, [
     cmix,
     isAuthenticated,
-    isNetworkHealthy,
+    networkStatus,
     storageTag,
     getShareUrlType,
     setChannelInviteLink,
@@ -134,6 +130,7 @@ const DefaultLayout: FC<WithChildren> = ({
     window?.addEventListener('resize', adjustActiveState);
     return () => window?.removeEventListener('resize', adjustActiveState);
   }, [setRightSideCollapsed]);
+
 
   return (
     <>

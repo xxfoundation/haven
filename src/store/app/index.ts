@@ -6,6 +6,7 @@ import type { Message } from '../messages/types';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { omit } from 'lodash';
+import { MessageType } from '@types';
 
 
 const initialState: AppState = {
@@ -27,7 +28,12 @@ const slice = createSlice({
     notifyNewMessage: (state: AppState, { payload: message }: PayloadAction<LastSeenMessagePayload>) => {
       const currentMissedMessage = state.oldestMissedMessageByChannelId?.[message.channelId];
 
-      if (currentMissedMessage && new Date(currentMissedMessage.timestamp).getTime() < new Date(message.timestamp).getTime()) {
+      if (
+        message?.type === MessageType.Reaction
+        || (currentMissedMessage &&
+          new Date(currentMissedMessage.timestamp).getTime()
+            < new Date(message.timestamp).getTime())
+      ) {
         return state;
       }
 
