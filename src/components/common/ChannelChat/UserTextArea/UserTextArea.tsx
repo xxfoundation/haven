@@ -27,7 +27,6 @@ import { deflate, inflate } from 'src/utils/index';
 import classes from 'src/components/common/ChannelChat/MessageActions/MessageActions.module.scss';
 import { useOnClickOutside } from 'usehooks-ts';
 
-
 export const bus = new EventEmitter();
 
 const enterEvent = () => bus.emit('enter');
@@ -60,7 +59,6 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ onEmojiButtonClicked }) => {
   const onClick = useCallback(() => {
     onEmojiButtonClicked(pickerButtonRef.current);
   }, [onEmojiButtonClicked]);
-
 
   return (
     <div id='custom-toolbar'>
@@ -187,7 +185,7 @@ const UserTextArea: FC<Props> = ({
   const [editorLoaded, setEditorLoaded] = useState(false);
   const message = useAppSelector(app.selectors.messageDraft(channelId ?? ''))
   const deflatedContent = useMemo(() => deflate(message), [message])
-  const messageIsValid = useMemo(() => deflatedContent.length <= MESSAGE_MAX_SIZE, [deflatedContent])
+  const messageIsUnderLimit = useMemo(() => deflatedContent.length <= MESSAGE_MAX_SIZE, [deflatedContent])
   const placeholder = useMemo(
     () => isMuted
       ? t('You have been muted by an admin and cannot send messages.')
@@ -298,7 +296,7 @@ const UserTextArea: FC<Props> = ({
         return;
       }
 
-      if (message.length === 0 || !messageIsValid) {
+      if (message.length === 0 || !messageIsUnderLimit) {
         return;
       }
 
@@ -320,7 +318,7 @@ const UserTextArea: FC<Props> = ({
     isMuted,
     message,
     resetEditor,
-    messageIsValid,
+    messageIsUnderLimit,
     replyToMessage,
     sendReply,
     deflatedContent,
@@ -489,8 +487,13 @@ const UserTextArea: FC<Props> = ({
             onChange={updateMessage}
             placeholder={placeholder} />
         )}
+        {!messageIsUnderLimit && (
+          <div className={s.error}>
+            {t('Message is too long.')}
+          </div>
+        )}
         <SendButton
-          disabled={!messageIsValid}
+          disabled={!messageIsUnderLimit}
           className={s.button}
           onClick={sendCurrentMessage}
         />
