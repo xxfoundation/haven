@@ -40,10 +40,10 @@ const ChannelListItem: FC<ChannelListItemProps> = ({ currentId, hasDraft, id, is
         })}
         onClick={() => onClick(id)}
       >
-        <span>
+        <span className='flex items-center'>
           {name}
           {isFavorite && (
-            <FontAwesomeIcon className='ml-1' size='xs' color='var(--orange)' icon={faStar} />
+            <FontAwesomeIcon className='ml-1 inline-block w-3' color='var(--orange)' icon={faStar} />
           )}
         </span>
         <span className='flex items-center justify-end'>
