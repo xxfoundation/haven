@@ -15,7 +15,8 @@ import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
 import Identity from '../Identity';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
+import Button from '../Button/Button';
 
 type Props = {
   messages: Message[];
@@ -118,11 +119,10 @@ const ChannelChat: FC<Props> = ({ messages }) => {
                   color: 'var(--text-primary)'
                 }}
               >
-                <Trans>
-                  If you'd like to stay up to date with xx network developments may we
-                  suggest joining <button onClick={joinGeneralChat} className={s.asLink}>xxGeneralChat</button>?
-                </Trans>
+                {t('If you\'d like to stay up to date with xx network developments we have the perfect channel for you:')}
               </div>
+
+              <Button onClick={joinGeneralChat}>Join xxGeneralChat</Button>
             </div>
           )}
           <p>
