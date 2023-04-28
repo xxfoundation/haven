@@ -34,6 +34,11 @@ const UpdatesModal = () => {
           It also now has a maximum height so you wont lose your send button when
           trying to write your novel.
         </li>
+        <li className='text-center'>
+          ⚠️ The text area now explicitly tells you when your message is too long.
+          It also now has a maximum height so you wont lose your send button when
+          trying to write your novel.
+        </li>
       </ul>
       <div className='text-center'>
         <Button onClick={() => setShowModal(false)}>Roger that.</Button>

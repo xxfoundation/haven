@@ -33,7 +33,7 @@ import {
 
 import s from './DefaultLayout.module.scss';
 import ViewMutedUsers from '@components/modals/ViewMutedUsers';
-import UpdatesModal from './UpdatesModal';
+import UpdatesModal from '../../components/modals/UpdatesModal';
 import SecretModal from './SecretModal';
 import useToggle from 'src/hooks/useToggle';
 import ConnectingDimmer from './ConnectingDimmer';
