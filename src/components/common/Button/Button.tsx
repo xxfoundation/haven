@@ -27,7 +27,7 @@ const Button: FC<ButtonProps> = ({
         ...style,
         ...(size === 'sm' && {
           borderRadius: '0.25rem',
-          border: '1px solid var(--cyan)',
+          border: '1px solid',
           borderStyle: 'solid',
           padding: '0.1rem 0.75rem',
           minWidth:'unset'
