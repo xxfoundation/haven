@@ -35,9 +35,8 @@ const UpdatesModal = () => {
           trying to write your novel.
         </li>
         <li className='text-center'>
-          ⚠️ The text area now explicitly tells you when your message is too long.
-          It also now has a maximum height so you wont lose your send button when
-          trying to write your novel.
+          🫡 Added a call to action to join the xxGeneralChat channel
+          by adding a prompt when a user hasn't join any channels yet.
         </li>
       </ul>
       <div className='text-center'>
