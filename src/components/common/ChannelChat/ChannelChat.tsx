@@ -1,6 +1,6 @@
 import { Message } from 'src/types';
 
-import { FC, useState, useEffect, useMemo } from 'react';
+import { FC, useState, useEffect, useMemo, useCallback } from 'react';
 
 import UserTextArea from './UserTextArea/UserTextArea';
 import { useNetworkClient } from 'src/contexts/network-client-context';
@@ -15,16 +15,19 @@ import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
 import Identity from '../Identity';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 type Props = {
   messages: Message[];
   isPinnedMessages?: boolean;
 }
 
+const XX_GENERAL_CHAT_PRETTY_PRINT= '<Speakeasy-v3:xxGeneralChat|description:Talking about the xx network|level:Public|created:1674152234202224215|secrets:rb+rK0HsOYcPpTF6KkpuDWxh7scZbj74kVMHuwhgUR0=|RMfN+9pD/JCzPTIzPk+pf0ThKPvI425hye4JqUxi3iA=|368|1|/qE8BEgQQkXC6n0yxeXGQjvyklaRH6Z+Wu8qvbFxiuw=>';
+
+
 const ChannelChat: FC<Props> = ({ messages }) => {
   const { t } = useTranslation();
-  const { pagination } = useNetworkClient();
+  const { getPrettyPrint, joinChannel, pagination } = useNetworkClient();
   const { reset } = pagination;
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
@@ -45,6 +48,8 @@ const ChannelChat: FC<Props> = ({ messages }) => {
     reset();
     setAutoScroll(true);
   }, [currentChannel?.id, reset]);
+
+  const joinGeneralChat = useCallback(() =>  joinChannel(XX_GENERAL_CHAT_PRETTY_PRINT ?? '', true, true), [joinChannel]);
 
   return (
     <div className={s.root}>
@@ -99,11 +104,30 @@ const ChannelChat: FC<Props> = ({ messages }) => {
                   color: 'var(--text-primary)'
                 }}
               >
-                {t(`You haven't joined any channel yet. You can create or join a
+                {t(`You haven't joined any channels yet. You can create or join a
                 channel to start the journey!`)}
+              </div>
+              <div
+               className='mb-4'
+                style={{
+                  fontSize: '12px',
+                  lineHeight: '14px',
+                  marginTop: '14px',
+                  maxWidth: '280px',
+                  fontWeight: '700',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <Trans>
+                  If you'd like to stay up to date with xx network developments may we
+                  suggest joining <button onClick={joinGeneralChat} className={s.asLink}>xxGeneralChat</button>?
+                </Trans>
               </div>
             </div>
           )}
+          <p>
+
+          </p>
         </>
       )}
     </div>

@@ -12,9 +12,10 @@ const NotificationBanner = () => {
   const showBanner = !isPermissionGranted && !permissionIgnored;
 
   return showBanner ? (
-    <div className={cn(s.root, 'drop-shadow-xl fixed')} style={{ backgroundColor: 'var(--dark-1)'}}>
+    <div className={cn(s.root, 'drop-shadow-xl')}>
       <span>
-        {t('Speakeasy uses desktop notifications.')}&nbsp;
+        {t('Speakeasy uses desktop notifications.')}
+        &nbsp;
         <button 
           aria-label={t('Enable desktop notifications')}
           onClick={request}>
