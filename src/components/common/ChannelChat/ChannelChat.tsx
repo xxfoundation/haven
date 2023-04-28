@@ -27,7 +27,7 @@ const XX_GENERAL_CHAT_PRETTY_PRINT= '<Speakeasy-v3:xxGeneralChat|description:Tal
 
 const ChannelChat: FC<Props> = ({ messages }) => {
   const { t } = useTranslation();
-  const { getPrettyPrint, joinChannel, pagination } = useNetworkClient();
+  const { joinChannel, pagination } = useNetworkClient();
   const { reset } = pagination;
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
