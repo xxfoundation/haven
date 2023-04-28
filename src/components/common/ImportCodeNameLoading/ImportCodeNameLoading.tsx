@@ -2,7 +2,7 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Loading, Spinner } from 'src/components/common';
+import { Spinner } from 'src/components/common';
 import { ProgressBar } from 'src/components/common';
 
 type Props = {
