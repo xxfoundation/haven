@@ -1,11 +1,11 @@
 .root {
   color: var(--text-primary);
-  border: 1px solid var(--cyan);
+
   border-radius: 5px;
   padding: 9px;
   font-weight: 700;
   font-size: 14px;
-  background-color: var(--dark-4);
+  background-color: var(--orange);
   min-width: 212px;
   &:disabled:hover {
     cursor: not-allowed;
