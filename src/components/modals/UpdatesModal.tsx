@@ -42,6 +42,10 @@ const UpdatesModal = () => {
           🐛 Fixed an issue where going to a join link without being logged in
           wouldn't ask you to join the channel after logging in.
         </li>
+        <li className='text-center'>
+          🧐 Dm channels now display your common channels where the description
+          would be.
+        </li>
       </ul>
       <div className='text-center'>
         <Button onClick={() => setShowModal(false)}>Roger that.</Button>
