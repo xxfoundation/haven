@@ -10,6 +10,7 @@ module.exports = {
   theme: {
     colors: {
       ...colors,
+      cyan: 'var(--cyan)',
       orange: {
         100: '#faecd1',
         200: '#f4d8a4',

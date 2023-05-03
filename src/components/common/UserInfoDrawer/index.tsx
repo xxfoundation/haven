@@ -142,9 +142,6 @@ const UserInfoDrawer = () => {
         .first(),
       dmDb.table<DBDirectMessage>('messages')
         .filter((msg) => msg.sender_pub_key === selectedUserPubkey)
-        // no index yet
-        // .where('sender_pub_key')
-        // .equals(selectedUserPubkey)
         .last()
     ]).then(([conversation, recentMessage]) => {
       if (conversation && recentMessage) {

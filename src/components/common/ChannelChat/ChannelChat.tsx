@@ -1,4 +1,4 @@
-import { Message } from 'src/types';
+import { Channel, ChannelId, DBMessage, Message } from 'src/types';
 
 import { FC, useState, useEffect, useMemo, useCallback } from 'react';
 
@@ -12,11 +12,15 @@ import PinnedMessage from './PinnedMessage';
 import ChannelHeader from '../ChannelHeader';
 import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
-import { useAppSelector } from 'src/store/hooks';
+import * as app from 'src/store/app';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
 import Identity from '../Identity';
 import { useTranslation } from 'react-i18next';
 import Button from '../Button/Button';
+import { useDb } from '@contexts/db-context';
+import { uniqBy } from 'lodash';
+import EnumerateList, { ListItem } from '../EnumerateList';
 
 type Props = {
   messages: Message[];
@@ -27,14 +31,32 @@ const XX_GENERAL_CHAT_PRETTY_PRINT= '<Speakeasy-v3:xxGeneralChat|description:Tal
 
 
 const ChannelChat: FC<Props> = ({ messages }) => {
+  const db = useDb();
   const { t } = useTranslation();
   const { joinChannel, pagination } = useNetworkClient();
   const { reset } = pagination;
+  const dispatch = useAppDispatch();
+  
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const joinedChannels = useAppSelector(channels.selectors.channels);
   const currentConversation = useAppSelector(dms.selectors.currentConversation)
   const paginatedItems = useMemo(() => pagination.paginate(messages), [messages, pagination]);
+  const [commonChannels, setCommonChannels] = useState<ListItem[] | null>();
+  
+  useEffect(() => {
+    setCommonChannels(null);
+    if (db && currentConversation) {
+      db.table<DBMessage>('messages').filter((m) => m.pubkey === currentConversation.pubkey).toArray()
+        .then((msgs) => {
+          const commonChannelNames = uniqBy(msgs, (m) => m.channel_id)
+            .map((m) => joinedChannels.find((c) => c.id === m.channel_id))
+            .filter((c): c is Channel => !!c)
+            .map((c) => ({ label: c.name, id: c.id }))
+          setCommonChannels(commonChannelNames);
+        })
+    }
+  }, [currentConversation, db, joinedChannels]);
 
   useEffect(() => {
     setReplyToMessage(undefined);
@@ -51,6 +73,10 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   }, [currentChannel?.id, reset]);
 
   const joinGeneralChat = useCallback(() =>  joinChannel(XX_GENERAL_CHAT_PRETTY_PRINT ?? '', true, true), [joinChannel]);
+
+  const onChannelClick = useCallback((id: ChannelId) => {
+    dispatch(app.actions.selectChannel(id));
+  }, [dispatch]);
 
   return (
     <div className={s.root}>
@@ -69,7 +95,9 @@ const ChannelChat: FC<Props> = ({ messages }) => {
               id={currentConversation.pubkey}
               isAdmin={false}
               name={<Identity {...currentConversation} />}
-              description=''
+              description={commonChannels && commonChannels.length > 0 ? <>
+               {t('Common channels:')} <EnumerateList onClick={onChannelClick} list={commonChannels} />
+              </> : <></>}
               privacyLevel={null} />
           )}
           <ScrollDiv
@@ -125,9 +153,6 @@ const ChannelChat: FC<Props> = ({ messages }) => {
               <Button onClick={joinGeneralChat}>Join xxGeneralChat</Button>
             </div>
           )}
-          <p>
-
-          </p>
         </>
       )}
     </div>
