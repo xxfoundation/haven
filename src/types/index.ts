@@ -33,6 +33,61 @@ export type DummyTraffic = {
   Start: () => void;
 }
 
+export type CMixParams = {
+  Network: {
+    TrackNetworkPeriod: number;
+    MaxCheckedRounds: number;
+    RegNodesBufferLen: number;
+    NetworkHealthTimeout: number;
+    ParallelNodeRegistrations: number;
+    KnownRoundsThreshold: number;
+    FastPolling: boolean;
+    VerboseRoundTracking: boolean;
+    RealtimeOnly: boolean;
+    ReplayRequests: boolean;
+    EnableImmediateSending: boolean;
+    MaxParallelIdentityTracks: number;
+    Rounds: {
+      MaxHistoricalRounds: number;
+      HistoricalRoundsPeriod: number;
+      HistoricalRoundsBufferLen: number;
+      MaxHistoricalRoundsRetries: number;
+    },
+  },
+  Pickup: {
+    NumMessageRetrievalWorkers: number;
+    LookupRoundsBufferLen: number;
+    MaxHistoricalRoundsRetries: number;
+    UncheckRoundPeriod: number;
+    ForceMessagePickupRetry: boolean;
+    SendTimeout: number;
+    RealtimeOnly: boolean;
+    ForceHistoricalRounds: boolean;
+  },
+  Message: {
+    MessageReceptionBuffLen: number;
+    MessageReceptionWorkerPoolSize: number;
+    MaxChecksInProcessMessage: number;
+    InProcessMessageWait: number;
+    RealtimeOnly: boolean;
+  },
+  Historical: {
+    MaxHistoricalRounds: number;
+    HistoricalRoundsPeriod: number;
+    HistoricalRoundsBufferLen: number;
+    MaxHistoricalRoundsRetries: number;
+  },
+  CMIX: {
+    RoundTries: number;
+    Timeout: number;
+    RetryDelay: number;
+    SendTimeout: number;
+    DebugTag: string;
+    BlacklistedNodes: Record<string, boolean>,
+    Critical: boolean;
+  }
+}
+
 export * from './db';
 export * from './json';
 export * from 'src/store/channels/types';
