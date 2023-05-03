@@ -38,6 +38,10 @@ const UpdatesModal = () => {
           🫡 Added a call to action to join the xxGeneralChat channel
           by adding a prompt when a user hasn't join any channels yet.
         </li>
+        <li className='text-center'>
+          🐛 Fixed an issue where going to a join link without being logged in
+          wouldn't ask you to join the channel after logging in.
+        </li>
       </ul>
       <div className='text-center'>
         <Button onClick={() => setShowModal(false)}>Roger that.</Button>

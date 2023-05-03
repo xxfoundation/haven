@@ -31,6 +31,7 @@ export type MessagesState = {
   contributorsByChannelId: Record<ChannelId, Contributor[]>;
   byChannelId: Record<Message['channelId'], Record<MessageUuid, Message>>;
   sortedMessagesByChannelId: Record<Message['channelId'], Array<Message>>;
+  commonChannelsByPubkey: Record<Message['pubkey'], ChannelId[]>;
 };
 
 declare module 'src/store/types' {

@@ -73,4 +73,5 @@ export const currentContributors: (root: RootState) => Contributor[] = createSel
       )
   }
 );
- 
+
+export const commonChannels = (pubkey: string) => (state: RootState) => state.messages.commonChannelsByPubkey[pubkey] || [];

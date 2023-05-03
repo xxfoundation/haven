@@ -1,6 +1,6 @@
 import type { Contributor, Message, MessagesState } from './types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { pick, omit } from 'lodash';
+import { pick, omit, uniq } from 'lodash';
 import { byTimestamp, deleteReactionReducer, reactionsReducer } from '../utils';
 import { MessageId, MessageType } from '@types';
 
@@ -8,7 +8,8 @@ const initialState: MessagesState = {
   reactions: {},
   contributorsByChannelId: {},
   byChannelId: {},
-  sortedMessagesByChannelId: {}
+  sortedMessagesByChannelId: {},
+  commonChannelsByPubkey: {}
 };
 
 const contributorMapper = (message: Message): Contributor => pick(
@@ -38,6 +39,13 @@ const contributorsReducer = (state: MessagesState['contributorsByChannelId'], ms
   }
 }
 
+const commonChannelsReducer = (state: MessagesState['commonChannelsByPubkey'], message: Message) => {
+  return {
+    ...state,
+    [message.pubkey]: uniq((state[message.pubkey] || []).concat(message.channelId))
+  }
+}
+
 const upsert = (state: MessagesState, message: Message) => {
   const channelState = {
     ...state.byChannelId[message.channelId],
@@ -49,6 +57,7 @@ const upsert = (state: MessagesState, message: Message) => {
 
   return {
     ...state,
+    commonChannels: commonChannelsReducer(state.commonChannelsByPubkey, message),
     contributorsByChannelId: contributorsReducer(state.contributorsByChannelId, message),
     reactions: reactionsReducer(state.reactions, message),
     ...(message.type !== MessageType.Reaction && !message.hidden && {

@@ -16,8 +16,9 @@ import * as app from 'src/store/app';
 
 import s from './styles.module.scss';
 
-type Props = Omit<Channel, 'name' | 'currentPage'> & {
+type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
+  description: React.ReactNode;
 }
 
 const ChannelHeader: FC<Props> = ({
