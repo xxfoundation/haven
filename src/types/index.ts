@@ -53,29 +53,29 @@ export type CMixParams = {
       HistoricalRoundsBufferLen: number;
       MaxHistoricalRoundsRetries: number;
     },
-  },
-  Pickup: {
-    NumMessageRetrievalWorkers: number;
-    LookupRoundsBufferLen: number;
-    MaxHistoricalRoundsRetries: number;
-    UncheckRoundPeriod: number;
-    ForceMessagePickupRetry: boolean;
-    SendTimeout: number;
-    RealtimeOnly: boolean;
-    ForceHistoricalRounds: boolean;
-  },
-  Message: {
-    MessageReceptionBuffLen: number;
-    MessageReceptionWorkerPoolSize: number;
-    MaxChecksInProcessMessage: number;
-    InProcessMessageWait: number;
-    RealtimeOnly: boolean;
-  },
-  Historical: {
-    MaxHistoricalRounds: number;
-    HistoricalRoundsPeriod: number;
-    HistoricalRoundsBufferLen: number;
-    MaxHistoricalRoundsRetries: number;
+    Pickup: {
+      NumMessageRetrievalWorkers: number;
+      LookupRoundsBufferLen: number;
+      MaxHistoricalRoundsRetries: number;
+      UncheckRoundPeriod: number;
+      ForceMessagePickupRetry: boolean;
+      SendTimeout: number;
+      RealtimeOnly: boolean;
+      ForceHistoricalRounds: boolean;
+    },
+    Message: {
+      MessageReceptionBuffLen: number;
+      MessageReceptionWorkerPoolSize: number;
+      MaxChecksInProcessMessage: number;
+      InProcessMessageWait: number;
+      RealtimeOnly: boolean;
+    },
+    Historical: {
+      MaxHistoricalRounds: number;
+      HistoricalRoundsPeriod: number;
+      HistoricalRoundsBufferLen: number;
+      MaxHistoricalRoundsRetries: number;
+    },
   },
   CMIX: {
     RoundTries: number;
