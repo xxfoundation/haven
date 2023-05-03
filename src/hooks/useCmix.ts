@@ -1,4 +1,4 @@
-import type { CMix, DummyTraffic } from 'src/types';
+import type { CMix, CMixParams, DummyTraffic } from 'src/types';
 
 import { useUtils } from '@contexts/utils-context';
 import { encoder, decoder } from '@utils/index';
@@ -53,7 +53,7 @@ const useCmix = () => {
   
   const loadCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
     try {
-      const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams()));
+      const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams())) as CMixParams;
       params.Network.EnableImmediateSending = true;
 
       await utils.LoadCmix(

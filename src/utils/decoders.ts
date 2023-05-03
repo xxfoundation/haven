@@ -63,4 +63,4 @@ export const versionDecoder = makeDecoder(JsonDecoder.object<VersionJSON>({
   current: JsonDecoder.string,
   updated: JsonDecoder.boolean,
   old: JsonDecoder.string
-}, 'VersionDecoder'))
+}, 'VersionDecoder'));
