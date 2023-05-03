@@ -7,8 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { useUI } from 'src/contexts/ui-context';
 import CheckboxToggle from 'src/components/common/CheckboxToggle';
 import useNotification from 'src/hooks/useNotification';
+import useTrackNetworkPeriod from 'src/hooks/useNetworkTrackPeriod';
 
 const SettingsView: FC = () => {
+  const { toggle: toggleTrackingMode, trackingMode } = useTrackNetworkPeriod();
   const { t } = useTranslation();
   const { openModal, setModalView } = useUI();
   const { isPermissionGranted, request, setIsPermissionGranted } = useNotification();
@@ -54,6 +56,12 @@ const SettingsView: FC = () => {
             {t('Notifications')}
           </h3>
           <CheckboxToggle checked={isPermissionGranted} onChange={onNotificationsChange} />
+        </div>
+        <div>
+          <h3 className='headline--sm'>
+            {t('Slow mode')}
+          </h3>
+          <CheckboxToggle checked={trackingMode === 'slow'} onChange={toggleTrackingMode} />
         </div>
         <div>
           <h3 className='headline--sm'>
