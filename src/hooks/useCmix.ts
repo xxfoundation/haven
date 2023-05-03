@@ -5,6 +5,7 @@ import { encoder, decoder } from '@utils/index';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DUMMY_TRAFFIC_ARGS, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
 import { ndf } from 'src/sdk-utils/ndf';
+import useTrackNetworkPeriod from './useNetworkTrackPeriod';
 
 const cmixPreviouslyInitialized = () => {
   return localStorage && localStorage.getItem(STATE_PATH) !== null;
@@ -30,6 +31,7 @@ const useCmix = () => {
   const cmixId = useMemo(() => cmix?.GetID(), [cmix]);
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
   const [decryptedPassword, setDecryptedPasword] = useState<Uint8Array>();
+  const { trackingMs } = useTrackNetworkPeriod();
 
   const createDatabaseCipher = useCallback(
     (id: number, decryptedInternalPassword: Uint8Array) => {
@@ -51,8 +53,9 @@ const useCmix = () => {
   
   const loadCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
     try {
-      const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams()))
-      params.Network.EnableImmediateSending = true
+      const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams()));
+      params.Network.EnableImmediateSending = true;
+
       await utils.LoadCmix(
         STATE_PATH,
         decryptedInternalPassword,
@@ -153,6 +156,13 @@ const useCmix = () => {
       }
     }
   }, [cmixId, utils]);
+
+
+  useEffect(() => {
+    if (cmix && status === NetworkStatus.CONNECTED) {
+      cmix.SetTrackNetworkPeriod(trackingMs);
+    }
+  }, [cmix, status, trackingMs]);
   
   return {
     connect,

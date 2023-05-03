@@ -14,6 +14,7 @@ export type CMix = {
   StartNetworkFollower: (timeoutMilliseconds: number) => void;
   StopNetworkFollower: () => void;
   WaitForNetwork: (timeoutMilliseconds: number) => Promise<void>;
+  SetTrackNetworkPeriod: (periodMs: number) => void;
 }
 
 export type DMClient = {
