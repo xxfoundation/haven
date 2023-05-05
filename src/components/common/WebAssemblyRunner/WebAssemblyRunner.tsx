@@ -5,13 +5,6 @@ import { FC, useEffect } from 'react';
 import { useUtils } from 'src/contexts/utils-context';
 
 type Logger = {
-  LogToFile: (level: number, maxLogFileSizeBytes: number) => void,
-  LogToFileWorker: (
-    level: number,
-    maxLogFileSizeBytes: number,
-    wasmJsPath: string,
-    workerName: string
-  ) => Promise<void>,
   StopLogging: () => void,
   GetFile: () => Promise<string>,
   Threshold: () => number,
@@ -29,6 +22,12 @@ declare global {
   }
 }
 
+const isReady = new Promise((resolve) => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  window.onWasmInitialized = resolve;
+});
+
 const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
   const { setUtils, setUtilsLoaded, utilsLoaded } = useUtils();
 
@@ -36,10 +35,16 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
     if (!utilsLoaded) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const go = new (window as any).Go();
+      go.argv = [
+        '--logLevel=1',
+        '--fileLogLevel=1',
+        '--workerScriptURL=integrations/assets/logFileWorker.js',
+      ]
       const binPath = '/integrations/assets/xxdk.wasm';
       WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
         async (result) => {
           go?.run(result?.instance);
+          await isReady;
           const {
             Base64ToUint8Array,
             ConstructIdentity,
@@ -59,7 +64,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             IsNicknameValid,
             LoadChannelsManagerWithIndexedDb,
             LoadCmix,
-            LogLevel,
             NewChannelsDatabaseCipher,
             NewChannelsManagerWithIndexedDb,
             NewCmix,
@@ -102,31 +106,25 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             ValidForever
           });
 
-          if (LogLevel) {
-            LogLevel(1);
+
+          if(GetLogger) {
+            const logger = GetLogger()
+
+            // Get the actual Worker object from the log file object
+            const w = logger.Worker()
+
+            window.getCrashedLogFile = () => {
+              return new Promise((resolve) => {
+                w.addEventListener('message', ev => {
+                  resolve(atob(JSON.parse(ev.data).data))
+                })
+                w.postMessage(JSON.stringify({ tag: 'GetFileExt' }))
+              });
+            };
+
+            window.logger = logger
           }
 
-          const logger = GetLogger()
-
-          const wasmJsPath = 'integrations/assets/logFileWorker.js';
-          await logger.LogToFileWorker(
-            0, 5000000, wasmJsPath, 'xxdkLogFileWorker').catch((err) => {
-            throw new Error(err)
-          })
-
-          // Get the actual Worker object from the log file object
-          const w = logger.Worker()
-
-          window.getCrashedLogFile = () => {
-            return new Promise((resolve) => {
-              w.addEventListener('message', ev => {
-                resolve(atob(JSON.parse(ev.data).data))
-              })
-              w.postMessage(JSON.stringify({ tag: 'GetFileExt' }))
-            });
-          };
-
-          window.logger = logger
 
           setUtilsLoaded(true);
         }
