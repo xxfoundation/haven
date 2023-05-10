@@ -49,7 +49,7 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
   
   const initDb = useCallback((tag: string) => {
     const instance = new Dexie(`${tag}_speakeasy`);
-    instance.version(0.1).stores({
+    instance.version(0.2).stores({
       channels: '++id',
       messages:
         '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
@@ -60,8 +60,8 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
 
   const initDmsDb = useCallback((dbName: string) => {
     const dmInstance = new Dexie(dbName);
-    dmInstance.version(0.1).stores({
-      conversations: '++id',
+    dmInstance.version(0.2).stores({
+      conversations: 'pub_key',
       messages: '++id,conversation_pub_key,&message_id,parent_message_id,timestamp'
     });
     setDmDb(dmInstance);

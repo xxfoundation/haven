@@ -13,8 +13,8 @@ type Props = {
 const ImportCodeNameLoading: FC<Props> = ({ readyProgress }) => {
   const { t } = useTranslation();
   return (
-    <>
-      <Spinner size='md' />
+    <div className='flex flex-col justify-center items-center h-screen w-screen'>
+      <Spinner size='lg' />
       <ProgressBar completed={readyProgress}></ProgressBar>
       <div className='text-center'>
         <div className='headline--md'>
@@ -24,7 +24,7 @@ const ImportCodeNameLoading: FC<Props> = ({ readyProgress }) => {
           {t('Please do not close this page - your codename may be lost')}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

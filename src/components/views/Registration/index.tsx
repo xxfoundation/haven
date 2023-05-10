@@ -47,7 +47,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
     <div className={cn('', s.root)}>
       <div className={cn('w-full flex flex-col', s.wrapper)}>
         <div className={cn(s.header)}>
-          <NormalSpeakeasy />
+          <NormalSpeakeasy data-testid='speakeasy-logo' />
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
@@ -82,6 +82,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               {t('Enter a password to secure your sovereign speakeasy identity')}
             </p>
             <input
+              data-testid='registration-password-input'
               type='password'
               placeholder={t('Enter your password')}
               className=''
@@ -97,6 +98,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             />
 
             <input
+              data-testid='registration-password-confirmation'
               type='password'
               placeholder={t('Confirm your password')}
               className='mt-4'
@@ -119,6 +121,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
 
             {error && (
               <div
+                data-testid='registration-error'
                 className={'text text--xs mt-4'}
                 style={{ color: 'var(--red)' }}
               >
@@ -128,6 +131,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
 
             <div className='flex flex-col mt-4'>
               <ModalCtaButton
+                data-testid='registration-button'
                 buttonCopy={t('Continue')}
                 cssClass={s.button}
                 disabled={isLoading}

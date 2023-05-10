@@ -23,6 +23,7 @@ const NotificationBanner = () => {
         </button>
       </span>
       <Close
+        data-testid='close-notification-banner-button'
         onClick={() => setPermissionIgnored(true)}
         aria-label={t('Close panel')}
         className={s.close}
