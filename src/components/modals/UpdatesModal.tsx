@@ -8,7 +8,7 @@ const UpdatesModal = () => {
   const [showModal, setShowModal] = useLocalStorage(`update-notice_${process.env.NEXT_PUBLIC_APP_VERSION}`, true);
   
   return showModal ? (
-    <Modal className={s.root} onClose={() => setShowModal(false)}>
+    <Modal data-testid='updates-modal' className={s.root} onClose={() => setShowModal(false)}>
       <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>
@@ -48,7 +48,7 @@ const UpdatesModal = () => {
         </li>
       </ul>
       <div className='text-center'>
-        <Button onClick={() => setShowModal(false)}>Roger that.</Button>
+        <Button data-testid='updates-modal-confirm' onClick={() => setShowModal(false)}>Roger that.</Button>
       </div>
     </Modal>
   ) : null;

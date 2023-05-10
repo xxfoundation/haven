@@ -15,6 +15,7 @@ type Logger = {
 
 declare global {
   interface Window {
+    onWasmInitialized: () => void;
     Crash: () => void;
     GetLogger: () => Logger;
     logger?: Logger;
@@ -22,17 +23,17 @@ declare global {
   }
 }
 
-const isReady = new Promise((resolve) => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  window.onWasmInitialized = resolve;
-});
-
 const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
   const { setUtils, setUtilsLoaded, utilsLoaded } = useUtils();
 
   useEffect(() => {
     if (!utilsLoaded) {
+
+      const isReady = new Promise<void>((resolve) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        window.onWasmInitialized = resolve;
+      });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const go = new (window as any).Go();
       go.argv = [
