@@ -8,6 +8,7 @@ import { Spinner } from 'src/components/common';
 
 import s from './CodeNameRegistration.module.scss';
 import Identity from 'src/components/common/Identity';
+import { AMOUNT_OF_IDENTITIES_TO_GENERATE } from 'src/constants';
 
 const CodenameRegistration: FC = () => {
   const { t } = useTranslation();
@@ -40,7 +41,7 @@ const CodenameRegistration: FC = () => {
           (isReadyInfo) => {
             if (isReadyInfo.isReady) {
               setTimeout(() => {
-                setLoading(false);
+                // setLoading(false);
                 // Dont mess with this, it needs exactly 3 seconds
                 // for the database to initialize
               }, 3000)
@@ -62,7 +63,7 @@ const CodenameRegistration: FC = () => {
         s.root
       )}
     >
-      <h2 className='mt-9 mb-4'>
+      <h2 data-testid='codename-registration-title' className='mt-9 mb-4'>
         {t('Find your Codename')}
       </h2>
       <p
@@ -94,8 +95,9 @@ const CodenameRegistration: FC = () => {
 
       {identities.length ? (
         <div
+          data-testid='codename-registration-options'
           className={cn(
-            'grid grid-cols-4 gap-x-4 gap-y-6 overflow-auto',
+            'grid sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-x-4 gap-y-6 overflow-auto',
             s.codeContainers
           )}
         >
@@ -126,6 +128,7 @@ const CodenameRegistration: FC = () => {
 
       <div className='flex mb-5 mt-12'>
         <ModalCtaButton
+          data-testid='discover-more-button'
           buttonCopy={t('Discover More')}
           cssClass={s.generateButton}
           style={{
@@ -135,11 +138,12 @@ const CodenameRegistration: FC = () => {
           }}
           onClick={() => {
             setSelectedCodeName('');
-            setIdentites(generateIdentities(20));
+            setIdentites(generateIdentities(AMOUNT_OF_IDENTITIES_TO_GENERATE));
           }}
           disabled={!cmix}
         />
         <ModalCtaButton
+          data-testid='claim-codename-button'
           buttonCopy={t('Claim')}
           cssClass={s.registerButton}
           onClick={register}

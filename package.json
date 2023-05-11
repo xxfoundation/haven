@@ -10,7 +10,9 @@
     "build": "next build && next export",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "test": "cypress",
+    "see-cy-coverage": "open ./cypress-coverage/lcov-report/index.html"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.0.6",
@@ -72,6 +74,9 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@cypress/browserify-preprocessor": "^3.0.2",
+    "@cypress/code-coverage": "^3.10.4",
+    "@testing-library/cypress": "^9.0.0",
     "@types/contrast-color": "^1.0.0",
     "@types/dompurify": "^2.3.4",
     "@types/draftjs-to-html": "^0.8.1",
@@ -84,8 +89,11 @@
     "@types/react": "18.0.18",
     "@types/react-dom": "18.0.6",
     "@types/react-draft-wysiwyg": "^1.13.4",
+    "@types/testing-library__cypress": "^5.0.9",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "babel-plugin-istanbul": "^6.1.1",
+    "cypress": "^12.12.0",
     "eslint": "8.23.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-next": "^13.0.6",
@@ -95,6 +103,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^8.0.0",
     "eslint-plugin-sort-destructure-keys": "^1.4.0",
+    "nyc": "^15.1.0",
     "typed-scss-modules": "^7.0.1",
     "typescript": "4.8.2"
   }

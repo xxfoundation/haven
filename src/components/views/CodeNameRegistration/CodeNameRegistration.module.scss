@@ -24,9 +24,9 @@
   }
 
   .codename {
+    overflow: hidden;
     outline: none;
     font-weight: 400;
-    font-size: 13px;
     background-color: var(--dark-2);
     padding: 12px 8px;
     color: var(--text-primary);
