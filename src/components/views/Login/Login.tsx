@@ -44,7 +44,7 @@ const LoginView: FC = () => {
     <div className={cn('', s.root)}>
       <div className={cn('w-full flex flex-col', s.wrapper)}>
         <div className={cn(s.header)}>
-          <NormalSpeakeasy />
+          <NormalSpeakeasy data-testid='speakeasy-logo' />
         </div>
 
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
@@ -80,6 +80,7 @@ const LoginView: FC = () => {
               {t('Use your password to unlock your speakeasy identity')}
             </p>
             <input
+              data-testid='password-input'
               type='password'
               placeholder={t('Enter your password')}
               value={password}
@@ -96,6 +97,7 @@ const LoginView: FC = () => {
 
             <div className='flex flex-col mt-4'>
               <ModalCtaButton
+                data-testid='login-button'
                 buttonCopy={t('Login')}
                 disabled={isLoading}
                 cssClass={s.button}
@@ -110,6 +112,7 @@ const LoginView: FC = () => {
 
             {error && (
               <div
+                data-testid='login-error'
                 style={{
                   color: 'var(--red)',
                   marginTop: '14px',
