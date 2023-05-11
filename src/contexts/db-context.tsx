@@ -34,8 +34,8 @@ export type DBChannel = {
 type DBContextType = {
   db?: Dexie | undefined;
   dmDb?: Dexie | undefined;
-  initDb: (storageTag: string) => void;
-  initDmsDb: (storageTag: string) => void;
+  initDb: (storageTag: string) => Promise<void>;
+  initDmsDb: (storageTag: string) => Promise<void>;
 }
 
 export const DBContext = createContext<DBContextType>({ initDb: () => {} } as unknown as DBContextType);
@@ -49,22 +49,12 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
   
   const initDb = useCallback((tag: string) => {
     const instance = new Dexie(`${tag}_speakeasy`);
-    instance.version(0.1).stores({
-      channels: '++id',
-      messages:
-        '++id,channel_id,&message_id,parent_message_id,pinned,timestamp'
-    });
-  
-    setDb(instance);
+    return instance.open().then(setDb);
   }, []);
 
   const initDmsDb = useCallback((dbName: string) => {
     const dmInstance = new Dexie(dbName);
-    dmInstance.version(0.1).stores({
-      conversations: '++id',
-      messages: '++id,conversation_pub_key,&message_id,parent_message_id,timestamp'
-    });
-    setDmDb(dmInstance);
+    return dmInstance.open().then(setDmDb);
   }, [])
 
   useEffect(() => {
