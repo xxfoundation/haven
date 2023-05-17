@@ -18,17 +18,19 @@ declare global {
 
 type Props = Partial<IModalCtaButtonProps> & {
   onSync?: () => void;
-  decryptPassword?: () => Uint8Array | undefined;
+  onError?: () => void;
+  password?: string;
 }
 
 const GoogleButton: FC<Props>  = ({
-  decryptPassword = async () => undefined,
+  password,
   onSync = () => {},
+  onError = () => {},
   ...props
 }) => {
   const { t } = useTranslation();
   const remoteStore = useGoogleRemoteStore();
-  const { loadCmix, setRemoteStore } = useNetworkClient();
+  const { decryptPassword, loadCmix, setRemoteStore } = useNetworkClient();
 
   const login = useGoogleLogin({
     scope: 'https://www.googleapis.com/auth/drive.appdata',
@@ -39,10 +41,13 @@ const GoogleButton: FC<Props>  = ({
   });
 
   const handleSuccessfulLogin = useCallback(async () => {
-    const password = await decryptPassword();
-    await loadCmix(password);
-    onSync();
-  }, [decryptPassword, loadCmix, onSync])
+    try {
+      await loadCmix(decryptPassword(password));
+      onSync();
+    } catch (e) {
+      onError();
+    }
+  }, [decryptPassword, loadCmix, onError, onSync, password])
 
   useEffect(() => {
     if (remoteStore) {

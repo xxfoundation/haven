@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DUMMY_TRAFFIC_ARGS, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
 import { ndf } from 'src/sdk-utils/ndf';
 import useTrackNetworkPeriod from './useNetworkTrackPeriod';
-import { RemoteStoreClass } from 'src/types/collective';
+import { RemoteStore } from 'src/types/collective';
 
 const cmixPreviouslyInitialized = () => {
   return localStorage && localStorage.getItem(STATE_PATH) !== null;
@@ -18,6 +18,7 @@ type DatabaseCipher = {
 };
 
 export enum NetworkStatus {
+  UNINITIALIZED = 'uninitialized',
   CONNECTED = 'connected',
   DISCONNECTED = 'disconnected',
   CONNECTING = 'connecting',
@@ -25,8 +26,8 @@ export enum NetworkStatus {
 }
 
 const useCmix = () => {
-  const [remoteStore, setRemoteStore] = useState<RemoteStoreClass>();
-  const [status, setStatus] = useState<NetworkStatus>();
+  const [remoteStore, setRemoteStore] = useState<RemoteStore>();
+  const [status, setStatus] = useState<NetworkStatus>(NetworkStatus.UNINITIALIZED);
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
   const [cmix, setCmix] = useState<CMix | undefined>();
   const { utils } = useUtils();

@@ -1,14 +1,20 @@
 import { ChannelJSON, IdentityJSON, IsReadyInfoJSON, ShareURLJSON, VersionJSON } from 'src/types';
+import { KVEntry } from 'src/types/collective';
 import { Err, JsonDecoder } from 'ts.data.json';
+import { decoder as uintDecoder } from './index';
 
 export const makeDecoder = <T>(decoder: JsonDecoder.Decoder<T>) => (thing: unknown): T => {
-  const result = decoder.decode(thing);
+  const object = thing instanceof Uint8Array ? uintDecoder.decode(thing) : thing;
+  const parsed = typeof object === 'string' ? JSON.parse(object) : object;
+  const result = decoder.decode(parsed);
   if (result instanceof Err) {
     throw new Error(`Unexpected JSON: ${JSON.stringify(thing)}, Error: ${result.error}`);
   } else {
     return result.value;
   }
 }
+
+export type Decoder<T> = ReturnType<typeof makeDecoder<T>>;
 
 export const channelDecoder = makeDecoder(JsonDecoder.object<ChannelJSON>(
   {
@@ -64,3 +70,13 @@ export const versionDecoder = makeDecoder(JsonDecoder.object<VersionJSON>({
   updated: JsonDecoder.boolean,
   old: JsonDecoder.string
 }, 'VersionDecoder'));
+
+export const kvEntryDecoder = makeDecoder(JsonDecoder.object<KVEntry>({
+  data: JsonDecoder.string,
+  version: JsonDecoder.number,
+  timestamp: JsonDecoder.string,
+}, 'KVEntryDecoder', {
+  data: 'Data',
+  version: 'Version',
+  timestamp: 'Timestamp'
+}))

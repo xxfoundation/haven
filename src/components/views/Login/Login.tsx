@@ -18,13 +18,13 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE } from 'src/constants';
 import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 import GoogleButton from '@components/common/GoogleButton';
+import DropboxButton from '@components/common/DropboxButton';
 
 const LoginView: FC = () => {
   const { t } = useTranslation();
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const {
-    decryptPassword,
     initialize
   } = useNetworkClient();
   const { setIsAuthenticated } = useAuthentication();
@@ -95,7 +95,7 @@ const LoginView: FC = () => {
                 setPassword(e.target.value);
               }}
               onKeyDown={e => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && accountSyncStatus !== AccountSyncStatus.Synced) {
                   e.preventDefault();
                   handleSubmit();
                 }
@@ -104,9 +104,17 @@ const LoginView: FC = () => {
 
             <div className='flex flex-col mt-4'>
               {accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Google && (
-                <GoogleButton 
+                <GoogleButton
+                  onError={() => setError(t('Something went wrong.'))}
                   disabled={isLoading}
-                  decryptPassword={() => decryptPassword(password)}
+                  password={password}
+                />
+              )}
+              {accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Dropbox && (
+                <DropboxButton
+                  onError={() => setError(t('Something went wrong.'))}
+                  disabled={isLoading}
+                  password={password}
                 />
               )}
               {accountSyncStatus !== AccountSyncStatus.Synced && (

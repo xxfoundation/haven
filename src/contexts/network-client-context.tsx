@@ -18,7 +18,7 @@ import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, STATE_PATH, CHANNELS_WORKER_JS_PATH, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
 import useNotification from 'src/hooks/useNotification';
 import { useDb } from './db-context';
-import useCmix from 'src/hooks/useCmix';
+import useCmix, { NetworkStatus } from 'src/hooks/useCmix';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 
 import * as app from 'src/store/app';
@@ -30,7 +30,8 @@ import { ChannelId, Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
-import { RemoteStoreClass } from 'src/types/collective';
+import { RemoteStore } from 'src/types/collective';
+import { RemoteKVProvider } from './remote-kv-context';
 
 const BATCH_COUNT = 1000;
 
@@ -39,13 +40,6 @@ export type User = {
   codeset: number;
   color: string;
   pubkey: string;
-}
-
-export enum NetworkStatus {
-  CONNECTED = 'connected',
-  DISCONNECTED = 'disconnected',
-  CONNECTING = 'connecting',
-  FAILED = 'failed'
 }
 
 export type DatabaseCipher = {
@@ -134,7 +128,7 @@ export type NetworkContext = {
     privacyLevel: 0 | 2,
     enableDms: boolean
   ) => void;
-  decryptPassword: (password: string) => Uint8Array;
+  decryptPassword: (password?: string) => Uint8Array;
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
@@ -173,7 +167,7 @@ export type NetworkContext = {
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
-  setRemoteStore: (store: RemoteStoreClass) => void;
+  setRemoteStore: (store: RemoteStore) => void;
   loadCmix: (decryptedPassword?: Uint8Array) => Promise<void>;
 };
 
@@ -243,13 +237,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
   );
   const dmClient = useDmClient(cmixId, privateIdentity, decryptedPassword);
   
-  const decryptPassword = useCallback((password: string) => {
+  const decryptPassword = useCallback((password = rawPassword ?? '') => {
     const statePassEncoded = checkUser(password);
     if (!statePassEncoded) {
       throw new Error('Incorrect password');
     }
     return statePassEncoded;
-  }, [checkUser]);
+  }, [checkUser, rawPassword]);
 
   const initialize = useCallback(async (password: string) => {
     setRawPassword(password);
@@ -1345,5 +1339,11 @@ export const useNetworkClient = () => {
 };
 
 export const ManagedNetworkContext: FC<WithChildren> = ({ children }) => (
-  <NetworkProvider>{children}</NetworkProvider>
+  <NetworkProvider>
+    <RemoteKVProvider>
+      {children}
+    </RemoteKVProvider>
+  </NetworkProvider>
 );
+
+export { NetworkStatus };
