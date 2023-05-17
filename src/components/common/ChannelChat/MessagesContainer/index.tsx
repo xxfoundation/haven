@@ -38,7 +38,7 @@ const MessagesContainer: FC<Props> = ({
   }, [messages]);
 
   return (
-    <>
+    <div data-testid='messages-container'>
       {sortedGroupedMessagesPerDay.map(([key, message]) => (
         <div className={cn(s.dayMessagesWrapper)} key={key}>
           <div className={s.separator}></div>
@@ -55,7 +55,7 @@ const MessagesContainer: FC<Props> = ({
         </div>
       ))}
       {props.children}
-    </>
+    </div>
   );
 }
 

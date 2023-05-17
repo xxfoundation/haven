@@ -3,13 +3,13 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCloud, faSync } from '@fortawesome/free-solid-svg-icons';
-import { useLocalStorage } from 'usehooks-ts';
+import useLocalStorage from 'src/hooks/useLocalStorage'
 
 import { ModalCtaButton } from '@components/common';
 import { useUI } from '@contexts/ui-context';
 import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE } from 'src/constants';
 import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
-import GoogleButton from './GoogleButton';
+import GoogleButton from '../../common/GoogleButton';
 import DropboxButton from './DropboxButton';
 
 import s from './styles.module.scss';
@@ -26,6 +26,7 @@ const AccountSyncView: FC = () => {
 
   return (
     <div
+      data-testid='account-sync-modal'
       className={cn('w-full flex flex-col justify-center items-center text-center space-y-4', s.root)}
     >
       <div className='flex flex-col justify-center items-center'>
@@ -46,18 +47,23 @@ const AccountSyncView: FC = () => {
         <strong>Warning!</strong> Once you choose a cloud provider you will
         not be able to change to another service or revert to local-only.
       </p>
-      <div className='space-x-6 space-y-4'>
-        <GoogleButton onSync={() => {
-          setAccountSyncStatus(AccountSyncStatus.Synced);
-          setAccountSyncService(AccountSyncService.Google);
-          closeModal();
-        }} />
-        <DropboxButton onSync={() => {
-          setAccountSyncStatus(AccountSyncStatus.Synced);
-          setAccountSyncService(AccountSyncService.Dropbox);
-          closeModal();
-        }}  />
+      <div data-testid='account-sync-buttons' className='space-x-6 space-y-4'>
+        <GoogleButton
+          onSync={() => {
+            setAccountSyncStatus(AccountSyncStatus.Synced);
+            setAccountSyncService(AccountSyncService.Google);
+            closeModal();
+          }}
+        />
+        <DropboxButton
+          onSync={() => {
+            setAccountSyncStatus(AccountSyncStatus.Synced);
+            setAccountSyncService(AccountSyncService.Dropbox);
+            closeModal();
+          }}
+        />
         <ModalCtaButton
+          data-testid='account-sync-local-only-button'
           style={{ borderColor: 'var(--orange)', color: 'white' }}
           buttonCopy={t('Local-only')}
           onClick={ignoreSync}

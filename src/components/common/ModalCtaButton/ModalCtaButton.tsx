@@ -2,7 +2,7 @@ import { FC, ButtonHTMLAttributes } from 'react';
 
 import { Button } from 'src/components/common';
 
-interface IModalCtaButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface IModalCtaButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   buttonCopy: React.ReactNode;
   cssClass?: string;
 }

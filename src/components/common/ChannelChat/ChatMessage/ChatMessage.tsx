@@ -75,6 +75,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
   
   return (
     <div
+      data-testid='message-container'
       id={message.id}
       {...htmlProps}
       className={cn(

@@ -7,6 +7,7 @@ type Props = InputHTMLAttributes<HTMLInputElement>;
 const CheckboxToggle: FC<Props> = (props) => (
   <label className='relative inline-flex items-center cursor-pointer'>
     <input
+      data-testid='channel-dm-toggle'
       type='checkbox'
       checked
       {...props}

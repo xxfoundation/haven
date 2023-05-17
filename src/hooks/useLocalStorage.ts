@@ -19,6 +19,7 @@ const useLocalStorage = <T = unknown>(keyName: string, defaultValue?: T): [value
 
   const onStorage = useCallback(() => {
     const value = window.localStorage.getItem(keyName);
+    
     if (value !== null) {
       try {
         const parsed = JSON.parse(value);

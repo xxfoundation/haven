@@ -14,16 +14,23 @@ import {
   RoadMap
 } from 'src/components/icons';
 import { useAuthentication } from '@contexts/authentication-context';
+import useLocalStorage from 'src/hooks/useLocalStorage';
+import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE } from 'src/constants';
+import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
+import GoogleButton from '@components/common/GoogleButton';
 
 const LoginView: FC = () => {
   const { t } = useTranslation();
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const {
+    decryptPassword,
     initialize
   } = useNetworkClient();
   const { setIsAuthenticated } = useAuthentication();
   const [isLoading, setIsLoading] = useState(false);
+  const [accountSyncStatus] = useLocalStorage(ACCOUNT_SYNC, AccountSyncStatus.NotSynced);
+  const [accountSyncService] = useLocalStorage(ACCOUNT_SYNC_SERVICE, AccountSyncService.None);
 
   const handleSubmit = useCallback(async () => {
     setError('');
@@ -96,13 +103,21 @@ const LoginView: FC = () => {
             />
 
             <div className='flex flex-col mt-4'>
-              <ModalCtaButton
-                data-testid='login-button'
-                buttonCopy={t('Login')}
-                disabled={isLoading}
-                cssClass={s.button}
-                onClick={handleSubmit}
-              />
+              {accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Google && (
+                <GoogleButton 
+                  disabled={isLoading}
+                  decryptPassword={() => decryptPassword(password)}
+                />
+              )}
+              {accountSyncStatus !== AccountSyncStatus.Synced && (
+                <ModalCtaButton
+                  data-testid='login-button'
+                  buttonCopy={t('Login')}
+                  disabled={isLoading}
+                  cssClass={s.button}
+                  onClick={handleSubmit}
+                />
+              )}
             </div>
             {isLoading && (
               <div className={s.loading}>

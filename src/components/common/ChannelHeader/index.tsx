@@ -68,11 +68,12 @@ const ChannelHeader: FC<Props> = ({
   }), [t]);
 
   return (
-    <div className={s.root}>
+    <div data-testid='channel-header' className={s.root}>
       <div className='flex justify-between'>
         <div className={'headline--sm flex flex-wrap items-center'}>
           {privacyLevel !== null && (
             <span
+              data-testid='channel-privacy-level-badge'
               className={cn(s.badge, {
                 [s.gold]: privacyLevel === PrivacyLevel.Public
               })}
@@ -83,13 +84,14 @@ const ChannelHeader: FC<Props> = ({
           )}
           {isAdmin && (
             <span
+              data-testid='channel-admin-badge'
               className={cn(s.badge, s.gold, s.outlined)}
               title={t('You have admin privileges in this channel')}
             >
             {t('Admin')}
             </span>
           )}
-          <span className={cn('mr-2', s.channelName)}>
+          <span data-testid='channel-name' className={cn('mr-2', s.channelName)}>
             {name}{' '}
           </span>
         </div>

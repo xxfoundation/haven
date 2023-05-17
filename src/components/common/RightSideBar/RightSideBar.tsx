@@ -52,6 +52,7 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
 
   return (
     <div
+      data-testid='right-side-bar'
       className={cn(s.root, cssClasses, { [s.collapsed]: collapsed })}
     >
       <div className={s.header}>
