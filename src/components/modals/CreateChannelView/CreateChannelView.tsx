@@ -58,6 +58,7 @@ const CreateChannelView: FC = () => {
 
   return (
     <div
+      data-testid='create-channel-modal'
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
       <h2 className='mt-9 mb-4'>
@@ -70,6 +71,7 @@ const CreateChannelView: FC = () => {
         </div>
       )}
       <input
+        data-testid='channel-name-input'
         type='text'
         placeholder={t('Name')}
         onKeyDown={(evt) => {
@@ -81,6 +83,7 @@ const CreateChannelView: FC = () => {
         onChange={onChannelNameChange}
       />
       <input
+        data-testid='channel-description-input'
         type='text'
         placeholder={t('Description')}
         onKeyDown={(evt) => {
@@ -101,6 +104,7 @@ const CreateChannelView: FC = () => {
       <div className={cn('mt-9 flex', s.radioButtonsContainer)}>
         <label className={cn('mr-9', s.container)}>
           <input
+            data-testid='channel-privacy-public-option'
             type='radio'
             checked={privacyLevel === 0}
             name='radio'
@@ -114,6 +118,7 @@ const CreateChannelView: FC = () => {
         </label>
         <label className={cn(s.container)}>
           <input
+            data-testid='channel-privacy-private-option'
             type='radio'
             checked={privacyLevel === 2}
             name='radio'
@@ -133,6 +138,7 @@ const CreateChannelView: FC = () => {
         }
       </p>
       <ModalCtaButton
+        data-testid='create-new-channel-button'
         buttonCopy={t('Create')}
         cssClass={cn('mt-5 mb-8', s.button)}
         onClick={onCreate}

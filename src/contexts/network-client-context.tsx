@@ -30,6 +30,7 @@ import { ChannelId, Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
+import { RemoteStoreClass } from 'src/types/collective';
 
 const BATCH_COUNT = 1000;
 
@@ -133,6 +134,7 @@ export type NetworkContext = {
     privacyLevel: 0 | 2,
     enableDms: boolean
   ) => void;
+  decryptPassword: (password: string) => Uint8Array;
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
@@ -171,6 +173,8 @@ export type NetworkContext = {
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
+  setRemoteStore: (store: RemoteStoreClass) => void;
+  loadCmix: (decryptedPassword?: Uint8Array) => Promise<void>;
 };
 
 export const NetworkClientContext = React.createContext<NetworkContext>({
@@ -218,6 +222,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     disconnect,
     id: cmixId,
     initializeCmix,
+    loadCmix,
+    setRemoteStore,
     status: cmixStatus
   } = useCmix();
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
@@ -237,15 +243,19 @@ export const NetworkProvider: FC<WithChildren> = props => {
   );
   const dmClient = useDmClient(cmixId, privateIdentity, decryptedPassword);
   
-  const initialize = useCallback(async (password: string) => {
+  const decryptPassword = useCallback((password: string) => {
     const statePassEncoded = checkUser(password);
     if (!statePassEncoded) {
       throw new Error('Incorrect password');
-    } else {
-      setRawPassword(password)
-      await initializeCmix(statePassEncoded);
     }
-  }, [checkUser, initializeCmix]);
+    return statePassEncoded;
+  }, [checkUser]);
+
+  const initialize = useCallback(async (password: string) => {
+    setRawPassword(password);
+    const statePassEncoded = decryptPassword(password);
+    await initializeCmix(statePassEncoded);
+  }, [decryptPassword, initializeCmix]);
 
   const upgradeAdmin = useCallback(() => {
     if (currentChannel?.id) {
@@ -638,9 +648,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
           cmix.GetID(),
           '/integrations/assets/channelsIndexedDbWorker.js',
           storageTag,
-          onMessageReceived,
-          onMessageDelete,
-          onMutedUser,
+          {
+            MessageReceived: onMessageReceived,
+            MessageDeleted: onMessageDelete,
+            UserMuted: onMutedUser,
+            NicknameUpdate: () => {}
+          },
           cipher?.id
         );
 
@@ -720,9 +733,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
         CHANNELS_WORKER_JS_PATH,
         privIdentity,
         new Uint8Array,
-        onMessageReceived,
-        onMessageDelete,
-        onMutedUser,
+        {
+          MessageReceived: onMessageReceived,
+          MessageDeleted: onMessageDelete,
+          UserMuted: onMutedUser,
+          NicknameUpdate: () => {}
+        },
         cipher.id
       );
       
@@ -1266,6 +1282,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const ctx: NetworkContext = {
     decryptMessageContent: cipher?.decrypt,
+    decryptPassword,
     channelManager,
     getMutedUsers,
     initialize,
@@ -1306,7 +1323,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
     checkRegistrationReadiness,
     pinMessage,
     logout,
-    upgradeAdmin
+    upgradeAdmin,
+    setRemoteStore,
+    loadCmix
   }
 
   return (

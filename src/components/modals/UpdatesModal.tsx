@@ -48,7 +48,9 @@ const UpdatesModal = () => {
         </li>
       </ul>
       <div className='text-center'>
-        <Button data-testid='updates-modal-confirm' onClick={() => setShowModal(false)}>Roger that.</Button>
+        <Button data-testid='updates-modal-confirm' onClick={() => setShowModal(false)}>
+          Big ups!
+        </Button>
       </div>
     </Modal>
   ) : null;

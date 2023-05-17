@@ -7,6 +7,7 @@ export default defineConfig({
     },
   },
   e2e: {
+    hideXHRInCommandLog: true,
     baseUrl: 'http://127.0.0.1:3000/',
     setupNodeEvents(on, config) {
       require('@cypress/code-coverage/task')(on, config);

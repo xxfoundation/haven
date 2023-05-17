@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DUMMY_TRAFFIC_ARGS, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
 import { ndf } from 'src/sdk-utils/ndf';
 import useTrackNetworkPeriod from './useNetworkTrackPeriod';
+import { RemoteStoreClass } from 'src/types/collective';
 
 const cmixPreviouslyInitialized = () => {
   return localStorage && localStorage.getItem(STATE_PATH) !== null;
@@ -24,6 +25,7 @@ export enum NetworkStatus {
 }
 
 const useCmix = () => {
+  const [remoteStore, setRemoteStore] = useState<RemoteStoreClass>();
   const [status, setStatus] = useState<NetworkStatus>();
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
   const [cmix, setCmix] = useState<CMix | undefined>();
@@ -55,20 +57,31 @@ const useCmix = () => {
     try {
       const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams())) as CMixParams;
       params.Network.EnableImmediateSending = true;
-
-      await utils.LoadCmix(
-        STATE_PATH,
-        decryptedInternalPassword,
-        encoder.encode(JSON.stringify(params))
-      ).then((loadedCmix) => {
-        createDatabaseCipher(loadedCmix.GetID(), decryptedInternalPassword);
-        setCmix(loadedCmix);
-      });
+      if (remoteStore) {
+        await utils.LoadSynchronizedCmix(
+          STATE_PATH,
+          decryptedInternalPassword,
+          remoteStore,
+          encoder.encode(JSON.stringify(params))
+        ).then((loadedCmix) => {
+          createDatabaseCipher(loadedCmix.GetID(), decryptedInternalPassword);
+          setCmix(loadedCmix);
+        });
+      } else {
+        await utils.LoadCmix(
+          STATE_PATH,
+          decryptedInternalPassword,
+          encoder.encode(JSON.stringify(params))
+        ).then((loadedCmix) => {
+          createDatabaseCipher(loadedCmix.GetID(), decryptedInternalPassword);
+          setCmix(loadedCmix);
+        });
+      }
     } catch (e) {
       console.error('Failed to load Cmix:', e);
       setStatus(NetworkStatus.FAILED);
     }
-  }, [createDatabaseCipher, utils]);
+  }, [createDatabaseCipher, remoteStore, utils]);
 
   const initializeCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
     setDecryptedPasword(decryptedInternalPassword);
@@ -172,7 +185,9 @@ const useCmix = () => {
     disconnect,
     id: cmixId,
     initializeCmix,
-    status
+    setRemoteStore,
+    status,
+    loadCmix: (decryptedPasswordOverride?: Uint8Array) => initializeCmix((decryptedPasswordOverride || decryptedPassword) ?? new Uint8Array())
   };
 }
 

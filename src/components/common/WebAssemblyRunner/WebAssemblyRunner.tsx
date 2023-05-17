@@ -65,6 +65,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             IsNicknameValid,
             LoadChannelsManagerWithIndexedDb,
             LoadCmix,
+            LoadSynchronizedCmix,
             NewChannelsDatabaseCipher,
             NewChannelsManagerWithIndexedDb,
             NewCmix,
@@ -81,6 +82,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
           setUtils({
             NewCmix,
             LoadCmix,
+            LoadSynchronizedCmix,
             GetChannelInfo,
             GenerateChannelIdentity,
             GetDefaultCMixParams,

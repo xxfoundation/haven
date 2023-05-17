@@ -6,6 +6,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { decoder } from '@utils/index';
 import Loading from '@components/modals/LoadingView';
 import { identityDecoder } from '@utils/decoders';
+import { RemoteStoreClass } from 'src/types/collective';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -22,10 +23,28 @@ export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, upda
 export type MessageDeletedCallback = (uuid: Uint8Array) => void;
 export type UserMutedCallback = (channelId: Uint8Array, pubkey: string, unmute: boolean) => void;
 export type DMReceivedCallback = (uuid: string, pubkey: Uint8Array, update: boolean, updateConversation: boolean) => void;
+export type NicknameUpdatedCallback = (channelId: Uint8Array, nickname: string, exists: boolean) => void;
+
+export type ChannelManagerCallbacks = {
+  MessageReceived: MessageReceivedCallback,
+  UserMuted: UserMutedCallback,
+  MessageDeleted: MessageDeletedCallback,
+  NicknameUpdate: NicknameUpdatedCallback
+}
 
 export type XXDKUtils = {
   NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => Promise<void>;
-  LoadCmix: (storageDirectory: string, password: Uint8Array, cmixParams: Uint8Array) => Promise<CMix>;
+  LoadCmix: (
+    storageDirectory: string,
+    password: Uint8Array,
+    cmixParams: Uint8Array
+  ) => Promise<CMix>;
+  LoadSynchronizedCmix: (
+    storageDirectory: string,
+    password: Uint8Array,
+    remoteStore: RemoteStoreClass,
+    cmixParams: Uint8Array
+  ) => Promise<CMix>;
   GetDefaultCMixParams: () => Uint8Array;GetChannelInfo: (prettyPrint: string) => Uint8Array;
   Base64ToUint8Array: (base64: string) => Uint8Array;
   GenerateChannelIdentity: (cmixId: number) => Uint8Array;
@@ -34,9 +53,7 @@ export type XXDKUtils = {
     wasmJsPath: string,
     privateIdentity: Uint8Array,
     extensionBuilderIDsJSON: Uint8Array,
-    onMessage: MessageReceivedCallback,
-    onDelete: MessageDeletedCallback,
-    onMuted: UserMutedCallback,
+    callbacks: ChannelManagerCallbacks,
     channelDbCipher: number
   ) => Promise<ChannelManager>;
   NewDMClientWithIndexedDb: (
@@ -51,9 +68,7 @@ export type XXDKUtils = {
     cmixId: number,
     wasmJsPath: string,
     storageTag: string,
-    onMessage: MessageReceivedCallback,
-    onDelete: MessageDeletedCallback,
-    onMuted: UserMutedCallback,
+    callbacks: ChannelManagerCallbacks,
     channelDbCipher: number
   ) => Promise<ChannelManager>;
   GetPublicChannelIdentityFromPrivate: (privateKey: Uint8Array) => Uint8Array;

@@ -155,10 +155,10 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     )}
     {isNewMessage && (
       <div className='relative flex items-center px-4'>
-          <div className='flex-grow border-t' style={{ borderColor: 'var(--orange)'}}></div>
-          <span className='flex-shrink mx-4' style={{ color: 'var(--orange)'}}>
-            {t('New!')}
-          </span>
+        <div className='flex-grow border-t' style={{ borderColor: 'var(--orange)'}}></div>
+        <span className='flex-shrink mx-4' style={{ color: 'var(--orange)'}}>
+          {t('New!')}
+        </span>
       </div>
     )}
     <ChatMessage

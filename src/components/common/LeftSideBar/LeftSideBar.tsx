@@ -103,6 +103,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
       <span>{t('Joined')}</span>
       <div className='flex items-center'>
         <Plus
+          data-testid='create-channel-dropdown-button'
           className={cn('mr-1', s.plus, {})}
           onClick={(e) => {
             if (e && e.stopPropagation) {
@@ -153,10 +154,10 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   }, [allConversations, dispatch])
 
   return (
-    <div className={cn(s.root, cssClasses)}>
+    <div data-testid='left-side-bar' className={cn(s.root, cssClasses)}>
       <div className={s.header}>
         <div className={s.logo}>
-          <SpeakEasy />
+          <SpeakEasy data-testid='main-speakeasy-logo' />
         </div>
         <NetworkStatusIcon />
       </div>
@@ -168,7 +169,10 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
           <Dropdown isOpen={showCreateNewChannel} onChange={setShowCreateNewChannel}>
             <ul style={{ backgroundColor: 'var(--dark-2)', zIndex: 2 }} className='text-right w-full rounded-lg p-2 bold'>
               <li className='px-2 py-1'>
-                <button className='underline' onClick={() => {
+                <button
+                  data-testid='create-channel-button'
+                  className='underline'
+                  onClick={() => {
                   setModalView('CREATE_CHANNEL');
                   openModal();
                   setShowCreateNewChannel(false);

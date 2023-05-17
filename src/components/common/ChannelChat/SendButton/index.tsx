@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 const SendButton: FC<ButtonHTMLAttributes<HTMLButtonElement>> = (props) => {
   const { t } = useTranslation();
   return (
-    <button disabled  {...props} className={cn(props.className, s.root)}>
+    <button data-testid='textarea-send-button' disabled  {...props} className={cn(props.className, s.root)}>
       <span className='mr-1'>
         {t('Send')}
       </span>
