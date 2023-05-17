@@ -10,7 +10,7 @@ import { useUI } from '@contexts/ui-context';
 import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE } from 'src/constants';
 import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 import GoogleButton from '../../common/GoogleButton';
-import DropboxButton from './DropboxButton';
+import DropboxButton from '../../common/DropboxButton';
 
 import s from './styles.module.scss';
 

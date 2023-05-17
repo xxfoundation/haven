@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react';
+import { RemoteKV } from './collective';
 
 export type WithChildren = {
   children?: ReactNode;
 }
 
 type HealthCallback = { Callback: (healthy: boolean) => void }
+
 
 export type CMix = {
   AddHealthCallback: (callback: HealthCallback) => number;
@@ -15,6 +17,7 @@ export type CMix = {
   StopNetworkFollower: () => void;
   WaitForNetwork: (timeoutMilliseconds: number) => Promise<void>;
   SetTrackNetworkPeriod: (periodMs: number) => void;
+  GetRemoteKV: () => Promise<RemoteKV>;
 }
 
 export type DMClient = {

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { encoder } from '@utils/index';
 import useGoogleDrive from './useGoogleDrive';
 import useGoogleApi from './useGoogleApi';
-import { RemoteStoreClass } from 'src/types/collective';
+import { RemoteStore } from 'src/types/collective';
 import { bus } from 'src/events';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -96,7 +96,7 @@ const useGoogleRemoteStore = () => {
     
   }, [accessToken]);
 
-  return drive ? new RemoteStoreClass({
+  return drive ? new RemoteStore({
     Write: uploadBinaryFile,
     Read: getBinaryFile,
     GetLastModified: getLastModified,

@@ -6,7 +6,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { decoder } from '@utils/index';
 import Loading from '@components/modals/LoadingView';
 import { identityDecoder } from '@utils/decoders';
-import { RemoteStoreClass } from 'src/types/collective';
+import { RemoteStore } from 'src/types/collective';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -42,7 +42,7 @@ export type XXDKUtils = {
   LoadSynchronizedCmix: (
     storageDirectory: string,
     password: Uint8Array,
-    remoteStore: RemoteStoreClass,
+    remoteStore: RemoteStore,
     cmixParams: Uint8Array
   ) => Promise<CMix>;
   GetDefaultCMixParams: () => Uint8Array;GetChannelInfo: (prettyPrint: string) => Uint8Array;
