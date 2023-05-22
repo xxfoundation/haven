@@ -416,6 +416,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const handleMessageEvent = useCallback(async ({ messageId }: MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
       const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
+
       if (!receivedMessage) {
         return;
       }

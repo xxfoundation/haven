@@ -5,22 +5,24 @@ export enum OperationType {
 }
 
 export type KVEntry = {
-  Version: number;
-  Timestamp: string;
-  Data: string;
+  version: number;
+  timestamp: string;
+  data: string;
 }
 
-type KeyChangedByRemoteCallback = (
-  key: string,
-  oldEntry: Uint8Array,
-  newEntry: Uint8Array,
-  operationType: OperationType
-) => void;
+type KeyChangedByRemoteCallback = {
+  Callback: (
+    key: string,
+    oldEntry: Uint8Array,
+    newEntry: Uint8Array,
+    operationType: OperationType
+  ) => void;
+}
 
 export const KV_VERSION = 0;
 
 export type RemoteKV = {
-  Get: (key: string, version: number) => Promise<KVEntry>;
+  Get: (key: string, version: number) => Promise<Uint8Array>;
   Delete: (key: string, version: number) => Promise<void>;
   Set: (key: string, encodedKVMapEntry: Uint8Array) => Promise<void>;
   ListenOnRemoteKey: (key: string, version: number, onChange: KeyChangedByRemoteCallback) => Promise<void>
