@@ -58,12 +58,13 @@ const useCmix = () => {
     try {
       const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams())) as CMixParams;
       params.Network.EnableImmediateSending = true;
+      const cmixParamsEncoded = encoder.encode(JSON.stringify(params));
       if (remoteStore) {
         await utils.LoadSynchronizedCmix(
           STATE_PATH,
           decryptedInternalPassword,
           remoteStore,
-          encoder.encode(JSON.stringify(params))
+          cmixParamsEncoded
         ).then((loadedCmix) => {
           createDatabaseCipher(loadedCmix.GetID(), decryptedInternalPassword);
           setCmix(loadedCmix);

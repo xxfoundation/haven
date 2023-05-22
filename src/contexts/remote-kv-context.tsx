@@ -1,6 +1,8 @@
-import { createContext, useEffect, useState, FC, useContext, useCallback } from 'react';
+import { createContext, useEffect, useState, FC, useCallback, useContext } from 'react';
 import assert from 'assert';
+import { JsonDecoder } from 'ts.data.json'
 
+import { makeDecoder } from 'src/utils/decoders'
 import { KV_VERSION, OperationType, RemoteKV } from 'src/types/collective';
 import { encoder } from 'src/utils/index';
 import { Decoder, kvEntryDecoder } from 'src/utils/decoders';
@@ -31,43 +33,26 @@ class RemoteKVWrapper {
   }
 
   listenOn(key: string, onChange: OnChangeCallback) {
-    this.kv.ListenOnRemoteKey(key, KV_VERSION, (_k, _old, v, operationType) => {
-      if (operationType !== OperationType.Deleted) {
-        const entry = kvEntryDecoder(v);
-        onChange(Buffer.from(entry.data, 'base64').toString());
-      } else {
-        onChange(undefined);
+    this.kv.ListenOnRemoteKey(
+      key,
+      KV_VERSION,
+      {
+        Callback: (_k, _old, v, operationType) => {
+          const entry = kvEntryDecoder(v);
+          const converted = Buffer.from(entry.data, 'base64').toString();
+          onChange(
+            operationType === OperationType.Deleted
+              ? undefined
+              : converted
+          );
+        }
       }
-    });
+    );
   }
 }
 
-const RemoteKVContext = createContext<{ kv?: RemoteKVWrapper }>({});
-
-export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
-  const { cmix, networkStatus } = useNetworkClient();
-  const [kv, setKv] = useState<RemoteKVWrapper>();
-
-  useEffect(() => {
-    if (cmix && networkStatus !== NetworkStatus.UNINITIALIZED) {
-      cmix.GetRemoteKV().then((rawKv) => {
-        setKv(new RemoteKVWrapper(rawKv));
-      })
-    }
-  }, [cmix, networkStatus])
-
-  return (
-    <RemoteKVContext.Provider value={{ kv }}>
-      {children}
-    </RemoteKVContext.Provider>
-  )
-}
-
-const useRemoteKv = () => useContext(RemoteKVContext).kv;
-
-export const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>) => {
+export const useRemotelySynchedValue = <T,>(kv: RemoteKVWrapper | undefined, key: string, decoder: Decoder<T>) => {
   const [value, setValue] = useState<T>();
-  const kv = useRemoteKv();
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -89,7 +74,7 @@ export const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>) =>
     }
   }, [decoder, key, kv]);
 
-  const set = useCallback((v: T) => {
+  const set = useCallback((v: T | ((v: T) => void)) => {
     assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);
     return kv.set(key, JSON.stringify(v));
   }, [key, kv])
@@ -100,4 +85,61 @@ export const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>) =>
     set
   }
 }
+
+const stringArrayDecoder = makeDecoder(JsonDecoder.array<string>(JsonDecoder.string, 'ChannelFavoritesDecoder'))
+
+const useChannelFavorites = (kv?: RemoteKVWrapper) => {
+  const { loading, set, value: favorites = [] } = useRemotelySynchedValue(kv, 'channel-favorites', stringArrayDecoder);
+
+  const toggleFavorite = useCallback((channelId: string) => {
+    if (!loading) {
+      set(favorites.includes(channelId)
+        ? favorites.filter((id) => id !== channelId)
+        : favorites.concat(channelId)
+      )
+    }
+  }, [favorites, loading, set]);
+
+  const isFavorite = useCallback(
+    (channelId?: string | null) => channelId && favorites.includes(channelId),
+    [favorites]
+  );
+
+  return {
+    favorites,
+    toggle: toggleFavorite,
+    isFavorite
+  }
+}
+
+
+type ContextType = {
+  kv?: RemoteKVWrapper,
+  channelFavorites: ReturnType<typeof useChannelFavorites>;
+}
+
+const RemoteKVContext = createContext<ContextType>({} as ContextType);
+
+export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
+  const { cmix, networkStatus } = useNetworkClient();
+  const [kv, setKv] = useState<RemoteKVWrapper>();
+
+  useEffect(() => {
+    if (cmix && networkStatus !== NetworkStatus.UNINITIALIZED) {
+      cmix.GetRemoteKV().then((rawKv) => {
+        setKv(new RemoteKVWrapper(rawKv));
+      })
+    }
+  }, [cmix, networkStatus]);
+
+  const channelFavorites = useChannelFavorites(kv);
+
+  return (
+    <RemoteKVContext.Provider value={{ channelFavorites, kv }}>
+      {children}
+    </RemoteKVContext.Provider>
+  )
+}
+
+export const useRemoteKV = () => useContext(RemoteKVContext);
 
