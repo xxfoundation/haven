@@ -20,7 +20,7 @@ export type ChannelsState = {
   byId: Record<ChannelId, Channel>;
   sortedChannels: Array<Channel>;
   currentPages: Record<ChannelId, number>;
-  nicknames: Record<ChannelId, string>;
+  nicknames: Record<ChannelId, string | undefined>;
 };
 
 declare module 'src/store/types' {
