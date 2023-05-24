@@ -7,6 +7,7 @@ import { decoder } from '@utils/index';
 import Loading from '@components/modals/LoadingView';
 import { identityDecoder } from '@utils/decoders';
 import { RemoteStore } from 'src/types/collective';
+import { ChannelEventHandler, DMReceivedCallback } from 'src/events';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -19,17 +20,8 @@ export type Cipher = {
   Decrypt: (plaintext: Uint8Array) => Uint8Array;
 }
 
-export type MessageReceivedCallback = (uuid: string, channelId: Uint8Array, update: boolean) => void;
-export type MessageDeletedCallback = (uuid: Uint8Array) => void;
-export type UserMutedCallback = (channelId: Uint8Array, pubkey: string, unmute: boolean) => void;
-export type DMReceivedCallback = (uuid: string, pubkey: Uint8Array, update: boolean, updateConversation: boolean) => void;
-export type NicknameUpdatedCallback = (channelId: Uint8Array, nickname: string, exists: boolean) => void;
-
 export type ChannelManagerCallbacks = {
-  MessageReceived: MessageReceivedCallback,
-  UserMuted: UserMutedCallback,
-  MessageDeleted: MessageDeletedCallback,
-  NicknameUpdate: NicknameUpdatedCallback
+  EventUpdate: ChannelEventHandler;
 }
 
 export type XXDKUtils = {

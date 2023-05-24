@@ -1,7 +1,13 @@
 export enum MessageType {
-  Normal = 1,
+  Text = 1,
   Reply = 2,
-  Reaction = 3
+  Reaction = 3,
+  Silent = 4,
+  Delete = 101,
+  Pinned = 102,
+  Mute = 103,
+  AdminReplay = 104,
+  FileTransfer = 40000
 }
 
 export enum MessageStatus {

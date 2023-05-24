@@ -10,7 +10,7 @@ import Identity from 'src/components/common/Identity';
 import useAsync from 'src/hooks/useAsync';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
-import { awaitEvent, Event } from 'src/events';
+import { awaitEvent, ChannelEvents } from 'src/events';
 import Loading from '../LoadingView';
 
 export type MuteUserAction = 'mute' | 'mute+delete';
@@ -21,7 +21,7 @@ const ViewMutedUsers: FC = () =>  {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const getMuted = useAsync(getMutedUsers);
   const muting = useAsync((...args: Parameters<typeof muteUser>) => Promise.all([
-    awaitEvent(Event.USER_MUTED),  // delay to let the nodes propagate
+    awaitEvent(ChannelEvents.USER_MUTED),
     muteUser(...args)
   ]));
 

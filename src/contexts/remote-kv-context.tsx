@@ -33,7 +33,7 @@ class RemoteKVWrapper {
   }
 
   listenOn(key: string, onChange: OnChangeCallback) {
-    this.kv.ListenOnRemoteKey(
+    return this.kv.ListenOnRemoteKey(
       key,
       KV_VERSION,
       {

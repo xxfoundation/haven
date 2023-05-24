@@ -5,11 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useTranslation } from 'react-i18next';
 
 import { ModalCtaButton } from '@components/common';
-import { bus } from 'src/events'
+import { AppEvents, bus } from 'src/events'
 import { IModalCtaButtonProps } from './ModalCtaButton/ModalCtaButton';
 import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
 import { useNetworkClient } from '@contexts/network-client-context';
-
 
 type Props = Partial<IModalCtaButtonProps> & {
   onSync?: () => void;
@@ -35,7 +34,7 @@ const DropboxButton: FC<Props> = ({
   useEffect(() => {
     const onTokenMessage = (e: MessageEvent) => {
       if (window.location.origin === e.origin && e.data.code) {
-        bus.emit('dropbox-token', e.data.code);
+        bus.emit(AppEvents.DROPBOX_TOKEN, e.data.code);
       }
     }
 

@@ -7,6 +7,7 @@ const initialState: ChannelsState = {
   byId: {},
   sortedChannels: [],
   currentPages: {},
+  nicknames: {},
 };
 
 const initialChannelState = {
@@ -66,7 +67,6 @@ export const slice = createSlice({
         byId: filtered,
         sortedChannels: state.sortedChannels.filter((ch) => ch.id !== channelId)
       }
-      
     },
     upgradeAdmin: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>) => {
       return ({
@@ -80,6 +80,15 @@ export const slice = createSlice({
         }
       })
     },
+    updateNickname: (state: ChannelsState, { payload: { channelId, nickname }}: PayloadAction<{ channelId: ChannelId, nickname?: string }>) => {
+      return {
+        ...state,
+        nicknames: {
+          ...state.nicknames,
+          [channelId]: nickname
+        }
+      }
+    }
   }
 });
 

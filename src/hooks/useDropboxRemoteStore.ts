@@ -2,7 +2,7 @@ import { Dropbox } from 'dropbox';
 import { useCallback, useEffect, useState } from 'react';
 import assert from 'assert';
 
-import { bus } from 'src/events';
+import { AppEvents, bus } from 'src/events';
 import { RemoteStore } from 'src/types/collective';
 
 const useDropboxRemoteStore = () => {
@@ -13,10 +13,10 @@ const useDropboxRemoteStore = () => {
       setDropbox(new Dropbox({ accessToken }))
     }
 
-    bus.addListener('dropbox-token', onToken);
+    bus.addListener(AppEvents.DROPBOX_TOKEN, onToken);
 
     return () => {
-      bus.removeListener('dropbox-token', onToken);
+      bus.removeListener(AppEvents.DROPBOX_TOKEN, onToken);
     }
   }, []);
 

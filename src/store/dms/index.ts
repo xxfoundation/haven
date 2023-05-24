@@ -9,7 +9,7 @@ import { MessageType } from '@types';
 const initialState: DMState = {
   conversationsByPubkey: {},
   messagesByPubkey: {},
-  reactions: {}
+  reactions: {},
 };
 
 const upsertConversation = (state: DMState, conversation: Conversation) => ({

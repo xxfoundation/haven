@@ -2,6 +2,7 @@ import { RootState } from 'src/store/types';
 import { createSelector } from '@reduxjs/toolkit';
 import { channelFavorites, channelsSearch } from '../app/selectors';
 import { sortBy } from 'lodash';
+import { ChannelId } from './types';
 
 export const channels = (state: RootState) => state.channels.sortedChannels;
 export const searchFilteredChannels = createSelector(
@@ -21,3 +22,7 @@ export const currentChannel = (state: RootState) => state.app.selectedChannelIdO
   : undefined;
 
 export const channelPages = (state: RootState) => state.channels.currentPages;
+
+export const channelNicknames = (state: RootState) => state.channels.nicknames;
+
+export const currentChannelNickname = (channelId?: ChannelId) => (state: RootState): string | undefined => channelId && state.channels.nicknames[channelId];

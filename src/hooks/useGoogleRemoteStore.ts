@@ -4,7 +4,7 @@ import { encoder } from '@utils/index';
 import useGoogleDrive from './useGoogleDrive';
 import useGoogleApi from './useGoogleApi';
 import { RemoteStore } from 'src/types/collective';
-import { bus } from 'src/events';
+import { AppEvents, bus } from 'src/events';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const useGoogleRemoteStore = () => {
@@ -13,9 +13,9 @@ const useGoogleRemoteStore = () => {
   const { drive } = useGoogleDrive(gapi, accessToken);
 
   useEffect(() => {
-    bus.addListener('google-token', setAccessToken);
+    bus.addListener(AppEvents.GOOGLE_TOKEN, setAccessToken);
 
-    return () => { bus.removeListener('google-token', setAccessToken) }
+    return () => { bus.removeListener(AppEvents.GOOGLE_TOKEN, setAccessToken) }
   }, []);
 
   const getBinaryFile = useCallback(async (name: string) => {
