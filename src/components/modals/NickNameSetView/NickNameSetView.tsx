@@ -9,13 +9,15 @@ import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
+import * as globalSelectors from 'src/store/selectors';
 
 const NickNameSetView: FC = () => {
   const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const { getNickName, setNickName } = useNetworkClient();
-  const [localNickname, setLocalNickname] = useState(getNickName() || '');
+  const { setNickName } = useNetworkClient();
+  const nickname = useAppSelector(globalSelectors.currentNickname);
+  const [localNickname, setLocalNickname] = useState(nickname || '');
   const [error, setError] = useState('');
   const { closeModal } = useUI();
 

@@ -91,7 +91,10 @@ export type CMixParams = {
   }
 }
 
+export * from './collective';
 export * from './db';
+export * from './emitter';
+export * from './events';
 export * from './json';
 export * from 'src/store/channels/types';
 export * from 'src/store/identity/types';

@@ -16,10 +16,9 @@ import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
-import { awaitEvent, Event } from 'src/events';
+import { awaitEvent, AppEvents, ChannelEvents } from 'src/events';
 
 import classes from './MessageContainer.module.scss';
-
 
 type Props = {
   className?: string;
@@ -74,7 +73,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
 
     promises.push(muteUser(message.pubkey, false));
 
-    promises.push(awaitEvent(Event.USER_MUTED));  // delay to let the nodes propagate
+    promises.push(awaitEvent(ChannelEvents.USER_MUTED));  // delay to let the nodes propagate
 
     await Promise.all(promises);
 
@@ -85,7 +84,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     if (unpin === true) {
       await Promise.all([
         pinMessage(message, unpin),
-        awaitEvent(Event.MESSAGE_UNPINNED) // delay to let the nodes propagate
+        awaitEvent(AppEvents.MESSAGE_UNPINNED) // delay to let the nodes propagate
       ]);
     } else {
       showPinModal();
@@ -95,7 +94,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
       pinMessage(message),
-      awaitEvent(Event.MESSAGE_PINNED) // delay to let the nodes propagate
+      awaitEvent(AppEvents.MESSAGE_PINNED) // delay to let the nodes propagate
     ]);
     hidePinModal();
   }, [hidePinModal, message, pinMessage]);

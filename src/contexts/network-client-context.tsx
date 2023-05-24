@@ -1,4 +1,4 @@
-import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON } from 'src/types';
+import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, MessagePinEvent, MessageDeletedEvent, NicknameUpdatedEvent } from 'src/types';
 
 import { Message } from 'src/store/messages/types';
 import { MessageStatus, MessageType } from 'src/types';
@@ -10,7 +10,7 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import { bus, Event, MessageDeletedEvent, MessagePinEvent, MessageReceivedEvent, onMessageDelete, onMessagePinned, onMessageReceived, onMessageUnpinned, onMutedUser } from 'src/events';
+import { bus, AppEvents, onMessagePinned, onMessageUnpinned, handleChannelEvent, ChannelEvents } from 'src/events';
 import { WithChildren } from 'src/types';
 import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
@@ -413,9 +413,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [db, dbMessageMapper, dispatch]);
 
-  const handleMessageEvent = useCallback(async ({ messageId }: MessageReceivedEvent) => {
+  const handleMessageEvent = useCallback(async ({ uuid }: MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
-      const receivedMessage = await db.table<DBMessage>('messages').get(messageId);
+      const receivedMessage = await db.table<DBMessage>('messages').get(uuid);
 
       if (!receivedMessage) {
         return;
@@ -503,9 +503,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ]);
 
   useEffect(() => {
-    bus.addListener(Event.MESSAGE_RECEIVED, handleMessageEvent);
+    bus.addListener(ChannelEvents.MESSAGE_RECEIVED, handleMessageEvent);
 
-    return () => { bus.removeListener('message', handleMessageEvent) };
+    return () => { bus.removeListener(ChannelEvents.MESSAGE_RECEIVED, handleMessageEvent) };
   }, [handleMessageEvent]);
 
   const fetchChannels = useCallback(async () => {
@@ -644,10 +644,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           '/integrations/assets/channelsIndexedDbWorker.js',
           storageTag,
           {
-            MessageReceived: onMessageReceived,
-            MessageDeleted: onMessageDelete,
-            UserMuted: onMutedUser,
-            NicknameUpdate: () => {}
+            EventUpdate: handleChannelEvent
           },
           cipher?.id
         );
@@ -700,9 +697,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       messagePinned(body, channelName);
     };
 
-    bus.addListener(Event.MESSAGE_PINNED, listener);
+    bus.addListener(AppEvents.MESSAGE_PINNED, listener);
 
-    return () => { bus.removeListener(Event.MESSAGE_PINNED, listener); }
+    return () => { bus.removeListener(AppEvents.MESSAGE_PINNED, listener); }
 
   }, [currentChannels, messagePinned])
 
@@ -711,9 +708,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       getMutedUsers();
     }
 
-    bus.addListener(Event.USER_MUTED, listener);
+    bus.addListener(ChannelEvents.USER_MUTED, listener);
 
-    return () => { bus.removeListener(Event.USER_MUTED, listener); };
+    return () => { bus.removeListener(ChannelEvents.USER_MUTED, listener); };
   }, [getMutedUsers]);
 
   const createChannelManager = useCallback(async (privIdentity: Uint8Array) => {
@@ -727,13 +724,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         cmix.GetID(),
         CHANNELS_WORKER_JS_PATH,
         privIdentity,
-        new Uint8Array,
-        {
-          MessageReceived: onMessageReceived,
-          MessageDeleted: onMessageDelete,
-          UserMuted: onMutedUser,
-          NicknameUpdate: () => {}
-        },
+        new Uint8Array(),
+        { EventUpdate: handleChannelEvent },
         cipher.id
       );
       
@@ -1063,6 +1055,30 @@ export const NetworkProvider: FC<WithChildren> = props => {
     return nickName;
   }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
 
+  useEffect(() => {
+    if (currentChannel) {
+      dispatch(channels.actions.updateNickname({
+        channelId: currentChannel.id,
+        nickname: getNickName()
+      }))
+    } else if (currentConversation) {
+      dispatch(dms.actions.setUserNickname(getNickName()));
+    }
+  }, [currentChannel, currentConversation, dispatch, getNickName]);
+
+  useEffect(() => {
+    const handler = (e: NicknameUpdatedEvent) => {
+      dispatch(channels.actions.updateNickname({
+        channelId: e.channelId,
+        nickname: e.exists ? e.nickname : undefined
+      }));
+    }
+    
+    bus.addListener(ChannelEvents.NICKNAME_UPDATE, handler);
+
+    return () => { bus.removeListener(ChannelEvents.NICKNAME_UPDATE, handler)};
+  }, [dispatch]);
+
   // Identity object is combination of private identity and code name
   const generateIdentities = useCallback((amountOfIdentities: number) => {
     const identitiesObjects: ReturnType<NetworkContext['generateIdentities']> = [];
@@ -1187,9 +1203,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       dispatch(messages.actions.delete(evt.messageId));
     };
 
-    bus.addListener(Event.MESSAGE_DELETED, listener);
+    bus.addListener(ChannelEvents.MESSAGE_DELETED, listener);
 
-    return () => { bus.removeListener(Event.MESSAGE_DELETED, listener); }
+    return () => { bus.removeListener(ChannelEvents.MESSAGE_DELETED, listener); }
   }, [dispatch])
 
   useEffect(() => {
@@ -1252,9 +1268,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
       checkMuted();
     }
 
-    bus.addListener(Event.USER_MUTED, checkMuted);
+    bus.addListener(ChannelEvents.USER_MUTED, checkMuted);
 
-    return () => { bus.removeListener(Event.USER_MUTED, checkMuted); }
+    return () => { bus.removeListener(ChannelEvents.USER_MUTED, checkMuted); }
   }, [currentChannel?.id, getMuted]);
 
 

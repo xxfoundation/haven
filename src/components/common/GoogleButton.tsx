@@ -6,7 +6,7 @@ import { faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 import { useTranslation } from 'react-i18next';
 import { useGoogleLogin } from '@react-oauth/google';
 import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
-import { bus } from 'src/events';
+import { AppEvents, bus } from 'src/events';
 import { useNetworkClient } from '@contexts/network-client-context';
 import { IModalCtaButtonProps } from './ModalCtaButton/ModalCtaButton';
 
@@ -36,7 +36,7 @@ const GoogleButton: FC<Props>  = ({
     scope: 'https://www.googleapis.com/auth/drive.appdata',
     prompt: 'consent',
     onSuccess: (token) => {
-      bus.emit('google-token', token.access_token)
+      bus.emit(AppEvents.GOOGLE_TOKEN, token.access_token)
     },
   });
 

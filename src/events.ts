@@ -1,105 +1,87 @@
-import { Message } from './store/messages/types';
+import type { TypedEventEmitter } from 'src/types/emitter';
+import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent } from 'src/types';
 import EventEmitter from 'events';
 import delay from 'delay';
+import { Decoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
 
-export const bus = new EventEmitter();
-
-export enum Event {
-  DM_RECEIVED = 'dm-message',
-  MESSAGE_RECEIVED = 'message',
-  USER_MUTED = 'muted',
-  MESSAGE_DELETED = 'delete',
+export enum AppEvents {
   MESSAGE_PINNED = 'pinned',
-  MESSAGE_UNPINNED = 'unpinned'
+  MESSAGE_UNPINNED = 'unpinned',
+  DM_RECEIVED = 'dm-received',
+  GOOGLE_TOKEN = 'google-token',
+  DROPBOX_TOKEN = 'dropbox-token'
 }
 
-export type MessageReceivedEvent = {
-  messageId: string;
-  channelId: Uint8Array;
-  update: boolean;
+export enum ChannelEvents {
+  NICKNAME_UPDATE = 0,
+  NOTIFICATION_UPDATE = 1,
+  MESSAGE_RECEIVED = 2,
+  USER_MUTED = 3,
+  MESSAGE_DELETED = 4,
 }
 
-export const onMessageReceived = (
-  messageId: string,
-  channelId: Uint8Array,
-  update: boolean
-) => {
-  const messageEvent: MessageReceivedEvent = {
-    messageId,
-    channelId,
-    update
-  }
-
-  bus.emit(Event.MESSAGE_RECEIVED, messageEvent);
+export type ChannelEventMap = {
+  [ChannelEvents.NICKNAME_UPDATE]: NicknameUpdatedEvent;
+  [ChannelEvents.NOTIFICATION_UPDATE]: NotificationUpdateEvent;
+  [ChannelEvents.MESSAGE_RECEIVED]: MessageReceivedEvent;
+  [ChannelEvents.MESSAGE_DELETED]: MessageDeletedEvent;
+  [ChannelEvents.USER_MUTED]: UserMutedEvent;
 }
 
-export type UserMutedEvent = {
-  channelId: Uint8Array;
-  pubkey: string;
-  unmute: boolean;
+type EventHandlers = {
+  [P in keyof ChannelEventMap]: (event: ChannelEventMap[P]) => void;
+} & {
+  [AppEvents.MESSAGE_PINNED]: (event: MessagePinEvent) => void;
+  [AppEvents.MESSAGE_UNPINNED]: (event: MessageUnPinEvent) => void;
+  [AppEvents.DM_RECEIVED]: (event: DMReceivedEvent) => void;
+  [AppEvents.GOOGLE_TOKEN]: (event: string) => void;
+  [AppEvents.DROPBOX_TOKEN]: (event: string) => void;
 }
 
-export const onMutedUser = (
-  channelId: Uint8Array,
-  pubkey: string,
-  unmute: boolean
-) => {
-  const event: UserMutedEvent = { channelId, pubkey, unmute };
-  bus.emit(Event.USER_MUTED, event);
+const cmixDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]> } = {
+  [ChannelEvents.MESSAGE_RECEIVED]: messageReceivedEventDecoder,
+  [ChannelEvents.NOTIFICATION_UPDATE]: notificationUpdateEventDecoder,
+  [ChannelEvents.MESSAGE_DELETED]: messageDeletedEventDecoder,
+  [ChannelEvents.USER_MUTED]: userMutedEventDecoder,
+  [ChannelEvents.NICKNAME_UPDATE]: nicknameUpdatedEventDecoder
 }
 
-export type MessageDeletedEvent = {
-  messageId: string;
-}
+export const bus = new EventEmitter() as TypedEventEmitter<EventHandlers>;
 
-export const onMessageDelete = (msgId: Uint8Array) => {
-  const messageId = Buffer.from(msgId).toString('base64');
-  const event: MessageDeletedEvent = { messageId };
-  bus.emit(Event.MESSAGE_DELETED, event);
-};
+export type ChannelEventHandler = (eventType: ChannelEvents, data: unknown) => void;
 
 export const onMessagePinned = (message: Message) => {
-  bus.emit(Event.MESSAGE_PINNED, message);
+  bus.emit(AppEvents.MESSAGE_PINNED, message);
 }
 
 export const onMessageUnpinned = (message: Message) => {
-  bus.emit(Event.MESSAGE_UNPINNED, message);
+  bus.emit(AppEvents.MESSAGE_UNPINNED, message);
 }
 
+export type DMReceivedCallback = (uuid: string, pubkey: Uint8Array, update: boolean, updateConversation: boolean) => void;
 
-export type MessagePinEvent = Message;
-export type MessageUnPinEvent = Message;
-
-export type DMReceivedEvent = {
-  messageUuid: string;
-  pubkey: Uint8Array;
-  update: boolean;
-  conversationUpdated: boolean;
-}
-
-export const onDmReceived = (
-  messageUuid: string,
-  pubkey: Uint8Array,
-  update: boolean,
-  conversationUpdated: boolean
-) => {
-  const messageEvent: DMReceivedEvent = {
-    messageUuid,
+export const onDmReceived: DMReceivedCallback = (uuid, pubkey, update, updateConversation) => {
+  bus.emit(AppEvents.DM_RECEIVED, {
+    messageUuid: uuid,
     pubkey,
     update,
-    conversationUpdated
-  }
+    conversationUpdated: updateConversation
+  });
+}
 
-  bus.emit(Event.DM_RECEIVED, messageEvent);
+export const handleChannelEvent: ChannelEventHandler = (eventType, data) => {
+  const decoder = cmixDecoderMap[eventType];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bus.emit(eventType, decoder(data) as any);
 }
 
 
-export const awaitEvent = async (evt: Event) => {
+export const awaitEvent = async (evt: AppEvents | ChannelEvents) => {
   let listener: () => void = () => {};
   await Promise.race([
     new Promise<void>((resolve) => {
       listener = resolve;
-      bus.addListener(evt, resolve)
+      bus.addListener(evt, () => { resolve() });
     }),
     delay(10000) // 10 second timeout
   ]);
