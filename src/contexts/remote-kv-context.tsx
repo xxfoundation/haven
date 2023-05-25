@@ -19,8 +19,15 @@ class RemoteKVWrapper {
   }
 
   async get(key: string) {
-    const entry = kvEntryDecoder(await this.kv.Get(key, KV_VERSION));
-    return Buffer.from(entry.data, 'base64').toString();
+    let value = undefined;
+    try {
+      const fetchedEntry = await this.kv.Get(key, KV_VERSION);
+      const entry = kvEntryDecoder(fetchedEntry);
+      value = Buffer.from(entry.data, 'base64').toString();
+    } catch (e) {
+      console.warn(`Could not find ${key} in remote kv, returning undefined. Remote kv returned ${(e as Error).message}`);
+    }
+    return value;
   }
 
   set(key: string, data: string) {
@@ -57,20 +64,20 @@ export const useRemotelySynchedValue = <T,>(kv: RemoteKVWrapper | undefined, key
 
   useEffect(() => {
     if (kv) {
-      setLoading(true);
-      kv.get(key).then((v) => {
-        setValue(decoder(v));
-      }).finally(() => {
-        setLoading(false);
-      });
+      kv.listenOn(key, (v) => {
+        setValue(v !== undefined ? decoder(v) : v);
+      })
     }
   }, [decoder, key, kv]);
 
   useEffect(() => {
     if (kv) {
-      kv.listenOn(key, (v) => {
-        setValue(decoder(v));
-      })
+      setLoading(true);
+      kv.get(key).then((v) => {
+        setValue(v !== undefined ? decoder(v) : v);
+      }).finally(() => {
+        setLoading(false);
+      });
     }
   }, [decoder, key, kv]);
 
@@ -86,10 +93,10 @@ export const useRemotelySynchedValue = <T,>(kv: RemoteKVWrapper | undefined, key
   }
 }
 
-const stringArrayDecoder = makeDecoder(JsonDecoder.array<string>(JsonDecoder.string, 'ChannelFavoritesDecoder'))
+const channelFavoritesDecoder = makeDecoder('ChannelFavoritesDecoder', JsonDecoder.array<string>(JsonDecoder.string, 'ChannelFavoritesDecoder'))
 
 const useChannelFavorites = (kv?: RemoteKVWrapper) => {
-  const { loading, set, value: favorites = [] } = useRemotelySynchedValue(kv, 'channel-favorites', stringArrayDecoder);
+  const { loading, set, value: favorites = [] } = useRemotelySynchedValue(kv, 'channel-favorites', channelFavoritesDecoder);
 
   const toggleFavorite = useCallback((channelId: string) => {
     if (!loading) {
