@@ -16,12 +16,12 @@ const attemptParse = (object: unknown) => {
   return parsed;
 }
 
-export const makeDecoder = <T>(name: string, decoder: JsonDecoder.Decoder<T>) => (thing: unknown): T => {
+export const makeDecoder = <T>(decoder: JsonDecoder.Decoder<T>) => (thing: unknown): T => {
   const object = thing instanceof Uint8Array ? uintDecoder.decode(thing) : thing;
   const parsed = typeof object === 'string' ? attemptParse(object) : object;
   const result = decoder.decode(parsed);
   if (result instanceof Err) {
-    throw new Error(`Unexpected JSON: ${thing} for decoder ${name}, Error: ${result.error}`);
+    throw new Error(`Unexpected JSON: ${JSON.stringify(parsed)} for decoder ${name}, Error: ${result.error}`);
   } else {
     return result.value;
   }
@@ -33,7 +33,7 @@ const uint8ArrayDecoder = JsonDecoder.array(JsonDecoder.number, 'Uint8Decoder');
 
 const uint8ArrayToStringDecoder = uint8ArrayDecoder.map((uintArray) => uintDecoder.decode(uintArray as unknown as Uint8Array))
 
-export const channelDecoder = makeDecoder('ChannelDecoder', JsonDecoder.object<ChannelJSON>(
+export const channelDecoder = makeDecoder(JsonDecoder.object<ChannelJSON>(
   {
     receptionId: JsonDecoder.optional(JsonDecoder.string),
     channelId: JsonDecoder.optional(JsonDecoder.string),
@@ -49,7 +49,7 @@ export const channelDecoder = makeDecoder('ChannelDecoder', JsonDecoder.object<C
   }
 ));
 
-export const identityDecoder = makeDecoder('IdentityJson', JsonDecoder.object<IdentityJSON>(
+export const identityDecoder = makeDecoder(JsonDecoder.object<IdentityJSON>(
   {
     pubkey: JsonDecoder.string,
     codename: JsonDecoder.string,
@@ -67,7 +67,7 @@ export const identityDecoder = makeDecoder('IdentityJson', JsonDecoder.object<Id
   }
 ));
 
-export const shareUrlDecoder = makeDecoder('ShareUrlDecoder', JsonDecoder.object<ShareURLJSON>(
+export const shareUrlDecoder = makeDecoder(JsonDecoder.object<ShareURLJSON>(
   {
     password: JsonDecoder.optional(JsonDecoder.string),
     url: JsonDecoder.string
@@ -75,7 +75,7 @@ export const shareUrlDecoder = makeDecoder('ShareUrlDecoder', JsonDecoder.object
   'ShareUrlDecoder'
 ));
 
-export const isReadyInfoDecoder = makeDecoder('IsReadyInfoDecoder', JsonDecoder.object<IsReadyInfoJSON>({
+export const isReadyInfoDecoder = makeDecoder(JsonDecoder.object<IsReadyInfoJSON>({
   isReady: JsonDecoder.boolean,
   howClose: JsonDecoder.number
 }, 'IsReadyInfoDecoder', {
@@ -83,9 +83,9 @@ export const isReadyInfoDecoder = makeDecoder('IsReadyInfoDecoder', JsonDecoder.
   howClose: 'HowClose'
 }))
 
-export const pubkeyArrayDecoder = makeDecoder('PubkeyDecoder', JsonDecoder.array<string>(JsonDecoder.string, 'PubkeyArrayDecoder'));
+export const pubkeyArrayDecoder = makeDecoder(JsonDecoder.array<string>(JsonDecoder.string, 'PubkeyArrayDecoder'));
 
-export const versionDecoder = makeDecoder('VersionDecoder', JsonDecoder.object<VersionJSON>(
+export const versionDecoder = makeDecoder(JsonDecoder.object<VersionJSON>(
   {
     current: JsonDecoder.string,
     updated: JsonDecoder.boolean,
@@ -94,7 +94,7 @@ export const versionDecoder = makeDecoder('VersionDecoder', JsonDecoder.object<V
   'VersionDecoder'
 ));
 
-export const kvEntryDecoder = makeDecoder('KVEntryDecoder', JsonDecoder.object<KVEntry>(
+export const kvEntryDecoder = makeDecoder(JsonDecoder.object<KVEntry>(
   {
     data: JsonDecoder.string,
     version: JsonDecoder.number,
@@ -106,21 +106,19 @@ export const kvEntryDecoder = makeDecoder('KVEntryDecoder', JsonDecoder.object<K
   }
 ));
 
-export const messageReceivedEventDecoder = makeDecoder('MessageReceivedDecoder', JsonDecoder.object<MessageReceivedEvent>(
+export const messageReceivedEventDecoder = makeDecoder(JsonDecoder.object<MessageReceivedEvent>(
   {
     uuid: JsonDecoder.number,
-    channelId: uint8ArrayToStringDecoder,
+    channelId: JsonDecoder.string,
     update: JsonDecoder.boolean,
   },
   'MessageReceivedEventDecoder',
   {
-    uuid: 'Uuid',
-    channelId: 'ChannelId',
-    update: 'Update'
+    channelId: 'channelID',
   }
 ));
 
-export const userMutedEventDecoder = makeDecoder('UserMutedEventDecoder', JsonDecoder.object<UserMutedEvent>(
+export const userMutedEventDecoder = makeDecoder(JsonDecoder.object<UserMutedEvent>(
   {
     channelId: uint8ArrayToStringDecoder,
     pubkey: JsonDecoder.string,
@@ -136,7 +134,7 @@ export const userMutedEventDecoder = makeDecoder('UserMutedEventDecoder', JsonDe
 
 const messageIdDecoder = uint8ArrayDecoder.map((s) => Buffer.from(s).toString('base64'))
 
-export const messageDeletedEventDecoder = makeDecoder('MessageDeletedDecoder', JsonDecoder.object<MessageDeletedEvent>(
+export const messageDeletedEventDecoder = makeDecoder(JsonDecoder.object<MessageDeletedEvent>(
   {
     messageId: messageIdDecoder,
   },
@@ -146,7 +144,7 @@ export const messageDeletedEventDecoder = makeDecoder('MessageDeletedDecoder', J
   }
 ));
 
-export const nicknameUpdatedEventDecoder = makeDecoder('NicknameUpdatedEventDecoder', JsonDecoder.object<NicknameUpdatedEvent>(
+export const nicknameUpdatedEventDecoder = makeDecoder(JsonDecoder.object<NicknameUpdatedEvent>(
   {
     channelId: uint8ArrayToStringDecoder,
     nickname: JsonDecoder.string,
@@ -205,7 +203,7 @@ const notificationStateDecoder = JsonDecoder.object<NotificationState>(
   }
 );
 
-export const notificationUpdateEventDecoder = makeDecoder('NotificationEventDecoder', JsonDecoder.object<NotificationUpdateEvent>(
+export const notificationUpdateEventDecoder = makeDecoder(JsonDecoder.object<NotificationUpdateEvent>(
   {
     notificationFilters: JsonDecoder.array<NotificationFilter>(notificationFilterDecoder, 'NotificationFilterArrayDecoder'),
     changedNotificationStates: JsonDecoder.array<NotificationState>(notificationStateDecoder, 'ChangedNotificationStatesDecoder'),
@@ -221,5 +219,6 @@ export const notificationUpdateEventDecoder = makeDecoder('NotificationEventDeco
   }
 ))
 
+export const channelFavoritesDecoder = makeDecoder(JsonDecoder.array<string>(JsonDecoder.string, 'ChannelFavoritesDecoder'))
 
 
