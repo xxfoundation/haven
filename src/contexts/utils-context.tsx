@@ -24,6 +24,14 @@ export type ChannelManagerCallbacks = {
   EventUpdate: ChannelEventHandler;
 }
 
+export type Notifications = {
+  AddToken: (newToken: string, app: string) => void;
+  RemoveToken: () => void;
+  SetMaxState: (maxState: number) => void;
+  GetMaxState: () => number;
+  GetID: () => number;
+}
+
 export type XXDKUtils = {
   NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => Promise<void>;
   LoadCmix: (
@@ -37,6 +45,12 @@ export type XXDKUtils = {
     remoteStore: RemoteStore,
     cmixParams: Uint8Array
   ) => Promise<CMix>;
+  LoadNotifications: (
+    cmixId: number
+  ) => Notifications;
+  LoadNotificationsDummy:  (
+    cmixId: number
+  ) => Notifications;
   GetDefaultCMixParams: () => Uint8Array;GetChannelInfo: (prettyPrint: string) => Uint8Array;
   Base64ToUint8Array: (base64: string) => Uint8Array;
   GenerateChannelIdentity: (cmixId: number) => Uint8Array;
@@ -45,6 +59,7 @@ export type XXDKUtils = {
     wasmJsPath: string,
     privateIdentity: Uint8Array,
     extensionBuilderIDsJSON: Uint8Array,
+    notificationsId: number,
     callbacks: ChannelManagerCallbacks,
     channelDbCipher: number
   ) => Promise<ChannelManager>;
@@ -60,6 +75,8 @@ export type XXDKUtils = {
     cmixId: number,
     wasmJsPath: string,
     storageTag: string,
+    extensionBuilderIDsJSON: Uint8Array,
+    notificationsId: number,
     callbacks: ChannelManagerCallbacks,
     channelDbCipher: number
   ) => Promise<ChannelManager>;

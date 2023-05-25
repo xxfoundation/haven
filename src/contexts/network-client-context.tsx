@@ -67,7 +67,8 @@ export type ChannelManager = {
     channelId: Uint8Array,
     message: string,
     messageValidityTimeoutMilliseconds: number,
-    cmixParams: Uint8Array
+    cmixParams: Uint8Array,
+    tags: Uint8Array
   ) => Promise<Uint8Array>;
   PinMessage: (
     channelId: Uint8Array,
@@ -153,7 +154,7 @@ export type NetworkContext = {
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
   handleInitialLoadData: () => Promise<void>;
   getNickName: () => string;
-  setNickName: (nickname: string) => boolean;
+  setNickname: (nickname: string) => boolean;
   sendReply: (reply: string, replyToMessageId: string) => Promise<void>;
   sendReaction: (reaction: string, reactToMessageId: string) => Promise<void>;
   getPrettyPrint: (channelId: string) => string | undefined;
@@ -633,16 +634,19 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const loadChannelManager = useCallback(async () => {
     if (
-      cmix &&
+      cmixId !== undefined &&
       cipher &&
       utils &&
       storageTag
     ) {
+      const notifications = utils.LoadNotificationsDummy(cmixId);
       const loadedChannelsManager = await utils
         .LoadChannelsManagerWithIndexedDb(
-          cmix.GetID(),
+          cmixId,
           '/integrations/assets/channelsIndexedDbWorker.js',
           storageTag,
+          new Uint8Array(),
+          notifications.GetID(),
           {
             EventUpdate: handleChannelEvent
           },
@@ -651,7 +655,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       setChannelManager(loadedChannelsManager);
     }
-  }, [cipher, cmix, storageTag, utils]);
+  }, [cipher, cmixId, storageTag, utils]);
 
   useEffect(() => {
     if (cmix && cipher && utils && storageTag) {
@@ -715,16 +719,18 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const createChannelManager = useCallback(async (privIdentity: Uint8Array) => {
     if (
-      cmix &&
+      cmixId !== undefined &&
       cipher &&
       utils &&
       utils.NewChannelsManagerWithIndexedDb
     ) {
+      const notifications = utils.LoadNotificationsDummy(cmixId);
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
-        cmix.GetID(),
+        cmixId,
         CHANNELS_WORKER_JS_PATH,
         privIdentity,
         new Uint8Array(),
+        notifications.GetID(),
         { EventUpdate: handleChannelEvent },
         cipher.id
       );
@@ -735,12 +741,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         addStorageTag(tag);
       }
     }
-  }, [
-    cipher,
-    cmix,
-    utils,
-    addStorageTag
-  ]);
+  }, [cmixId, cipher, utils, addStorageTag]);
 
   const [hasMore, setHasMore] = useState(true);
 
@@ -887,7 +888,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
           utils.Base64ToUint8Array(currentChannel.id),
           message,
           MESSAGE_LEASE,
-          new Uint8Array()
+          new Uint8Array(),
+          encoder.encode('[]'),
         );
       } catch (e) {
         console.error('Error sending message', e);
@@ -1000,7 +1002,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     utils
   ]);
 
-  const setNickName = useCallback((nickName: string) => {
+  const setNickname = useCallback((nickName: string) => {
     if (channelManager?.SetNickname && currentChannel?.id) {
       try {
         channelManager?.SetNickname(
@@ -1009,6 +1011,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         );
         return true;
       } catch (error) {
+        console.error(error);
         return false;
       }
     }
@@ -1073,7 +1076,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         nickname: e.exists ? e.nickname : undefined
       }));
     }
-    
+
     bus.addListener(ChannelEvents.NICKNAME_UPDATE, handler);
 
     return () => { bus.removeListener(ChannelEvents.NICKNAME_UPDATE, handler)};
@@ -1318,7 +1321,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     createChannelManager,
     loadChannelManager,
     handleInitialLoadData: fetchInitialData,
-    setNickName,
+    setNickname: setNickname,
     getNickName,
     sendReply,
     sendReaction,

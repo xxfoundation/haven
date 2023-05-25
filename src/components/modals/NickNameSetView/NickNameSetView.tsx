@@ -15,7 +15,7 @@ const NickNameSetView: FC = () => {
   const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const { setNickName } = useNetworkClient();
+  const { setNickname: setNickName } = useNetworkClient();
   const nickname = useAppSelector(globalSelectors.currentNickname);
   const [localNickname, setLocalNickname] = useState(nickname || '');
   const [error, setError] = useState('');
