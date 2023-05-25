@@ -184,8 +184,12 @@ const UserTextArea: FC<Props> = ({
   } = useNetworkClient();
   const [editorLoaded, setEditorLoaded] = useState(false);
   const message = useAppSelector(app.selectors.messageDraft(channelId ?? ''))
-  const deflatedContent = useMemo(() => deflate(message), [message])
-  const messageIsUnderLimit = useMemo(() => deflatedContent.length <= MESSAGE_MAX_SIZE, [deflatedContent])
+  const deflatedContent = useMemo(() => deflate(message), [message]);
+  const messageIsUnderLimit = useMemo(() => deflatedContent.length <= MESSAGE_MAX_SIZE, [deflatedContent]);
+  // const messageHasTooManyMentions = useMemo(() => {
+  //   const limit = !!replyToMessage ? 3 : 4;
+    
+  // }, []);
   const placeholder = useMemo(
     () => isMuted
       ? t('You have been muted by an admin and cannot send messages.')
