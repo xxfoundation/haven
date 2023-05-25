@@ -2,7 +2,7 @@ import { createContext, useEffect, useState, FC, useCallback, useContext } from 
 import assert from 'assert';
 import { JsonDecoder } from 'ts.data.json'
 
-import { makeDecoder } from 'src/utils/decoders'
+import { channelFavoritesDecoder, makeDecoder } from 'src/utils/decoders'
 import { KV_VERSION, OperationType, RemoteKV } from 'src/types/collective';
 import { encoder } from 'src/utils/index';
 import { Decoder, kvEntryDecoder } from 'src/utils/decoders';
@@ -92,8 +92,6 @@ export const useRemotelySynchedValue = <T,>(kv: RemoteKVWrapper | undefined, key
     set
   }
 }
-
-const channelFavoritesDecoder = makeDecoder('ChannelFavoritesDecoder', JsonDecoder.array<string>(JsonDecoder.string, 'ChannelFavoritesDecoder'))
 
 const useChannelFavorites = (kv?: RemoteKVWrapper) => {
   const { loading, set, value: favorites = [] } = useRemotelySynchedValue(kv, 'channel-favorites', channelFavoritesDecoder);
