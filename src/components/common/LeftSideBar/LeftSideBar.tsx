@@ -20,6 +20,7 @@ import Identity from '../Identity';
 import SearchInput from '../SearchInput';
 import useInput from 'src/hooks/useInput';
 import { Contributor } from '@types';
+import { useRemoteKV } from '@contexts/remote-kv-context';
 
 type ChannelListItemProps = {
   currentId: string | null,
@@ -74,8 +75,8 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
     getClientVersion,
     getVersion,
   } = useNetworkClient();
+  const { channelFavorites: { favorites }} = useRemoteKV();
 
-  const channelFavorites = useAppSelector(app.selectors.channelFavorites);
   const currentId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const channelsSearch = useAppSelector(app.selectors.channelsSearch);
   const drafts = useAppSelector((state) => state.app.messageDraftsByChannelId);
@@ -198,7 +199,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
               <ChannelListItem
                 key={ch.id}
                 {...ch}
-                isFavorite={channelFavorites.includes(ch.id)}
+                isFavorite={favorites.includes(ch.id)}
                 currentId={currentId}
                 onClick={selectChannel(ch.id)}
                 notification={!!missedMessages[ch.id]}
@@ -238,7 +239,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
               key={c.pubkey}
               id={c.pubkey}
               currentId={currentId}
-              isFavorite={channelFavorites.includes(c.pubkey)}
+              isFavorite={favorites.includes(c.pubkey)}
               onClick={selectChannel(c.pubkey)}
               name={<Identity {...c} />}
               notification={!!missedMessages[c.pubkey]}

@@ -137,23 +137,41 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 disabled={isLoading}
                 onClick={onContinue}
               />
-
-              <div
-                style={{
-                  textDecoration: 'underline',
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  textAlign: 'center',
-                  marginTop: '12px',
-                  cursor: 'pointer'
-                }}
-                onClick={() => {
-                  setModalView('IMPORT_CODENAME');
-                  openModal();
-                }}
-              >
-                {t('Already have a codename?')}
-              </div>
+            </div>
+            <div className='pt-3'>
+              {t('Already have an account?')} <Trans t={t}>
+                <span
+                  style={{
+                    textDecoration: 'underline',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    textAlign: 'center',
+                    marginTop: '12px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    setModalView('IMPORT_CODENAME');
+                    openModal();
+                  }}
+                >
+                  {t('Import')}
+                </span> an existing account or <span
+                  style={{
+                    textDecoration: 'underline',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    textAlign: 'center',
+                    marginTop: '12px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    setModalView('IMPORT_CODENAME');
+                    openModal();
+                  }}
+                >
+                  {t('login')}
+                </span> from a cloud provider
+              </Trans>
             </div>
           </div>
         </div>
