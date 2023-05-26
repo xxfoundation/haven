@@ -168,8 +168,7 @@ export type NetworkContext = {
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
-  setRemoteStore: (store: RemoteStore) => void;
-  loadCmix: (decryptedPassword?: Uint8Array) => Promise<void>;
+  loadCmix: (decryptedPassword?: Uint8Array, remoteStore?: RemoteStore) => Promise<void>;
 };
 
 export const NetworkClientContext = React.createContext<NetworkContext>({
@@ -218,7 +217,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     id: cmixId,
     initializeCmix,
     loadCmix,
-    setRemoteStore,
     status: cmixStatus
   } = useCmix();
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
@@ -1338,7 +1336,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     pinMessage,
     logout,
     upgradeAdmin,
-    setRemoteStore,
     loadCmix
   }
 

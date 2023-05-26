@@ -1,8 +1,7 @@
 import { createContext, useEffect, useState, FC, useCallback, useContext } from 'react';
 import assert from 'assert';
-import { JsonDecoder } from 'ts.data.json'
 
-import { channelFavoritesDecoder, makeDecoder } from 'src/utils/decoders'
+import { channelFavoritesDecoder } from 'src/utils/decoders'
 import { KV_VERSION, OperationType, RemoteKV } from 'src/types/collective';
 import { encoder } from 'src/utils/index';
 import { Decoder, kvEntryDecoder } from 'src/utils/decoders';
@@ -81,9 +80,10 @@ export const useRemotelySynchedValue = <T,>(kv: RemoteKVWrapper | undefined, key
     }
   }, [decoder, key, kv]);
 
-  const set = useCallback((v: T | ((v: T) => void)) => {
+  const set = useCallback(async (v: T) => {
     assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);
-    return kv.set(key, JSON.stringify(v));
+    await kv.set(key, JSON.stringify(v));
+    setValue(v); // TODO remove this.
   }, [key, kv])
 
   return {

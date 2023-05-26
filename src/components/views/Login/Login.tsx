@@ -106,6 +106,7 @@ const LoginView: FC = () => {
               {accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Google && (
                 <GoogleButton
                   onError={() => setError(t('Something went wrong.'))}
+                  onSync={() => { setIsAuthenticated(true); }}
                   disabled={isLoading}
                   password={password}
                 />
@@ -113,6 +114,7 @@ const LoginView: FC = () => {
               {accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Dropbox && (
                 <DropboxButton
                   onError={() => setError(t('Something went wrong.'))}
+                  onSync={() => { setIsAuthenticated(true); }}
                   disabled={isLoading}
                   password={password}
                 />

@@ -18,6 +18,8 @@ export enum ChannelEvents {
   MESSAGE_RECEIVED = 2,
   USER_MUTED = 3,
   MESSAGE_DELETED = 4,
+  // ADMIN_KEY_UPDATE = 5,
+  // DM_TOKEN_UPDATE = 6
 }
 
 export type ChannelEventMap = {
@@ -71,8 +73,12 @@ export const onDmReceived: DMReceivedCallback = (uuid, pubkey, update, updateCon
 
 export const handleChannelEvent: ChannelEventHandler = (eventType, data) => {
   const decoder = cmixDecoderMap[eventType];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bus.emit(eventType, decoder(data) as any);
+  if (!decoder) {
+    console.warn('Unhandled event:', eventType, data);
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bus.emit(eventType, decoder(data) as any);
+  }
 }
 
 
