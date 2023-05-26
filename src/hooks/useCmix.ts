@@ -26,7 +26,6 @@ export enum NetworkStatus {
 }
 
 const useCmix = () => {
-  const [remoteStore, setRemoteStore] = useState<RemoteStore>();
   const [status, setStatus] = useState<NetworkStatus>(NetworkStatus.UNINITIALIZED);
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
   const [cmix, setCmix] = useState<CMix | undefined>();
@@ -54,7 +53,7 @@ const useCmix = () => {
     [utils]
   );
   
-  const loadCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
+  const loadCmix = useCallback(async (decryptedInternalPassword: Uint8Array, remoteStore?: RemoteStore) => {
     try {
       const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams())) as CMixParams;
       params.Network.EnableImmediateSending = true;
@@ -83,16 +82,16 @@ const useCmix = () => {
       console.error('Failed to load Cmix:', e);
       setStatus(NetworkStatus.FAILED);
     }
-  }, [createDatabaseCipher, remoteStore, utils]);
+  }, [createDatabaseCipher, utils]);
 
-  const initializeCmix = useCallback(async (decryptedInternalPassword: Uint8Array) => {
+  const initializeCmix = useCallback(async (decryptedInternalPassword: Uint8Array, remoteStore?: RemoteStore) => {
     setDecryptedPasword(decryptedInternalPassword);
     try {
       if (!cmixPreviouslyInitialized()) {
         await utils.NewCmix(ndf, STATE_PATH, decryptedInternalPassword, '');
       }
 
-      await loadCmix(decryptedInternalPassword);
+      await loadCmix(decryptedInternalPassword, remoteStore);
     } catch (e) {
       console.error('Failed to initiate Cmix: ' + e);
       setStatus(NetworkStatus.FAILED);
@@ -187,9 +186,8 @@ const useCmix = () => {
     disconnect,
     id: cmixId,
     initializeCmix,
-    setRemoteStore,
     status,
-    loadCmix: (decryptedPasswordOverride?: Uint8Array) => initializeCmix((decryptedPasswordOverride || decryptedPassword) ?? new Uint8Array())
+    loadCmix: (decryptedPasswordOverride?: Uint8Array, remoteStore?: RemoteStore) => initializeCmix((decryptedPasswordOverride || decryptedPassword) ?? new Uint8Array(), remoteStore)
   };
 }
 

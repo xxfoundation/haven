@@ -1,4 +1,4 @@
-import { ACCOUNT_SYNC } from 'src/constants';
+import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE } from 'src/constants';
 import useLocalStorage from './useLocalStorage'
 import { useUI } from '@contexts/ui-context';
 import { useEffect } from 'react';
@@ -23,13 +23,19 @@ const useAccountSync = () => {
   const { isAuthenticated } = useAuthentication();
   const { openModal, setModalView } = useUI();
   const [status] = useLocalStorage(ACCOUNT_SYNC, AccountSyncStatus.NotSynced);
+  const [service] = useLocalStorage(ACCOUNT_SYNC_SERVICE, AccountSyncService.None);
 
   useEffect(() => {
     if (networkStatus === NetworkStatus.CONNECTED && isAuthenticated && status === AccountSyncStatus.NotSynced) {
-      setModalView('ACCOUNT_SYNC');
+      setModalView('ACCOUNT_SYNC', false);
       openModal()
     }
   }, [isAuthenticated, networkStatus, openModal, setModalView, status]);
+
+  return {
+    status,
+    service
+  }
 }
 
 export default useAccountSync;

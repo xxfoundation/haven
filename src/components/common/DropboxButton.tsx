@@ -9,6 +9,7 @@ import { AppEvents, bus } from 'src/events'
 import { IModalCtaButtonProps } from './ModalCtaButton/ModalCtaButton';
 import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
 import { useNetworkClient } from '@contexts/network-client-context';
+import { RemoteStore } from '@types';
 
 type Props = Partial<IModalCtaButtonProps> & {
   onSync?: () => void;
@@ -23,7 +24,7 @@ const DropboxButton: FC<Props> = ({
   ...props
 }) => {
   const remoteStore = useDropboxRemoteStore();
-  const { decryptPassword, loadCmix, setRemoteStore } = useNetworkClient();
+  const { decryptPassword, loadCmix } = useNetworkClient();
 
   const { t } = useTranslation();
 
@@ -43,9 +44,9 @@ const DropboxButton: FC<Props> = ({
     return () => window.removeEventListener('message', onTokenMessage)
   }, []);
 
-  const handleSuccessfulLogin = useCallback(async () => {
+  const handleSuccessfulLogin = useCallback(async (store: RemoteStore) => {
     try {
-      await loadCmix(decryptPassword(password));
+      await loadCmix(decryptPassword(password), store);
       onSync();
     } catch (e) {
       onError();
@@ -54,10 +55,9 @@ const DropboxButton: FC<Props> = ({
 
   useEffect(() => {
     if (remoteStore) {
-      setRemoteStore(remoteStore);
-      handleSuccessfulLogin();
+      handleSuccessfulLogin(remoteStore);
     }
-  }, [handleSuccessfulLogin, remoteStore, setRemoteStore]);
+  }, [handleSuccessfulLogin, remoteStore]);
 
     
   const onClick = useCallback(async () => {

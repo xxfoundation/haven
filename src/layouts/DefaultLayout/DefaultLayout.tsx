@@ -45,7 +45,7 @@ import { NetworkStatus } from 'src/hooks/useCmix';
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
 const AuthenticatedUserModals: FC = () => {
-  const { closeModal, displayModal, modalView = '' } = useUI();
+  const { closeModal, closeableOverride, displayModal, modalView = '' } = useUI();
   const modalClass = modalView?.toLowerCase().replace(/_/g, '-');
 
   const modals = useMemo<ModalMap>(() => ({
@@ -71,7 +71,7 @@ const AuthenticatedUserModals: FC = () => {
 
   return displayModal && modalView && modalView !== 'IMPORT_CODENAME' ? (
     <Modal
-      closeable={modalView === 'ACCOUNT_SYNC' ? false : true}
+      closeable={closeableOverride}
       className={s[modalClass]} onClose={closeModal}>
       {modals[modalView]}
     </Modal>

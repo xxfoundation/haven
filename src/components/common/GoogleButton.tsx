@@ -9,6 +9,7 @@ import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
 import { AppEvents, bus } from 'src/events';
 import { useNetworkClient } from '@contexts/network-client-context';
 import { IModalCtaButtonProps } from './ModalCtaButton/ModalCtaButton';
+import { RemoteStore } from '@types';
 
 declare global {
   interface Window {
@@ -30,7 +31,7 @@ const GoogleButton: FC<Props>  = ({
 }) => {
   const { t } = useTranslation();
   const remoteStore = useGoogleRemoteStore();
-  const { decryptPassword, loadCmix, setRemoteStore } = useNetworkClient();
+  const { decryptPassword, loadCmix } = useNetworkClient();
 
   const login = useGoogleLogin({
     scope: 'https://www.googleapis.com/auth/drive.appdata',
@@ -40,9 +41,9 @@ const GoogleButton: FC<Props>  = ({
     },
   });
 
-  const handleSuccessfulLogin = useCallback(async () => {
+  const handleSuccessfulLogin = useCallback(async (store: RemoteStore) => {
     try {
-      await loadCmix(decryptPassword(password));
+      await loadCmix(decryptPassword(password), store);
       onSync();
     } catch (e) {
       onError();
@@ -51,10 +52,9 @@ const GoogleButton: FC<Props>  = ({
 
   useEffect(() => {
     if (remoteStore) {
-      setRemoteStore(remoteStore);
-      handleSuccessfulLogin();
+      handleSuccessfulLogin(remoteStore);
     }
-  }, [handleSuccessfulLogin, remoteStore, setRemoteStore]);
+  }, [handleSuccessfulLogin, remoteStore]);
 
   return (
     <ModalCtaButton

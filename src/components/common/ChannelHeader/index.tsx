@@ -16,6 +16,7 @@ import * as app from 'src/store/app';
 
 import s from './styles.module.scss';
 import { useRemoteKV } from '@contexts/remote-kv-context';
+import Badge from '../Badge';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
@@ -68,15 +69,13 @@ const ChannelHeader: FC<Props> = ({
       <div className='flex justify-between'>
         <div className={'headline--sm flex flex-wrap items-center'}>
           {privacyLevel !== null && (
-            <span
+            <Badge
               data-testid='channel-privacy-level-badge'
-              className={cn(s.badge, {
-                [s.gold]: privacyLevel === PrivacyLevel.Public
-              })}
+              color={privacyLevel === PrivacyLevel.Public ? 'gold' : 'cyan'}
               title={privacyLevelDescriptions[privacyLevel]}
             >
               {privacyLevelLabels[privacyLevel]}
-            </span>
+            </Badge>
           )}
           {isAdmin && (
             <span

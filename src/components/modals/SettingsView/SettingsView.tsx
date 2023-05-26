@@ -8,12 +8,17 @@ import { useUI } from 'src/contexts/ui-context';
 import CheckboxToggle from 'src/components/common/CheckboxToggle';
 import useNotification from 'src/hooks/useNotification';
 import useTrackNetworkPeriod from 'src/hooks/useNetworkTrackPeriod';
+import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSync } from '@fortawesome/free-solid-svg-icons';
+import Badge from '@components/common/Badge';
 
 const SettingsView: FC = () => {
   const { toggle: toggleTrackingMode, trackingMode } = useTrackNetworkPeriod();
   const { t } = useTranslation();
   const { openModal, setModalView } = useUI();
   const { isPermissionGranted, request, setIsPermissionGranted } = useNotification();
+  const accountSync = useAccountSync();
 
   const exportLogs = useCallback(async () => {
     if (!window.logger) {
@@ -41,7 +46,11 @@ const SettingsView: FC = () => {
     } else {
       setIsPermissionGranted(false);
     }
-  }, [request, setIsPermissionGranted])
+  }, [request, setIsPermissionGranted]);
+
+  const notSynced = accountSync.status === null
+    || [AccountSyncStatus.NotSynced, AccountSyncStatus.Ignore]
+      .includes(accountSync.status)
 
   return (
     <div
@@ -81,6 +90,30 @@ const SettingsView: FC = () => {
               openModal();
             }}
           />
+        </div>
+        <div>
+          <h3 className='headline--sm'>
+            {t('Account Sync')}
+          </h3>
+          {notSynced ? (
+            <FontAwesomeIcon size='2x' style={{ color: 'var(--orange)' }} onClick={() => {
+              setModalView('ACCOUNT_SYNC');
+              openModal();
+            }} className='pt-1' icon={faSync} />
+          ) : (
+            <>
+              {accountSync.service === AccountSyncService.Dropbox && (
+                <Badge style={{ fontSize: 18, fontWeight: 'bold', paddingLeft: '1rem', paddingRight: '1rem', marginRight: 0 }} color='gold'>
+                  Dropbox
+                </Badge>
+              )}
+              {accountSync.service === AccountSyncService.Google && (
+                <Badge style={{ fontSize: 18, fontWeight: 'bold', paddingLeft: '1rem', paddingRight: '1rem', marginRight: 0 }} color='gold'>
+                  Google
+                </Badge>
+              )}
+            </>
+          )}
         </div>
         <div>
           <h3 className='headline--sm'>

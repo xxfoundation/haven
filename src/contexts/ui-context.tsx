@@ -1,5 +1,5 @@
 import { WithChildren } from '@types';
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 
 export type ModalViews =
   | 'SHARE_CHANNEL'
@@ -28,11 +28,12 @@ export interface State {
   activeModals: object[];
   channelInviteLink: string;
   showPinned: boolean;
+  closeableOverride?: boolean;
   togglePinned: () => void;
   setShowPinned: (showPinned: boolean) => void;
   openModal: () => void;
   closeModal: () => void;
-  setModalView: (view: ModalViews) => void;
+  setModalView: (view: ModalViews, closeableOverride?: boolean) => void;
   setChannelInviteLink: (link: string) => void;
 }
 
@@ -95,28 +96,37 @@ function uiReducer(state: State, action: Action) {
 
 export const UIProvider: FC<WithChildren> = ({ children }) => {
   const [state, dispatch] = React.useReducer(uiReducer, initialState);
+  const [closeableOverride, setCloseableOverride] = useState<boolean>();
 
   const openModal = useCallback(() => dispatch({ type: 'OPEN_MODAL' }), [
     dispatch
   ]);
   
-  const closeModal = useCallback(() => dispatch({ type: 'CLOSE_MODAL' }), [
-    dispatch
-  ]);
+  const closeModal = useCallback(
+    () => {
+      setCloseableOverride(undefined);
+      dispatch({ type: 'CLOSE_MODAL' })
+    },
+    []
+  );
 
   const setModalView = useCallback(
-    (view: ModalViews) => dispatch({ type: 'SET_MODAL_VIEW', view }),
-    [dispatch]
+    (view: ModalViews, closeable?: boolean) => {
+      setCloseableOverride(closeable);
+      dispatch({ type: 'SET_MODAL_VIEW', view })
+    },
+    []
   );
 
   const setChannelInviteLink = useCallback(
     (link: string) => dispatch({ type: 'SET_CHANNEL_INVITE_LINK', link }),
-    [dispatch]
+    []
   );
 
   const value = useMemo(
     () => ({
       ...state,
+      closeableOverride,
       openModal,
       closeModal,
       setModalView,
@@ -124,11 +134,12 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
     }),
     [
       closeModal,
+      closeableOverride,
       openModal,
       setChannelInviteLink,
       setModalView,
       state
-    ]
+  ]
   );
 
   return (
