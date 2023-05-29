@@ -26,3 +26,5 @@ export const channelPages = (state: RootState) => state.channels.currentPages;
 export const channelNicknames = (state: RootState) => state.channels.nicknames;
 
 export const currentChannelNickname = (channelId?: ChannelId) => (state: RootState): string | undefined => channelId && state.channels.nicknames[channelId];
+
+export const mutedUsers = (state: RootState) => state.channels.mutedUsersByChannelId;

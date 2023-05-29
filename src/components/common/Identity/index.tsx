@@ -6,10 +6,10 @@ import { useTranslation } from 'react-i18next';
 
 import { Elixxir } from 'src/components/icons';
 import classes from './Identity.module.scss';
-import { useNetworkClient } from '@contexts/network-client-context';
-import { useAppDispatch } from 'src/store/hooks';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
 import { useUtils } from '@contexts/utils-context';
+import { currentMutedUsers } from 'src/store/selectors';
 
 type Props = {
   disableMuteStyles?: boolean;
@@ -24,11 +24,11 @@ type Props = {
 const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMuteStyles, nickname, pubkey }) => {
   const { t } = useTranslation();
   const { getCodeNameAndColor } = useUtils();
-  const { userIsMuted } = useNetworkClient();
   const dispatch = useAppDispatch();
+  const mutedUsers = useAppSelector(currentMutedUsers);
   const isMuted = useMemo(
-    () => !disableMuteStyles && userIsMuted(pubkey),
-    [disableMuteStyles, pubkey, userIsMuted]
+    () => !disableMuteStyles && mutedUsers?.includes(pubkey),
+    [disableMuteStyles, pubkey, mutedUsers]
   );
   
   const { codename, color } = useMemo(
@@ -47,7 +47,6 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
       dispatch(app.actions.selectUser(pubkey));
     }
   }, [clickable, dispatch, pubkey])
-  
 
   return (
     <span

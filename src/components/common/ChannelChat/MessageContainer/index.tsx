@@ -34,6 +34,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   const dispatch = useAppDispatch();
   const [isNewMessage, setIsNewMessage] = useState(false);
   const missedMessages = useAppSelector(app.selectors.missedMessages);
+  const mutedUsers = useAppSelector(channels.selectors.mutedUsers);
   const { pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
@@ -42,7 +43,6 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     muteUser,
     pinMessage,
     sendReaction,
-    userIsMuted
   } = useNetworkClient();
 
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
@@ -139,7 +139,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
               })}
               dmsEnabled={message.dmToken !== undefined}
               isPinned={message.pinned}
-              isMuted={userIsMuted(message.pubkey)}
+              isMuted={mutedUsers[message.channelId]?.includes(message.pubkey)}
               onMuteUser={muteUserModalToggle.toggleOn}
               onPinMessage={handlePinMessage}
               onReactToMessage={handleEmojiReaction}

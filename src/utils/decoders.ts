@@ -1,4 +1,4 @@
-import { AllowList, AllowLists, ChannelId, ChannelJSON, IdentityJSON, IsReadyInfoJSON, MessageDeletedEvent, MessageReceivedEvent, NicknameUpdatedEvent, NotificationFilter, NotificationLevel, NotificationState, NotificationStatus, NotificationUpdateEvent, ShareURLJSON, UserMutedEvent, VersionJSON } from 'src/types';
+import { AdminKeysUpdateEvent, AllowList, AllowLists, ChannelId, ChannelJSON, DmTokenUpdateEvent, IdentityJSON, IsReadyInfoJSON, MessageDeletedEvent, MessageReceivedEvent, NicknameUpdatedEvent, NotificationFilter, NotificationLevel, NotificationState, NotificationStatus, NotificationUpdateEvent, ShareURLJSON, UserMutedEvent, VersionJSON } from 'src/types';
 import { KVEntry } from 'src/types/collective';
 import { Err, JsonDecoder } from 'ts.data.json';
 import { decoder as uintDecoder } from './index';
@@ -21,7 +21,7 @@ export const makeDecoder = <T>(decoder: JsonDecoder.Decoder<T>) => (thing: unkno
   const parsed = typeof object === 'string' ? attemptParse(object) : object;
   const result = decoder.decode(parsed);
   if (result instanceof Err) {
-    throw new Error(`Unexpected JSON: ${JSON.stringify(parsed)} for decoder ${name}, Error: ${result.error}`);
+    throw new Error(`Unexpected JSON: ${JSON.stringify(parsed)}, Error: ${result.error}`);
   } else {
     return result.value;
   }
@@ -146,15 +146,13 @@ export const messageDeletedEventDecoder = makeDecoder(JsonDecoder.object<Message
 
 export const nicknameUpdatedEventDecoder = makeDecoder(JsonDecoder.object<NicknameUpdatedEvent>(
   {
-    channelId: uint8ArrayToStringDecoder,
+    channelId: JsonDecoder.string,
     nickname: JsonDecoder.string,
     exists: JsonDecoder.boolean
   },
   'NicknameUpdatedEventDecoder',
   {
-    channelId: 'ChannelIdBytes',
-    nickname: 'Nickname',
-    exists: 'Exists'
+    channelId: 'channelID',
   }
 ));
 
@@ -221,4 +219,24 @@ export const notificationUpdateEventDecoder = makeDecoder(JsonDecoder.object<Not
 
 export const channelFavoritesDecoder = makeDecoder(JsonDecoder.array<string>(JsonDecoder.string, 'ChannelFavoritesDecoder'))
 
+export const adminKeysUpdateDecoder = makeDecoder(JsonDecoder.object<AdminKeysUpdateEvent>(
+  {
+    channelId: JsonDecoder.string,
+  },
+  'AdminKeysUpdateDecoder',
+  {
+    channelId: 'channelID',
+  }
+));
 
+export const dmTokenUpdateDecoder = makeDecoder(JsonDecoder.object<DmTokenUpdateEvent>(
+  {
+    channelId: uint8ArrayToStringDecoder,
+    tokenEnabled: JsonDecoder.boolean
+  },
+  'DmTokenUpdateDecoder',
+  {
+    channelId: 'ChannelId',
+    tokenEnabled: 'SendToken'
+  }
+));

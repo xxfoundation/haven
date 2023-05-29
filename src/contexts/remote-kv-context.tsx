@@ -83,7 +83,7 @@ export const useRemotelySynchedValue = <T,>(kv: RemoteKVWrapper | undefined, key
   const set = useCallback(async (v: T) => {
     assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);
     await kv.set(key, JSON.stringify(v));
-    setValue(v); // TODO remove this.
+    setValue(v); // TODO remove this when callback properly gets triggered.
   }, [key, kv])
 
   return {

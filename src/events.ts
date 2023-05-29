@@ -1,8 +1,8 @@
 import type { TypedEventEmitter } from 'src/types/emitter';
-import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent } from 'src/types';
+import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, AdminKeysUpdateEvent, DmTokenUpdateEvent } from 'src/types';
 import EventEmitter from 'events';
 import delay from 'delay';
-import { Decoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
+import { Decoder, adminKeysUpdateDecoder, dmTokenUpdateDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
 
 export enum AppEvents {
   MESSAGE_PINNED = 'pinned',
@@ -18,8 +18,8 @@ export enum ChannelEvents {
   MESSAGE_RECEIVED = 2,
   USER_MUTED = 3,
   MESSAGE_DELETED = 4,
-  // ADMIN_KEY_UPDATE = 5,
-  // DM_TOKEN_UPDATE = 6
+  ADMIN_KEY_UPDATE = 5,
+  DM_TOKEN_UPDATE = 6
 }
 
 export type ChannelEventMap = {
@@ -28,6 +28,8 @@ export type ChannelEventMap = {
   [ChannelEvents.MESSAGE_RECEIVED]: MessageReceivedEvent;
   [ChannelEvents.MESSAGE_DELETED]: MessageDeletedEvent;
   [ChannelEvents.USER_MUTED]: UserMutedEvent;
+  [ChannelEvents.ADMIN_KEY_UPDATE]: AdminKeysUpdateEvent;
+  [ChannelEvents.DM_TOKEN_UPDATE]: DmTokenUpdateEvent;
 }
 
 type EventHandlers = {
@@ -45,7 +47,9 @@ const cmixDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]
   [ChannelEvents.NOTIFICATION_UPDATE]: notificationUpdateEventDecoder,
   [ChannelEvents.MESSAGE_DELETED]: messageDeletedEventDecoder,
   [ChannelEvents.USER_MUTED]: userMutedEventDecoder,
-  [ChannelEvents.NICKNAME_UPDATE]: nicknameUpdatedEventDecoder
+  [ChannelEvents.NICKNAME_UPDATE]: nicknameUpdatedEventDecoder,
+  [ChannelEvents.DM_TOKEN_UPDATE]: dmTokenUpdateDecoder,
+  [ChannelEvents.ADMIN_KEY_UPDATE]: adminKeysUpdateDecoder
 }
 
 export const bus = new EventEmitter() as TypedEventEmitter<EventHandlers>;

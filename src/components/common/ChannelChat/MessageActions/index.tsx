@@ -11,10 +11,10 @@ import { useUI } from 'src/contexts/ui-context';
 
 import classes from './MessageActions.module.scss';
 import { createPortal } from 'react-dom';
-import { useNetworkClient } from '@contexts/network-client-context';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
 import Envelope from '@components/icons/Envelope';
+import { userIsMuted as userIsMutedSelector } from 'src/store/selectors';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
@@ -46,7 +46,7 @@ const MessageActions: FC<Props> = ({
 }) => {
   const dispatch = useAppDispatch();
   const isDms = !!useAppSelector(app.selectors.currentChannelOrConversationId);
-  const { isMuted: userIsMuted } = useNetworkClient();
+  const userIsMuted = useAppSelector(userIsMutedSelector);
   const { closeModal, openModal, setModalView } = useUI();
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerIconRef = useRef<HTMLDivElement>(null);
