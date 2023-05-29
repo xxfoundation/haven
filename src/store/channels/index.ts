@@ -1,13 +1,15 @@
 import type { Channel, ChannelId, ChannelsState } from './types';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { pickBy, omit, uniqBy } from 'lodash';
+import { UserMutedEvent } from '@types';
+import { pickBy, omit, uniqBy, uniq } from 'lodash';
 
 const initialState: ChannelsState = {
   byId: {},
   sortedChannels: [],
   currentPages: {},
   nicknames: {},
+  mutedUsersByChannelId: {},
 };
 
 const initialChannelState = {
@@ -68,14 +70,14 @@ export const slice = createSlice({
         sortedChannels: state.sortedChannels.filter((ch) => ch.id !== channelId)
       }
     },
-    upgradeAdmin: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>) => {
+    updateAdmin: (state: ChannelsState, { payload: { channelId, isAdmin = true } }: PayloadAction<{ channelId: ChannelId, isAdmin?: boolean }>) => {
       return ({
         ...state,
         byId: {
           ...state.byId,
           [channelId]: {
             ...state.byId[channelId],
-            isAdmin: true
+            isAdmin: isAdmin
           }
         }
       })
@@ -86,6 +88,28 @@ export const slice = createSlice({
         nicknames: {
           ...state.nicknames,
           [channelId]: nickname
+        }
+      }
+    },
+    updateMuted: (state: ChannelsState, { payload: { channelId, pubkey, unmute }}: PayloadAction<UserMutedEvent>) => {
+      const mutedUsers = unmute
+        ? (state.mutedUsersByChannelId[channelId] || []).filter((key) => key !== pubkey)
+        : uniq((state.mutedUsersByChannelId[channelId] || []).concat(pubkey));
+
+      return {
+        ...state,
+        mutedUsersByChannelId: {
+          ...state.mutedUsersByChannelId,
+          [channelId]: mutedUsers
+        }
+      }
+    },
+    setMutedUsers: (state: ChannelsState, { payload: { channelId, mutedUsers } }: PayloadAction<{ channelId: ChannelId, mutedUsers: string[] }>) => {
+      return {
+        ...state,
+        mutedUsersByChannelId: {
+          ...state.mutedUsersByChannelId,
+          [channelId]: mutedUsers
         }
       }
     }

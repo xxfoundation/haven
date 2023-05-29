@@ -13,7 +13,6 @@ export type Channel = {
   prettyPrint?: string;
 }
 
-
 export type ChannelId = Channel['id'];
 
 export type ChannelsState = {
@@ -21,6 +20,7 @@ export type ChannelsState = {
   sortedChannels: Array<Channel>;
   currentPages: Record<ChannelId, number>;
   nicknames: Record<ChannelId, string | undefined>;
+  mutedUsersByChannelId: Record<ChannelId, string[]>;
 };
 
 declare module 'src/store/types' {

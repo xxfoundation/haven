@@ -1,4 +1,4 @@
-import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, MessagePinEvent, MessageDeletedEvent, NicknameUpdatedEvent } from 'src/types';
+import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent } from 'src/types';
 
 import { Message } from 'src/store/messages/types';
 import { MessageStatus, MessageType } from 'src/types';
@@ -10,7 +10,7 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import { bus, AppEvents, onMessagePinned, onMessageUnpinned, handleChannelEvent, ChannelEvents } from 'src/events';
+import { bus, onMessagePinned, onMessageUnpinned, handleChannelEvent, ChannelEvents } from 'src/events';
 import { WithChildren } from 'src/types';
 import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
@@ -29,6 +29,7 @@ import * as dms from 'src/store/dms';
 import { ChannelId, Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
+import useEvents from 'src/hooks/useEvents';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
 import { RemoteStore } from 'src/types/collective';
 import { RemoteKVProvider } from './remote-kv-context';
@@ -112,7 +113,6 @@ export type ChannelManager = {
 export type NetworkContext = {
   // state
   mutedUsers: User[] | undefined;
-  userIsMuted: (pubkey: string) => boolean;
   setMutedUsers: React.Dispatch<React.SetStateAction<User[] | undefined>>;
   cmix?: CMix;
   networkStatus?: NetworkStatus;
@@ -141,8 +141,6 @@ export type NetworkContext = {
     pubkey: string,
   }[];
   initialize: (password: string) => Promise<void>;
-  getMuted: () => boolean;
-  isMuted: boolean;
   joinChannel: (prettyPrint: string, appendToCurrent?: boolean, enabledms?: boolean) => void;
   importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
   getMutedUsers: () => Promise<User[]>;
@@ -196,6 +194,7 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
 };
 
 export const NetworkProvider: FC<WithChildren> = props => {
+  useEvents();
   const pagination = usePagination();
   const dispatch = useAppDispatch();
   const db = useDb();
@@ -252,7 +251,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const upgradeAdmin = useCallback(() => {
     if (currentChannel?.id) {
-      dispatch(channels.actions.upgradeAdmin(currentChannel.id));
+      dispatch(channels.actions.updateAdmin({ channelId: currentChannel.id }));
     }
   }, [dispatch, currentChannel])
 
@@ -669,6 +668,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
         utils.Base64ToUint8Array(currentChannel.id)
       ))));
 
+      dispatch(channels.actions.setMutedUsers({
+        channelId: currentChannel.id,
+        mutedUsers: mutedUserIds
+      }));
+
       const usersMap = (await db.table<DBMessage>('messages')
         .filter((obj) => obj.channel_id === currentChannel.id && mutedUserIds.includes(obj.pubkey))
         .toArray() || []).reduce((acc, cur) => {
@@ -687,33 +691,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
         }, new Map<string, User>()).values();
       
       users = Array.from(usersMap);
-      setMutedUsers(users);
     }
 
     return users;
-  }, [channelManager, currentChannel, db, getCodeNameAndColor, utils]);
-
-  useEffect(() => {
-    const listener = ({ body, channelId }: MessagePinEvent) => {
-      const channelName = currentChannels.find((c) => c.id === channelId)?.name ?? 'unknown';
-      messagePinned(body, channelName);
-    };
-
-    bus.addListener(AppEvents.MESSAGE_PINNED, listener);
-
-    return () => { bus.removeListener(AppEvents.MESSAGE_PINNED, listener); }
-
-  }, [currentChannels, messagePinned])
-
-  useEffect(() => {
-    const listener = () => {
-      getMutedUsers();
-    }
-
-    bus.addListener(ChannelEvents.USER_MUTED, listener);
-
-    return () => { bus.removeListener(ChannelEvents.USER_MUTED, listener); };
-  }, [getMutedUsers]);
+  }, [channelManager, currentChannel, db, dispatch, getCodeNameAndColor, utils]);
 
   const createChannelManager = useCallback(async (privIdentity: Uint8Array) => {
     if (
@@ -1067,19 +1048,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [currentChannel, currentConversation, dispatch, getNickName]);
 
-  useEffect(() => {
-    const handler = (e: NicknameUpdatedEvent) => {
-      dispatch(channels.actions.updateNickname({
-        channelId: e.channelId,
-        nickname: e.exists ? e.nickname : undefined
-      }));
-    }
-
-    bus.addListener(ChannelEvents.NICKNAME_UPDATE, handler);
-
-    return () => { bus.removeListener(ChannelEvents.NICKNAME_UPDATE, handler)};
-  }, [dispatch]);
-
   // Identity object is combination of private identity and code name
   const generateIdentities = useCallback((amountOfIdentities: number) => {
     const identitiesObjects: ReturnType<NetworkContext['generateIdentities']> = [];
@@ -1200,23 +1168,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, currentChannel, utils]);
 
   useEffect(() => {
-    const listener = (evt: MessageDeletedEvent) => {
-      dispatch(messages.actions.delete(evt.messageId));
-    };
-
-    bus.addListener(ChannelEvents.MESSAGE_DELETED, listener);
-
-    return () => { bus.removeListener(ChannelEvents.MESSAGE_DELETED, listener); }
-  }, [dispatch])
-
-  useEffect(() => {
     getMutedUsers();
   }, [currentChannel, getMutedUsers]);
-
-  const userIsMuted = useCallback(
-    (pubkey: string) => !!mutedUsers?.find((u) => u.pubkey === pubkey),
-    [mutedUsers]
-  );
 
   const pinMessage = useCallback(async ({ id }: Message, unpin = false) => {
     if (currentChannel && channelManager) {
@@ -1228,14 +1181,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
         utils.GetDefaultCMixParams()
       )
     }
-  }, [channelManager, currentChannel, utils]);
-
-
-  const getMuted = useCallback(() => {
-    if (currentChannel && channelManager) {
-      return channelManager?.Muted(utils.Base64ToUint8Array(currentChannel.id))
-    }
-    return false;
   }, [channelManager, currentChannel, utils]);
 
 
@@ -1262,19 +1207,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, utils]);
 
-  const [isMuted, setIsMuted] = useState(false);
-  useEffect(() => {
-    const checkMuted = () => setIsMuted(getMuted());
-    if (currentChannel?.id) {
-      checkMuted();
-    }
-
-    bus.addListener(ChannelEvents.USER_MUTED, checkMuted);
-
-    return () => { bus.removeListener(ChannelEvents.USER_MUTED, checkMuted); }
-  }, [currentChannel?.id, getMuted]);
-
-
   useEffect(() => {
     if (utils && utils.GetWasmSemanticVersion) {
       const version = versionDecoder(JSON.parse(decoder.decode(utils.GetWasmSemanticVersion())));
@@ -1299,13 +1231,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
     getMutedUsers,
     initialize,
     mutedUsers,
-    isMuted,
     exportChannelAdminKeys,
     importChannelAdminKeys,
-    userIsMuted: userIsMuted,
     setMutedUsers: setMutedUsers,
     muteUser,
-    getMuted,
     cmix,
     networkStatus: cmixStatus,
     pagination,

@@ -29,8 +29,13 @@ export type IsReadyInfoJSON = {
   howClose: number;
 }
 
-export type MessageReceivedJson = {
+export type MessageReceivedJSON = {
   uuid: number;
   channelId: string;
   update: boolean;
+}
+
+export type AdminKeysUpdateJSON = {
+  channelId: string;
+  isAdmin: boolean;
 }

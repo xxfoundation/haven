@@ -35,6 +35,16 @@ export type NicknameUpdatedEvent = {
   exists: boolean;
 }
 
+export type AdminKeysUpdateEvent = {
+  channelId: string;
+  isAdmin: boolean;
+}
+
+export type DmTokenUpdateEvent = {
+  channelId: string;
+  tokenEnabled: boolean;
+}
+
 export type AllowList = Record<number, Record<string, unknown>>;
 
 export type AllowLists = {

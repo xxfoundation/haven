@@ -20,6 +20,7 @@ import s from './UserTextArea.module.scss';
 import SendButton from '../SendButton';
 import * as app from 'src/store/app';
 import * as messages from 'src/store/messages';
+import { userIsMuted } from 'src/store/selectors';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import Spinner from 'src/components/common/Spinner';
 
@@ -175,10 +176,10 @@ const UserTextArea: FC<Props> = ({
     atMentions = contributors?.map((c) => ({ id: c.pubkey, value: c.nickname ? `${c.nickname} (${c.codename})` : c.codename })) ?? [];
   }, [contributors]);
   const channelId = useAppSelector(app.selectors.currentChannelOrConversationId);
+  const isMuted = useAppSelector(userIsMuted);
   const { openModal, setModalView } = useUI();
   const {
     cmix,
-    isMuted,
     sendMessage,
     sendReply
   } = useNetworkClient();
