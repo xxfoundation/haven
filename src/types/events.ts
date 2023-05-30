@@ -37,7 +37,6 @@ export type NicknameUpdatedEvent = {
 
 export type AdminKeysUpdateEvent = {
   channelId: string;
-  isAdmin: boolean;
 }
 
 export type DmTokenUpdateEvent = {

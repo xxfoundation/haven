@@ -34,8 +34,3 @@ export type MessageReceivedJSON = {
   channelId: string;
   update: boolean;
 }
-
-export type AdminKeysUpdateJSON = {
-  channelId: string;
-  isAdmin: boolean;
-}
