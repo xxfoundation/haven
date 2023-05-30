@@ -209,10 +209,11 @@ const Join: NextPage = () => {
             </div>
           )}
           <PrimaryButton
-            buttonCopy={t('Confirm')}
             cssClass={cn('mb-7 mt-8 mr-4', s.button)}
             onClick={joinPrivateChannel}
-          />
+          >
+            {t('Confirm')}
+          </PrimaryButton>
         </div>
       )}
     </>

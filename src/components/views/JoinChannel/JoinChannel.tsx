@@ -85,15 +85,17 @@ const JoinChannelView: FC<Props> = ({ channelInfo, dmsEnabled, onConfirm, onDmsE
       </div>
       <div className='flex justify-center'>
         <PrimaryButton
-          buttonCopy={t('Join')}
           cssClass={cn('mb-7 mt-16 mr-4', s.button)}
           onClick={handleConfirmation}
-        />
+        >
+          {t('Join')}
+        </PrimaryButton>
         <PrimaryButton
-          buttonCopy={t('Cancel')}
           cssClass={cn('mb-7 mt-16', s.button)}
           onClick={handleCancelation}
-        />
+        >
+          {t('Cancel')}
+        </PrimaryButton>
       </div>
     </div>
   );

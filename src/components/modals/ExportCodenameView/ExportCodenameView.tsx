@@ -57,10 +57,11 @@ const ExportCodenameView: FC = () => {
         </div>
       )}
       <PrimaryButton
-        buttonCopy={t('Export')}
         cssClass={cn('mt-5', s.button)}
         onClick={handleSubmit}
-      />
+      >
+        {t('Export')}
+      </PrimaryButton>
     </div>
   );
 };

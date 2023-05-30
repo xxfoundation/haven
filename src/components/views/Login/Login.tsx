@@ -136,11 +136,12 @@ const LoginView: FC = () => {
               {accountSyncStatus !== AccountSyncStatus.Synced && (
                 <PrimaryButton
                   data-testid='login-button'
-                  buttonCopy={t('Login')}
                   disabled={isLoading}
                   cssClass={s.button}
                   onClick={handleSubmit}
-                />
+                >
+                  {t('Login')}
+                </PrimaryButton>
               )}
               {attemptingSyncedLogin && (
                 <SecondaryButton onClick={cancelSyncLogin}>
