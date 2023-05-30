@@ -139,10 +139,11 @@ const CreateChannelView: FC = () => {
       </p>
       <PrimaryButton
         data-testid='create-new-channel-button'
-        buttonCopy={t('Create')}
         cssClass={cn('mt-5 mb-8', s.button)}
         onClick={onCreate}
-      />
+      >
+        {t('Create')}
+      </PrimaryButton>
     </div>
   );
 };

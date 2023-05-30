@@ -119,9 +119,10 @@ const ExportCodenameView: FC = () => {
 
             <PrimaryButton
               type='submit'
-              buttonCopy={t('Import')}
               cssClass={cn('mt-5', s.button)}
-            />
+            >
+              {t('Import')}
+            </PrimaryButton>
           </form>
         </>
       )}

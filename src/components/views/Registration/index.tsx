@@ -140,11 +140,12 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 <div className='flex flex-col mt-4'>
                   <PrimaryButton
                     data-testid='registration-button'
-                    buttonCopy={t('Continue')}
                     cssClass={s.button}
                     disabled={isLoading}
                     onClick={onContinue}
-                  />
+                  >
+                    {t('Continue')}
+                  </PrimaryButton>
                 </div>
                 <div className='pt-3'>
                   {t('Already have an account?')} <Trans t={t}>

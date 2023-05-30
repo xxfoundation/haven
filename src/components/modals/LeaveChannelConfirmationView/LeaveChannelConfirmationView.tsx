@@ -3,7 +3,7 @@ import s from './LeaveChannelConfirmationView.module.scss';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton } from 'src/components/common';
+import { PrimaryButton, SecondaryButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
@@ -32,19 +32,21 @@ const LeaveChannelConfirmationView: FC = () => {
       </span>
 
       <div className='flex'>
-        <PrimaryButton
-          buttonCopy={t('Cancel')}
+        <SecondaryButton
           cssClass='mt-5 mb-10 mr-5'
           style={{
             borderColor: 'var(--red)'
           }}
           onClick={closeModal}
-        />
+        >
+          {t('Cancel')}
+        </SecondaryButton>
         <PrimaryButton
-          buttonCopy={t('Leave')}
           cssClass='mt-5 mb-10'
           onClick={onLeave}
-        />
+        >
+          {t('Leave')}
+        </PrimaryButton>
       </div>
     </div>
   );

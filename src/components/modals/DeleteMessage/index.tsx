@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useState } from 'react';
 
-import { PrimaryButton } from 'src/components/common';
+import { PrimaryButton, SecondaryButton } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
 import { LoadingView } from '..';
 
@@ -41,14 +41,15 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
             </p>
             <div className={cn('mb-6', s.buttonGroup)}>
               <PrimaryButton
-                buttonCopy={t('Delete')}
                 onClick={handleConfirmation}
-              />
-              <PrimaryButton
-                style={{ backgroundColor: 'transparent', color: 'var(--orange)', borderColor: 'var(--orange)' }}
-                buttonCopy={t('Cancel')}
+              >
+                {t('Delete')}
+              </PrimaryButton>
+              <SecondaryButton
                 onClick={onCancel}
-              />
+              >
+                {t('Cancel')}
+              </SecondaryButton>
             </div>
           </>
         )}

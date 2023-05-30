@@ -82,14 +82,15 @@ const ShareChannelView: FC = () => {
           {t('Copied!')}
         </div>
         <PrimaryButton
-          buttonCopy={t('Copy')}
           cssClass={cn(s.button)}
           onClick={() => {
             copy(credentials.password
                 ? `${credentials.url} Passphrase: ${credentials.password}`
                 : credentials.url);
           }}
-        />
+        >
+          {t('Copy')}
+        </PrimaryButton>
       </div>
       <p
         className={cn('mb-8 text text--xs', s.warn)}

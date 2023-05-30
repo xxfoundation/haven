@@ -65,10 +65,11 @@ const NickNameSetView: FC = () => {
         </div>
       )}
       <PrimaryButton
-        buttonCopy={t('Save')}
         cssClass='my-7'
         onClick={onSubmit}
-      />
+      >
+        {t('Save')}
+      </PrimaryButton>
     </div>
   );
 };

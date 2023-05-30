@@ -125,10 +125,11 @@ const JoinChannelView: FC = () => {
         </div>
       )}
       <PrimaryButton
-        buttonCopy={needPassword ? t('Join') : t('Go')}
         cssClass={cn('mt-12 mb-10', s.button)}
         onClick={handleSubmit}
-      />
+      >
+        {needPassword ? t('Join') : t('Go')}
+      </PrimaryButton>
     </div>
   );
 };

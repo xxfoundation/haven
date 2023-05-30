@@ -65,9 +65,10 @@ const AccountSyncView: FC = () => {
         <PrimaryButton
           data-testid='account-sync-local-only-button'
           style={{ borderColor: 'var(--orange)', color: 'white' }}
-          buttonCopy={t('Local-only')}
           onClick={ignoreSync}
-        />
+        >
+          {t('Local-only')}
+        </PrimaryButton>
       </div>
     </div>
   )

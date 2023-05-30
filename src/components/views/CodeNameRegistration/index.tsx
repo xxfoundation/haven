@@ -129,7 +129,6 @@ const CodenameRegistration: FC = () => {
       <div className='flex mb-5 mt-12'>
         <PrimaryButton
           data-testid='discover-more-button'
-          buttonCopy={t('Discover More')}
           cssClass={s.generateButton}
           style={{
             backgroundColor: 'var(--black-1)',
@@ -141,14 +140,17 @@ const CodenameRegistration: FC = () => {
             setIdentites(generateIdentities(AMOUNT_OF_IDENTITIES_TO_GENERATE));
           }}
           disabled={!cmix}
-        />
+        >
+          {t('Discover More')}
+        </PrimaryButton>
         <PrimaryButton
           data-testid='claim-codename-button'
-          buttonCopy={t('Claim')}
           cssClass={s.registerButton}
           onClick={register}
           disabled={!cmix || selectedCodeName.length === 0}
-        />
+        >
+          {t('Claim')}
+        </PrimaryButton>
       </div>
     </div>
   );

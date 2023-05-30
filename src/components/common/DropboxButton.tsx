@@ -75,12 +75,11 @@ const DropboxButton: FC<Props> = ({
     <PrimaryButton
       {...props}
       onClick={onClick}
-      buttonCopy={<>
+    >
       <FontAwesomeIcon icon={faDropbox} />
       &nbsp;
-        {t('Dropbox')}
-      </>}
-    />
+      {t('Dropbox')}
+    </PrimaryButton>
   )
 }
 

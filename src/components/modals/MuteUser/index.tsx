@@ -2,7 +2,7 @@ import { FC, useCallback, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton } from 'src/components/common';
+import { PrimaryButton, SecondaryButton } from 'src/components/common';
 import Modal from 'src/components/modals';
 import Loading from '../LoadingView';
 
@@ -47,19 +47,21 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
             </p>
             <div className={cn('mb-6', s.buttonGroup)}>
               <PrimaryButton
-                buttonCopy={t('Mute and delete the last message')}
                 style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)'  }}
                 onClick={handleConfirmation('mute+delete')}
-              />
+              >
+                {t('Mute and delete the last message')}
+              </PrimaryButton>
               <PrimaryButton
-                buttonCopy={t('Just Mute')}
                 onClick={handleConfirmation('mute')}
-              />
-              <PrimaryButton
-                style={{ backgroundColor: 'transparent', color: 'var(--orange)', borderColor: 'var(--orange)' }}
-                buttonCopy={t('Cancel')}
+              >
+                {t('Just Mute')}
+              </PrimaryButton>
+              <SecondaryButton
                 onClick={onCancel}
-              />
+              >
+                {t('Cancel')}
+              </SecondaryButton>
             </div>
           </>
         )}

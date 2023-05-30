@@ -66,15 +66,11 @@ const GoogleButton: FC<Props>  = ({
       onClick={() => {
         login()
       }}
-      buttonCopy={
-        <>
-          <FontAwesomeIcon icon={faGoogleDrive} />
-          &nbsp;
-          {t('Google Drive')}
-        </>
-      }
-      
-    />
+    >
+      <FontAwesomeIcon icon={faGoogleDrive} />
+      &nbsp;
+      {t('Google Drive')}
+    </PrimaryButton>
   );
 }
 
