@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useState } from 'react';
 
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
 import { LoadingView } from '..';
 
@@ -40,11 +40,11 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
               ** {t('Important to note that deleting messages cannot be undone.')} **
             </p>
             <div className={cn('mb-6', s.buttonGroup)}>
-              <ModalCtaButton
+              <PrimaryButton
                 buttonCopy={t('Delete')}
                 onClick={handleConfirmation}
               />
-              <ModalCtaButton
+              <PrimaryButton
                 style={{ backgroundColor: 'transparent', color: 'var(--orange)', borderColor: 'var(--orange)' }}
                 buttonCopy={t('Cancel')}
                 onClick={onCancel}

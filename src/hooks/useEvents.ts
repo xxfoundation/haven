@@ -1,4 +1,4 @@
-import type { AdminKeysUpdateEvent, MessageDeletedEvent, MessagePinEvent, NicknameUpdatedEvent, UserMutedEvent } from '@types';
+import type { AdminKeysUpdateEvent, MessageDeletedEvent, MessagePinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
 import { useEffect } from 'react';
 
 import * as channels from 'src/store/channels'
@@ -67,6 +67,22 @@ const useEvents = () => {
     return () => {
       bus.removeListener(ChannelEvents.ADMIN_KEY_UPDATE, listener);
     }
+  }, [dispatch]);
+
+  useEffect(() => {
+    const listener = (evt: NotificationUpdateEvent) => {
+      evt.changedNotificationStates.forEach((state) => {
+        dispatch(channels.actions.updateNotificationLevel(state));
+      });
+
+      evt.deletedNotificationStates.forEach((channelId) => {
+        dispatch(channels.actions.updateNotificationLevel({ channelId }));
+      });
+    }
+
+    bus.addListener(ChannelEvents.NOTIFICATION_UPDATE, listener);
+
+    return () => { bus.removeListener(ChannelEvents.NOTIFICATION_UPDATE, listener); }
   }, [dispatch])
 }
 

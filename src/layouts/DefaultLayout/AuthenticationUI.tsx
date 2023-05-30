@@ -13,12 +13,13 @@ import { useNetworkClient } from '@contexts/network-client-context';
 
 const AuthenticationUI: FC = () => {
   const { displayModal, modalView = '' } = useUI();
-  const { setIsAuthenticated, statePathExists, storageTag } = useAuthentication();
+  const { attemptingSyncedLogin, cmixPreviouslyInitialized, setIsAuthenticated } = useAuthentication();
   const { utils } = useUtils(); 
   const { checkRegistrationReadiness, cmix, initialize } = useNetworkClient();
   const [loading, setLoading] = useState(false); 
   const [readyProgress, setReadyProgress] = useState<number>(0);
-  const hasAccount = statePathExists() && storageTag;
+
+  const hasAccount = cmixPreviouslyInitialized || attemptingSyncedLogin;
   const [importedIdentity, setImportedIdentity] = useState<Uint8Array>();
   
   const onSubmit = useCallback(async ({ identity, password }: IdentityVariables) =>  {

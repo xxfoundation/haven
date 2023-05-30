@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { saveAs } from 'file-saver';
 import { useTranslation } from 'react-i18next';
 
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import useStep from 'src/hooks/useStep';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import useInput from 'src/hooks/useInput';
@@ -74,7 +74,7 @@ const ExportCodenameView: FC = () => {
             value={password}
             onChange={setPassword}
           />
-          <ModalCtaButton
+          <PrimaryButton
             buttonCopy={t('Unlock')}
             cssClass={cn('mt-5', s.button)}
             onClick={checkPassword}
@@ -116,14 +116,14 @@ const ExportCodenameView: FC = () => {
             />
           </div>
           <div className='space-x-4 flex'>
-            <ModalCtaButton
+            <PrimaryButton
               style={{ borderColor: 'var(--cyan)', color: 'white' }}
               buttonCopy={t('Cancel')}
               cssClass={cn('mt-5', s.button)}
               onClick={reset}
             />
 
-            <ModalCtaButton
+            <PrimaryButton
               buttonCopy={t('Export')}
               cssClass={cn('mt-5', s.button)}
               onClick={onExport}

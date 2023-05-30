@@ -74,6 +74,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             NewDMClientWithIndexedDb,
             NewDMsDatabaseCipher,
             NewDummyTrafficManager,
+            NewSynchronizedCmix,
             Purge,
             ValidForever,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,6 +84,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
 
           setUtils({
             NewCmix,
+            NewSynchronizedCmix,
             LoadCmix,
             LoadNotifications,
             LoadNotificationsDummy,

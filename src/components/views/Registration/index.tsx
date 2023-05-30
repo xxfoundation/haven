@@ -2,7 +2,7 @@ import { FC, useCallback, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import cn from 'classnames';
 
-import { ModalCtaButton, Spinner } from 'src/components/common';
+import { PrimaryButton, SecondaryButton, Spinner } from 'src/components/common';
 
 import {
   NormalSpeakeasy,
@@ -13,6 +13,10 @@ import {
 import { useUI } from 'src/contexts/ui-context';
 
 import s from './Registration.module.scss';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDropbox, faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
+import { AccountSyncService } from 'src/hooks/useAccountSync';
+import { useAuthentication } from '@contexts/authentication-context';
 
 type Props = {
   onPasswordConfirmation: (password: string) => void;
@@ -21,11 +25,13 @@ type Props = {
 const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
   const { t } = useTranslation();
   const { openModal, setModalView } = useUI();
+  const { attemptSyncLogin } = useAuthentication();
 
   const [password, setPassword] = useState<string>('');
   const [passwordConfirm, setPasswordConfirm] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showSelectServiceMenu, setShowSelectServiceMenu] = useState(false);
 
   const onContinue = useCallback(() => {
     if (passwordConfirm !== password) {
@@ -75,104 +81,132 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             <h2 className='mb-2'>
               {t('Join the alpha')}
             </h2>
-            <p
-              className='mb-8 text'
-              style={{ color: '#5B5D62', lineHeight: '17px' }}
-            >
-              {t('Enter a password to secure your sovereign speakeasy identity')}
-            </p>
-            <input
-              data-testid='registration-password-input'
-              type='password'
-              placeholder={t('Enter your password')}
-              className=''
-              value={password}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  onContinue();
-                }
-              }}
-              onChange={e => {
-                setPassword(e.target.value);
-              }}
-            />
-
-            <input
-              data-testid='registration-password-confirmation'
-              type='password'
-              placeholder={t('Confirm your password')}
-              className='mt-4'
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  onContinue();
-                }
-              }}
-              value={passwordConfirm}
-              onChange={e => {
-                setPasswordConfirm(e.target.value);
-              }}
-            />
-
-            {isLoading && (
-              <div className={s.loading}>
-                <Spinner />
-              </div>
-            )}
-
-            {error && (
-              <div
-                data-testid='registration-error'
-                className={'text text--xs mt-4'}
-                style={{ color: 'var(--red)' }}
-              >
-                {error}
-              </div>
-            )}
-
-            <div className='flex flex-col mt-4'>
-              <ModalCtaButton
-                data-testid='registration-button'
-                buttonCopy={t('Continue')}
-                cssClass={s.button}
-                disabled={isLoading}
-                onClick={onContinue}
-              />
-            </div>
-            <div className='pt-3'>
-              {t('Already have an account?')} <Trans t={t}>
-                <span
-                  style={{
-                    textDecoration: 'underline',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    textAlign: 'center',
-                    marginTop: '12px',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => {
-                    setModalView('IMPORT_CODENAME');
-                    openModal();
-                  }}
+            {!showSelectServiceMenu && (
+              <>
+                <p
+                  className='mb-8 text'
+                  style={{ color: '#5B5D62', lineHeight: '17px' }}
                 >
-                  {t('Import')}
-                </span> an existing account or <span
-                  style={{
-                    textDecoration: 'underline',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    textAlign: 'center',
-                    marginTop: '12px',
-                    cursor: 'pointer'
+                  {t('Enter a password to secure your sovereign speakeasy identity')}
+                </p>
+                <input
+                  data-testid='registration-password-input'
+                  type='password'
+                  placeholder={t('Enter your password')}
+                  className=''
+                  value={password}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      onContinue();
+                    }
                   }}
-                  onClick={() => {
-                    setModalView('IMPORT_CODENAME');
-                    openModal();
+                  onChange={e => {
+                    setPassword(e.target.value);
                   }}
+                />
+
+                <input
+                  data-testid='registration-password-confirmation'
+                  type='password'
+                  placeholder={t('Confirm your password')}
+                  className='mt-4'
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      onContinue();
+                    }
+                  }}
+                  value={passwordConfirm}
+                  onChange={e => {
+                    setPasswordConfirm(e.target.value);
+                  }}
+                />
+
+                {isLoading && (
+                  <div className={s.loading}>
+                    <Spinner />
+                  </div>
+                )}
+
+                {error && (
+                  <div
+                    data-testid='registration-error'
+                    className={'text text--xs mt-4'}
+                    style={{ color: 'var(--red)' }}
+                  >
+                    {error}
+                  </div>
+                )}
+
+                <div className='flex flex-col mt-4'>
+                  <PrimaryButton
+                    data-testid='registration-button'
+                    buttonCopy={t('Continue')}
+                    cssClass={s.button}
+                    disabled={isLoading}
+                    onClick={onContinue}
+                  />
+                </div>
+                <div className='pt-3'>
+                  {t('Already have an account?')} <Trans t={t}>
+                    <span
+                      style={{
+                        textDecoration: 'underline',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        textAlign: 'center',
+                        marginTop: '12px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => {
+                        setModalView('IMPORT_CODENAME');
+                        openModal();
+                      }}
+                    >
+                      {t('Import')}
+                    </span> an existing account or <span
+                      style={{
+                        textDecoration: 'underline',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        textAlign: 'center',
+                        marginTop: '12px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => {
+                        setShowSelectServiceMenu(true);
+                      }}
+                    >
+                      {t('login')}
+                    </span> from a cloud provider
+                  </Trans>
+                </div>
+              </>
+            )}
+            {showSelectServiceMenu && (
+              <>
+                <p
+                  className='mb-8 text'
+                  style={{ color: '#5B5D62', lineHeight: '17px' }}
                 >
-                  {t('login')}
-                </span> from a cloud provider
-              </Trans>
-            </div>
+                  {t('Select your cloud provider')}
+                </p>
+                <div className='flex flex-col space-y-3'>
+                  <PrimaryButton onClick={() => {
+                    attemptSyncLogin(AccountSyncService.Google);
+                  }}>
+                    Google Drive <FontAwesomeIcon icon={faGoogleDrive} />
+                  </PrimaryButton>
+                  <PrimaryButton onClick={() => {
+                    attemptSyncLogin(AccountSyncService.Dropbox);
+                  }}>
+                    Dropbox <FontAwesomeIcon icon={faDropbox} />
+                  </PrimaryButton>
+                  <SecondaryButton onClick={() => { setShowSelectServiceMenu(false); }}>
+                    Cancel
+                  </SecondaryButton>
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.footer)}>

@@ -4,16 +4,17 @@ import { faDropbox } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useTranslation } from 'react-i18next';
 
-import { ModalCtaButton } from '@components/common';
+import { PrimaryButton } from '@components/common';
 import { AppEvents, bus } from 'src/events'
-import { IModalCtaButtonProps } from './ModalCtaButton/ModalCtaButton';
+import { Props as ButtonProps } from './PrimaryButton/PrimaryButton';
 import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
 import { useNetworkClient } from '@contexts/network-client-context';
 import { RemoteStore } from '@types';
 
-type Props = Partial<IModalCtaButtonProps> & {
+type Props = Partial<ButtonProps> & {
   onSync?: () => void;
   onError?: () => void;
+  onStartLoading?: () => void;
   password?: string;
 }
 
@@ -21,6 +22,7 @@ const DropboxButton: FC<Props> = ({
   password,
   onSync = () => {},
   onError = () => {},
+  onStartLoading = () => {},
   ...props
 }) => {
   const remoteStore = useDropboxRemoteStore();
@@ -36,13 +38,14 @@ const DropboxButton: FC<Props> = ({
     const onTokenMessage = (e: MessageEvent) => {
       if (window.location.origin === e.origin && e.data.code) {
         bus.emit(AppEvents.DROPBOX_TOKEN, e.data.code);
+        onStartLoading();
       }
     }
 
     window.addEventListener('message', onTokenMessage, false);
 
     return () => window.removeEventListener('message', onTokenMessage)
-  }, []);
+  }, [onStartLoading]);
 
   const handleSuccessfulLogin = useCallback(async (store: RemoteStore) => {
     try {
@@ -69,7 +72,7 @@ const DropboxButton: FC<Props> = ({
 
 
   return (
-    <ModalCtaButton
+    <PrimaryButton
       {...props}
       onClick={onClick}
       buttonCopy={<>

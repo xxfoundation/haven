@@ -88,7 +88,11 @@ const useCmix = () => {
     setDecryptedPasword(decryptedInternalPassword);
     try {
       if (!cmixPreviouslyInitialized()) {
-        await utils.NewCmix(ndf, STATE_PATH, decryptedInternalPassword, '');
+        if (remoteStore) {
+          await utils.NewSynchronizedCmix(ndf, STATE_PATH, decryptedInternalPassword, remoteStore);
+        } else {
+          await utils.NewCmix(ndf, STATE_PATH, decryptedInternalPassword, '');
+        }
       }
 
       await loadCmix(decryptedInternalPassword, remoteStore);

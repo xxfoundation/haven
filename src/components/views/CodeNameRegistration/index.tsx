@@ -2,7 +2,7 @@ import { FC, useState, useEffect, useCallback } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ImportCodeNameLoading, ModalCtaButton } from 'src/components/common';
+import { ImportCodeNameLoading, PrimaryButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Spinner } from 'src/components/common';
 
@@ -127,7 +127,7 @@ const CodenameRegistration: FC = () => {
       )}
 
       <div className='flex mb-5 mt-12'>
-        <ModalCtaButton
+        <PrimaryButton
           data-testid='discover-more-button'
           buttonCopy={t('Discover More')}
           cssClass={s.generateButton}
@@ -142,7 +142,7 @@ const CodenameRegistration: FC = () => {
           }}
           disabled={!cmix}
         />
-        <ModalCtaButton
+        <PrimaryButton
           data-testid='claim-codename-button'
           buttonCopy={t('Claim')}
           cssClass={s.registerButton}

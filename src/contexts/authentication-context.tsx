@@ -1,12 +1,17 @@
 import { WithChildren } from '@types';
 
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { CHANNELS_STORAGE_TAG, STATE_PATH } from '../constants';
+import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE, CHANNELS_STORAGE_TAG, STATE_PATH } from '../constants';
 import { useUtils } from 'src/contexts/utils-context';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import { v4 as uuid } from 'uuid';
+import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 
 type AuthenticationContextType = {
+  attemptSyncLogin: (service: AccountSyncService) => void;
+  cancelSyncLogin: () => void;
+  cmixPreviouslyInitialized: boolean;
+  attemptingSyncedLogin: boolean;
   checkUser: (password: string) => Uint8Array | false;
   statePathExists: () => boolean;
   storageTag: string | null;
@@ -32,7 +37,14 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const { utils } = useUtils();
   const [storageTags, setStorageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
   const authChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('authentication'), []);
-  
+  const [accountSyncStatus, setAccountSyncStatus] = useLocalStorage(ACCOUNT_SYNC, AccountSyncStatus.NotSynced);
+  const [, setAccountSyncService] = useLocalStorage(ACCOUNT_SYNC_SERVICE, AccountSyncService.None);
+
+  const attemptSyncLogin = useCallback((service: AccountSyncService) => {
+    setAccountSyncService(service);
+    setAccountSyncStatus(AccountSyncStatus.Synced);
+  }, [setAccountSyncService, setAccountSyncStatus])
+
   const checkUser = useCallback((password: string) => {
     try {
       const statePassEncoded = utils.GetOrInitPassword(password);
@@ -59,15 +71,27 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     return () => {
       authChannel.removeEventListener('message', onRequest);
     }
-  }, [authChannel, isAuthenticated, instanceId])
+  }, [authChannel, isAuthenticated, instanceId]);
+
+  const storageTag = storageTags?.[0] || null;
+  const cmixPreviouslyInitialized = !!(statePathExists() && storageTag);
+
+  const cancelSyncLogin = useCallback(() => {
+    setAccountSyncStatus(AccountSyncStatus.NotSynced);
+    setAccountSyncService(AccountSyncService.None);
+  }, [setAccountSyncService, setAccountSyncStatus])
 
   return (
     <AuthenticationContext.Provider
       value={{
+        attemptSyncLogin,
+        cancelSyncLogin,
+        cmixPreviouslyInitialized,
+        attemptingSyncedLogin: !cmixPreviouslyInitialized && accountSyncStatus === AccountSyncStatus.Synced,
         checkUser,
         instanceId,
         statePathExists,
-        storageTag: storageTags?.[0] || null,
+        storageTag,
         addStorageTag: (tag: string) => setStorageTags((storageTags ?? []).concat(tag)),
         isAuthenticated,
         setIsAuthenticated

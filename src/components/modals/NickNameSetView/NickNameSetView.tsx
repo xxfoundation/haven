@@ -3,7 +3,7 @@ import s from './NickNameSetView.module.scss';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
@@ -64,7 +64,7 @@ const NickNameSetView: FC = () => {
           {error}
         </div>
       )}
-      <ModalCtaButton
+      <PrimaryButton
         buttonCopy={t('Save')}
         cssClass='my-7'
         onClick={onSubmit}

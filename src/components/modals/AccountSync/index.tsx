@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCloud, faSync } from '@fortawesome/free-solid-svg-icons';
 import useLocalStorage from 'src/hooks/useLocalStorage'
 
-import { ModalCtaButton } from '@components/common';
+import { PrimaryButton } from '@components/common';
 import { useUI } from '@contexts/ui-context';
 import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE } from 'src/constants';
 import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
@@ -62,7 +62,7 @@ const AccountSyncView: FC = () => {
             closeModal();
           }}
         />
-        <ModalCtaButton
+        <PrimaryButton
           data-testid='account-sync-local-only-button'
           style={{ borderColor: 'var(--orange)', color: 'white' }}
           buttonCopy={t('Local-only')}
