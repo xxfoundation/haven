@@ -1,3 +1,5 @@
+import { encoder } from '@utils/index';
+
 export enum OperationType {
   Created = 0,
   Updated = 1,
@@ -62,6 +64,6 @@ export class RemoteStore {
   }
 
   ReadDir(path: string) {
-    return this.store.ReadDir(path);
+    return encoder.encode(JSON.stringify(this.store.ReadDir(path)));
   }
 }

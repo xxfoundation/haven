@@ -2,7 +2,7 @@ import { FC, useCallback, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import Modal from 'src/components/modals';
 import Loading from '../LoadingView';
 
@@ -46,16 +46,16 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
               ** {t('Important to note that deleting messages cannot be undone.')} **
             </p>
             <div className={cn('mb-6', s.buttonGroup)}>
-              <ModalCtaButton
+              <PrimaryButton
                 buttonCopy={t('Mute and delete the last message')}
                 style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)'  }}
                 onClick={handleConfirmation('mute+delete')}
               />
-              <ModalCtaButton
+              <PrimaryButton
                 buttonCopy={t('Just Mute')}
                 onClick={handleConfirmation('mute')}
               />
-              <ModalCtaButton
+              <PrimaryButton
                 style={{ backgroundColor: 'transparent', color: 'var(--orange)', borderColor: 'var(--orange)' }}
                 buttonCopy={t('Cancel')}
                 onClick={onCancel}

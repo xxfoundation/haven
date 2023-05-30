@@ -3,7 +3,7 @@ import s from './JoinChannelView.module.scss';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
@@ -124,7 +124,7 @@ const JoinChannelView: FC = () => {
           {error}
         </div>
       )}
-      <ModalCtaButton
+      <PrimaryButton
         buttonCopy={needPassword ? t('Join') : t('Go')}
         cssClass={cn('mt-12 mb-10', s.button)}
         onClick={handleSubmit}

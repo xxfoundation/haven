@@ -2,7 +2,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import s from './CreateChannelView.module.scss';
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import cn from 'classnames';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
@@ -137,7 +137,7 @@ const CreateChannelView: FC = () => {
           : t('Secret speakeasies hide everything: Speakeasy name, description, members, messages, and more. No one knows anything about the Speakeasy unless they are invited.')
         }
       </p>
-      <ModalCtaButton
+      <PrimaryButton
         data-testid='create-new-channel-button'
         buttonCopy={t('Create')}
         cssClass={cn('mt-5 mb-8', s.button)}

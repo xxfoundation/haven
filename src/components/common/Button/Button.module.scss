@@ -1,5 +1,5 @@
 .root {
-  color: var(--text-primary);
+  color: var(--dark-1);
 
   border-radius: 5px;
   padding: 9px;
@@ -7,6 +7,7 @@
   font-size: 14px;
   background-color: var(--orange);
   min-width: 212px;
+
   &:disabled:hover {
     cursor: not-allowed;
   }

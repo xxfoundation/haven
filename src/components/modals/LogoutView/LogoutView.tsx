@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 import s from './LogoutView.module.scss';
 import cn from 'classnames';
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import useInput from 'src/hooks/useInput';
@@ -70,7 +70,7 @@ const LogoutView: FC = ({}) => {
           {error}
         </div>
       )}
-      <ModalCtaButton
+      <PrimaryButton
         buttonCopy={t('Confirm')}
         cssClass={cn('mt-12 mb-10', s.button)}
         onClick={handleSubmit}

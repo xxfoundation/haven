@@ -9,7 +9,7 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
 import JoinChannelView from 'src/components/views/JoinChannel';
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import { Spinner } from 'src/components/common';
 import { decoder } from 'src/utils';
 
@@ -208,7 +208,7 @@ const Join: NextPage = () => {
               {error}
             </div>
           )}
-          <ModalCtaButton
+          <PrimaryButton
             buttonCopy={t('Confirm')}
             cssClass={cn('mb-7 mt-8 mr-4', s.button)}
             onClick={joinPrivateChannel}

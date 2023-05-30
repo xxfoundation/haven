@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChannelId } from 'src/store/channels/types';
 import type { Message } from 'src/store/messages/types';
+import { MessageType } from './db';
 
 export type MessageReceivedEvent = {
   uuid: number;
@@ -44,7 +45,7 @@ export type DmTokenUpdateEvent = {
   tokenEnabled: boolean;
 }
 
-export type AllowList = Record<number, Record<string, unknown>>;
+export type AllowList = Partial<Record<MessageType, Record<string, unknown>>>;
 
 export type AllowLists = {
   allowWithTags: AllowList;

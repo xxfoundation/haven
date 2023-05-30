@@ -1,9 +1,7 @@
-import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent } from 'src/types';
-
-import { Message } from 'src/store/messages/types';
+import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, NotificationLevel } from 'src/types';
+import type { WithChildren, Message } from 'src/types';
 import { MessageStatus, MessageType } from 'src/types';
 
-import {  } from 'src/contexts/utils-context';
 import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
 
 import _ from 'lodash';
@@ -11,7 +9,7 @@ import Cookies from 'js-cookie';
 import assert from 'assert';
 
 import { bus, onMessagePinned, onMessageUnpinned, handleChannelEvent, ChannelEvents } from 'src/events';
-import { WithChildren } from 'src/types';
+
 import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
@@ -98,6 +96,8 @@ export type ChannelManager = {
     cmixParams: Uint8Array
   ) => Promise<Uint8Array>;
   IsChannelAdmin: (channelId: Uint8Array) => boolean;
+  GetNotificationLevel: (channelId: Uint8Array) => NotificationLevel;
+  SetMobileNotificationsLevel: (channelId: Uint8Array, notificationLevel: NotificationLevel) => void;
   GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => Promise<string>;
   GetStorageTag: () => string | undefined;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
@@ -627,6 +627,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
       fetchReactions();
     }
   }, [currentChannel?.id, fetchPinnedMessages, fetchReactions]);
+
+  useEffect(() => {
+    if (currentChannel?.id && channelManager) {
+      // const encodedChannelId = utils.Base64ToUint8Array(currentChannel.id);
+      // const level = channelManager.GetNotificationLevel(encodedChannelId);
+      // dispatch(channels.actions.updateNotificationLevel({ channelId: currentChannel.id, level }));
+    }
+  }, [channelManager, currentChannel, dispatch, utils])
 
 
   const loadChannelManager = useCallback(async () => {

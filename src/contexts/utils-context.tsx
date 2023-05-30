@@ -33,7 +33,18 @@ export type Notifications = {
 }
 
 export type XXDKUtils = {
-  NewCmix: (ndf: string, storageDir: string, password: Uint8Array, registrationCode: string) => Promise<void>;
+  NewCmix: (
+    ndf: string,
+    storageDir: string,
+    password: Uint8Array,
+    registrationCode: string
+  ) => Promise<void>;
+  NewSynchronizedCmix: (
+    ndf: string,
+    storageDir: string,
+    password: Uint8Array,
+    remoteStore: RemoteStore,
+  ) => Promise<void>;
   LoadCmix: (
     storageDirectory: string,
     password: Uint8Array,

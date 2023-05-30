@@ -185,7 +185,7 @@ const notificationFilterDecoder = JsonDecoder.object<NotificationFilter>(
   }
 );
 
-const notificationLevelDecoder = JsonDecoder.enumeration<NotificationLevel>(NotificationLevel, 'NotificationLevelDecoder');
+export const notificationLevelDecoder = JsonDecoder.enumeration<NotificationLevel>(NotificationLevel, 'NotificationLevelDecoder');
 const notificationStatusDecoder = JsonDecoder.enumeration<NotificationStatus>(NotificationStatus, 'NotificationStatusDecoder');
 const notificationStateDecoder = JsonDecoder.object<NotificationState>(
   {

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useCallback, useEffect } from 'react';
-import { ModalCtaButton } from '@components/common';
+import { PrimaryButton } from 'src/components/common';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 import { useTranslation } from 'react-i18next';
 import { useGoogleLogin } from '@react-oauth/google';
 import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
 import { AppEvents, bus } from 'src/events';
-import { useNetworkClient } from '@contexts/network-client-context';
-import { IModalCtaButtonProps } from './ModalCtaButton/ModalCtaButton';
-import { RemoteStore } from '@types';
+import { useNetworkClient } from 'src/contexts/network-client-context';
+import { Props as ButtonProps } from './PrimaryButton/PrimaryButton';
+import { RemoteStore } from 'src/types';
 
 declare global {
   interface Window {
@@ -17,9 +17,10 @@ declare global {
   }
 }
 
-type Props = Partial<IModalCtaButtonProps> & {
+type Props = Partial<ButtonProps> & {
   onSync?: () => void;
   onError?: () => void;
+  onStartLoading?: () => void;
   password?: string;
 }
 
@@ -27,6 +28,7 @@ const GoogleButton: FC<Props>  = ({
   password,
   onSync = () => {},
   onError = () => {},
+  onStartLoading = () => {},
   ...props
 }) => {
   const { t } = useTranslation();
@@ -37,6 +39,7 @@ const GoogleButton: FC<Props>  = ({
     scope: 'https://www.googleapis.com/auth/drive.appdata',
     prompt: 'consent',
     onSuccess: (token) => {
+      onStartLoading();
       bus.emit(AppEvents.GOOGLE_TOKEN, token.access_token)
     },
   });
@@ -57,10 +60,12 @@ const GoogleButton: FC<Props>  = ({
   }, [handleSuccessfulLogin, remoteStore]);
 
   return (
-    <ModalCtaButton
+    <PrimaryButton
       {...props}
       id='google-auth-button'
-      onClick={() => login()}
+      onClick={() => {
+        login()
+      }}
       buttonCopy={
         <>
           <FontAwesomeIcon icon={faGoogleDrive} />

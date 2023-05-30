@@ -2,7 +2,7 @@ import { FC, useCallback, useRef, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import useInput from 'src/hooks/useInput';
 import { useNetworkClient } from '@contexts/network-client-context';
 import { Upload } from 'src/components/icons';
@@ -117,7 +117,7 @@ const ExportCodenameView: FC = () => {
               onChange={setPassword}
             />
 
-            <ModalCtaButton
+            <PrimaryButton
               type='submit'
               buttonCopy={t('Import')}
               cssClass={cn('mt-5', s.button)}

@@ -3,7 +3,7 @@ import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
-import { ModalCtaButton } from 'src/components/common';
+import { PrimaryButton } from 'src/components/common';
 import { WarningComponent } from 'src/pages/_app';
 
 import s from './JoinChannel.module.scss';
@@ -84,12 +84,12 @@ const JoinChannelView: FC<Props> = ({ channelInfo, dmsEnabled, onConfirm, onDmsE
         <CheckboxToggle checked={dmsEnabled} onChange={() => onDmsEnabledChange(!dmsEnabled)} />
       </div>
       <div className='flex justify-center'>
-        <ModalCtaButton
+        <PrimaryButton
           buttonCopy={t('Join')}
           cssClass={cn('mb-7 mt-16 mr-4', s.button)}
           onClick={handleConfirmation}
         />
-        <ModalCtaButton
+        <PrimaryButton
           buttonCopy={t('Cancel')}
           cssClass={cn('mb-7 mt-16', s.button)}
           onClick={handleCancelation}
