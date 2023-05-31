@@ -63,7 +63,8 @@ export class RemoteStore {
     return this.store.GetLastModified(path);
   }
 
-  ReadDir(path: string) {
-    return encoder.encode(JSON.stringify(this.store.ReadDir(path)));
+  async ReadDir(path: string) {
+    const dirs = await this.store.ReadDir(path);
+    return encoder.encode(JSON.stringify(dirs));
   }
 }

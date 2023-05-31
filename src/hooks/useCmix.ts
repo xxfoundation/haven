@@ -25,6 +25,8 @@ export enum NetworkStatus {
   FAILED = 'failed'
 }
 
+let initializationCalls = 0;
+
 const useCmix = () => {
   const [status, setStatus] = useState<NetworkStatus>(NetworkStatus.UNINITIALIZED);
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
@@ -59,6 +61,7 @@ const useCmix = () => {
       params.Network.EnableImmediateSending = true;
       const cmixParamsEncoded = encoder.encode(JSON.stringify(params));
       if (remoteStore) {
+
         await utils.LoadSynchronizedCmix(
           STATE_PATH,
           decryptedInternalPassword,
@@ -85,6 +88,10 @@ const useCmix = () => {
   }, [createDatabaseCipher, utils]);
 
   const initializeCmix = useCallback(async (decryptedInternalPassword: Uint8Array, remoteStore?: RemoteStore) => {
+    initializationCalls += 1;
+    if (initializationCalls > 1) {
+      throw new Error('INITIALIZE CALLED MORE THAN ONCE');
+    }
     setDecryptedPasword(decryptedInternalPassword);
     try {
       if (!cmixPreviouslyInitialized()) {
@@ -94,7 +101,6 @@ const useCmix = () => {
           await utils.NewCmix(ndf, STATE_PATH, decryptedInternalPassword, '');
         }
       }
-
       await loadCmix(decryptedInternalPassword, remoteStore);
     } catch (e) {
       console.error('Failed to initiate Cmix: ' + e);
