@@ -3,13 +3,16 @@ import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, Me
 import EventEmitter from 'events';
 import delay from 'delay';
 import { Decoder, adminKeysUpdateDecoder, dmTokenUpdateDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
+import { AccountSyncService } from './hooks/useAccountSync';
 
 export enum AppEvents {
   MESSAGE_PINNED = 'pinned',
   MESSAGE_UNPINNED = 'unpinned',
   DM_RECEIVED = 'dm-received',
   GOOGLE_TOKEN = 'google-token',
-  DROPBOX_TOKEN = 'dropbox-token'
+  DROPBOX_TOKEN = 'dropbox-token',
+  REMOTE_STORE_INITIALIZED = 'remote-store-initialized',
+  CMIX_SYNCED = 'cmix-synced'
 }
 
 export enum ChannelEvents {
@@ -40,6 +43,8 @@ type EventHandlers = {
   [AppEvents.DM_RECEIVED]: (event: DMReceivedEvent) => void;
   [AppEvents.GOOGLE_TOKEN]: (event: string) => void;
   [AppEvents.DROPBOX_TOKEN]: (event: string) => void;
+  [AppEvents.REMOTE_STORE_INITIALIZED]: () => void;
+  [AppEvents.CMIX_SYNCED]: (service: AccountSyncService) => void;
 }
 
 const cmixDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]> } = {
@@ -86,14 +91,23 @@ export const handleChannelEvent: ChannelEventHandler = (eventType, data) => {
 }
 
 
-export const awaitEvent = async (evt: AppEvents | ChannelEvents) => {
+export const awaitEvent = async (evt: AppEvents | ChannelEvents, timeout = 10000) => {
   let listener: () => void = () => {};
+  let resolved = false;
+  const promise = new Promise<void>((resolve) => {
+    listener = resolve;
+    bus.addListener(evt, () => {
+      resolved = true;
+      resolve();
+    });
+  });
   await Promise.race([
-    new Promise<void>((resolve) => {
-      listener = resolve;
-      bus.addListener(evt, () => { resolve() });
-    }),
-    delay(10000) // 10 second timeout
+    promise,
+    delay(timeout).then(() => {
+      if (!resolved) {
+        throw new Error(`Awaiting event ${evt} timed out.`)
+      }
+    })
   ]);
 
   bus.removeListener(evt, listener);

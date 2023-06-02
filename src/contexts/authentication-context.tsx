@@ -1,18 +1,20 @@
 import { WithChildren } from '@types';
 
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE, CHANNELS_STORAGE_TAG, STATE_PATH } from '../constants';
+import { CHANNELS_STORAGE_TAG, STATE_PATH } from '../constants';
 import { useUtils } from 'src/contexts/utils-context';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import { v4 as uuid } from 'uuid';
-import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
+import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 
 type AuthenticationContextType = {
-  attemptSyncLogin: (service: AccountSyncService) => void;
+  setSyncLoginService: (service: AccountSyncService) => void;
   cancelSyncLogin: () => void;
   cmixPreviouslyInitialized: boolean;
   attemptingSyncedLogin: boolean;
-  checkUser: (password: string) => Uint8Array | false;
+  getOrInitPassword: (password: string) => boolean;
+  encryptedPassword?: Uint8Array;
+  rawPassword?: string;
   statePathExists: () => boolean;
   storageTag: string | null;
   addStorageTag: (tag: string) => void;
@@ -37,23 +39,35 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const { utils } = useUtils();
   const [storageTags, setStorageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
   const authChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('authentication'), []);
-  const [accountSyncStatus, setAccountSyncStatus] = useLocalStorage(ACCOUNT_SYNC, AccountSyncStatus.NotSynced);
-  const [, setAccountSyncService] = useLocalStorage(ACCOUNT_SYNC_SERVICE, AccountSyncService.None);
+  const [encryptedPassword, setEncryptedPassword] = useState<Uint8Array>();
+  const [rawPassword, setRawPassword] = useState<string>();
+  const {
+    setService: setAccountSyncService,
+    setStatus: setAccountSyncStatus,
+    status: accountSyncStatus
+  } = useAccountSync();
 
-  const attemptSyncLogin = useCallback((service: AccountSyncService) => {
+  const setSyncLoginService = useCallback((service: AccountSyncService) => {
     setAccountSyncService(service);
     setAccountSyncStatus(AccountSyncStatus.Synced);
-  }, [setAccountSyncService, setAccountSyncStatus])
+  }, [setAccountSyncService, setAccountSyncStatus]);
 
-  const checkUser = useCallback((password: string) => {
+  const cancelSyncLogin = useCallback(() => {
+    setAccountSyncStatus(AccountSyncStatus.NotSynced);
+    setAccountSyncService(AccountSyncService.None);
+  }, [setAccountSyncService, setAccountSyncStatus]);
+
+  const getOrInitPassword = useCallback((password: string) => {
     try {
-      const statePassEncoded = utils.GetOrInitPassword(password);
-      return statePassEncoded;
+      setRawPassword(password);
+      const encrypted = utils.GetOrInitPassword(password);
+      setEncryptedPassword(encrypted);
+      return true;
     } catch (error) {
+      console.error('GetOrInitPassword failed', error);
       return false;
     }
   }, [utils]);
-
 
   useEffect(() => {
     const onRequest = (ev: MessageEvent) => {
@@ -76,20 +90,17 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const storageTag = storageTags?.[0] || null;
   const cmixPreviouslyInitialized = !!(statePathExists() && storageTag);
 
-  const cancelSyncLogin = useCallback(() => {
-    setAccountSyncStatus(AccountSyncStatus.NotSynced);
-    setAccountSyncService(AccountSyncService.None);
-  }, [setAccountSyncService, setAccountSyncStatus])
-
   return (
     <AuthenticationContext.Provider
       value={{
-        attemptSyncLogin,
+        setSyncLoginService: setSyncLoginService,
         cancelSyncLogin,
         cmixPreviouslyInitialized,
+        encryptedPassword,
         attemptingSyncedLogin: !cmixPreviouslyInitialized && accountSyncStatus === AccountSyncStatus.Synced,
-        checkUser,
+        getOrInitPassword,
         instanceId,
+        rawPassword,
         statePathExists,
         storageTag,
         addStorageTag: (tag: string) => setStorageTags((storageTags ?? []).concat(tag)),
@@ -113,7 +124,3 @@ export const useAuthentication = () => {
 
   return context;
 };
-
-export const ManagedAuthenticationContext: FC<WithChildren> = ({ children }) => (
-  <AuthenticationProvider>{children}</AuthenticationProvider>
-);

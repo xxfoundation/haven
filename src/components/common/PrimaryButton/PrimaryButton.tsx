@@ -1,24 +1,21 @@
-import { FC, ButtonHTMLAttributes } from 'react';
+import { FC } from 'react';
 
-import { Button as OriginalButton } from 'src/components/common';
+import Button, { Props } from 'src/components/common/Button';
 
-export interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
-  cssClass?: string;
-}
 const PrimaryButton: FC<Props> = ({
   children,
-  cssClass,
   ...rest
 }) => {
   return (
-    <OriginalButton
-      style={{ backgroundColor: 'var(--orange)', border: 'none' }}
-      cssClasses={cssClass}
+    <Button
+      style={{ backgroundColor: 'var(--orange)', border: 'none', ...rest.style }}
       {...rest}
     >
       {children}
-    </OriginalButton>
+    </Button>
   );
 };
+
+export type { Props } from 'src/components/common/Button';
 
 export default PrimaryButton;

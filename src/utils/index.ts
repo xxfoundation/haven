@@ -11,6 +11,15 @@ export const isClientSide = () => {
   return typeof window !== 'undefined';
 };
 
+export const envIsDev = () => {
+  let isDev = false;
+  if (isClientSide()) {
+    isDev = window.location.href.indexOf('localhost') !== -1;
+    isDev ||= window.location.href.indexOf('dev') !== -1;
+  }
+  return isDev;
+}
+
 export const exportDataToFile = (data: Uint8Array) => {
   const filename = 'speakeasyIdentity.json';
 

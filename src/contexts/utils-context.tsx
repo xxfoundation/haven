@@ -8,6 +8,8 @@ import Loading from '@components/modals/LoadingView';
 import { identityDecoder } from '@utils/decoders';
 import { RemoteStore } from 'src/types/collective';
 import { ChannelEventHandler, DMReceivedCallback } from 'src/events';
+import { WebAssemblyRunner } from '@components/common';
+import { useTranslation } from 'react-i18next';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -143,7 +145,8 @@ export type IdentityJSON = {
 }
 
 export const UtilsProvider: FC<WithChildren> = ({ children }) => {
-  const [utils, setUtils] = useState<XXDKUtils>(initialUtils);
+  const { t } = useTranslation();
+  const [utils, setUtils] = useState<XXDKUtils>();
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
 
   const getCodeNameAndColor = useCallback((publicKey: string, codeset: number) => {
@@ -182,14 +185,16 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
   return (
     <UtilsContext.Provider
       value={{
-        utils,
+        utils: utils as XXDKUtils,
         setUtils,
         utilsLoaded,
         setUtilsLoaded,
         getCodeNameAndColor,
       }}
     >
-      {utils ? children : <Loading />}
+      <WebAssemblyRunner>
+        {utils ? children : <Loading message={t('Loading XXDK...')} />}
+      </WebAssemblyRunner>
     </UtilsContext.Provider>
   );
 };

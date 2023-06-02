@@ -39,7 +39,7 @@ import useToggle from 'src/hooks/useToggle';
 import ConnectingDimmer from './ConnectingDimmer';
 import UserInfoDrawer from '@components/common/UserInfoDrawer';
 import AccountSyncView from '@components/modals/AccountSync';
-import useAccountSync from 'src/hooks/useAccountSync';
+import useAccountSync, { AccountSyncStatus } from 'src/hooks/useAccountSync';
 import { NetworkStatus } from 'src/hooks/useCmix';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
@@ -81,7 +81,7 @@ const AuthenticatedUserModals: FC = () => {
 const DefaultLayout: FC<WithChildren> = ({
   children,
 }) => {
-  useAccountSync();
+  const accountSync = useAccountSync();
   const router = useRouter();
   const { isAuthenticated, storageTag } = useAuthentication();
   const {
@@ -118,6 +118,14 @@ const DefaultLayout: FC<WithChildren> = ({
     openModal,
     router
   ]);
+
+  useEffect(() => {
+    if (networkStatus === NetworkStatus.CONNECTED && isAuthenticated && accountSync.status === AccountSyncStatus.NotSynced) {
+      setModalView('ACCOUNT_SYNC', false);
+      openModal()
+    }
+  }, [accountSync.status, isAuthenticated, networkStatus, openModal, setModalView]);
+
 
   useEffect(() => {
     const adjustActiveState = () => {

@@ -1,4 +1,5 @@
 import { encoder } from '@utils/index';
+import { AccountSyncService } from 'src/hooks/useAccountSync';
 
 export enum OperationType {
   Created = 0,
@@ -35,6 +36,7 @@ export interface RemoteStoreServiceWrapper {
   Write: (path: string, data: Uint8Array) => Promise<void>;
   GetLastModified: (path: string) => Promise<string>;
   ReadDir: (path: string) => Promise<string[]>;
+  DeleteAll: () => Promise<void>; 
 }
 
 export class RemoteStore {
@@ -42,7 +44,10 @@ export class RemoteStore {
 
   lastWrite: string | null = null;
 
-  constructor(store: RemoteStoreServiceWrapper) {
+  service: AccountSyncService;
+
+  constructor(service: AccountSyncService, store: RemoteStoreServiceWrapper) {
+    this.service = service;
     this.store = store;
   }
 
@@ -66,5 +71,9 @@ export class RemoteStore {
   async ReadDir(path: string) {
     const dirs = await this.store.ReadDir(path);
     return encoder.encode(JSON.stringify(dirs));
+  }
+
+  DeleteAll() {
+    return this.store.DeleteAll();
   }
 }

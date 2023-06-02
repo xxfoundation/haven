@@ -3,17 +3,15 @@ import cn from 'classnames';
 
 import s from './Button.module.scss';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   component?: React.ElementType;
   width?: string | number;
-  cssClasses?: string;
   size?: 'sm' | 'md',
 }
 
-const Button: FC<ButtonProps> = ({
+const Button: FC<Props> = ({
   children,
   component: Component = 'button',
-  cssClasses,
   size = 'md',
   style,
   width,
@@ -21,19 +19,19 @@ const Button: FC<ButtonProps> = ({
 }) => {
   return (
     <Component
-      className={cn(s.root, cssClasses, rest.className)}
+      {...rest}
+      className={cn(rest.className, s.root)}
       style={{
         width,
-        ...style,
         ...(size === 'sm' && {
           borderRadius: '0.25rem',
           border: '1px solid',
           borderStyle: 'solid',
           padding: '0.1rem 0.75rem',
           minWidth:'unset'
-        })
+        }),
+        ...style,
       }}
-      {...rest}
     >
       {children}
     </Component>

@@ -1,9 +1,10 @@
 import { Dropbox } from 'dropbox';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import assert from 'assert';
 
 import { AppEvents, bus } from 'src/events';
 import { RemoteStore } from 'src/types/collective';
+import { AccountSyncService } from './useAccountSync';
 
 const useDropboxRemoteStore = () => {
   const [dropbox, setDropbox] = useState<Dropbox>();
@@ -19,7 +20,6 @@ const useDropboxRemoteStore = () => {
       bus.removeListener(AppEvents.DROPBOX_TOKEN, onToken);
     }
   }, []);
-
 
   const getBinaryFile = useCallback(async (name: string) => {
     assert(dropbox);
@@ -50,15 +50,25 @@ const useDropboxRemoteStore = () => {
 
     const res = await dropbox.filesListFolder({ path });
     return res.result.entries.map((e) => e.name);
-  }, [dropbox])
+  }, [dropbox]);
 
 
-  return dropbox && new RemoteStore({
+  const deleteAllFiles = useCallback(async () => {
+    assert(dropbox);
+    const res = await dropbox.filesListFolder({ path: '/', recursive: true });
+    const entries = res.result.entries.map((e) => ({ path: e.path_lower || e.name }));
+    await dropbox.filesDeleteBatch({ entries })
+  }, [dropbox]);
+
+  const store = useMemo(() => dropbox && new RemoteStore(AccountSyncService.Dropbox, {
     Read: getBinaryFile,
     Write: uploadBinaryFile,
     GetLastModified: getLastModified,
-    ReadDir: readDir
-  });
+    ReadDir: readDir,
+    DeleteAll: deleteAllFiles
+  }), [deleteAllFiles, dropbox, getBinaryFile, getLastModified, readDir, uploadBinaryFile]); 
+
+  return store;
 }
 
 export default useDropboxRemoteStore;

@@ -17,7 +17,7 @@ const ExportCodenameView: FC = () => {
   const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { exportChannelAdminKeys } = useNetworkClient();
-  const { checkUser } = useAuthentication();
+  const { getOrInitPassword } = useAuthentication();
   const [password, setPassword] = useInput('');
   const [encryptionPassword, setEncryptionPassword] = useInput('');
   const [encryptionPasswordConfirmation, setEncryptionPasswordConfirmation] = useInput('');
@@ -26,13 +26,13 @@ const ExportCodenameView: FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const checkPassword = useCallback(() => {
-    if (checkUser(password)) {
+    if (getOrInitPassword(password)) {
       setError('');
       next();
     } else {
       setError(t('Invalid Password'));
     }
-  }, [t, checkUser, next, password]);
+  }, [t, getOrInitPassword, next, password]);
 
   const onExport = useCallback(() => {
     if (encryptionPassword !== encryptionPasswordConfirmation) {
@@ -75,7 +75,7 @@ const ExportCodenameView: FC = () => {
             onChange={setPassword}
           />
           <PrimaryButton
-            cssClass={cn('mt-5', s.button)}
+            className={cn('mt-5', s.button)}
             onClick={checkPassword}
           >
             {t('Unlock')}
@@ -118,13 +118,13 @@ const ExportCodenameView: FC = () => {
           </div>
           <div className='space-x-4 flex'>
             <SecondaryButton
-              cssClass={cn('mt-5', s.button)}
+              className={cn('mt-5', s.button)}
               onClick={reset}
             >
               {t('Cancel')}
             </SecondaryButton>
             <PrimaryButton
-              cssClass={cn('mt-5', s.button)}
+              className={cn('mt-5', s.button)}
               onClick={onExport}
             >
               {t('Export')}
