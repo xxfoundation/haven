@@ -13,21 +13,21 @@ import { useNetworkClient } from '@contexts/network-client-context';
 
 const AuthenticationUI: FC = () => {
   const { displayModal, modalView = '' } = useUI();
-  const { attemptingSyncedLogin, cmixPreviouslyInitialized, setIsAuthenticated } = useAuthentication();
+  const { attemptingSyncedLogin, cmixPreviouslyInitialized, getOrInitPassword, setIsAuthenticated } = useAuthentication();
   const { utils } = useUtils(); 
-  const { checkRegistrationReadiness, cmix, initialize } = useNetworkClient();
+  const { checkRegistrationReadiness, cmix } = useNetworkClient();
   const [loading, setLoading] = useState(false); 
   const [readyProgress, setReadyProgress] = useState<number>(0);
 
   const hasAccount = cmixPreviouslyInitialized || attemptingSyncedLogin;
   const [importedIdentity, setImportedIdentity] = useState<Uint8Array>();
   
-  const onSubmit = useCallback(async ({ identity, password }: IdentityVariables) =>  {
-      setLoading(true);
-      const imported = utils.ImportPrivateIdentity(password, encoder.encode(identity));
-      setImportedIdentity(imported);
-      await initialize(password);
-  }, [initialize, utils]);
+  const onImport = useCallback(async ({ identity, password }: IdentityVariables) =>  {
+    setLoading(true);
+    const imported = utils.ImportPrivateIdentity(password, encoder.encode(identity));
+    setImportedIdentity(imported);
+    getOrInitPassword(password);
+  }, [getOrInitPassword, utils]);
 
   useEffect(() => {
     if (cmix && importedIdentity) {
@@ -54,7 +54,7 @@ const AuthenticationUI: FC = () => {
   return (
     <>  
       {displayModal && modalView === 'IMPORT_CODENAME' &&  (
-        <ImportAccountModal onSubmit={onSubmit} />
+        <ImportAccountModal onSubmit={onImport} />
       )}
       
       {hasAccount ? <LoginView /> : <Register />}

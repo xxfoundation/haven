@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { encoder } from '@utils/index';
 import useGoogleDrive from './useGoogleDrive';
 import useGoogleApi from './useGoogleApi';
 import { RemoteStore } from 'src/types/collective';
 import { AppEvents, bus } from 'src/events';
+import { AccountSyncService } from './useAccountSync';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const useGoogleRemoteStore = () => {
   const [accessToken, setAccessToken] = useState<string>();
   const { gapi } = useGoogleApi();
@@ -40,6 +41,18 @@ const useGoogleRemoteStore = () => {
     return encoder.encode(contents.body);
   }, [drive?.files]);
 
+  const deleteAllFiles = useCallback(async () => {
+    const res = await drive.files.list({
+      spaces: 'appDataFolder',
+      fields: 'nextPageToken, files(id)',
+      pageSize: 1000,
+    });
+
+    await Promise.all(res.result.files.map((file: any) => 
+      drive.files.delete({ fileId: file.id })
+    ));
+  }, [drive?.files]);
+
   const getLastModified = useCallback(async (path: string) => {
     const res = await drive.files.list({
       q: `name = \'${path}\'`,
@@ -59,10 +72,9 @@ const useGoogleRemoteStore = () => {
 
   const readDir = useCallback(async (path: string): Promise<string[]> => {
     const res = await drive.files.list({
-      q: `name = \'${path}\'`,
+      q: path ? `name = \'${path}\'` : '',
       spaces: 'appDataFolder',
       fields: 'nextPageToken, files(name)',
-      pageSize: 1,
     });
 
     const files = res.result.files;
@@ -96,12 +108,26 @@ const useGoogleRemoteStore = () => {
     
   }, [accessToken]);
 
-  return drive ? new RemoteStore({
-    Write: uploadBinaryFile,
-    Read: getBinaryFile,
-    GetLastModified: getLastModified,
-    ReadDir: readDir
-  }) : undefined;
+  const store = useMemo(
+    () => (drive && accessToken) ? new RemoteStore(AccountSyncService.Google, {
+      Write: uploadBinaryFile,
+      Read: getBinaryFile,
+      GetLastModified: getLastModified,
+      ReadDir: readDir,
+      DeleteAll: deleteAllFiles,
+    }) : undefined,
+    [
+      accessToken,
+      deleteAllFiles,
+      drive,
+      getBinaryFile,
+      getLastModified,
+      readDir,
+      uploadBinaryFile
+    ]
+  );
+
+  return store;
 }
 
 export default useGoogleRemoteStore;

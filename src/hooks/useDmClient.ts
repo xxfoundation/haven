@@ -58,7 +58,7 @@ const makeMessageMapper = (
 const useDmClient = (
   cmixId?: number,
   privateIdentity?: Uint8Array,
-  decryptedInternalPassword?: Uint8Array
+  encryptedInternalPassword?: Uint8Array
 ) => {
   const { dmReceived } = useNotification();
   const dmsDb = useDb('dm');
@@ -106,10 +106,10 @@ const useDmClient = (
   }, [client, dmsDatabaseName, setDmsDatabaseName]);
 
   useEffect(() => {
-    if (cmixId !== undefined && decryptedInternalPassword) {
+    if (cmixId !== undefined && encryptedInternalPassword) {
       const cipher = utils.NewDMsDatabaseCipher(
         cmixId,
-        decryptedInternalPassword,
+        encryptedInternalPassword,
         MAXIMUM_PAYLOAD_BLOCK_SIZE
       );
   
@@ -120,7 +120,7 @@ const useDmClient = (
         ),
       })
     }
-  }, [cmixId, decryptedInternalPassword, utils]);
+  }, [cmixId, encryptedInternalPassword, utils]);
 
   useEffect(() => {
     if (!databaseCipher || cmixId === undefined || !privateIdentity || client) { return; }

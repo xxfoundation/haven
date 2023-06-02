@@ -25,8 +25,7 @@ type Props = {
 const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
   const { t } = useTranslation();
   const { openModal, setModalView } = useUI();
-  const { attemptSyncLogin } = useAuthentication();
-
+  const { setSyncLoginService } = useAuthentication();
   const [password, setPassword] = useState<string>('');
   const [passwordConfirm, setPasswordConfirm] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -38,15 +37,12 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
       setError(t('Password doesn\'t match confirmation.'));
     } else {
       if (password.length) {
-        setIsLoading(true);
-        setTimeout(() => {
-          onPasswordConfirmation(password);
-          setIsLoading(false);
-        }, 200);
+        onPasswordConfirmation(password);
+        setIsLoading(false);
       }
       setError('');
     }
-  }, [t, onPasswordConfirmation, password, passwordConfirm])
+  }, [passwordConfirm, password, t, onPasswordConfirmation])
   
 
   return (
@@ -140,7 +136,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 <div className='flex flex-col mt-4'>
                   <PrimaryButton
                     data-testid='registration-button'
-                    cssClass={s.button}
+                    className={s.button}
                     disabled={isLoading}
                     onClick={onContinue}
                   >
@@ -193,12 +189,12 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 </p>
                 <div className='flex flex-col space-y-3'>
                   <PrimaryButton onClick={() => {
-                    attemptSyncLogin(AccountSyncService.Google);
+                    setSyncLoginService(AccountSyncService.Google);
                   }}>
                     Google Drive <FontAwesomeIcon icon={faGoogleDrive} />
                   </PrimaryButton>
                   <PrimaryButton onClick={() => {
-                    attemptSyncLogin(AccountSyncService.Dropbox);
+                    setSyncLoginService(AccountSyncService.Dropbox);
                   }}>
                     Dropbox <FontAwesomeIcon icon={faDropbox} />
                   </PrimaryButton>

@@ -65,7 +65,7 @@ const NickNameSetView: FC = () => {
         </div>
       )}
       <PrimaryButton
-        cssClass='my-7'
+        className='my-7'
         onClick={onSubmit}
       >
         {t('Save')}

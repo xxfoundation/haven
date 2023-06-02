@@ -71,7 +71,7 @@ const LogoutView: FC = ({}) => {
         </div>
       )}
       <PrimaryButton
-        cssClass={cn('mt-12 mb-10', s.button)}
+        className={cn('mt-6 mb-10')}
         onClick={handleSubmit}
       >
         {t('Confirm')}

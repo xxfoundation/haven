@@ -12,10 +12,9 @@ import { useTranslation } from 'react-i18next';
 import store from 'src/store';
 import { ManagedUIContext } from 'src/contexts/ui-context';
 import { ManagedNetworkContext } from 'src/contexts/network-client-context';
-import { ManagedAuthenticationContext } from 'src/contexts/authentication-context';
+import { AuthenticationProvider } from 'src/contexts/authentication-context';
 import { UtilsProvider } from 'src/contexts/utils-context';
 import { isDuplicatedWindow } from 'src/utils/oneTabEnforcer';
-import { WebAssemblyRunner } from 'src/components/common';
 
 import 'src/assets/scss/main.scss';
 import 'src/assets/scss/quill-overrides.scss';
@@ -119,26 +118,24 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
           <DBProvider>
             <Provider store={store}>
               <UtilsProvider>
-                <ManagedAuthenticationContext>
+                <AuthenticationProvider>
                   <ManagedNetworkContext>
                     <ManagedUIContext>
-                      <WebAssemblyRunner>
-                        {!skipDuplicateTabCheck &&
-                        isDuplicatedWindow(15000, 10000, 'MyApp') ? (
-                          <WarningComponent>
-                            {t('Speakeasy can only run with one tab/window at a time.')}
-                            <br />
-                            {t('Return to your Speakeasy home tab to continue.')}
-                          </WarningComponent>
-                        ) : (
-                          <Layout pageProps={{ ...pageProps }}>
-                            <Component {...pageProps} />
-                          </Layout>
-                        )}
-                      </WebAssemblyRunner>
+                      {!skipDuplicateTabCheck &&
+                      isDuplicatedWindow(15000, 10000, 'SpeakeasyApp') ? (
+                        <WarningComponent>
+                          {t('Speakeasy can only run with one tab/window at a time.')}
+                          <br />
+                          {t('Return to your Speakeasy home tab to continue.')}
+                        </WarningComponent>
+                      ) : (
+                        <Layout pageProps={{ ...pageProps }}>
+                          <Component {...pageProps} />
+                        </Layout>
+                      )}
                     </ManagedUIContext>
                   </ManagedNetworkContext>
-                </ManagedAuthenticationContext>
+                </AuthenticationProvider>
               </UtilsProvider>
             </Provider>
           </DBProvider>

@@ -33,7 +33,7 @@ const LeaveChannelConfirmationView: FC = () => {
 
       <div className='flex'>
         <SecondaryButton
-          cssClass='mt-5 mb-10 mr-5'
+          className='mt-5 mb-10 mr-5'
           style={{
             borderColor: 'var(--red)'
           }}
@@ -42,7 +42,7 @@ const LeaveChannelConfirmationView: FC = () => {
           {t('Cancel')}
         </SecondaryButton>
         <PrimaryButton
-          cssClass='mt-5 mb-10'
+          className='mt-5 mb-10'
           onClick={onLeave}
         >
           {t('Leave')}

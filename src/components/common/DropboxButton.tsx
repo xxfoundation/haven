@@ -7,27 +7,16 @@ import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from '@components/common';
 import { AppEvents, bus } from 'src/events'
 import { Props as ButtonProps } from './PrimaryButton/PrimaryButton';
-import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
-import { useNetworkClient } from '@contexts/network-client-context';
-import { RemoteStore } from '@types';
 
 type Props = Partial<ButtonProps> & {
-  onSync?: () => void;
-  onError?: () => void;
   onStartLoading?: () => void;
   password?: string;
 }
 
 const DropboxButton: FC<Props> = ({
-  password,
-  onSync = () => {},
-  onError = () => {},
   onStartLoading = () => {},
   ...props
 }) => {
-  const remoteStore = useDropboxRemoteStore();
-  const { decryptPassword, loadCmix } = useNetworkClient();
-
   const { t } = useTranslation();
 
   const auth = useMemo(() => new DropboxAuth({
@@ -47,22 +36,6 @@ const DropboxButton: FC<Props> = ({
     return () => window.removeEventListener('message', onTokenMessage)
   }, [onStartLoading]);
 
-  const handleSuccessfulLogin = useCallback(async (store: RemoteStore) => {
-    try {
-      await loadCmix(decryptPassword(password), store);
-      onSync();
-    } catch (e) {
-      onError();
-    }
-  }, [decryptPassword, loadCmix, onError, onSync, password])
-
-  useEffect(() => {
-    if (remoteStore) {
-      handleSuccessfulLogin(remoteStore);
-    }
-  }, [handleSuccessfulLogin, remoteStore]);
-
-    
   const onClick = useCallback(async () => {
     const redirectUrl = new URL(window.location.href);
     redirectUrl.pathname = 'dropbox';

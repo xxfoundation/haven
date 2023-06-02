@@ -57,7 +57,7 @@ const ExportCodenameView: FC = () => {
         </div>
       )}
       <PrimaryButton
-        cssClass={cn('mt-5', s.button)}
+        className={cn('mt-5', s.button)}
         onClick={handleSubmit}
       >
         {t('Export')}

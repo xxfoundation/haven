@@ -3,7 +3,6 @@ import cn from 'classnames';
 import { useTranslation, Trans } from 'react-i18next';
 
 import { PrimaryButton, SecondaryButton, Spinner } from 'src/components/common';
-import { useNetworkClient } from 'src/contexts/network-client-context';
 
 import s from './Login.module.scss';
 
@@ -14,9 +13,7 @@ import {
   RoadMap
 } from 'src/components/icons';
 import { useAuthentication } from '@contexts/authentication-context';
-import useLocalStorage from 'src/hooks/useLocalStorage';
-import { ACCOUNT_SYNC, ACCOUNT_SYNC_SERVICE } from 'src/constants';
-import { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
+import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 import GoogleButton from '@components/common/GoogleButton';
 import DropboxButton from '@components/common/DropboxButton';
 
@@ -25,27 +22,41 @@ const LoginView: FC = () => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const {
-    initialize
-  } = useNetworkClient();
-  const { attemptingSyncedLogin, cancelSyncLogin, setIsAuthenticated } = useAuthentication();
+    attemptingSyncedLogin,
+    cancelSyncLogin,
+    getOrInitPassword,
+    setIsAuthenticated,
+  } = useAuthentication();
   const [isLoading, setIsLoading] = useState(false);
-  const [accountSyncStatus] = useLocalStorage(ACCOUNT_SYNC, AccountSyncStatus.NotSynced);
-  const [accountSyncService] = useLocalStorage(ACCOUNT_SYNC_SERVICE, AccountSyncService.None);
+
+  const { service: accountSyncService, status: accountSyncStatus } = useAccountSync();
 
   const handleSubmit = useCallback(async () => {
     setError('');
     setIsLoading(true);
-      setTimeout(async () => {
-        try {
-          await initialize(password);
-          setIsLoading(false);
-          setIsAuthenticated(true);
-        } catch (e) {
-          setError((e as Error).message);
-          setIsLoading(false);
-        }
-      }, 1);
-  }, [initialize, password, setIsAuthenticated]);
+    setTimeout(async () => {
+      try {
+        getOrInitPassword(password);
+        setIsLoading(false);
+        setIsAuthenticated(true);
+      } catch (e) {
+        setError((e as Error).message);
+        setIsLoading(false);
+      }
+    }, 1);
+  }, [getOrInitPassword, password, setIsAuthenticated]);
+
+  const onSyncLoad = useCallback(() => {
+    setError('');
+    setIsLoading(true);
+    try {
+      getOrInitPassword(password);
+      setIsAuthenticated(true);
+    } catch (e) {
+      setError((e as Error).message);
+      setIsLoading(false);
+    }
+  }, [getOrInitPassword, password, setIsAuthenticated])
 
   return (
     <div className={cn('', s.root)}>
@@ -117,8 +128,7 @@ const LoginView: FC = () => {
               {accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Google && (
                 <GoogleButton
                   onError={() => setError(t('Something went wrong.'))}
-                  onStartLoading={() => setIsLoading(true)}
-                  onSync={() => { setIsAuthenticated(true); }}
+                  onStartLoading={onSyncLoad}
                   disabled={isLoading}
                   password={password}
                 />
@@ -127,8 +137,7 @@ const LoginView: FC = () => {
                 <DropboxButton
                   id='dropbox-button'
                   onError={() => setError(t('Something went wrong.'))}
-                  onStartLoading={() => setIsLoading(true)}
-                  onSync={() => { setIsAuthenticated(true); }}
+                  onStartLoading={onSyncLoad}
                   disabled={isLoading}
                   password={password}
                 />
@@ -137,7 +146,7 @@ const LoginView: FC = () => {
                 <PrimaryButton
                   data-testid='login-button'
                   disabled={isLoading}
-                  cssClass={s.button}
+                  className={s.button}
                   onClick={handleSubmit}
                 >
                   {t('Login')}

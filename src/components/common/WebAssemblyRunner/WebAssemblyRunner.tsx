@@ -28,7 +28,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (!utilsLoaded) {
-
       const isReady = new Promise<void>((resolve) => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -133,7 +132,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
 
             window.logger = logger
           }
-
 
           setUtilsLoaded(true);
         }

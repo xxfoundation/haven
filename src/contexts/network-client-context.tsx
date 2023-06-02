@@ -129,7 +129,6 @@ export type NetworkContext = {
     privacyLevel: 0 | 2,
     enableDms: boolean
   ) => void;
-  decryptPassword: (password?: string) => Uint8Array;
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
@@ -140,7 +139,6 @@ export type NetworkContext = {
     codeset: number
     pubkey: string,
   }[];
-  initialize: (password: string) => Promise<void>;
   joinChannel: (prettyPrint: string, appendToCurrent?: boolean, enabledms?: boolean) => void;
   importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
   getMutedUsers: () => Promise<User[]>;
@@ -166,7 +164,7 @@ export type NetworkContext = {
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
-  loadCmix: (decryptedPassword?: Uint8Array, remoteStore?: RemoteStore) => Promise<void>;
+  remoteStore?: RemoteStore;
 };
 
 export const NetworkClientContext = React.createContext<NetworkContext>({
@@ -194,13 +192,13 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
 };
 
 export const NetworkProvider: FC<WithChildren> = props => {
+  const { encryptedPassword, rawPassword } = useAuthentication();
   useEvents();
   const pagination = usePagination();
   const dispatch = useAppDispatch();
   const db = useDb();
   const {
     addStorageTag,
-    checkUser,
     setIsAuthenticated,
     storageTag,
   } = useAuthentication();
@@ -210,12 +208,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const {
     cipher,
     cmix,
-    connect,
-    decryptedPassword,
     disconnect,
     id: cmixId,
-    initializeCmix,
-    loadCmix,
+    remoteStore,
     status: cmixStatus
   } = useCmix();
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
@@ -227,27 +222,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const currentChannels = useAppSelector(channels.selectors.channels);
   const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const [rawPassword, setRawPassword] = useState<string>();
+
   const userIdentity = useAppSelector(identity.selectors.identity);
   const privateIdentity = useMemo(
-    () => (channelManager && rawPassword) ? utils.ImportPrivateIdentity(rawPassword, channelManager.ExportPrivateIdentity(rawPassword)) : undefined,
+    () => (channelManager && rawPassword)
+      ? utils.ImportPrivateIdentity(rawPassword, channelManager.ExportPrivateIdentity(rawPassword))
+      : undefined,
     [channelManager, rawPassword, utils]
   );
-  const dmClient = useDmClient(cmixId, privateIdentity, decryptedPassword);
-  
-  const decryptPassword = useCallback((password = rawPassword ?? '') => {
-    const statePassEncoded = checkUser(password);
-    if (!statePassEncoded) {
-      throw new Error('Incorrect password');
-    }
-    return statePassEncoded;
-  }, [checkUser, rawPassword]);
 
-  const initialize = useCallback(async (password: string) => {
-    setRawPassword(password);
-    const statePassEncoded = decryptPassword(password);
-    await initializeCmix(statePassEncoded);
-  }, [decryptPassword, initializeCmix]);
+  const dmClient = useDmClient(cmixId, privateIdentity, encryptedPassword);
 
   const upgradeAdmin = useCallback(() => {
     if (currentChannel?.id) {
@@ -1143,7 +1127,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [cmix, createChannelManager, setIsAuthenticated]);
 
   const logout = useCallback((password: string) => {
-    if (utils && utils.Purge && connect) {
+    if (utils && utils.Purge) {
       try {
         disconnect();
         utils.Purge(STATE_PATH, password);
@@ -1155,13 +1139,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
         return true;
       } catch (error) {
         console.error(error);
-        connect();
         return false;
       }
     } else {
       return false;
     }
-  }, [connect, disconnect, setIsAuthenticated, utils]);
+  }, [disconnect, setIsAuthenticated, utils]);
 
   const muteUser = useCallback(async (pubkey: string, muted: boolean) => {
     if (currentChannel) {
@@ -1234,10 +1217,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const ctx: NetworkContext = {
     decryptMessageContent: cipher?.decrypt,
-    decryptPassword,
     channelManager,
     getMutedUsers,
-    initialize,
     mutedUsers,
     exportChannelAdminKeys,
     importChannelAdminKeys,
@@ -1273,7 +1254,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     pinMessage,
     logout,
     upgradeAdmin,
-    loadCmix
+    remoteStore
   }
 
   return (

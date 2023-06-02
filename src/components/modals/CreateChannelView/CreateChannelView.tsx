@@ -139,7 +139,7 @@ const CreateChannelView: FC = () => {
       </p>
       <PrimaryButton
         data-testid='create-new-channel-button'
-        cssClass={cn('mt-5 mb-8', s.button)}
+        className={cn('mt-5 mb-8', s.button)}
         onClick={onCreate}
       >
         {t('Create')}

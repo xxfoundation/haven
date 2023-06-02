@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
 import Identity from '../Identity';
 import { useTranslation } from 'react-i18next';
-import Button from '../Button/Button';
+import Button from '../Button';
 import { useDb } from '@contexts/db-context';
 import { uniqBy } from 'lodash';
 import EnumerateList, { ListItem } from '../EnumerateList';
