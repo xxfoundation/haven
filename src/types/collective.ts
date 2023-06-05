@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { encoder } from '@utils/index';
 import { AccountSyncService } from 'src/hooks/useAccountSync';
 
@@ -32,9 +33,9 @@ export type RemoteKV = {
 }
 
 export interface RemoteStoreServiceWrapper {
-  Read: (path: string) => Promise<Uint8Array>;
+  Read: (path: string) => Promise<Uint8Array | null>;
   Write: (path: string, data: Uint8Array) => Promise<void>;
-  GetLastModified: (path: string) => Promise<string>;
+  GetLastModified: (path: string) => Promise<string | null>;
   ReadDir: (path: string) => Promise<string[]>;
   DeleteAll: () => Promise<void>; 
 }
@@ -51,29 +52,38 @@ export class RemoteStore {
     this.store = store;
   }
 
-  Read(path: string) {
-    return this.store.Read(path);
+  async Read(path: string) {
+    const read = await this.store.Read(path);
+    console.log(`[KV] Read path ${path}`, read);
+    return read;
   }
 
   Write(path: string, data: Uint8Array) {
     this.lastWrite = new Date().toISOString();
+    console.log('[KV] Write path', path);
     return this.store.Write(path, data);
   }
 
   GetLastWrite() {
+    console.log('[KV] GetLastWrite', this.lastWrite);
     return this.lastWrite;
   }
 
-  GetLastModified(path: string) {
-    return this.store.GetLastModified(path);
+  async GetLastModified(path: string) {
+    const date = await this.store.GetLastModified(path);
+    console.log('[KV] GetLastModified path', path, 'date', date);
+    return date && new Date(date).toISOString();
   }
 
   async ReadDir(path: string) {
+    console.log(`[KV] ReadDir path ${path}`);
     const dirs = await this.store.ReadDir(path);
+    console.log(`[KV] ReadDir dirs ${dirs.join(', ')}`);
     return encoder.encode(JSON.stringify(dirs));
   }
 
   DeleteAll() {
+    console.log('[KV] DeleteAll');
     return this.store.DeleteAll();
   }
 }

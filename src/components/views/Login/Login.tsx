@@ -56,7 +56,7 @@ const LoginView: FC = () => {
       setError((e as Error).message);
       setIsLoading(false);
     }
-  }, [getOrInitPassword, password, setIsAuthenticated])
+  }, [getOrInitPassword, password, setIsAuthenticated]);
 
   return (
     <div className={cn('', s.root)}>

@@ -28,10 +28,10 @@ const SettingsView: FC = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const printCurrentFiles = useCallback(
-    async () => {
+    async (folder = '') => {
       setDeleteLoading(true);
       try {
-        await remoteStore?.ReadDir('')
+        await remoteStore?.ReadDir(folder)
           .then((v) => setCurrentFiles(decoder.decode(v)));
       } catch (e) {
         console.error('Deleting remote store failed', e);
