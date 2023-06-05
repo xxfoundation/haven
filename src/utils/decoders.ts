@@ -205,16 +205,10 @@ export const notificationUpdateEventDecoder = makeDecoder(JsonDecoder.object<Not
   {
     notificationFilters: JsonDecoder.array<NotificationFilter>(notificationFilterDecoder, 'NotificationFilterArrayDecoder'),
     changedNotificationStates: JsonDecoder.array<NotificationState>(notificationStateDecoder, 'ChangedNotificationStatesDecoder'),
-    deletedNotificationStates: JsonDecoder.array<ChannelId>(uint8ArrayToStringDecoder, 'DeletedNotificationStatesDecoder'),
+    deletedNotificationStates: JsonDecoder.nullable(JsonDecoder.array<ChannelId>(uint8ArrayToStringDecoder, 'DeletedNotificationStatesDecoder')),
     maxState: JsonDecoder.number
   },
   'NotificationUpdateEventDecoder',
-  {
-    notificationFilters: 'NotificationFilters',
-    changedNotificationStates: 'ChangedNotificationStates',
-    deletedNotificationStates: 'DeletedNotificationStates',
-    maxState: 'MaxState'
-  }
 ))
 
 export const channelFavoritesDecoder = makeDecoder(JsonDecoder.array<string>(JsonDecoder.string, 'ChannelFavoritesDecoder'))

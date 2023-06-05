@@ -6,7 +6,25 @@ import useGoogleApi from './useGoogleApi';
 import { RemoteStore } from 'src/types/collective';
 import { AppEvents, bus } from 'src/events';
 import { AccountSyncService } from './useAccountSync';
-import assert from 'assert';
+
+const fileIdCache = new Map<string, string>();
+
+const prefixFilename = (path: string) => path.charAt(0) === '/' ? path : `/${path}`;
+
+const listDirectory = (filenames: string[], search: string) => {
+  const set = filenames.reduce((acc: Set<string>, cur: string) => {
+    const index = cur.indexOf(search);
+    if (index !== -1) {
+      const sliced = cur.slice(search.length);
+      const nextSlash = sliced.indexOf('/');
+      acc.add(sliced.slice(0, nextSlash !== -1 ? nextSlash : undefined))
+    }
+    return acc;
+  }, new Set())
+  .values();
+
+  return Array.from(set);
+}
 
 const useGoogleRemoteStore = () => {
   const [accessToken, setAccessToken] = useState<string>();
@@ -34,108 +52,71 @@ const useGoogleRemoteStore = () => {
     await Promise.all(res.result.files.map((file: any) => deleteFile(file.id)  ));
   }, [drive?.files, deleteFile]);
 
+  const getFile = useCallback(async (name: string) => (await drive.files.list({
+    q: `name = \'${name}\'`,
+    spaces: 'appDataFolder',
+    fields: 'nextPageToken, files(id, name, modifiedTime)',
+    pageSize: 1,
+  })).result.files[0], [drive?.files])
+
   const getLastModified = useCallback(async (path: string) => {
-    const res = await drive.files.list({
-      q: `name = \'${path}\'`,
-      spaces: 'appDataFolder',
-      fields: 'nextPageToken, files(modifiedTime)',
-      pageSize: 1,
-    });
-
-    const file = res.result.files[0];
-
-    if (!file) {
-      return null;
-    }
+    const file = await getFile(prefixFilename(path));
 
     return file.modifiedTime;
-  }, [drive?.files]);
+  }, [getFile]);
 
-  const findFolder = useCallback(async (folderName: string, parent?: string): Promise<any> => {
-    const q = `name = \'${folderName}\' and mimeType = \'application/vnd.google-apps.folder\'`;
-    const res = await drive.files.list({
-      q: parent ? q.concat(` and '${parent}' in parents`) : q,
-      fields: 'files(id, name)',
-      spaces: 'appDataFolder'
-    });
-    return res.result.files[0];
-  }, [drive?.files]);
-
-  const getFile = useCallback(async (name: string, parent = 'appDataFolder'): Promise<any> => {
-    const folders = name.indexOf('/') !== -1 ? name.split('/').slice(0, 1) : [];
-    const lastFolder = folders.slice(-1)[0];
-
-    if (lastFolder) {
-      const found = await findFolder(lastFolder, parent);
-      if (found) {
-        return getFile(name.split('/').slice(1).join('/'), found.id)
-      } else {
-        return null;
+  const getFileId = useCallback(async (name: string): Promise<any> => {
+    const prefixed = prefixFilename(name);
+    let id = fileIdCache.get(prefixed);
+    if (!id) {
+      const file = await getFile(prefixed);
+      if (file) {
+        fileIdCache.set(prefixed, file.id);
+        id = file.id;
       }
     }
-
-    const res = await drive.files.list({
-      q: `name = \'${name}\' and '${parent}' in parents`,
-      spaces: 'appDataFolder',
-      fields: 'nextPageToken, files(id, name, modifiedTime)',
-      pageSize: 1,
-    });
-    
-    return res.result.files[0];
-  }, [drive?.files, findFolder]);
+    return id;
+  }, [getFile]);
 
   const getBinaryFile = useCallback(async (name: string) => {
-    const file = await getFile(name);
-
-    if (!file) {
-      return null;
-    }
+    const prefixed = prefixFilename(name);
+    const fileId = await getFileId(prefixed);
 
     const contents = await drive.files.get({
-      fileId: file.id,
+      fileId: fileId,
       alt: 'media'
     });
 
     return encoder.encode(contents.body);
-  }, [drive?.files, getFile]);
+  }, [drive?.files, getFileId]);
 
   const readDir = useCallback(async (folderName: string): Promise<string[]> => {
-    const parsedDirs = folderName.split('/').filter((d) => !!d);
-
-    let lastParent: string | undefined;
-    for (const folder of parsedDirs) {
-      const found = await findFolder(folder, lastParent);
-      if (found) {
-        lastParent = found.id;
-      } else {
-        return [];
-      }
-    }
-
-    let filenames: string[] = [];
     const filenamesResult = await drive.files.list({
-      q: lastParent ? `'${lastParent}' in parents` : '',
       fields: 'files(id, name)',
       spaces: ['appDataFolder']
     });
 
-    filenames = filenamesResult.result.files.map((file: any) => file.name);
+    const prefixedFolderName = prefixFilename(folderName);
+    const suffixedFoldername = prefixedFolderName.charAt(prefixedFolderName.length - 1) === '/' ? prefixedFolderName : `${prefixedFolderName}/`;
 
-    return filenames;
-  }, [drive?.files, findFolder]);
+    const filenames = filenamesResult.result.files
+      .map((file: any) => prefixFilename(file.name));
 
-  const uploadBinaryFile = useCallback((path: string, data: Uint8Array, parent?: string) => {
-    return new Promise<void>((res, rej) => {
+    return listDirectory(filenames, suffixedFoldername);
+  }, [drive?.files]);
+
+  const uploadBinaryFile = useCallback((path: string, data: Uint8Array) => {
+    return new Promise<string>((res, rej) => {
       const file = new Blob([data], { type: 'application/octet-stream' });
       const metadata = {
         name: path,
         spaces: 'appDataFolder',
-        mimeType: 'application/octet-stream', 
-        parents: parent ? [parent] : ['appDataFolder'] // Folder ID at Google Drive
+        mimeType: 'application/octet-stream',
+        parents: ['appDataFolder']
       };
   
       const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], {type: 'application/json'}));
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       form.append('file', file);
   
       const xhr = new XMLHttpRequest();
@@ -151,45 +132,42 @@ const useGoogleRemoteStore = () => {
     
   }, [accessToken]);
 
-  const createFolder = useCallback(async (folderName: string, parent?: string): Promise<{ id: string }> => {
-    const fileMetadata = {
-      name: folderName,
-      mimeType: 'application/vnd.google-apps.folder',
-      spaces: 'appDataFolder',
-      parents: parent ? [parent] : ['appDataFolder']
-    };
-
-    return (await drive.files.create({
-      resource: fileMetadata,
-      fields: 'id'
-    })).result;
-  }, [drive?.files]);
+  const updateFile = useCallback(async (fileId: string, data: Uint8Array) => {
+    return new Promise<string>((res, rej) => {
+      const file = new Blob([data], { type: 'application/octet-stream' });
+      const metadata = {
+        fileId,
+        spaces: 'appDataFolder',
+        mimeType: 'application/octet-stream',
+      };
+  
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', file);
+  
+      const xhr = new XMLHttpRequest();
+      xhr.open('PATCH', `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`);
+      xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+      xhr.responseType = 'json';
+      xhr.onerror = rej;
+      xhr.onload = () => {
+        res(xhr.response.id); // Retrieve uploaded file ID.
+      };
+      xhr.send(form);
+    });
+  }, [accessToken]);
 
   const writeFile = useCallback(async (path: string, data: Uint8Array) => {
-    const folders = path.split('/').filter((d) => !!d).slice(0, -1);
-    let lastParent: string | undefined;
-    for (const folder of folders) {
-      const dir = await findFolder(folder);
-      if (!dir) {
-        const created = await createFolder(folder, lastParent);
-        
-        lastParent = created.id;
-      } else {
-        lastParent = dir.id;
-      }
-      assert(lastParent, 'Failed to create folder');
+    const prefixed = prefixFilename(path);
+    const existingFileId = await getFileId(prefixed)
+
+    if (existingFileId) {
+      await updateFile(existingFileId, data);
+    } else {
+      const id = await uploadBinaryFile(prefixed, data);
+      fileIdCache.set(prefixed, id);
     }
-
-    const filename = path.split('/').slice(-1)[0];
-
-    const oldFile = await getFile(filename, lastParent);
-
-    await uploadBinaryFile(filename, data, lastParent);
-
-    if (oldFile) {
-      deleteFile(oldFile.id);
-    }
-  }, [createFolder, deleteFile, findFolder, getFile, uploadBinaryFile])
+  }, [getFileId, updateFile, uploadBinaryFile])
 
   const store = useMemo(
     () => (drive && accessToken) ? new RemoteStore(AccountSyncService.Google, {

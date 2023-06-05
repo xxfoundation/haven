@@ -72,7 +72,7 @@ export const slice = createSlice({
       }
     },
     updateAdmin: (state: ChannelsState, { payload: { channelId, isAdmin = true } }: PayloadAction<{ channelId: ChannelId, isAdmin?: boolean }>) => {
-      return ({
+      return !state.byId[channelId] ? state : ({
         ...state,
         byId: {
           ...state.byId,
