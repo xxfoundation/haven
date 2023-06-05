@@ -147,9 +147,14 @@ const useCmix = () => {
 
   useEffect(() => {
     const listener = () => {
-      cmix?.StopNetworkFollower();
+      console.log('Remote store initialized, stopping followers');
+      try {
+        cmix?.StopNetworkFollower();
+      } catch (e) {
+        console.error('Stop follower failed:', e);
+      }
     };
-    
+
     bus.addListener(AppEvents.REMOTE_STORE_INITIALIZED, listener);
 
     return () => {

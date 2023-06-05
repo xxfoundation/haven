@@ -32,4 +32,7 @@ const DropboxPage: NextPage = () => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (DropboxPage as any).skipDuplicateTabCheck = true;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(DropboxPage as any).skipProviders = true;
+
 export default DropboxPage;

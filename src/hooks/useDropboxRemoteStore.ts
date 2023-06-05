@@ -31,10 +31,15 @@ const useDropboxRemoteStore = () => {
     return new Uint8Array(buffer);
   }, [dropbox]);
 
-  const uploadBinaryFile = useCallback(async (path: string, data: Uint8Array) => {
+  const writeBinaryFile = useCallback(async (path: string, data: Uint8Array) => {
     assert(dropbox);
 
-    await dropbox.filesUpload({ path, contents: data });
+    const prefixedPath = path.charAt(0) !== '/' ? `/${path}` : path;
+    await dropbox.filesUpload({
+      path: prefixedPath,
+      contents: data,
+      mode: { '.tag': 'overwrite' }
+    });
   }, [dropbox]);
 
   const getLastModified = useCallback(async (name: string) => {
@@ -62,11 +67,11 @@ const useDropboxRemoteStore = () => {
 
   const store = useMemo(() => dropbox && new RemoteStore(AccountSyncService.Dropbox, {
     Read: getBinaryFile,
-    Write: uploadBinaryFile,
+    Write: writeBinaryFile,
     GetLastModified: getLastModified,
     ReadDir: readDir,
     DeleteAll: deleteAllFiles
-  }), [deleteAllFiles, dropbox, getBinaryFile, getLastModified, readDir, uploadBinaryFile]); 
+  }), [deleteAllFiles, dropbox, getBinaryFile, getLastModified, readDir, writeBinaryFile]); 
 
   return store;
 }
