@@ -75,7 +75,7 @@ const useEvents = () => {
         dispatch(channels.actions.updateNotificationLevel(state));
       });
 
-      evt.deletedNotificationStates.forEach((channelId) => {
+      evt.deletedNotificationStates?.forEach((channelId) => {
         dispatch(channels.actions.updateNotificationLevel({ channelId }));
       });
     }

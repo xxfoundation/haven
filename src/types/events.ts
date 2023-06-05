@@ -78,8 +78,8 @@ export type NotificationState = {
 }
 
 export type NotificationUpdateEvent = {
-  notificationFilters: NotificationFilter[];
+  notificationFilters?: NotificationFilter[];
   changedNotificationStates: NotificationState[];
-  deletedNotificationStates: ChannelId[];
+  deletedNotificationStates: ChannelId[] | null;
   maxState: number;
 }
