@@ -27,10 +27,23 @@ import Spinner from 'src/components/common/Spinner';
 import { deflate, inflate } from 'src/utils/index';
 import classes from 'src/components/common/ChannelChat/MessageActions/MessageActions.module.scss';
 import { useOnClickOutside } from 'usehooks-ts';
+import { MESSAGE_TAGS_LIMIT } from 'src/constants';
 
 export const bus = new EventEmitter();
 
 const enterEvent = () => bus.emit('enter');
+
+const extractTagsFromMessage = (message: string) => {
+  const idAttributeRegex = /data-id="([^"]+)"/gi;
+  const ids = new Set<string>();
+  let matches;
+  while (matches = idAttributeRegex.exec(message)) {
+    ids.add(matches[1]);
+  }
+
+  return Array.from(ids);
+}
+
 
 const Editor = dynamic(
   async () => {
@@ -178,19 +191,15 @@ const UserTextArea: FC<Props> = ({
   const channelId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const isMuted = useAppSelector(userIsMuted);
   const { openModal, setModalView } = useUI();
-  const {
-    cmix,
-    sendMessage,
-    sendReply
-  } = useNetworkClient();
+  const { cmix, sendMessage, sendReply } = useNetworkClient();
   const [editorLoaded, setEditorLoaded] = useState(false);
   const message = useAppSelector(app.selectors.messageDraft(channelId ?? ''))
   const deflatedContent = useMemo(() => deflate(message), [message]);
   const messageIsUnderLimit = useMemo(() => deflatedContent.length <= MESSAGE_MAX_SIZE, [deflatedContent]);
-  // const messageHasTooManyMentions = useMemo(() => {
-  //   const limit = !!replyToMessage ? 3 : 4;
-    
-  // }, []);
+  const tags = useMemo(() => extractTagsFromMessage(message), [message]);
+  const tooManyTags = replyToMessage
+    ? tags.length > MESSAGE_TAGS_LIMIT - 1
+    : tags.length > MESSAGE_TAGS_LIMIT;
   const placeholder = useMemo(
     () => isMuted
       ? t('You have been muted by an admin and cannot send messages.')
@@ -222,7 +231,7 @@ const UserTextArea: FC<Props> = ({
       });
       setPickerVisible(true);
     }
-  }, [])
+  }, []);
 
   const inserEmoji = useCallback((emoji: { native: string }) => {
     const quill = editorRef.current?.editor;
@@ -231,7 +240,7 @@ const UserTextArea: FC<Props> = ({
     
     quill.insertEmbed(index, 'emoji', emoji.native, 'user');
     setTimeout(() => quill.setSelection(index + emoji.native.length, 0), 0);
-  }, [])
+  }, []);
   
   const onPickEmoji = useCallback((emoji: { native: string }) => {
     inserEmoji(emoji);
@@ -275,7 +284,7 @@ const UserTextArea: FC<Props> = ({
 
   useEffect(() => {
     loadQuillModules();
-  }, [loadQuillModules])
+  }, [loadQuillModules]);
 
   const resetEditor = useCallback(() => {
     if (channelId) {
@@ -288,7 +297,7 @@ const UserTextArea: FC<Props> = ({
       const trimmed = text === '<p><br></p>' ? '' : text;
       dispatch(app.actions.updateMessageDraft({ channelId, text: trimmed }));
     }
-  }, [channelId, dispatch])
+  }, [channelId, dispatch]);
 
   const sendCurrentMessage = useCallback(async () => {
     if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
@@ -301,14 +310,14 @@ const UserTextArea: FC<Props> = ({
         return;
       }
 
-      if (message.length === 0 || !messageIsUnderLimit) {
+      if (message.length === 0 || !messageIsUnderLimit || tooManyTags) {
         return;
       }
 
       if (replyToMessage) {
-        sendReply(deflatedContent, replyToMessage.id);
+        sendReply(deflatedContent, replyToMessage.id, tags);
       } else {
-        sendMessage(deflatedContent);
+        sendMessage(deflatedContent, tags);
       }
 
       resetEditor();
@@ -316,6 +325,7 @@ const UserTextArea: FC<Props> = ({
 
     setReplyToMessage(null);
   }, [
+    tooManyTags,
     cmix,
     setReplyToMessage,
     setModalView,
@@ -327,7 +337,8 @@ const UserTextArea: FC<Props> = ({
     replyToMessage,
     sendReply,
     deflatedContent,
-    sendMessage
+    sendMessage,
+    tags
   ]);
 
   useEffect(() => {
@@ -492,13 +503,18 @@ const UserTextArea: FC<Props> = ({
             onChange={updateMessage}
             placeholder={placeholder} />
         )}
+        {tooManyTags && (
+          <div className={s.error}>
+            {t('Too many tags.')}
+          </div>
+        )}
         {!messageIsUnderLimit && (
           <div className={s.error}>
             {t('Message is too long.')}
           </div>
         )}
         <SendButton
-          disabled={!messageIsUnderLimit}
+          disabled={!messageIsUnderLimit || tooManyTags}
           className={s.button}
           onClick={sendCurrentMessage}
         />

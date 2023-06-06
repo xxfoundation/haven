@@ -1,4 +1,4 @@
-import { NotificationLevel } from 'src/types';
+import { NotificationLevel, NotificationStatus } from 'src/types';
 
 export enum PrivacyLevel {
   Public = 0,
@@ -24,6 +24,7 @@ export type ChannelsState = {
   nicknames: Record<ChannelId, string | undefined>;
   mutedUsersByChannelId: Record<ChannelId, string[]>;
   notificationLevels: Record<ChannelId, NotificationLevel | undefined>;
+  notificationStatuses: Record<ChannelId, NotificationStatus | undefined>;
 };
 
 declare module 'src/store/types' {

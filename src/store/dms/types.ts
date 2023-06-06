@@ -38,6 +38,7 @@ export type DMState = {
   conversationsByPubkey: Record<PubKey, Conversation>;
   messagesByPubkey: Record<PubKey, Record<Message['uuid'], Message>>;
   reactions: EmojiReactions;
+  blocked: PubKey[];
 };
 
 declare module 'src/store/types' {

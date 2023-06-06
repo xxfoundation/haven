@@ -14,9 +14,9 @@ import RightFromBracket from '@components/icons/RightFromBracket';
 import { useNetworkClient } from '@contexts/network-client-context';
 import CheckboxToggle from '@components/common/CheckboxToggle';
 import { Spinner } from '@components/common';
-import { NotificationLevel } from '@types';
+import { NotificationLevel, NotificationStatus } from '@types';
 import { useUtils } from '@contexts/utils-context';
-import { notificationLevelDecoder } from '@utils/decoders';
+import { notificationLevelDecoder, notificationStatusDecoder } from '@utils/decoders';
 
 const ChannelSettingsView: FC = () => {
   const { t } = useTranslation();
@@ -26,6 +26,7 @@ const ChannelSettingsView: FC = () => {
   const { channelManager } = useNetworkClient();
   const [dmsEnabled, setDmsEnabled] = useState<boolean | null>(null);
   const notificationLevel = useAppSelector(channels.selectors.notificationLevel(currentChannel?.id));
+  const notificationStatus = useAppSelector(channels.selectors.notificationStatus(currentChannel?.id));
 
   useEffect(() => {
     if (currentChannel) {
@@ -51,17 +52,39 @@ const ChannelSettingsView: FC = () => {
     if (currentChannel?.id) {
       channelManager?.SetMobileNotificationsLevel(
         utils.Base64ToUint8Array(currentChannel?.id),
-        level
+        level,
+        notificationStatus || NotificationStatus.WhenOpen,
       )
     }
-  }, [channelManager, currentChannel?.id, utils]);
+  }, [channelManager, currentChannel?.id, notificationStatus, utils]);
 
   const onNotificationLevelChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
-    const level = notificationLevelDecoder.decode(evt.target.value);
+    const level = notificationLevelDecoder.decode(parseInt(evt.target.value, 10));
     if (level.isOk()) {
       changeNotificationLevel(level.value);
+    } else {
+      throw new Error(`Unknown notification level ${level.error}`)
     }
-  }, [changeNotificationLevel])
+  }, [changeNotificationLevel]);
+
+  const changeNotificationStatus = useCallback((status: NotificationStatus) => {
+    if (currentChannel?.id) {
+      channelManager?.SetMobileNotificationsLevel(
+        utils.Base64ToUint8Array(currentChannel?.id),
+        notificationLevel || NotificationLevel.NotifyPing,
+        status,
+      )
+    }
+  }, [channelManager, currentChannel?.id, notificationLevel, utils]);
+
+  const onNotificationStatusChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
+    const status = notificationStatusDecoder.decode(parseInt(evt.target.value, 10));
+    if (status.isOk()) {
+      changeNotificationStatus(status.value);
+    } else {
+      throw new Error(`Unknown notification status: ${status.error}`);
+    }
+  }, [changeNotificationStatus]);
 
   return (
     <>
@@ -114,9 +137,28 @@ const ChannelSettingsView: FC = () => {
           </div>
           <div>
             <h3 className='headline--sm'>
+              {t('Notifications')}
+            </h3>
+            <select
+              className={s.select}
+              onChange={onNotificationStatusChange}
+              value={notificationStatus}
+              id='notification-levels'>
+              <option value={NotificationStatus.WhenOpen}>When Open</option>
+              <option value={NotificationStatus.Push}>Push</option>
+              <option value={NotificationStatus.Mute}>Mute</option>
+            </select>
+          </div>
+          <div>
+            <h3 className='headline--sm'>
               {t('Notification Level')}
             </h3>
-            <select onChange={onNotificationLevelChange} value={notificationLevel} id='notification-levels'>
+            <select
+              className={s.select}
+              onChange={onNotificationLevelChange}
+              value={notificationLevel}
+              disabled={notificationStatus === NotificationStatus.Mute}
+              id='notification-levels'>
               <option value={NotificationLevel.NotifyAll}>All</option>
               <option value={NotificationLevel.NotifyPing}>Tags, replies, and pins</option>
               <option value={NotificationLevel.NotifyNone}>None</option>

@@ -32,5 +32,7 @@ export const currentChannelNickname = (channelId?: ChannelId) => (state: RootSta
 export const mutedUsers = (state: RootState) => state.channels.mutedUsersByChannelId;
 
 export const notificationLevels = (state: RootState) => state.channels.notificationLevels;
+export const notificationStatuses = (state: RootState) => state.channels.notificationStatuses;
 
 export const notificationLevel = (channelId?: ChannelId) => (state: RootState) => channelId && notificationLevels(state)[channelId];
+export const notificationStatus =  (channelId?: ChannelId) => (state: RootState) => channelId && notificationStatuses(state)[channelId];

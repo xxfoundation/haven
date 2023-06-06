@@ -178,26 +178,22 @@ const notificationFilterDecoder = JsonDecoder.object<NotificationFilter>(
   },
   'NotificationFilterDecoder',
   {
-    id: 'Identifier',
-    channelId: 'ChannelID',
-    tags: 'Tags',
-    allowLists: 'AllowLists'
+    id: 'identifier',
+    channelId: 'channelID',
   }
 );
 
 export const notificationLevelDecoder = JsonDecoder.enumeration<NotificationLevel>(NotificationLevel, 'NotificationLevelDecoder');
-const notificationStatusDecoder = JsonDecoder.enumeration<NotificationStatus>(NotificationStatus, 'NotificationStatusDecoder');
+export const notificationStatusDecoder = JsonDecoder.enumeration<NotificationStatus>(NotificationStatus, 'NotificationStatusDecoder');
 const notificationStateDecoder = JsonDecoder.object<NotificationState>(
   {
-    channelId: uint8ArrayToStringDecoder,
+    channelId: JsonDecoder.string,
     level: notificationLevelDecoder,
     status: notificationStatusDecoder
   },
   'NotificationStateDecoder',
   {
-    channelId: 'ChannelID',
-    level: 'Level',
-    status: 'Status'
+    channelId: 'channelID',
   }
 );
 
@@ -205,7 +201,7 @@ export const notificationUpdateEventDecoder = makeDecoder(JsonDecoder.object<Not
   {
     notificationFilters: JsonDecoder.array<NotificationFilter>(notificationFilterDecoder, 'NotificationFilterArrayDecoder'),
     changedNotificationStates: JsonDecoder.array<NotificationState>(notificationStateDecoder, 'ChangedNotificationStatesDecoder'),
-    deletedNotificationStates: JsonDecoder.nullable(JsonDecoder.array<ChannelId>(uint8ArrayToStringDecoder, 'DeletedNotificationStatesDecoder')),
+    deletedNotificationStates: JsonDecoder.nullable(JsonDecoder.array<ChannelId>(JsonDecoder.string, 'DeletedNotificationStatesDecoder')),
     maxState: JsonDecoder.number
   },
   'NotificationUpdateEventDecoder',

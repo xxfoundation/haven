@@ -15,6 +15,12 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
 import Envelope from '@components/icons/Envelope';
 import { userIsMuted as userIsMutedSelector } from 'src/store/selectors';
+import * as dms from 'src/store/dms';
+import { useNetworkClient } from '@contexts/network-client-context';
+import { useUtils } from '@contexts/utils-context';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComment, faCommentSlash } from '@fortawesome/free-solid-svg-icons';
+import { t } from 'i18next';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
@@ -44,14 +50,17 @@ const MessageActions: FC<Props> = ({
   pubkey,
   ...props
 }) => {
+  const { utils } = useUtils();
+  const { dmClient } = useNetworkClient();
   const dispatch = useAppDispatch();
-  const isDms = !!useAppSelector(app.selectors.currentChannelOrConversationId);
+  const isDms = !!useAppSelector(dms.selectors.currentConversation);
   const userIsMuted = useAppSelector(userIsMutedSelector);
   const { closeModal, openModal, setModalView } = useUI();
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerIconRef = useRef<HTMLDivElement>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [style, setStyle] = useState<CSSProperties>({});
+  const isBlocked = useAppSelector(dms.selectors.isBlocked(pubkey));
 
   const listener = useCallback<(event: MouseEvent | TouchEvent) => void>((event) => {
     if (
@@ -123,6 +132,26 @@ const MessageActions: FC<Props> = ({
     setPickerVisible((visibile) => !visibile);
   }, [adjustPickerPosition]);
 
+  const blockUser = useCallback(() => {
+    const encodedKey = utils.Base64ToUint8Array(pubkey);
+    dmClient?.BlockSender(encodedKey);
+    const blocked = dmClient?.IsBlocked(encodedKey);
+
+    if (blocked) {
+      dispatch(dms.actions.blockUser(pubkey));
+    }
+  }, [dispatch, dmClient, pubkey, utils]);
+
+  const unblockUser = useCallback(() => {
+    const encodedKey = utils.Base64ToUint8Array(pubkey);
+    dmClient?.UnblockSender(encodedKey);
+    const blocked = dmClient?.IsBlocked(encodedKey);
+
+    if (!blocked) {
+      dispatch(dms.actions.unblockUser(pubkey));
+    }
+  }, [dispatch, dmClient, pubkey, utils]);  
+
   const emojiPortalElement = document.getElementById('emoji-portal');
 
   return (
@@ -131,9 +160,25 @@ const MessageActions: FC<Props> = ({
         {dmsEnabled && (
           <Envelope style={{ cursor: 'pointer' }} width='20px' color='var(--cyan)' onClick={dmUser} />
         )}
-        {isAdmin && !isOwn && !isMuted && (
+        {(isAdmin && !isOwn && !isMuted) && (
           <Mute
             onClick={onMuteUser}
+          />
+        )}
+        {isBlocked && (
+          <FontAwesomeIcon
+            color='var(--green)'
+            title={t('Unblock')}
+            icon={faComment}
+            onClick={unblockUser}
+          />
+        )}
+        {!isBlocked && (
+          <FontAwesomeIcon
+            style={{ color: 'var(--red)'}}
+            title={t('Block')}
+            icon={faCommentSlash}
+            onClick={blockUser}
           />
         )}
         {(isAdmin && !isPinned && !isDms) && (

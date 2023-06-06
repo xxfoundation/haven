@@ -73,10 +73,12 @@ const useEvents = () => {
     const listener = (evt: NotificationUpdateEvent) => {
       evt.changedNotificationStates.forEach((state) => {
         dispatch(channels.actions.updateNotificationLevel(state));
+        dispatch(channels.actions.updateNotificationStatus(state));
       });
 
       evt.deletedNotificationStates?.forEach((channelId) => {
         dispatch(channels.actions.updateNotificationLevel({ channelId }));
+        dispatch(channels.actions.updateNotificationStatus({ channelId }));
       });
     }
 
