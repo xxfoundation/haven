@@ -1,4 +1,4 @@
-import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, NotificationLevel } from 'src/types';
+import type { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, NotificationLevel, NotificationStatus, DMClient } from 'src/types';
 import type { WithChildren, Message } from 'src/types';
 import { MessageStatus, MessageType } from 'src/types';
 
@@ -93,11 +93,12 @@ export type ChannelManager = {
     message: string,
     messageToReactTo: Uint8Array,
     messageValidityTimeoutMilliseconds: number,
-    cmixParams: Uint8Array
+    cmixParams: Uint8Array,
+    tags: Uint8Array
   ) => Promise<Uint8Array>;
   IsChannelAdmin: (channelId: Uint8Array) => boolean;
   GetNotificationLevel: (channelId: Uint8Array) => NotificationLevel;
-  SetMobileNotificationsLevel: (channelId: Uint8Array, notificationLevel: NotificationLevel) => void;
+  SetMobileNotificationsLevel: (channelId: Uint8Array, notificationLevel: NotificationLevel, notificationStatus: NotificationStatus) => void;
   GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => Promise<string>;
   GetStorageTag: () => string | undefined;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
@@ -129,6 +130,7 @@ export type NetworkContext = {
     privacyLevel: 0 | 2,
     enableDms: boolean
   ) => void;
+  dmClient?: DMClient;
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
@@ -144,14 +146,14 @@ export type NetworkContext = {
   getMutedUsers: () => Promise<User[]>;
   muteUser: (pubkey: string, unmute: boolean) => Promise<void>;
   shareChannel: () => void;
-  sendMessage: (message: string) => void;
+  sendMessage: (message: string, tags?: string[]) => void;
   leaveCurrentChannel: () => void;
   createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
   handleInitialLoadData: () => Promise<void>;
   getNickName: () => string;
   setNickname: (nickname: string) => boolean;
-  sendReply: (reply: string, replyToMessageId: string) => Promise<void>;
+  sendReply: (reply: string, replyToMessageId: string, tags?: string[]) => Promise<void>;
   sendReaction: (reaction: string, reactToMessageId: string) => Promise<void>;
   getPrettyPrint: (channelId: string) => string | undefined;
   getShareURL: (channelId: string) => ShareURLJSON | null;
@@ -841,12 +843,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
         
         dispatch(channels.actions.leaveChannel(currentChannel.id));
       } catch (error) {
-        console.error('Failed to leave Channel.');
+        console.error('Failed to leave Channel:', error);
       }
     }
   }, [channelManager, currentChannel, dispatch, utils]);
 
-  const sendMessage = useCallback(async (message: string) => {
+  const sendMessage = useCallback(async (message: string, tags: string[] = []) => {
     if (
       message.length &&
       channelManager &&
@@ -860,7 +862,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
           message,
           MESSAGE_LEASE,
           new Uint8Array(),
-          encoder.encode('[]'),
+          encoder.encode(JSON.stringify(tags)),
         );
       } catch (e) {
         console.error('Error sending message', e);
@@ -882,7 +884,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
 
-  const sendReply = useCallback(async (reply: string, replyToMessageId: string) => {
+  const sendReply = useCallback(async (reply: string, replyToMessageId: string, tags: string[] = []) => {
     if (
       reply.length &&
       channelManager &&
@@ -896,7 +898,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
           reply,
           utils.Base64ToUint8Array(replyToMessageId),
           30000,
-          new Uint8Array()
+          new Uint8Array(),
+          encoder.encode(JSON.stringify(tags))
         );
       } catch (error) {
         console.error(`Test failed to reply to messageId ${replyToMessageId}`);
@@ -1218,6 +1221,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const ctx: NetworkContext = {
     decryptMessageContent: cipher?.decrypt,
     channelManager,
+    dmClient,
     getMutedUsers,
     mutedUsers,
     exportChannelAdminKeys,

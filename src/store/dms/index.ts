@@ -5,11 +5,13 @@ import { Message } from '../messages/types';
 
 import { reactionsReducer } from '../utils';
 import { MessageType } from '@types';
+import { uniq } from 'lodash';
 
 const initialState: DMState = {
   conversationsByPubkey: {},
   messagesByPubkey: {},
   reactions: {},
+  blocked: [],
 };
 
 const upsertConversation = (state: DMState, conversation: Conversation) => ({
@@ -61,7 +63,15 @@ export const slice = createSlice({
     setUserNickname: (state: DMState, { payload: nickname }: PayloadAction<string>) => ({
       ...state,
       nickname
-    })
+    }),
+    blockUser: (state: DMState, { payload: pubkey }: PayloadAction<string>) => ({
+      ...state,
+      blocked: uniq(state.blocked.concat(pubkey))
+    }),
+    unblockUser: (state: DMState, { payload: pubkey }: PayloadAction<string>) => ({
+      ...state,
+      blocked: state.blocked.filter((b) => b !== pubkey)
+    }),
   }
 });
 

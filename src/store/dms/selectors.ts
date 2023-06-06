@@ -54,5 +54,7 @@ export const currentConversationContributors: Selector<RootState, Contributor[]>
       timestamp: '1970-01-01',  // doesnt matter here because user is always first
     }
   ] as Contributor[] : [],
-)
+);
+
+export const isBlocked = (pubkey: string) => (state: RootState) => state.dms.blocked.includes(pubkey);
 

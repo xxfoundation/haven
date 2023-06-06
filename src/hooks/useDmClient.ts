@@ -88,6 +88,20 @@ const useDmClient = (
     ),
     [client, databaseCipher, dmNickname, getCodeNameAndColor, userIdentity]
   );
+  
+  const conversations = useAppSelector(dms.selectors.conversations);
+  useEffect(() => {
+    if (client) {
+      conversations.forEach(({ pubkey }) => {
+        const isBlocked = false; // client.IsBlocked(utils.Base64ToUint8Array(pubkey));
+        if (isBlocked) {
+          dispatch(dms.actions.blockUser(pubkey));
+        } else {
+          dispatch(dms.actions.unblockUser(pubkey));
+        }
+      })
+    }
+  }, [client, conversations, currentConversation, dispatch, utils])
 
   useEffect(() => {
     if (client) {
