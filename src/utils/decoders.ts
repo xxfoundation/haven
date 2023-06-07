@@ -221,12 +221,12 @@ export const adminKeysUpdateDecoder = makeDecoder(JsonDecoder.object<AdminKeysUp
 
 export const dmTokenUpdateDecoder = makeDecoder(JsonDecoder.object<DmTokenUpdateEvent>(
   {
-    channelId: uint8ArrayToStringDecoder,
+    channelId: JsonDecoder.string,
     tokenEnabled: JsonDecoder.boolean
   },
   'DmTokenUpdateDecoder',
   {
-    channelId: 'ChannelId',
-    tokenEnabled: 'SendToken'
+    channelId: 'channelID',
+    tokenEnabled: 'sendToken'
   }
 ));

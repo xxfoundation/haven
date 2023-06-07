@@ -36,3 +36,4 @@ export const notificationStatuses = (state: RootState) => state.channels.notific
 
 export const notificationLevel = (channelId?: ChannelId) => (state: RootState) => channelId && notificationLevels(state)[channelId];
 export const notificationStatus =  (channelId?: ChannelId) => (state: RootState) => channelId && notificationStatuses(state)[channelId];
+export const dmsEnabled = (channelId?: ChannelId) => (state: RootState) => !!(channelId &&  state.channels.dmsEnabled[channelId]);

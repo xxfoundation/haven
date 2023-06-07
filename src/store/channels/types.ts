@@ -25,6 +25,7 @@ export type ChannelsState = {
   mutedUsersByChannelId: Record<ChannelId, string[]>;
   notificationLevels: Record<ChannelId, NotificationLevel | undefined>;
   notificationStatuses: Record<ChannelId, NotificationStatus | undefined>;
+  dmsEnabled: Record<ChannelId, boolean>;
 };
 
 declare module 'src/store/types' {

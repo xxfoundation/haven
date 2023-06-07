@@ -39,7 +39,6 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
     }
     assert(loadedKv, `Attempted to set value on key ${key} but the store wasn't initialized`);
     await loadedKv.set(key, JSON.stringify(v));
-    setValue(v); // TODO remove this when callback properly gets triggered.
   }, [key, kv])
 
   return {
