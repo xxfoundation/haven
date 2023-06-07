@@ -1,16 +1,14 @@
-import { createContext, useEffect, useState, FC, useCallback, useContext } from 'react';
-import assert from 'assert';
+import { createContext, useEffect, useState, FC, useContext } from 'react';
 
-import { channelFavoritesDecoder } from 'src/utils/decoders'
 import { KV_VERSION, OperationType, RemoteKV } from 'src/types/collective';
 import { encoder } from 'src/utils/index';
-import { Decoder, kvEntryDecoder } from 'src/utils/decoders';
+import {  kvEntryDecoder } from 'src/utils/decoders';
 import { WithChildren } from 'src/types';
-import { NetworkStatus, useNetworkClient } from './network-client-context';
+import { AppEvents, bus } from 'src/events';
 
 type OnChangeCallback = (data?: string) => void;
 
-class RemoteKVWrapper {
+export class RemoteKVWrapper {
   kv: RemoteKV;
 
   constructor(kv: RemoteKV) {
@@ -57,94 +55,28 @@ class RemoteKVWrapper {
   }
 }
 
-export const useRemotelySynchedValue = <T,>(kv: RemoteKVWrapper | undefined, key: string, decoder: Decoder<T>) => {
-  const [value, setValue] = useState<T>();
-  const [loading, setLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (kv) {
-      kv.listenOn(key, (v) => {
-        setValue(v !== undefined ? decoder(v) : v);
-      })
-    }
-  }, [decoder, key, kv]);
-
-  useEffect(() => {
-    if (kv) {
-      setLoading(true);
-      kv.get(key).then((v) => {
-        setValue(v !== undefined ? decoder(v) : v);
-      }).finally(() => {
-        setLoading(false);
-      });
-    }
-  }, [decoder, key, kv]);
-
-  const set = useCallback(async (v: T) => {
-    assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);
-    await kv.set(key, JSON.stringify(v));
-    setValue(v); // TODO remove this when callback properly gets triggered.
-  }, [key, kv])
-
-  return {
-    loading: kv === undefined || loading,
-    value,
-    set
-  }
-}
-
-const useChannelFavorites = (kv?: RemoteKVWrapper) => {
-  const { loading, set, value: favorites = [] } = useRemotelySynchedValue(kv, 'channel-favorites', channelFavoritesDecoder);
-
-  const toggleFavorite = useCallback((channelId: string) => {
-    if (!loading) {
-      set(favorites.includes(channelId)
-        ? favorites.filter((id) => id !== channelId)
-        : favorites.concat(channelId)
-      )
-    }
-  }, [favorites, loading, set]);
-
-  const isFavorite = useCallback(
-    (channelId?: string | null) => channelId && favorites.includes(channelId),
-    [favorites]
-  );
-
-  return {
-    favorites,
-    toggle: toggleFavorite,
-    isFavorite
-  }
-}
-
-
 type ContextType = {
   kv?: RemoteKVWrapper,
-  channelFavorites: ReturnType<typeof useChannelFavorites>;
 }
 
 const RemoteKVContext = createContext<ContextType>({} as ContextType);
 
 export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
-  const { cmix, networkStatus } = useNetworkClient();
   const [kv, setKv] = useState<RemoteKVWrapper>();
 
   useEffect(() => {
-    if (cmix && networkStatus !== NetworkStatus.UNINITIALIZED) {
-      cmix.GetRemoteKV().then((rawKv) => {
-        setKv(new RemoteKVWrapper(rawKv));
-      })
-    }
-  }, [cmix, networkStatus]);
+    bus.addListener(AppEvents.REMOTE_KV_INITIALIZED, setKv);
 
-  const channelFavorites = useChannelFavorites(kv);
+    return () => { bus.removeListener(AppEvents.REMOTE_KV_INITIALIZED, setKv); }
+  }, []);
 
   return (
-    <RemoteKVContext.Provider value={{ channelFavorites, kv }}>
+    <RemoteKVContext.Provider value={{ kv }}>
       {children}
     </RemoteKVContext.Provider>
   )
 }
 
-export const useRemoteKV = () => useContext(RemoteKVContext);
+
+export const useRemoteKV = () => useContext(RemoteKVContext).kv;
 

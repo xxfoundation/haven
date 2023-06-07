@@ -10,10 +10,7 @@ import useRemoteStore from './useRemoteStore';
 import { useAuthentication } from '@contexts/authentication-context';
 import useAccountSync, { AccountSyncStatus } from './useAccountSync';
 import { AppEvents, bus } from 'src/events';
-
-const cmixPreviouslyInitialized = () => {
-  return localStorage && localStorage.getItem(STATE_PATH) !== null;
-};
+import { RemoteKVWrapper } from '@contexts/remote-kv-context';
 
 type DatabaseCipher = {
   id: number;
@@ -29,7 +26,7 @@ export enum NetworkStatus {
 }
 
 const useCmix = () => {
-  const { encryptedPassword } = useAuthentication();
+  const { cmixPreviouslyInitialized, encryptedPassword } = useAuthentication();
   const [status, setStatus] = useState<NetworkStatus>(NetworkStatus.UNINITIALIZED);
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
   const [cmix, setCmix] = useState<CMix | undefined>();
@@ -76,7 +73,7 @@ const useCmix = () => {
   }, [encodedCmixParams, utils])
 
   const initializeSynchronizedCmix = useCallback(async (password: Uint8Array, store: RemoteStore) => {
-    if (!cmixPreviouslyInitialized()) {
+    if (!cmixPreviouslyInitialized) {
       await utils.NewSynchronizedCmix(
         ndf,
         STATE_PATH,
@@ -84,13 +81,13 @@ const useCmix = () => {
         store,
       );
     }
-  }, [utils])
+  }, [cmixPreviouslyInitialized, utils])
 
   const initializeCmix = useCallback(async (password: Uint8Array) => {
-    if (!cmixPreviouslyInitialized()) {
+    if (!cmixPreviouslyInitialized) {
       await utils.NewCmix(ndf, STATE_PATH, password, '');
     }
-  }, [utils]);
+  }, [cmixPreviouslyInitialized, utils]);
 
   const loadCmix = useCallback(async (password: Uint8Array) => {
     const loadedCmix = await utils.LoadCmix(
@@ -147,7 +144,6 @@ const useCmix = () => {
 
   useEffect(() => {
     const listener = () => {
-      console.log('Remote store initialized, stopping followers');
       try {
         cmix?.StopNetworkFollower();
       } catch (e) {
@@ -240,6 +236,16 @@ const useCmix = () => {
     loadSynchronizedCmix,
     remoteStore
   ]);
+
+  useEffect(() => {
+    if (cmix) {
+      cmix.GetRemoteKV().then((rawKv) => {
+        const wrappedKv = new RemoteKVWrapper(rawKv);
+        bus.emit(AppEvents.REMOTE_KV_INITIALIZED, wrappedKv);
+      })
+    }
+  }, [cmix])
+  
   
   return {
     connect,

@@ -20,7 +20,7 @@ import Identity from '../Identity';
 import SearchInput from '../SearchInput';
 import useInput from 'src/hooks/useInput';
 import { Contributor } from '@types';
-import { useRemoteKV } from '@contexts/remote-kv-context';
+import useChannelFavorites from 'src/hooks/useChannelFavorites';
 
 type ChannelListItemProps = {
   currentId: string | null,
@@ -75,14 +75,13 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
     getClientVersion,
     getVersion,
   } = useNetworkClient();
-  const { channelFavorites: { favorites }} = useRemoteKV();
-
+  const { favorites } = useChannelFavorites();
   const currentId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const channelsSearch = useAppSelector(app.selectors.channelsSearch);
   const drafts = useAppSelector((state) => state.app.messageDraftsByChannelId);
   const allChannels = useAppSelector(channels.selectors.searchFilteredChannels);
   const missedMessages = useAppSelector(app.selectors.missedMessages);
-  const allConversations = useAppSelector(dms.selectors.searchFilteredConversations);
+  const allConversations = useAppSelector(dms.selectors.searchFilteredConversations(favorites));
   const messageableContributors = useAppSelector(msgs.selectors.messageableContributors);
 
   const filteredMessageableContributors = useMemo(

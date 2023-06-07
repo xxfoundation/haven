@@ -155,9 +155,9 @@ const useDmClient = (
     if (dmsDb && conversationMapper) {
       dmsDb.table<DBConversation>('conversations')
         .toArray()
-        .then((conversations) => {
+        .then((convos) => {
           dispatch(dms.actions.upsertManyConversations(
-            conversations.map(conversationMapper))
+            convos.map(conversationMapper))
           )
         })
     }

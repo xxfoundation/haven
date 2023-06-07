@@ -22,6 +22,7 @@ import 'react-tooltip/dist/react-tooltip.css'
 import ErrorBoundary from 'src/components/common/ErrorBoundary';
 import { DBProvider } from '@contexts/db-context';
 import '../i18n';
+import { RemoteKVProvider } from '@contexts/remote-kv-context';
 
 const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
 const isDesktop = () => {
@@ -84,23 +85,25 @@ const SEO = () => {
 };
 
 const Providers: FC<WithChildren> = ({ children }) => (
-  <GoogleOAuthProvider
-    clientId={process.env.NEXT_PUBLIC_APP_GOOGLE_DRIVE_CLIENT_ID ?? ''}
-  >
+  <RemoteKVProvider>
     <DBProvider>
       <Provider store={store}>
         <UtilsProvider>
           <AuthenticationProvider>
             <ManagedNetworkContext>
               <ManagedUIContext>
-                {children}
+                <GoogleOAuthProvider
+                  clientId={process.env.NEXT_PUBLIC_APP_GOOGLE_DRIVE_CLIENT_ID ?? ''}
+                >
+                  {children}
+                </GoogleOAuthProvider>
               </ManagedUIContext>
             </ManagedNetworkContext>
           </AuthenticationProvider>
         </UtilsProvider>
       </Provider>
     </DBProvider>
-  </GoogleOAuthProvider>
+  </RemoteKVProvider>
 );
 
 const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {

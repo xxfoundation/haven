@@ -30,7 +30,7 @@ import useDmClient from 'src/hooks/useDmClient';
 import useEvents from 'src/hooks/useEvents';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
 import { RemoteStore } from 'src/types/collective';
-import { RemoteKVProvider } from './remote-kv-context';
+import useChannelsStorageTag from 'src/hooks/useChannelsStorageTag';
 
 const BATCH_COUNT = 1000;
 
@@ -199,11 +199,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const pagination = usePagination();
   const dispatch = useAppDispatch();
   const db = useDb();
-  const {
-    addStorageTag,
-    setIsAuthenticated,
-    storageTag,
-  } = useAuthentication();
+  const { setIsAuthenticated } = useAuthentication();
+  const { set: setStorageTag, value: storageTag } = useChannelsStorageTag();
   const { messagePinned, messageReplied, notifyMentioned } = useNotification();
   const { getCodeNameAndColor, utils } = useUtils();
   const [mutedUsers, setMutedUsers] = useState<User[]>();
@@ -242,7 +239,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [dispatch, currentChannel])
 
   const fetchIdentity = useCallback((mngr?: ChannelManager) => {
-    const manager = channelManager || mngr; 
+    const manager = channelManager || mngr;
     try {
       const json = decoder.decode(manager?.GetIdentity());
 
@@ -623,19 +620,18 @@ export const NetworkProvider: FC<WithChildren> = props => {
   }, [channelManager, currentChannel, dispatch, utils])
 
 
-  const loadChannelManager = useCallback(async () => {
+  const loadChannelManager = useCallback(async (tag: string) => {
     if (
       cmixId !== undefined &&
       cipher &&
-      utils &&
-      storageTag
+      utils
     ) {
       const notifications = utils.LoadNotificationsDummy(cmixId);
       const loadedChannelsManager = await utils
         .LoadChannelsManagerWithIndexedDb(
           cmixId,
           '/integrations/assets/channelsIndexedDbWorker.js',
-          storageTag,
+          tag,
           new Uint8Array(),
           notifications.GetID(),
           {
@@ -646,11 +642,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       setChannelManager(loadedChannelsManager);
     }
-  }, [cipher, cmixId, storageTag, utils]);
+  }, [cipher, cmixId, utils]);
 
   useEffect(() => {
     if (cmix && cipher && utils && storageTag) {
-      loadChannelManager();
+      loadChannelManager(storageTag);
     }
   }, [cipher, cmix, loadChannelManager, storageTag, utils]);
 
@@ -709,12 +705,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
       );
       
       setChannelManager(createdChannelManager);
+
       const tag = createdChannelManager.GetStorageTag();
       if (tag) {
-        addStorageTag(tag);
+        setStorageTag(tag);
       }
     }
-  }, [cmixId, cipher, utils, addStorageTag]);
+  }, [cmixId, cipher, utils, setStorageTag]);
 
   const [hasMore, setHasMore] = useState(true);
 
@@ -1279,9 +1276,7 @@ export const useNetworkClient = () => {
 
 export const ManagedNetworkContext: FC<WithChildren> = ({ children }) => (
   <NetworkProvider>
-    <RemoteKVProvider>
-      {children}
-    </RemoteKVProvider>
+    {children}
   </NetworkProvider>
 );
 
