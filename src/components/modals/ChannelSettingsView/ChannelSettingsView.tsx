@@ -1,4 +1,4 @@
-import { ChangeEventHandler, FC, useCallback, useEffect, useState } from 'react';
+import { ChangeEventHandler, FC, useCallback } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
@@ -24,28 +24,17 @@ const ChannelSettingsView: FC = () => {
   const { openModal, setModalView } = useUI();
   const { utils } = useUtils();
   const { channelManager } = useNetworkClient();
-  const [dmsEnabled, setDmsEnabled] = useState<boolean | null>(null);
+  const dmsEnabled = useAppSelector(channels.selectors.dmsEnabled(currentChannel?.id));
   const notificationLevel = useAppSelector(channels.selectors.notificationLevel(currentChannel?.id));
   const notificationStatus = useAppSelector(channels.selectors.notificationStatus(currentChannel?.id));
 
-  useEffect(() => {
-    if (currentChannel) {
-      setDmsEnabled(channelManager?.AreDMsEnabled(Buffer.from(currentChannel?.id, 'base64')) ?? null);
-    }
-    }, [channelManager, currentChannel]);
-
   const toggleDms = useCallback(() => {
-    if (!currentChannel) {
+    if (!currentChannel || !channelManager) {
       return;
     }
-    
-    if (dmsEnabled) {
-      channelManager?.DisableDirectMessages(Buffer.from(currentChannel.id, 'base64'));
-      setDmsEnabled(channelManager?.AreDMsEnabled(Buffer.from(currentChannel?.id, 'base64')) ?? null);
-    } else {
-      channelManager?.EnableDirectMessages(Buffer.from(currentChannel.id, 'base64'));
-      setDmsEnabled(channelManager?.AreDMsEnabled(Buffer.from(currentChannel?.id, 'base64')) ?? null);
-    }
+
+    const fn = dmsEnabled ? 'DisableDirectMessages' : 'EnableDirectMessages'
+    channelManager?.[fn](Buffer.from(currentChannel.id, 'base64'));
   }, [channelManager, currentChannel, dmsEnabled]);
 
   const changeNotificationLevel = useCallback((level: NotificationLevel) => {

@@ -165,7 +165,7 @@ const MessageActions: FC<Props> = ({
             onClick={onMuteUser}
           />
         )}
-        {isBlocked && (
+        {isBlocked && !isOwn && (
           <FontAwesomeIcon
             color='var(--green)'
             title={t('Unblock')}
@@ -173,7 +173,7 @@ const MessageActions: FC<Props> = ({
             onClick={unblockUser}
           />
         )}
-        {!isBlocked && (
+        {!isBlocked && !isOwn && (
           <FontAwesomeIcon
             style={{ color: 'var(--red)'}}
             title={t('Block')}

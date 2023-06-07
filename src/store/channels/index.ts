@@ -11,7 +11,8 @@ const initialState: ChannelsState = {
   nicknames: {},
   mutedUsersByChannelId: {},
   notificationLevels: {},
-  notificationStatuses: {}
+  notificationStatuses: {},
+  dmsEnabled: {}
 };
 
 const initialChannelState = {
@@ -128,7 +129,14 @@ export const slice = createSlice({
         ...state.notificationStatuses,
         [channelId]: status
       }
-    })
+    }),
+    updateDmsEnabled: (state: ChannelsState, { payload: { channelId, enabled } }: PayloadAction<{ channelId: ChannelId, enabled: boolean }>) => ({
+      ...state,
+      dmsEnabled: {
+        ...state.dmsEnabled,
+        [channelId]: enabled
+      }
+    }),
   }
 });
 

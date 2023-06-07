@@ -355,6 +355,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
     };
   }, [bc, channelManager, joinChannel]);
 
+
+  useEffect(() => {
+    if (currentChannel && channelManager) {
+      dispatch(channels.actions.updateDmsEnabled({
+        channelId: currentChannel.id,
+        enabled: channelManager.AreDMsEnabled(utils.Base64ToUint8Array(currentChannel.id))
+      }))
+    }
+    }, [channelManager, currentChannel, dispatch, utils]);
+
   const dbMessageMapper = useCallback((dbMsg: DBMessage): Message => {
     assert(cipher, 'Cipher required');
     return {
