@@ -12,6 +12,7 @@ export enum AppEvents {
   DM_RECEIVED = 'dm-received',
   GOOGLE_TOKEN = 'google-token',
   DROPBOX_TOKEN = 'dropbox-token',
+  CHANNEL_MANAGER_LOADED = 'channel-manager-loaded',
   REMOTE_STORE_INITIALIZED = 'remote-store-initialized',
   CMIX_SYNCED = 'cmix-synced',
   REMOTE_KV_INITIALIZED = 'remote-kv-initialized'
@@ -48,6 +49,7 @@ type EventHandlers = {
   [AppEvents.REMOTE_STORE_INITIALIZED]: () => void;
   [AppEvents.CMIX_SYNCED]: (service: AccountSyncService) => void;
   [AppEvents.REMOTE_KV_INITIALIZED]: (kv: RemoteKVWrapper) => void;
+  [AppEvents.CHANNEL_MANAGER_LOADED]: () => void;
 }
 
 const cmixDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]> } = {
