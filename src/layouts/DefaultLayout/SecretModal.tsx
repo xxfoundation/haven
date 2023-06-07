@@ -4,10 +4,10 @@ import Select from 'react-tailwindcss-select';
 
 import Modal from 'src/components/modals/Modal';
 import useKonami from 'src/hooks/useKonamiCode';
-import useLocalStorage from 'src/hooks/useLocalStorage';
 import useToggle from 'src/hooks/useToggle';
 
 import s from './SecretModal.module.scss';
+import { useRemotelySynchedString } from 'src/hooks/useRemotelySynchedValue';
 
 const options = [
   { label: 'Default', value: '/sounds/notification.mp3' },
@@ -20,7 +20,7 @@ const options = [
 const SecretModal = () => {
   const [showModal, { toggle, toggleOff }] = useToggle();
   const [touched, setTouched] = useState(false);
-  const [notificationSound, setNotificationSound] = useLocalStorage('notification-sound', '/sounds/notification.mp3');
+  const { set: setNotificationSound, value: notificationSound } = useRemotelySynchedString('notification-sound', '/sounds/notification.mp3');
   const [play, { stop }] = useSound(notificationSound ?? '');
   const selectedOption = useMemo(
     () => options.find((o) => o.value === notificationSound) ?? null,

@@ -4,6 +4,7 @@ import EventEmitter from 'events';
 import delay from 'delay';
 import { Decoder, adminKeysUpdateDecoder, dmTokenUpdateDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
 import { AccountSyncService } from './hooks/useAccountSync';
+import { RemoteKVWrapper } from '@contexts/remote-kv-context';
 
 export enum AppEvents {
   MESSAGE_PINNED = 'pinned',
@@ -12,7 +13,8 @@ export enum AppEvents {
   GOOGLE_TOKEN = 'google-token',
   DROPBOX_TOKEN = 'dropbox-token',
   REMOTE_STORE_INITIALIZED = 'remote-store-initialized',
-  CMIX_SYNCED = 'cmix-synced'
+  CMIX_SYNCED = 'cmix-synced',
+  REMOTE_KV_INITIALIZED = 'remote-kv-initialized'
 }
 
 export enum ChannelEvents {
@@ -45,6 +47,7 @@ type EventHandlers = {
   [AppEvents.DROPBOX_TOKEN]: (event: string) => void;
   [AppEvents.REMOTE_STORE_INITIALIZED]: () => void;
   [AppEvents.CMIX_SYNCED]: (service: AccountSyncService) => void;
+  [AppEvents.REMOTE_KV_INITIALIZED]: (kv: RemoteKVWrapper) => void;
 }
 
 const cmixDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]> } = {
@@ -91,24 +94,27 @@ export const handleChannelEvent: ChannelEventHandler = (eventType, data) => {
 }
 
 
-export const awaitEvent = async (evt: AppEvents | ChannelEvents, timeout = 10000) => {
-  let listener: () => void = () => {};
+export const awaitEvent = async <E extends keyof EventHandlers>(evt: E, timeout = 10000): Promise<Parameters<EventHandlers[E]> | undefined> => {
+  let listener: EventHandlers[E];
   let resolved = false;
-  const promise = new Promise<void>((resolve) => {
-    listener = resolve;
-    bus.addListener(evt, () => {
+  const promise = new Promise<Parameters<EventHandlers[E]>>((resolve) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    listener = (...args: any) => {
       resolved = true;
-      resolve();
-    });
+      resolve(args);
+    };
+    bus.addListener(evt, listener);
   });
-  await Promise.race([
+
+  return Promise.race([
     promise,
     delay(timeout).then(() => {
       if (!resolved) {
         throw new Error(`Awaiting event ${evt} timed out.`)
       }
+      return undefined;
     })
-  ]);
-
-  bus.removeListener(evt, listener);
+  ]).finally(() => {
+    bus.removeListener(evt, listener);
+  });
 }

@@ -1,9 +1,8 @@
 import { WithChildren } from '@types';
 
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { CHANNELS_STORAGE_TAG, STATE_PATH } from '../constants';
+import { STATE_PATH } from '../constants';
 import { useUtils } from 'src/contexts/utils-context';
-import useLocalStorage from 'src/hooks/useLocalStorage';
 import { v4 as uuid } from 'uuid';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 
@@ -15,9 +14,6 @@ type AuthenticationContextType = {
   getOrInitPassword: (password: string) => boolean;
   encryptedPassword?: Uint8Array;
   rawPassword?: string;
-  statePathExists: () => boolean;
-  storageTag: string | null;
-  addStorageTag: (tag: string) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (authenticated: boolean) => void;
   instanceId: string;
@@ -37,7 +33,6 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const instanceId = useMemo(() => uuid(), []);
   const { utils } = useUtils();
-  const [storageTags, setStorageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
   const authChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('authentication'), []);
   const [encryptedPassword, setEncryptedPassword] = useState<Uint8Array>();
   const [rawPassword, setRawPassword] = useState<string>();
@@ -87,13 +82,12 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     }
   }, [authChannel, isAuthenticated, instanceId]);
 
-  const storageTag = storageTags?.[0] || null;
-  const cmixPreviouslyInitialized = !!(statePathExists() && storageTag);
+  const cmixPreviouslyInitialized = statePathExists();
 
   return (
     <AuthenticationContext.Provider
       value={{
-        setSyncLoginService: setSyncLoginService,
+        setSyncLoginService,
         cancelSyncLogin,
         cmixPreviouslyInitialized,
         encryptedPassword,
@@ -101,9 +95,6 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
         getOrInitPassword,
         instanceId,
         rawPassword,
-        statePathExists,
-        storageTag,
-        addStorageTag: (tag: string) => setStorageTags((storageTags ?? []).concat(tag)),
         isAuthenticated,
         setIsAuthenticated
       }}

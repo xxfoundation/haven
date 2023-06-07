@@ -15,8 +15,8 @@ import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
 
 import s from './styles.module.scss';
-import { useRemoteKV } from '@contexts/remote-kv-context';
 import Badge from '../Badge';
+import useChannelFavorites from 'src/hooks/useChannelFavorites';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
@@ -34,7 +34,7 @@ const ChannelHeader: FC<Props> = ({
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentConversationId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const channelId = currentChannel?.id || currentConversationId;
-  const { channelFavorites: { isFavorite, toggle: toggleFavorite } } = useRemoteKV();
+  const { isFavorite, toggle: toggleFavorite } = useChannelFavorites();
 
   const isChannelFavorited = useMemo(() => isFavorite(channelId), [isFavorite, channelId])
   const { openModal, setModalView } = useUI();

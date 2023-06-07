@@ -1,11 +1,12 @@
 import type { MessageStatus, MessageType, WithChildren } from 'src/types';
-import { FC, useContext, useEffect, useMemo } from 'react';
+import { FC, useContext, useEffect } from 'react';
 
 import { Dexie } from 'dexie';
 import { createContext, useCallback, useState } from 'react';
 
 import useLocalStorage from 'src/hooks/useLocalStorage';
-import { CHANNELS_STORAGE_TAG, DMS_DATABASE_NAME } from 'src/constants';
+import { DMS_DATABASE_NAME } from 'src/constants';
+import useStorageTag from 'src/hooks/useChannelsStorageTag';
 
 export type DBMessage = {
   id: number;
@@ -43,8 +44,7 @@ export const DBContext = createContext<DBContextType>({ initDb: () => {} } as un
 export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [db, setDb] = useState<Dexie>();
   const [dmDb, setDmDb] = useState<Dexie>();
-  const [storageTags] = useLocalStorage<string[]>(CHANNELS_STORAGE_TAG, []);
-  const storageTag = useMemo(() => storageTags?.[0], [storageTags]);
+  const { value: storageTag } = useStorageTag();
   const [dmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
   
   const initDb = useCallback((tag: string) => {
