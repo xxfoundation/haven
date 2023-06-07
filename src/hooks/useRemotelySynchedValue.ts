@@ -15,7 +15,6 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
   useEffect(() => {
     if (kv) {
       kv.listenOn(key, (v) => {
-        console.log('KV: Onchange for key', key, 'value:', v);
         setValue(v !== undefined ? decoder(v) : v);
       })
     }
@@ -25,8 +24,6 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
     if (kv) {
       setLoading(true);
       kv.get(key).then((v) => {
-
-        console.log('KV: Getting value for key', key, ', value:', v);
         setValue(v !== undefined ? decoder(v) : v);
       }).finally(() => {
         setLoading(false);
@@ -35,7 +32,6 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
   }, [decoder, key, kv]);
 
   const set = useCallback(async (v: T) => {
-    console.log('KV: setting value for key', key, 'value', v);
     let loadedKv = kv;
     if (!loadedKv) {
       const [awaitedKv] = await awaitEvent(AppEvents.REMOTE_KV_INITIALIZED) ?? [];

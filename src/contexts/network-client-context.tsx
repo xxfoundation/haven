@@ -8,7 +8,7 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import { bus, onMessagePinned, onMessageUnpinned, handleChannelEvent, ChannelEvents } from 'src/events';
+import { bus, onMessagePinned, onMessageUnpinned, handleChannelEvent, ChannelEvents, AppEvents } from 'src/events';
 
 import { decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
@@ -641,6 +641,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         );
 
       setChannelManager(loadedChannelsManager);
+      bus.emit(AppEvents.CHANNEL_MANAGER_LOADED);
     }
   }, [cipher, cmixId, utils]);
 
