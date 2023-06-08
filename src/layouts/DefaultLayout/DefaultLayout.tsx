@@ -83,7 +83,7 @@ const DefaultLayout: FC<WithChildren> = ({
 }) => {
   const accountSync = useAccountSync();
   const router = useRouter();
-  const { isAuthenticated, storageTag } = useAuthentication();
+  const { isAuthenticated } = useAuthentication();
   const {
     cmix,
     getShareUrlType,
@@ -100,7 +100,6 @@ const DefaultLayout: FC<WithChildren> = ({
       cmix &&
       networkStatus === NetworkStatus.CONNECTED &&
       isAuthenticated &&
-      storageTag &&
       window.location.search
     ) {
       setChannelInviteLink(window.location.href);
@@ -111,7 +110,6 @@ const DefaultLayout: FC<WithChildren> = ({
     cmix,
     isAuthenticated,
     networkStatus,
-    storageTag,
     getShareUrlType,
     setChannelInviteLink,
     setModalView,
