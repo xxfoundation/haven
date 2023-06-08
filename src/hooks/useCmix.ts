@@ -45,7 +45,7 @@ const useCmix = () => {
 
   const createDatabaseCipher = useCallback(
     (id: number, password: Uint8Array) => {
-      const cipher = utils.NewChannelsDatabaseCipher(
+      const cipher = utils.NewDatabaseCipher(
         id,
         password,
         MAXIMUM_PAYLOAD_BLOCK_SIZE

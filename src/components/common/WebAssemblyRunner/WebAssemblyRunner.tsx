@@ -67,11 +67,10 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             LoadNotifications,
             LoadNotificationsDummy,
             LoadSynchronizedCmix,
-            NewChannelsDatabaseCipher,
             NewChannelsManagerWithIndexedDb,
             NewCmix,
             NewDMClientWithIndexedDb,
-            NewDMsDatabaseCipher,
+            NewDatabaseCipher,
             NewDummyTrafficManager,
             NewSynchronizedCmix,
             Purge,
@@ -107,9 +106,8 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
             DecodePublicURL,
             GetChannelJSON,
             NewDMClientWithIndexedDb,
-            NewDMsDatabaseCipher,
+            NewDatabaseCipher,
             NewDummyTrafficManager,
-            NewChannelsDatabaseCipher,
             Purge,
             ValidForever
           });
