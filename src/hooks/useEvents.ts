@@ -1,4 +1,4 @@
-import type { AdminKeysUpdateEvent, DmTokenUpdateEvent, MessageDeletedEvent, MessagePinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
+import { AdminKeysUpdateEvent, ChannelStatus, ChannelUpdateEvent, MessageDeletedEvent, MessagePinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
 import { useEffect } from 'react';
 
 import * as channels from 'src/store/channels'
@@ -6,8 +6,10 @@ import * as messages from 'src/store/messages';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { AppEvents, ChannelEvents, bus } from 'src/events';
 import useNotification from './useNotification';
+import { useNetworkClient } from '@contexts/network-client-context';
 
 const useEvents = () => {
+  const { fetchChannels } = useNetworkClient();
   const currentChannels = useAppSelector(channels.selectors.channels);
   const { messagePinned } = useNotification();
   const dispatch = useAppDispatch();
@@ -88,14 +90,28 @@ const useEvents = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    const listener = (evt: DmTokenUpdateEvent) => {
-      dispatch(channels.actions.updateDmsEnabled({ channelId: evt.channelId, enabled: evt.tokenEnabled }))
+    const listener = (evt: ChannelUpdateEvent[]) => {
+      evt.forEach(async (e) => {
+        dispatch(channels.actions.updateDmsEnabled({
+          channelId: e.channelId,
+          enabled: e.tokenEnabled
+        }));
+
+        if ([ChannelStatus.SYNC_DELETED, ChannelStatus.SYNC_LOADED].includes(e.status)) {
+          channels.actions.leaveChannel(e.channelId);
+        }
+
+        if (e.status === ChannelStatus.SYNC_CREATED) {
+          fetchChannels();
+        }
+      });
+      
     }
 
-    bus.addListener(ChannelEvents.DM_TOKEN_UPDATE, listener);
+    bus.addListener(ChannelEvents.CHANNEL_UPDATE, listener);
 
-    return () => { bus.removeListener(ChannelEvents.DM_TOKEN_UPDATE, listener); }
-  }, [dispatch])
+    return () => { bus.removeListener(ChannelEvents.CHANNEL_UPDATE, listener); }
+  }, [dispatch, fetchChannels])
 }
 
 export default useEvents;

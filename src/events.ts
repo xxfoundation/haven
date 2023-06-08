@@ -1,8 +1,8 @@
 import type { TypedEventEmitter } from 'src/types/emitter';
-import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, AdminKeysUpdateEvent, DmTokenUpdateEvent } from 'src/types';
+import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, AdminKeysUpdateEvent, ChannelUpdateEvent } from 'src/types';
 import EventEmitter from 'events';
 import delay from 'delay';
-import { Decoder, adminKeysUpdateDecoder, dmTokenUpdateDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
+import { Decoder, adminKeysUpdateDecoder, channelUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
 import { AccountSyncService } from './hooks/useAccountSync';
 import { RemoteKVWrapper } from '@contexts/remote-kv-context';
 
@@ -25,7 +25,7 @@ export enum ChannelEvents {
   USER_MUTED = 4000,
   MESSAGE_DELETED = 5000,
   ADMIN_KEY_UPDATE = 6000,
-  DM_TOKEN_UPDATE = 7000
+  CHANNEL_UPDATE = 7000
 }
 
 export type ChannelEventMap = {
@@ -35,7 +35,7 @@ export type ChannelEventMap = {
   [ChannelEvents.MESSAGE_DELETED]: MessageDeletedEvent;
   [ChannelEvents.USER_MUTED]: UserMutedEvent;
   [ChannelEvents.ADMIN_KEY_UPDATE]: AdminKeysUpdateEvent;
-  [ChannelEvents.DM_TOKEN_UPDATE]: DmTokenUpdateEvent;
+  [ChannelEvents.CHANNEL_UPDATE]: ChannelUpdateEvent[];
 }
 
 type EventHandlers = {
@@ -58,7 +58,7 @@ const cmixDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]
   [ChannelEvents.MESSAGE_DELETED]: messageDeletedEventDecoder,
   [ChannelEvents.USER_MUTED]: userMutedEventDecoder,
   [ChannelEvents.NICKNAME_UPDATE]: nicknameUpdatedEventDecoder,
-  [ChannelEvents.DM_TOKEN_UPDATE]: dmTokenUpdateDecoder,
+  [ChannelEvents.CHANNEL_UPDATE]: channelUpdateEventDecoder,
   [ChannelEvents.ADMIN_KEY_UPDATE]: adminKeysUpdateDecoder
 }
 

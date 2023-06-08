@@ -27,7 +27,6 @@ import * as dms from 'src/store/dms';
 import { ChannelId, Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
-import useEvents from 'src/hooks/useEvents';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
 import { RemoteStore } from 'src/types/collective';
 import useChannelsStorageTag from 'src/hooks/useChannelsStorageTag';
@@ -167,6 +166,7 @@ export type NetworkContext = {
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
   remoteStore?: RemoteStore;
+  fetchChannels: () => Promise<Channel[]>;
 };
 
 export const NetworkClientContext = React.createContext<NetworkContext>({
@@ -195,7 +195,6 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
 
 export const NetworkProvider: FC<WithChildren> = props => {
   const { encryptedPassword, rawPassword } = useAuthentication();
-  useEvents();
   const pagination = usePagination();
   const dispatch = useAppDispatch();
   const db = useDb();
@@ -1266,7 +1265,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
     pinMessage,
     logout,
     upgradeAdmin,
-    remoteStore
+    remoteStore,
+    fetchChannels,
   }
 
   return (

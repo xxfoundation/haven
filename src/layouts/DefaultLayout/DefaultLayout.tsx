@@ -41,6 +41,7 @@ import UserInfoDrawer from '@components/common/UserInfoDrawer';
 import AccountSyncView from '@components/modals/AccountSync';
 import useAccountSync, { AccountSyncStatus } from 'src/hooks/useAccountSync';
 import { NetworkStatus } from 'src/hooks/useCmix';
+import useEvents from 'src/hooks/useEvents';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -81,6 +82,7 @@ const AuthenticatedUserModals: FC = () => {
 const DefaultLayout: FC<WithChildren> = ({
   children,
 }) => {
+  useEvents();
   const accountSync = useAccountSync();
   const router = useRouter();
   const { isAuthenticated } = useAuthentication();
@@ -123,7 +125,6 @@ const DefaultLayout: FC<WithChildren> = ({
       openModal()
     }
   }, [accountSync.status, isAuthenticated, networkStatus, openModal, setModalView]);
-
 
   useEffect(() => {
     const adjustActiveState = () => {

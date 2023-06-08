@@ -40,10 +40,18 @@ export type AdminKeysUpdateEvent = {
   channelId: string;
 }
 
-export type DmTokenUpdateEvent = {
-  channelId: string;
-  tokenEnabled: boolean;
+export enum ChannelStatus {
+  SYNC_CREATED = 0,
+  SYNC_UPDATED = 1,
+  SYNC_DELETED = 2,
+  SYNC_LOADED = 3
 }
+
+export type ChannelUpdateEvent = {
+  channelId: string;
+  status: ChannelStatus;
+  tokenEnabled: boolean;
+};
 
 export type AllowList = Partial<Record<MessageType, Record<string, unknown>>>;
 
