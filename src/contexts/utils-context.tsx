@@ -19,7 +19,7 @@ export enum PrivacyLevel {
 
 export type Cipher = {
   GetID: () => number;
-  Decrypt: (plaintext: Uint8Array) => Uint8Array;
+  Decrypt: (plaintext: string) => Uint8Array;
 }
 
 export type ChannelManagerCallbacks = {
