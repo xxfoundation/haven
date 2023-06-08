@@ -1,4 +1,4 @@
-import { AdminKeysUpdateEvent, AllowList, AllowLists, ChannelId, ChannelJSON, DmTokenUpdateEvent, IdentityJSON, IsReadyInfoJSON, MessageDeletedEvent, MessageReceivedEvent, NicknameUpdatedEvent, NotificationFilter, NotificationLevel, NotificationState, NotificationStatus, NotificationUpdateEvent, ShareURLJSON, UserMutedEvent, VersionJSON } from 'src/types';
+import { AdminKeysUpdateEvent, AllowList, AllowLists, ChannelId, ChannelJSON, ChannelStatus, ChannelUpdateEvent, IdentityJSON, IsReadyInfoJSON, MessageDeletedEvent, MessageReceivedEvent, NicknameUpdatedEvent, NotificationFilter, NotificationLevel, NotificationState, NotificationStatus, NotificationUpdateEvent, ShareURLJSON, UserMutedEvent, VersionJSON } from 'src/types';
 import { KVEntry } from 'src/types/collective';
 import { Err, JsonDecoder } from 'ts.data.json';
 import { decoder as uintDecoder } from './index';
@@ -219,14 +219,21 @@ export const adminKeysUpdateDecoder = makeDecoder(JsonDecoder.object<AdminKeysUp
   }
 ));
 
-export const dmTokenUpdateDecoder = makeDecoder(JsonDecoder.object<DmTokenUpdateEvent>(
-  {
-    channelId: JsonDecoder.string,
-    tokenEnabled: JsonDecoder.boolean
-  },
-  'DmTokenUpdateDecoder',
-  {
-    channelId: 'channelID',
-    tokenEnabled: 'sendToken'
-  }
-));
+export const channelStatusDecoder = JsonDecoder.enumeration<ChannelStatus>(ChannelStatus, 'ChannelStatusDecoder');
+
+export const channelUpdateEventDecoder = makeDecoder(
+  JsonDecoder.array<ChannelUpdateEvent>(
+    JsonDecoder.object<ChannelUpdateEvent>(
+      {
+        channelId: JsonDecoder.string,
+        status: channelStatusDecoder,
+        tokenEnabled: JsonDecoder.boolean
+      },
+      'ChannelUpdateDecoder',
+      {
+        channelId: 'channelID',
+        tokenEnabled: 'broadcastDMToken'
+      }
+    ),
+    'ChannelUpdateEventDecoder')
+);
