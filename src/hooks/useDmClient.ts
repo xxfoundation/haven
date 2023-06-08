@@ -130,7 +130,7 @@ const useDmClient = (
       setDatabaseCipher({
         id: cipher.GetID(),
         decrypt: (encrypted: string) => decoder.decode(
-          cipher.Decrypt(utils.Base64ToUint8Array(encrypted))
+          cipher.Decrypt(encrypted)
         ),
       })
     }
