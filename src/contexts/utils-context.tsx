@@ -83,7 +83,7 @@ export type XXDKUtils = {
     messageCallback: DMReceivedCallback,
     cipherId: number
   ) => Promise<DMClient>;
-  NewDMsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => Cipher
+  NewDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => Cipher
   LoadChannelsManagerWithIndexedDb: (
     cmixId: number,
     wasmJsPath: string,
@@ -111,7 +111,6 @@ export type XXDKUtils = {
     upperBoundIntervalBetweenCyclesMilliseconds: number
   ) => DummyTraffic;
   GetWasmSemanticVersion: () => Uint8Array;
-  NewChannelsDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => Cipher;
   Purge: (storageDirectory: string, userPassword: string) => void;
   ValidForever: () => number;
 }

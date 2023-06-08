@@ -121,7 +121,7 @@ const useDmClient = (
 
   useEffect(() => {
     if (cmixId !== undefined && encryptedInternalPassword) {
-      const cipher = utils.NewDMsDatabaseCipher(
+      const cipher = utils.NewDatabaseCipher(
         cmixId,
         encryptedInternalPassword,
         MAXIMUM_PAYLOAD_BLOCK_SIZE
