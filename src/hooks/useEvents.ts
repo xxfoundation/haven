@@ -91,7 +91,6 @@ const useEvents = () => {
 
   useEffect(() => {
     const listener = (evt: ChannelUpdateEvent[]) => {
-      console.log('CHANNEL EVENT', evt);
       evt.forEach(async (e) => {
         dispatch(channels.actions.updateDmsEnabled({
           channelId: e.channelId,
