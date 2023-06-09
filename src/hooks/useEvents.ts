@@ -91,13 +91,14 @@ const useEvents = () => {
 
   useEffect(() => {
     const listener = (evt: ChannelUpdateEvent[]) => {
+      console.log('CHANNEL EVENT', evt);
       evt.forEach(async (e) => {
         dispatch(channels.actions.updateDmsEnabled({
           channelId: e.channelId,
           enabled: e.tokenEnabled
         }));
 
-        if ([ChannelStatus.SYNC_DELETED, ChannelStatus.SYNC_LOADED].includes(e.status)) {
+        if ([ChannelStatus.SYNC_DELETED].includes(e.status)) {
           channels.actions.leaveChannel(e.channelId);
         }
 
@@ -105,7 +106,6 @@ const useEvents = () => {
           fetchChannels();
         }
       });
-      
     }
 
     bus.addListener(ChannelEvents.CHANNEL_UPDATE, listener);
