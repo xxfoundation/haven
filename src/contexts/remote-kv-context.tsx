@@ -49,7 +49,7 @@ export class RemoteKVWrapper {
       {
         Callback: (_k, _old, v, operationType) => {
           const entry = kvEntryDecoder(v);
-          const converted = Buffer.from(entry.data, 'base64').toString();
+          const converted = entry ? Buffer.from(entry.data, 'base64').toString() : undefined;
           onChange(
             operationType === OperationType.Deleted
               ? undefined
