@@ -1140,7 +1140,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     if (utils && utils.Purge) {
       try {
         disconnect();
-        utils.Purge(STATE_PATH, password);
+        utils.Purge(password);
         window.localStorage.clear();
         Cookies.remove('userAuthenticated', { path: '/' });
         setIsAuthenticated(false);
