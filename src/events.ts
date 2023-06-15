@@ -1,5 +1,5 @@
 import type { TypedEventEmitter } from 'src/types/emitter';
-import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, AdminKeysUpdateEvent, ChannelUpdateEvent, DMNotificationsUpdateEvent, DMNotificationLevelState } from 'src/types';
+import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, AdminKeysUpdateEvent, ChannelUpdateEvent, DMNotificationsUpdateEvent } from 'src/types';
 import EventEmitter from 'events';
 import delay from 'delay';
 import { Decoder, adminKeysUpdateDecoder, channelUpdateEventDecoder, dmNotificationsUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
