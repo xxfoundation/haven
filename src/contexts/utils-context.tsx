@@ -1,4 +1,4 @@
-import type { CMix, DMNotificationLevelState, DummyTraffic, WithChildren } from '@types';
+import type { CMix, DummyTraffic, WithChildren } from '@types';
 import type { ChannelManager } from './network-client-context';
 import type { DMClient } from 'src/types';
 
@@ -29,8 +29,8 @@ export type ChannelManagerCallbacks = {
 export type DmNotificationUpdateCallback = {
   Callback: (
     notificationFilter: unknown, // parameter only for mobile, for now
-    changedLevelStates: DMNotificationLevelState[],
-    deletedLevelStates: string[]
+    changedLevelStates: Uint8Array,
+    deletedLevelStates: Uint8Array
   ) => void;
 }
 
