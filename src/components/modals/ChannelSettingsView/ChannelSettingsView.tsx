@@ -58,13 +58,14 @@ const ChannelSettingsView: FC = () => {
 
   const changeNotificationStatus = useCallback((status: NotificationStatus) => {
     if (currentChannel?.id) {
+      const level = status === NotificationStatus.Mute ? NotificationLevel.NotifyNone : (notificationLevel || NotificationLevel.NotifyNone);
       channelManager?.SetMobileNotificationsLevel(
         utils.Base64ToUint8Array(currentChannel?.id),
-        notificationLevel || NotificationLevel.NotifyPing,
+        level,
         status,
       )
     }
-  }, [channelManager, currentChannel?.id, notificationLevel, utils]);
+  }, [channelManager, currentChannel?.id, utils, notificationLevel]);
 
   const onNotificationStatusChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
     const status = notificationStatusDecoder.decode(parseInt(evt.target.value, 10));
