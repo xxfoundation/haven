@@ -121,7 +121,7 @@ export type XXDKUtils = {
     upperBoundIntervalBetweenCyclesMilliseconds: number
   ) => DummyTraffic;
   GetWasmSemanticVersion: () => Uint8Array;
-  Purge: (storageDirectory: string, userPassword: string) => void;
+  Purge: (userPassword: string) => void;
   ValidForever: () => number;
 }
 
