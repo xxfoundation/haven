@@ -20,7 +20,9 @@ export class RemoteKVWrapper {
     try {
       const fetchedEntry = await this.kv.Get(key, KV_VERSION);
       const entry = kvEntryDecoder(fetchedEntry);
-      value = Buffer.from(entry.data, 'base64').toString();
+      if (entry) {
+        value = Buffer.from(entry.data, 'base64').toString();
+      }
     } catch (e) {
       console.warn(`Could not find ${key} in remote kv, returning undefined. Remote kv returned ${(e as Error).message}`);
     }
@@ -28,7 +30,11 @@ export class RemoteKVWrapper {
   }
 
   set(key: string, data: string) {
-    const entry = { Version: KV_VERSION, Data: Buffer.from(data).toString('base64'), Timestamp: new Date().toISOString() }
+    const entry = {
+      Version: KV_VERSION,
+      Data: Buffer.from(data).toString('base64'),
+      Timestamp: new Date().toISOString()
+    };
     return this.kv.Set(key, encoder.encode(JSON.stringify(entry)));
   }
 
@@ -52,6 +58,10 @@ export class RemoteKVWrapper {
         }
       }
     );
+  }
+
+  unregisterListener(key: string, id: number) {
+    return this.kv.DeleteRemoteKeyListener(key, id);
   }
 }
 

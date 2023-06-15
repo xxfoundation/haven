@@ -5,7 +5,6 @@ import assert from 'assert';
 
 import { useRemoteKV } from 'src/contexts/remote-kv-context';
 import { JsonDecoder } from 'ts.data.json';
-import { AppEvents, awaitEvent } from 'src/events';
 
 const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultValue?: T) => {
   const [value, setValue] = useState<T | undefined>(defaultValue);
@@ -14,9 +13,11 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
   
   useEffect(() => {
     if (kv) {
-      kv.listenOn(key, (v) => {
+      const id = kv.listenOn(key, (v) => {
         setValue(v !== undefined ? decoder(v) : v);
-      })
+      });
+
+      return () => { kv.unregisterListener(key, id); }
     }
   }, [decoder, key, kv]);
 
@@ -32,13 +33,8 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
   }, [decoder, key, kv]);
 
   const set = useCallback(async (v: T) => {
-    let loadedKv = kv;
-    if (!loadedKv) {
-      const [awaitedKv] = await awaitEvent(AppEvents.REMOTE_KV_INITIALIZED) ?? [];
-      loadedKv = awaitedKv;
-    }
-    assert(loadedKv, `Attempted to set value on key ${key} but the store wasn't initialized`);
-    await loadedKv.set(key, JSON.stringify(v));
+    assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);
+    await kv.set(key, JSON.stringify(v));
   }, [key, kv])
 
   return {

@@ -5,7 +5,7 @@ import { useUtils, XXDKContext } from '@contexts/utils-context';
 import { useEffect, useMemo, useState } from 'react';
 import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_DATABASE_NAME as DMS_DATABASE_NAME } from 'src/constants';
 import { decoder } from '@utils/index';
-import { onDmReceived, AppEvents, bus } from 'src/events';
+import { onDmReceived, AppEvents, bus, onDmNotificationUpdate } from 'src/events';
 import { useDb } from '@contexts/db-context';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as dms from 'src/store/dms';
@@ -139,17 +139,27 @@ const useDmClient = (
   useEffect(() => {
     if (!databaseCipher || cmixId === undefined || !privateIdentity || client) { return; }
     try {
+      const notifications = utils.LoadNotificationsDummy(cmixId);
       NewDMClientWithIndexedDb(
         cmixId,
+        notifications.GetID(),
+        databaseCipher.id,
         DMS_WORKER_JS_PATH,
         privateIdentity,
         onDmReceived,
-        databaseCipher.id
+        { Callback: onDmNotificationUpdate }
       ).then(setClient);
     } catch (e) {
       console.error('Failed to create DM client:', e);
     }
-  }, [client, NewDMClientWithIndexedDb, cmixId, databaseCipher, privateIdentity])
+  }, [
+    client,
+    NewDMClientWithIndexedDb,
+    cmixId,
+    databaseCipher,
+    privateIdentity,
+    utils,
+  ]);
 
   useEffect(() => {
     if (dmsDb && conversationMapper) {

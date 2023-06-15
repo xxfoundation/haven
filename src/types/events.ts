@@ -60,13 +60,6 @@ export type AllowLists = {
   allowWithoutTags: AllowList;
 }
 
-export type NotificationFilter = {
-  id: string;
-  channelId: string;
-  tags: string[];
-  allowLists: AllowLists;
-}
-
 export enum NotificationLevel {
   NotifyNone = 10,
   NotifyPing = 20,
@@ -86,8 +79,17 @@ export type NotificationState = {
 }
 
 export type NotificationUpdateEvent = {
-  notificationFilters?: NotificationFilter[];
   changedNotificationStates: NotificationState[];
   deletedNotificationStates: ChannelId[] | null;
   maxState: number;
+}
+
+export type DMNotificationLevelState = {
+  pubkey: string;
+  level: NotificationLevel
+}
+
+export type DMNotificationsUpdateEvent = {
+  changedNotificationStates: DMNotificationLevelState[];
+  deletedNotificationStates: string[];
 }
