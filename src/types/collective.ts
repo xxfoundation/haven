@@ -29,7 +29,8 @@ export type RemoteKV = {
   Get: (key: string, version: number) => Promise<Uint8Array>;
   Delete: (key: string, version: number) => Promise<void>;
   Set: (key: string, encodedKVMapEntry: Uint8Array) => Promise<void>;
-  ListenOnRemoteKey: (key: string, version: number, onChange: KeyChangedByRemoteCallback) => Promise<void>
+  ListenOnRemoteKey: (key: string, version: number, onChange: KeyChangedByRemoteCallback) => number;
+  DeleteRemoteKeyListener: (key: string, id: number) => void;
 }
 
 export interface RemoteStoreServiceWrapper {

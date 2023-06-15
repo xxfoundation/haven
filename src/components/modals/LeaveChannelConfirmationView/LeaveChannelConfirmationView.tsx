@@ -24,12 +24,12 @@ const LeaveChannelConfirmationView: FC = () => {
     <div
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
-      <span className='text font-bold mt-9 mb-4'>
+      <h2 className='text-center leading-8 font-bold mt-9 mb-4'>
         {t(
           'Are you sure you want to leave {{channelName}} Speakeasy?',
           { channelName: currentChannel?.name }
         )}
-      </span>
+      </h2>
 
       <div className='flex'>
         <SecondaryButton

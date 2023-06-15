@@ -97,8 +97,8 @@ const useEvents = () => {
           enabled: e.tokenEnabled
         }));
 
-        if ([ChannelStatus.SYNC_DELETED].includes(e.status)) {
-          channels.actions.leaveChannel(e.channelId);
+        if (e.status === ChannelStatus.SYNC_DELETED) {
+          dispatch(channels.actions.leaveChannel(e.channelId));
         }
 
         if (e.status === ChannelStatus.SYNC_CREATED) {

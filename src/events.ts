@@ -1,10 +1,12 @@
 import type { TypedEventEmitter } from 'src/types/emitter';
-import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, AdminKeysUpdateEvent, ChannelUpdateEvent } from 'src/types';
+import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, AdminKeysUpdateEvent, ChannelUpdateEvent, DMNotificationsUpdateEvent, DMNotificationLevelState } from 'src/types';
 import EventEmitter from 'events';
 import delay from 'delay';
-import { Decoder, adminKeysUpdateDecoder, channelUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
+import { Decoder, adminKeysUpdateDecoder, channelUpdateEventDecoder, dmNotificationsUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
 import { AccountSyncService } from './hooks/useAccountSync';
 import { RemoteKVWrapper } from '@contexts/remote-kv-context';
+import { DmNotificationUpdateCallback } from '@contexts/utils-context';
+import { decoder } from './utils';
 
 export enum AppEvents {
   MESSAGE_PINNED = 'pinned',
@@ -15,7 +17,8 @@ export enum AppEvents {
   CHANNEL_MANAGER_LOADED = 'channel-manager-loaded',
   REMOTE_STORE_INITIALIZED = 'remote-store-initialized',
   CMIX_SYNCED = 'cmix-synced',
-  REMOTE_KV_INITIALIZED = 'remote-kv-initialized'
+  REMOTE_KV_INITIALIZED = 'remote-kv-initialized',
+  DM_NOTIFICATION_UPDATE = 'dm-notifications-update',
 }
 
 export enum ChannelEvents {
@@ -50,21 +53,22 @@ type EventHandlers = {
   [AppEvents.CMIX_SYNCED]: (service: AccountSyncService) => void;
   [AppEvents.REMOTE_KV_INITIALIZED]: (kv: RemoteKVWrapper) => void;
   [AppEvents.CHANNEL_MANAGER_LOADED]: () => void;
+  [AppEvents.DM_NOTIFICATION_UPDATE]: (event: DMNotificationsUpdateEvent) => void;
 }
 
-const cmixDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]> } = {
+const channelsEventDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]> } = {
   [ChannelEvents.MESSAGE_RECEIVED]: messageReceivedEventDecoder,
   [ChannelEvents.NOTIFICATION_UPDATE]: notificationUpdateEventDecoder,
   [ChannelEvents.MESSAGE_DELETED]: messageDeletedEventDecoder,
   [ChannelEvents.USER_MUTED]: userMutedEventDecoder,
   [ChannelEvents.NICKNAME_UPDATE]: nicknameUpdatedEventDecoder,
   [ChannelEvents.CHANNEL_UPDATE]: channelUpdateEventDecoder,
-  [ChannelEvents.ADMIN_KEY_UPDATE]: adminKeysUpdateDecoder
+  [ChannelEvents.ADMIN_KEY_UPDATE]: adminKeysUpdateDecoder,
 }
 
 export const bus = new EventEmitter() as TypedEventEmitter<EventHandlers>;
 
-export type ChannelEventHandler = (eventType: ChannelEvents, data: unknown) => void;
+export type EventHandler = (eventType: ChannelEvents, data: unknown) => void;
 
 export const onMessagePinned = (message: Message) => {
   bus.emit(AppEvents.MESSAGE_PINNED, message);
@@ -85,13 +89,25 @@ export const onDmReceived: DMReceivedCallback = (uuid, pubkey, update, updateCon
   });
 }
 
-export const handleChannelEvent: ChannelEventHandler = (eventType, data) => {
-  const decoder = cmixDecoderMap[eventType];
-  if (!decoder) {
+export const onDmNotificationUpdate: DmNotificationUpdateCallback['Callback'] = (_filter, changedLevels, deletedLevels) => {
+  const event: DMNotificationsUpdateEvent = {
+    changedNotificationStates: JSON.parse(decoder.decode(changedLevels)),
+    deletedNotificationStates: JSON.parse(decoder.decode(deletedLevels))
+  }
+
+  bus.emit(
+    AppEvents.DM_NOTIFICATION_UPDATE,
+    dmNotificationsUpdateEventDecoder(event)
+  )
+}
+
+export const handleChannelEvent: EventHandler = (eventType, data) => {
+  const eventDecoder = channelsEventDecoderMap[eventType];
+  if (!eventDecoder) {
     console.warn('Unhandled event:', eventType, data);
   } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    bus.emit(eventType, decoder(data) as any);
+    bus.emit(eventType, eventDecoder(data) as any);
   }
 }
 

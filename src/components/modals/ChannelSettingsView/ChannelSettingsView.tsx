@@ -81,7 +81,8 @@ const ChannelSettingsView: FC = () => {
         className={cn(s.root, 'w-full flex flex-col justify-center items-center')}
       >
         <h2 className='mt-9 mb-8'>
-          {t('Channel Settings')}</h2>
+          {t('Channel Settings')}
+        </h2>
         <div className={s.wrapper}>
           <div>
             <h3 className='headline--sm'>

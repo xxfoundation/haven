@@ -1,4 +1,4 @@
-import type { CMix, DummyTraffic, WithChildren } from '@types';
+import type { CMix, DMNotificationLevelState, DummyTraffic, WithChildren } from '@types';
 import type { ChannelManager } from './network-client-context';
 import type { DMClient } from 'src/types';
 
@@ -7,7 +7,7 @@ import { decoder } from '@utils/index';
 import Loading from '@components/modals/LoadingView';
 import { identityDecoder } from '@utils/decoders';
 import { RemoteStore } from 'src/types/collective';
-import { ChannelEventHandler, DMReceivedCallback } from 'src/events';
+import { EventHandler, DMReceivedCallback } from 'src/events';
 import { WebAssemblyRunner } from '@components/common';
 import { useTranslation } from 'react-i18next';
 
@@ -23,7 +23,15 @@ export type Cipher = {
 }
 
 export type ChannelManagerCallbacks = {
-  EventUpdate: ChannelEventHandler;
+  EventUpdate: EventHandler;
+}
+
+export type DmNotificationUpdateCallback = {
+  Callback: (
+    notificationFilter: unknown, // parameter only for mobile, for now
+    changedLevelStates: DMNotificationLevelState[],
+    deletedLevelStates: string[]
+  ) => void;
 }
 
 export type Notifications = {
@@ -78,10 +86,12 @@ export type XXDKUtils = {
   ) => Promise<ChannelManager>;
   NewDMClientWithIndexedDb: (
     cmixId: number,
+    notificationsId: number,
+    cipherId: number,
     wasmJsPath: string,
     privateIdentity: Uint8Array,
     messageCallback: DMReceivedCallback,
-    cipherId: number
+    dmNotificationUpdateCallback: DmNotificationUpdateCallback
   ) => Promise<DMClient>;
   NewDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => Cipher
   LoadChannelsManagerWithIndexedDb: (
