@@ -1,10 +1,11 @@
 import { WithChildren } from '@types';
 
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { STATE_PATH } from '../constants';
 import { useUtils } from 'src/contexts/utils-context';
 import { v4 as uuid } from 'uuid';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
+import useLocalStorage from 'src/hooks/useLocalStorage';
+import { AppEvents, bus } from 'src/events';
 
 type AuthenticationContextType = {
   setSyncLoginService: (service: AccountSyncService) => void;
@@ -25,10 +26,6 @@ export const AuthenticationContext = React.createContext<AuthenticationContextTy
 
 AuthenticationContext.displayName = 'AuthenticationContext';
 
-const statePathExists = () => {
-  return localStorage && localStorage.getItem(STATE_PATH) !== null;
-};
-
 export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const instanceId = useMemo(() => uuid(), []);
@@ -41,6 +38,10 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     setStatus: setAccountSyncStatus,
     status: accountSyncStatus
   } = useAccountSync();
+  const [
+    cmixPreviouslyInitialized,
+    setCmixWasPreviouslyInitialized
+  ] = useLocalStorage('cmixPreviouslyInitialized', false);
 
   const setSyncLoginService = useCallback((service: AccountSyncService) => {
     setAccountSyncService(service);
@@ -82,14 +83,24 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     }
   }, [authChannel, isAuthenticated, instanceId]);
 
-  const cmixPreviouslyInitialized = statePathExists();
+  useEffect(() => {
+    const listener = () => {
+      setCmixWasPreviouslyInitialized(true);
+    }
+    
+    bus.addListener(AppEvents.CHANNEL_MANAGER_LOADED, listener);
+
+    return () => {
+      bus.removeListener(AppEvents.CHANNEL_MANAGER_LOADED, listener);
+    }
+  }, [setCmixWasPreviouslyInitialized])
 
   return (
     <AuthenticationContext.Provider
       value={{
         setSyncLoginService,
         cancelSyncLogin,
-        cmixPreviouslyInitialized,
+        cmixPreviouslyInitialized: !!cmixPreviouslyInitialized,
         encryptedPassword,
         attemptingSyncedLogin: !cmixPreviouslyInitialized && accountSyncStatus === AccountSyncStatus.Synced,
         getOrInitPassword,

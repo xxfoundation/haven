@@ -1,19 +1,18 @@
 import { RootState } from 'src/store/types';
 import { createSelector } from '@reduxjs/toolkit';
-import { channelFavorites, channelsSearch } from '../app/selectors';
+import { channelsSearch } from '../app/selectors';
 import { sortBy } from 'lodash';
 import { ChannelId } from './types';
 
 export const channels = (state: RootState) => state.channels.sortedChannels;
 
-export const searchFilteredChannels = createSelector(
+export const searchFilteredChannels = (favorites: string[]) => createSelector(
   channels,
   channelsSearch,
-  channelFavorites,
-  (allChannels, search, favorites) => {
+  (allChannels, search) => {
     const filteredChannels = allChannels.filter(
       (c) => c.name.toLocaleLowerCase().includes(search.toLocaleLowerCase())
-    )
+    );
 
     return sortBy(filteredChannels, (c) => favorites.includes(c.id) ? 0 : 1);
   }
