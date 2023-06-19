@@ -96,6 +96,7 @@ export type ChannelManager = {
   ) => Promise<Uint8Array>;
   IsChannelAdmin: (channelId: Uint8Array) => boolean;
   GetNotificationLevel: (channelId: Uint8Array) => NotificationLevel;
+  GetNotificationStatus: (channelId: Uint8Array) => NotificationStatus;
   SetMobileNotificationsLevel: (channelId: Uint8Array, notificationLevel: NotificationLevel, notificationStatus: NotificationStatus) => void;
   GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => Promise<string>;
   GetStorageTag: () => string | undefined;
@@ -554,14 +555,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       fetchReactions();
     }
   }, [currentChannel?.id, fetchPinnedMessages, fetchReactions]);
-
-  useEffect(() => {
-    if (currentChannel?.id && channelManager) {
-      // const encodedChannelId = utils.Base64ToUint8Array(currentChannel.id);
-      // const level = channelManager.GetNotificationLevel(encodedChannelId);
-      // dispatch(channels.actions.updateNotificationLevel({ channelId: currentChannel.id, level }));
-    }
-  }, [channelManager, currentChannel, dispatch, utils]);
 
   const loadChannelManager = useCallback(async (tag: string) => {
     if (

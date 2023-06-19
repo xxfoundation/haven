@@ -105,8 +105,9 @@ export const onDmNotificationUpdate: DmNotificationUpdateCallback['Callback'] = 
 
 export const handleChannelEvent: EventHandler = (eventType, data) => {
   const eventDecoder = channelsEventDecoderMap[eventType];
+
   if (!eventDecoder) {
-    console.warn('Unhandled event:', eventType, data);
+    console.error('Unhandled event:', eventType, data);
   } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     bus.emit(eventType, eventDecoder(data) as any);

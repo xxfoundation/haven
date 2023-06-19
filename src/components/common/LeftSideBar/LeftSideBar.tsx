@@ -33,7 +33,7 @@ type ChannelListItemProps = {
 }
 
 const ChannelListItem: FC<ChannelListItemProps> = ({ currentId, hasDraft, id, isFavorite, name, notification, onClick }) => {
-  return(
+  return (
     <div className='flex justify-between items-center' key={id}>
       <span
         className={cn(s.channelPill, 'headline--xs flex justify-between items-center', {
