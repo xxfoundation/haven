@@ -79,7 +79,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
   const currentId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const channelsSearch = useAppSelector(app.selectors.channelsSearch);
   const drafts = useAppSelector((state) => state.app.messageDraftsByChannelId);
-  const allChannels = useAppSelector(channels.selectors.searchFilteredChannels);
+  const allChannels = useAppSelector(channels.selectors.searchFilteredChannels(favorites));
   const missedMessages = useAppSelector(app.selectors.missedMessages);
   const allConversations = useAppSelector(dms.selectors.searchFilteredConversations(favorites));
   const messageableContributors = useAppSelector(msgs.selectors.messageableContributors);
