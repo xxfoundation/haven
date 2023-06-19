@@ -21,6 +21,7 @@ import { useUtils } from '@contexts/utils-context';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComment, faCommentSlash } from '@fortawesome/free-solid-svg-icons';
 import { t } from 'i18next';
+import { AppEvents, awaitEvent } from 'src/events';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
@@ -119,9 +120,7 @@ const MessageActions: FC<Props> = ({
     if (loading) {
       setModalView('LOADING');
       openModal();
-      setTimeout(() => {
-        closeModal();
-      }, 5000)
+      awaitEvent(AppEvents.MESSAGE_UNPINNED).then(() => { closeModal(); });
     }
 
     return () => {  };

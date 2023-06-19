@@ -6,10 +6,12 @@ import { useTranslation } from 'react-i18next';
 import s from './Modal.module.scss';
 import { Close } from 'src/components/icons';
 import { useOnClickOutside } from 'usehooks-ts';
+import { Spinner } from '@components/common';
 
 type ModalProps = WithChildren & HTMLProps<HTMLDivElement> & {
   closeable?: boolean;
   className?: string;
+  loading?: boolean;
   onClose: () => void;
   onEnter?: () => void | null;
 }
@@ -18,6 +20,7 @@ const Modal: FC<ModalProps> = ({
   children,
   className = '',
   closeable = true,
+  loading = false,
   onClose,
   ...props
 }) => {
@@ -36,7 +39,9 @@ const Modal: FC<ModalProps> = ({
           aria-label={t('Close panel')}
           className={s.close}
         />)}
-        <div className='w-full'>{children}</div>
+        <div className='w-full'>
+          {loading ? <div className='my-24'><Spinner size='lg'/></div> : children}
+        </div>
       </div>
     </div>
   );

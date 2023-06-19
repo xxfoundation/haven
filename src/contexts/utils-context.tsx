@@ -4,7 +4,7 @@ import type { DMClient } from 'src/types';
 
 import React, { FC, useCallback, useState } from 'react';
 import { decoder } from '@utils/index';
-import Loading from '@components/modals/LoadingView';
+import Loading from 'src/components/views/LoadingView';
 import { identityDecoder } from '@utils/decoders';
 import { RemoteStore } from 'src/types/collective';
 import { EventHandler, DMReceivedCallback } from 'src/events';

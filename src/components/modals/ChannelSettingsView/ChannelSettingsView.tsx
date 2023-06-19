@@ -39,10 +39,12 @@ const ChannelSettingsView: FC = () => {
 
   const changeNotificationLevel = useCallback((level: NotificationLevel) => {
     if (currentChannel?.id) {
+      const status = notificationStatus || NotificationStatus.WhenOpen;
+
       channelManager?.SetMobileNotificationsLevel(
         utils.Base64ToUint8Array(currentChannel?.id),
         level,
-        notificationStatus || NotificationStatus.WhenOpen,
+        status,
       )
     }
   }, [channelManager, currentChannel?.id, notificationStatus, utils]);
@@ -59,6 +61,7 @@ const ChannelSettingsView: FC = () => {
   const changeNotificationStatus = useCallback((status: NotificationStatus) => {
     if (currentChannel?.id) {
       const level = status === NotificationStatus.Mute ? NotificationLevel.NotifyNone : (notificationLevel || NotificationLevel.NotifyNone);
+      
       channelManager?.SetMobileNotificationsLevel(
         utils.Base64ToUint8Array(currentChannel?.id),
         level,

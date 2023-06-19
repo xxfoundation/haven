@@ -15,7 +15,6 @@ import NotificationBanner from 'src/components/common/NotificationBanner';
 import {
   CreateChannelView,
   ClaimAdminKeys,
-  LoadingView,
   JoinChannelView,
   ShareChannelView,
   LeaveChannelConfirmationView,
@@ -30,6 +29,7 @@ import {
   ViewPinnedMessages,
   ExportAdminKeys
 } from 'src/components/modals';
+
 
 import s from './DefaultLayout.module.scss';
 import ViewMutedUsers from '@components/modals/ViewMutedUsers';
@@ -58,7 +58,7 @@ const AuthenticatedUserModals: FC = () => {
     CREATE_CHANNEL: <CreateChannelView />,
     JOIN_CHANNEL: <JoinChannelView />,
     LOGOUT: <LogoutView />,
-    LOADING: <LoadingView />,
+    LOADING: <></>,
     LEAVE_CHANNEL_CONFIRMATION: <LeaveChannelConfirmationView />,
     SET_NICK_NAME: <NickNameSetView />,
     CHANNEL_SETTINGS: <ChannelSettingsView />,
@@ -72,6 +72,7 @@ const AuthenticatedUserModals: FC = () => {
 
   return displayModal && modalView && modalView !== 'IMPORT_CODENAME' ? (
     <Modal
+      loading={modalView === 'LOADING'}
       closeable={closeableOverride}
       className={s[modalClass]} onClose={closeModal}>
       {modals[modalView]}

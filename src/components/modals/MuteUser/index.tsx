@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 import { PrimaryButton, SecondaryButton } from 'src/components/common';
 import Modal from 'src/components/modals';
-import Loading from '../LoadingView';
 
 import s from './MuteUser.module.scss';
 
@@ -27,44 +26,40 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
   }, [onConfirm]);
 
   return (
-    <Modal onClose={onCancel}>
+    <Modal loading={loading} onClose={onCancel}>
       <div
         className={cn('w-full flex flex-col justify-center items-center')}
       >
-        {loading ? <Loading /> : (
-          <>
-            <h2 className={cn('mt-9 mb-4')}>
-              {t('Warning')}
-            </h2>
-            <p className='mb-4'>
-              {t(`
-                Muting a user will revoke their ability to send messages.
-                They will, however, still be able to view messages.
-              `)}
-            </p>
-            <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
-              ** {t('Important to note that deleting messages cannot be undone.')} **
-            </p>
-            <div className={cn('mb-6', s.buttonGroup)}>
-              <PrimaryButton
-                style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)'  }}
-                onClick={handleConfirmation('mute+delete')}
-              >
-                {t('Mute and delete the last message')}
-              </PrimaryButton>
-              <PrimaryButton
-                onClick={handleConfirmation('mute')}
-              >
-                {t('Just Mute')}
-              </PrimaryButton>
-              <SecondaryButton
-                onClick={onCancel}
-              >
-                {t('Cancel')}
-              </SecondaryButton>
-            </div>
-          </>
-        )}
+        <h2 className={cn('mt-9 mb-4')}>
+          {t('Warning')}
+        </h2>
+        <p className='mb-4'>
+          {t(`
+            Muting a user will revoke their ability to send messages.
+            They will, however, still be able to view messages.
+          `)}
+        </p>
+        <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
+          ** {t('Important to note that deleting messages cannot be undone.')} **
+        </p>
+        <div className={cn('mb-6', s.buttonGroup)}>
+          <PrimaryButton
+            style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)'  }}
+            onClick={handleConfirmation('mute+delete')}
+          >
+            {t('Mute and delete the last message')}
+          </PrimaryButton>
+          <PrimaryButton
+            onClick={handleConfirmation('mute')}
+          >
+            {t('Just Mute')}
+          </PrimaryButton>
+          <SecondaryButton
+            onClick={onCancel}
+          >
+            {t('Cancel')}
+          </SecondaryButton>
+        </div>
       </div>
     </Modal>
   );
