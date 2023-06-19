@@ -1,4 +1,4 @@
-import { AdminKeysUpdateEvent, ChannelStatus, ChannelUpdateEvent, MessageDeletedEvent, MessagePinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
+import { AdminKeysUpdateEvent, ChannelStatus, ChannelUpdateEvent, MessageDeletedEvent, MessageStatus, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
 import { useEffect } from 'react';
 
 import * as channels from 'src/store/channels'
@@ -7,11 +7,12 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { AppEvents, ChannelEvents, bus } from 'src/events';
 import useNotification from './useNotification';
 import { useNetworkClient } from '@contexts/network-client-context';
+import { messagesByChannelId } from 'src/store/messages/selectors';
+import { Message } from 'src/types';
 
 const useEvents = () => {
   const { fetchChannels } = useNetworkClient();
-  const currentChannels = useAppSelector(channels.selectors.channels);
-  const { messagePinned } = useNotification();
+  const allMessagesByChannelId = useAppSelector(messagesByChannelId);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -36,18 +37,6 @@ const useEvents = () => {
 
     return () => { bus.removeListener(ChannelEvents.MESSAGE_DELETED, listener); }
   }, [dispatch]);
-
-  useEffect(() => {
-    const listener = ({ body, channelId }: MessagePinEvent) => {
-      const channelName = currentChannels.find((c) => c.id === channelId)?.name ?? 'unknown';
-      messagePinned(body, channelName);
-    };
-
-    bus.addListener(AppEvents.MESSAGE_PINNED, listener);
-
-    return () => { bus.removeListener(AppEvents.MESSAGE_PINNED, listener); }
-
-  }, [currentChannels, messagePinned]);
 
   useEffect(() => {
     const listener = (evt: UserMutedEvent) => {
@@ -82,6 +71,7 @@ const useEvents = () => {
         dispatch(channels.actions.updateNotificationLevel({ channelId }));
         dispatch(channels.actions.updateNotificationStatus({ channelId }));
       });
+
     }
 
     bus.addListener(ChannelEvents.NOTIFICATION_UPDATE, listener);
@@ -110,7 +100,45 @@ const useEvents = () => {
     bus.addListener(ChannelEvents.CHANNEL_UPDATE, listener);
 
     return () => { bus.removeListener(ChannelEvents.CHANNEL_UPDATE, listener); }
-  }, [dispatch, fetchChannels])
+  }, [dispatch, fetchChannels]);
+
+  useEffect(() => {
+    const emitPinEvents = async (message: Message, oldMessage?: Message) => {
+      if (!oldMessage || oldMessage.status !== MessageStatus.Delivered) {
+        return;
+      }
+
+      try {
+        if (!oldMessage?.pinned && message?.pinned) {
+          bus.emit(AppEvents.MESSAGE_PINNED, message);
+        }
+  
+        if (oldMessage?.pinned && !message.pinned) {
+          bus.emit(AppEvents.MESSAGE_UNPINNED, message);
+        }
+      } catch (e) {
+        console.error('Error awaiting message processing for pin notification', e);
+      }
+    }
+
+    bus.addListener(AppEvents.MESSAGE_PROCESSED, emitPinEvents);
+
+    return () => { bus.removeListener(AppEvents.MESSAGE_PROCESSED, emitPinEvents); }
+  }, [allMessagesByChannelId]);
+
+  const { notifyMentions, notifyPinned, notifyReplies } = useNotification();
+
+  useEffect(() => {
+    bus.addListener(AppEvents.MESSAGE_PROCESSED, notifyMentions);
+    bus.addListener(AppEvents.MESSAGE_PROCESSED, notifyReplies);
+    bus.addListener(AppEvents.MESSAGE_PINNED, notifyPinned);
+
+    return () => {
+      bus.removeListener(AppEvents.MESSAGE_PROCESSED, notifyMentions);
+      bus.removeListener(AppEvents.MESSAGE_PROCESSED, notifyReplies);
+      bus.removeListener(AppEvents.MESSAGE_PINNED, notifyPinned);
+    };
+  }, [notifyMentions, notifyPinned, notifyReplies])
 }
 
 export default useEvents;

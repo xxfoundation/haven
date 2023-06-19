@@ -19,6 +19,7 @@ export enum AppEvents {
   CMIX_SYNCED = 'cmix-synced',
   REMOTE_KV_INITIALIZED = 'remote-kv-initialized',
   DM_NOTIFICATION_UPDATE = 'dm-notifications-update',
+  MESSAGE_PROCESSED = 'message-processed'
 }
 
 export enum ChannelEvents {
@@ -54,6 +55,7 @@ type EventHandlers = {
   [AppEvents.REMOTE_KV_INITIALIZED]: (kv: RemoteKVWrapper) => void;
   [AppEvents.CHANNEL_MANAGER_LOADED]: () => void;
   [AppEvents.DM_NOTIFICATION_UPDATE]: (event: DMNotificationsUpdateEvent) => void;
+  [AppEvents.MESSAGE_PROCESSED]: (message: Message, oldMessage?: Message) => void;
 }
 
 const channelsEventDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]> } = {
@@ -111,15 +113,21 @@ export const handleChannelEvent: EventHandler = (eventType, data) => {
   }
 }
 
-
-export const awaitEvent = async <E extends keyof EventHandlers>(evt: E, timeout = 10000): Promise<Parameters<EventHandlers[E]> | undefined> => {
+export const awaitEvent = async <E extends keyof EventHandlers>(
+  evt: E,
+  predicate: (...params: Parameters<EventHandlers[E]>) => boolean = () => true,
+  timeout = 10000
+): Promise<Parameters<EventHandlers[E]> | undefined> => {
   let listener: EventHandlers[E];
   let resolved = false;
   const promise = new Promise<Parameters<EventHandlers[E]>>((resolve) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     listener = (...args: any) => {
-      resolved = true;
-      resolve(args);
+      const result = predicate(...args);
+      if (result) {
+        resolved = true;
+        resolve(args);
+      }
     };
     bus.addListener(evt, listener);
   });

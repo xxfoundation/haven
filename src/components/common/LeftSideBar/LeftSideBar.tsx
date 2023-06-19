@@ -225,7 +225,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
                       textOverflow: 'ellipsis',
                       color: 'var(--text-muted)'
                     }}>
-                    <Identity {...c} />
+                    <Identity disableMuteStyles  {...c} />
                   </button>
                 ))}
               </div>
@@ -240,7 +240,7 @@ const LeftSideBar: FC<{ cssClasses?: string; }> = ({ cssClasses }) => {
               currentId={currentId}
               isFavorite={favorites.includes(c.pubkey)}
               onClick={selectChannel(c.pubkey)}
-              name={<Identity {...c} />}
+              name={<Identity disableMuteStyles {...c} />}
               notification={!!missedMessages[c.pubkey]}
               hasDraft={!!drafts[c.pubkey]}
             />

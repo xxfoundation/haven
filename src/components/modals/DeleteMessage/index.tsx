@@ -6,7 +6,6 @@ import { useCallback, useState } from 'react';
 
 import { PrimaryButton, SecondaryButton } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
-import { LoadingView } from '..';
 
 import s from './DeleteMessage.module.scss';
 
@@ -27,32 +26,28 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
   }, [onConfirm]);
 
   return (
-    <Modal onClose={onCancel}>
+    <Modal loading={loading} onClose={onCancel}>
       <div
         className={cn('w-full flex flex-col justify-center items-center')}
       >
-        {loading ? <LoadingView /> : (
-          <>
-            <h2 className={cn('mt-9 mb-4')}>
-              {t('Warning')}
-            </h2>
-            <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
-              ** {t('Important to note that deleting messages cannot be undone.')} **
-            </p>
-            <div className={cn('mb-6', s.buttonGroup)}>
-              <PrimaryButton
-                onClick={handleConfirmation}
-              >
-                {t('Delete')}
-              </PrimaryButton>
-              <SecondaryButton
-                onClick={onCancel}
-              >
-                {t('Cancel')}
-              </SecondaryButton>
-            </div>
-          </>
-        )}
+        <h2 className={cn('mt-9 mb-4')}>
+          {t('Warning')}
+        </h2>
+        <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
+          ** {t('Important to note that deleting messages cannot be undone.')} **
+        </p>
+        <div className={cn('mb-6', s.buttonGroup)}>
+          <PrimaryButton
+            onClick={handleConfirmation}
+          >
+            {t('Delete')}
+          </PrimaryButton>
+          <SecondaryButton
+            onClick={onCancel}
+          >
+            {t('Cancel')}
+          </SecondaryButton>
+        </div>
       </div>
     </Modal>
   );
