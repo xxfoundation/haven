@@ -16,16 +16,16 @@ const useEvents = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    const handler = (e: NicknameUpdatedEvent) => {
+    const nicknameUpdateHandler = (e: NicknameUpdatedEvent) => {
       dispatch(channels.actions.updateNickname({
         channelId: e.channelId,
         nickname: e.exists ? e.nickname : undefined
       }));
     }
 
-    bus.addListener(ChannelEvents.NICKNAME_UPDATE, handler);
+    bus.addListener(ChannelEvents.NICKNAME_UPDATE, nicknameUpdateHandler);
 
-    return () => { bus.removeListener(ChannelEvents.NICKNAME_UPDATE, handler)};
+    return () => { bus.removeListener(ChannelEvents.NICKNAME_UPDATE, nicknameUpdateHandler)};
   }, [dispatch]);
 
   useEffect(() => {
@@ -71,7 +71,6 @@ const useEvents = () => {
         dispatch(channels.actions.updateNotificationLevel({ channelId }));
         dispatch(channels.actions.updateNotificationStatus({ channelId }));
       });
-
     }
 
     bus.addListener(ChannelEvents.NOTIFICATION_UPDATE, listener);

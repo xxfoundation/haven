@@ -5,7 +5,7 @@ import useSound from 'use-sound';
 import { convert } from 'html-to-text';
 
 import { inflate } from '@utils/index';
-import { DBMessage, Message, MessageStatus, MessageType } from '@types';
+import { ChannelId, DBMessage, Message, MessageStatus, MessageType, NotificationLevel, NotificationStatus } from '@types';
 import { useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
 import { useUtils } from '@contexts/utils-context';
@@ -38,6 +38,8 @@ const useNotification = () => {
     }
   }, [isPermissionGranted, playNotification]);
   const allChannels = useAppSelector(channels.selectors.channels);
+  const notificationLevels = useAppSelector(channels.selectors.notificationLevels);
+  const notificationStatuses = useAppSelector(channels.selectors.notificationStatuses);
 
   const messageReplied = useCallback((username: string, message: string) => {
     notify(`${username} replied to you`, {
@@ -70,9 +72,16 @@ const useNotification = () => {
     notify(`${username} just sent you a direct message`, { icon, body: getText(message) });
   }, [notify]);
 
+  const isUserPingableOnThisChannel = useCallback((channelId: ChannelId) => {
+    const level = notificationLevels[channelId] ?? NotificationLevel.NotifyPing;
+    const status = notificationStatuses[channelId] ?? NotificationStatus.WhenOpen;
+    return level >= NotificationLevel.NotifyPing && status >= NotificationStatus.Mute;
+  }, [notificationLevels, notificationStatuses])
+
   const notifyMentions = useCallback((message: Message) => {
-    // Notify user if message mentions him/her/they/banana
-    if (message.status === MessageStatus.Delivered) {
+    const canNotify = isUserPingableOnThisChannel(message.channelId);
+
+    if (message.status === MessageStatus.Delivered && canNotify) {
       const inflatedText = inflate(message.body);
       const mentions = new DOMParser()
         .parseFromString(inflatedText, 'text/html')
@@ -92,7 +101,7 @@ const useNotification = () => {
         }
       }
     }
-  }, [getCodeNameAndColor, notifyMentioned, userIdentity?.pubkey]);
+  }, [getCodeNameAndColor, isUserPingableOnThisChannel, notifyMentioned, userIdentity?.pubkey]);
 
   const notifyReplies = useCallback(async (message: Message) => {
     if (
@@ -105,22 +114,27 @@ const useNotification = () => {
         .where('message_id')
         .equals(message?.repliedTo)
         .first();
-      if (replyingTo?.pubkey === userIdentity?.pubkey) {
-        const { codename } = getCodeNameAndColor(message.pubkey, message.codeset);
-        messageReplied(
-          message.nickname || codename,
-          message.body
-        )
+      if (replyingTo && replyingTo?.pubkey === userIdentity?.pubkey) {
+        const canNotify = isUserPingableOnThisChannel(replyingTo.channel_id);
+        if (canNotify) {
+          const { codename } = getCodeNameAndColor(message.pubkey, message.codeset);
+          messageReplied(
+            message.nickname || codename,
+            message.body
+          )
+        }
       }
     }
-  }, [db, getCodeNameAndColor, messageReplied, userIdentity?.pubkey]);
+  }, [db, getCodeNameAndColor, isUserPingableOnThisChannel, messageReplied, userIdentity?.pubkey]);
 
   const notifyPinned = useCallback((message: Message) => {
     const channel = allChannels.find((c) => c.id === message.channelId);
-    if (channel) {
+    const canNotify = isUserPingableOnThisChannel(message.channelId);
+
+    if (channel && canNotify) {
       messagePinned(message.body, channel.name);
     }
-  }, [allChannels, messagePinned]);
+  }, [allChannels, isUserPingableOnThisChannel, messagePinned]);
 
   return {
     isPermissionGranted,
@@ -128,8 +142,6 @@ const useNotification = () => {
     dmReceived,
     setPermissionIgnored,
     setIsPermissionGranted,
-    notifyMentioned,
-    messageReplied,
     close,
     request,
     notifyPinned,
