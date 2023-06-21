@@ -25,8 +25,8 @@ const ExportCodenameView: FC = () => {
   const [step, { next, reset }] = useStep(3);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const checkPassword = useCallback(() => {
-    if (getOrInitPassword(password)) {
+  const checkPassword = useCallback(async () => {
+    if (await getOrInitPassword(password)) {
       setError('');
       next();
     } else {

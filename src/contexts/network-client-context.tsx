@@ -161,7 +161,7 @@ export type NetworkContext = {
   getVersion: () => string | null;
   getClientVersion: () => string | null;
   loadMoreChannelData: (channelId: string) => Promise<void>;
-  exportPrivateIdentity: (password: string) => Uint8Array | false;
+  exportPrivateIdentity: (password: string) => Promise<Uint8Array | false>;
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
@@ -1011,10 +1011,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
     } else return null;
   }, [utils]);
 
-  const exportPrivateIdentity = useCallback((password: string) => {
+  const exportPrivateIdentity = useCallback(async (password: string) => {
     if (utils && utils.GetOrInitPassword) {
       try {
-        const statePassEncoded = utils.GetOrInitPassword(password);
+        const statePassEncoded = await utils.GetOrInitPassword(password);
 
         if (
           statePassEncoded &&

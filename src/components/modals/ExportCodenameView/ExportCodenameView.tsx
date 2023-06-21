@@ -14,10 +14,10 @@ const ExportCodenameView: FC = () => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState('');
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     setError('');
     if (password.length) {
-      const result = exportPrivateIdentity(password);
+      const result = await exportPrivateIdentity(password);
       if (result) {
         closeModal();
       } else {
