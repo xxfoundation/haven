@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ChannelId } from 'src/store/channels/types';
 import type { Message } from 'src/store/messages/types';
-import { MessageType } from './db';
+import type { MessageType } from './db';
 
 export type MessageReceivedEvent = {
   uuid: number;

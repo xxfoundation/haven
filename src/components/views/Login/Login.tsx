@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation, Trans } from 'react-i18next';
 
@@ -16,6 +16,7 @@ import { useAuthentication } from '@contexts/authentication-context';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 import GoogleButton from '@components/common/GoogleButton';
 import DropboxButton from '@components/common/DropboxButton';
+import { AppEvents, awaitEvent, bus } from 'src/events';
 
 const LoginView: FC = () => {
   const { t } = useTranslation();
@@ -28,9 +29,19 @@ const LoginView: FC = () => {
     setIsAuthenticated,
   } = useAuthentication();
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingInfo, setLoadingInfo] = useState('');
 
   const { service: accountSyncService, status: accountSyncStatus } = useAccountSync();
 
+  useEffect(() => {
+    const listener = () => {
+      setError('No account found');
+    }
+    bus.addListener(AppEvents.NO_ACCOUNT_FOUND, listener);
+
+    return () => { bus.removeListener(AppEvents.NO_ACCOUNT_FOUND, listener); }
+  }, []);
+  
   const handleSubmit = useCallback(async () => {
     setError('');
     setIsLoading(true);
@@ -46,17 +57,21 @@ const LoginView: FC = () => {
     }, 1);
   }, [getOrInitPassword, password, setIsAuthenticated]);
 
-  const onSyncLoad = useCallback(() => {
+  const onSyncLoad = useCallback(async () => {
     setError('');
     setIsLoading(true);
     try {
       getOrInitPassword(password);
+      setLoadingInfo(t('Retrieving account...'));
+      await awaitEvent(AppEvents.CMIX_SYNCED)
+        .catch(() => { setError(t('Something went wrong, please check your credentials'))})
+        .finally(() => { setLoadingInfo('')});
       setIsAuthenticated(true);
     } catch (e) {
       setError((e as Error).message);
       setIsLoading(false);
     }
-  }, [getOrInitPassword, password, setIsAuthenticated]);
+  }, [getOrInitPassword, password, setIsAuthenticated, t]);
 
   return (
     <div className={cn('', s.root)}>
@@ -160,6 +175,11 @@ const LoginView: FC = () => {
             </div>
             {isLoading && (
               <div className={s.loading}>
+                {loadingInfo && (
+                  <p className='mt-4'>
+                    {loadingInfo}
+                  </p>
+                )}
                 <Spinner />
               </div>
             )}

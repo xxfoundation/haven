@@ -1065,19 +1065,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const logout = useCallback((password: string) => {
     if (utils && utils.Purge) {
-      try {
-        disconnect();
-        utils.Purge(password);
-        window.localStorage.clear();
-        Cookies.remove('userAuthenticated', { path: '/' });
-        setIsAuthenticated(false);
-        setChannelManager(undefined);
-        window.location.reload();
-        return true;
-      } catch (error) {
-        console.error(error);
-        return false;
-      }
+      disconnect();
+      utils.Purge(password);
+      window.localStorage.clear();
+      Cookies.remove('userAuthenticated', { path: '/' });
+      setIsAuthenticated(false);
+      setChannelManager(undefined);
+      window.location.reload();
+      return true;
     } else {
       return false;
     }
