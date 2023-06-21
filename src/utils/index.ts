@@ -48,7 +48,7 @@ export const inflate = (content: string) => {
   try {
     inflated = inflateSync(Buffer.from(content, 'base64')).toString();
   } catch (e) {
-    // Probably a message from before rich text format was implemented 
+    console.error('Couldn\'t decode message. Falling back to plaintext.', e);
     inflated = content;
   }
 
