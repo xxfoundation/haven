@@ -96,11 +96,10 @@ export const onDmReceived: DMReceivedCallback = (uuid, pubkey, update, updateCon
 }
 
 export const onDmNotificationUpdate: DmNotificationUpdateCallback['Callback'] = (_filter, changedLevels, deletedLevels) => {
-  const filters = JSON.parse(decoder.decode(_filter as Uint8Array));
-  const changedNotificationStates = JSON.parse(decoder.decode(changedLevels));
-  const deletedNotificationStates = JSON.parse(decoder.decode(deletedLevels));
+  // const filters = JSON.parse(decoder.decode(_filter as Uint8Array));
+  // const changedNotificationStates = JSON.parse(decoder.decode(changedLevels));
+  // const deletedNotificationStates = JSON.parse(decoder.decode(deletedLevels));
 
-  console.log('args here', { filters, changedNotificationStates, deletedNotificationStates });
   const event: DMNotificationsUpdateEvent = {
     changedNotificationStates: JSON.parse(decoder.decode(changedLevels)),
     deletedNotificationStates: JSON.parse(decoder.decode(deletedLevels))
