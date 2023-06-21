@@ -12,7 +12,7 @@ type AuthenticationContextType = {
   cancelSyncLogin: () => void;
   cmixPreviouslyInitialized: boolean;
   attemptingSyncedLogin: boolean;
-  getOrInitPassword: (password: string) => boolean;
+  getOrInitPassword: (password: string) => Promise<boolean>;
   encryptedPassword?: Uint8Array;
   rawPassword?: string;
   isAuthenticated: boolean;
@@ -53,10 +53,10 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     setAccountSyncService(AccountSyncService.None);
   }, [setAccountSyncService, setAccountSyncStatus]);
 
-  const getOrInitPassword = useCallback((password: string) => {
+  const getOrInitPassword = useCallback(async (password: string) => {
     try {
       setRawPassword(password);
-      const encrypted = utils.GetOrInitPassword(password);
+      const encrypted = await utils.GetOrInitPassword(password);
       setEncryptedPassword(encrypted);
       return true;
     } catch (error) {
