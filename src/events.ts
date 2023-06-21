@@ -16,10 +16,12 @@ export enum AppEvents {
   DROPBOX_TOKEN = 'dropbox-token',
   CHANNEL_MANAGER_LOADED = 'channel-manager-loaded',
   REMOTE_STORE_INITIALIZED = 'remote-store-initialized',
+  CMIX_INITALIZED = 'cmix-initialized',
   CMIX_SYNCED = 'cmix-synced',
   REMOTE_KV_INITIALIZED = 'remote-kv-initialized',
   DM_NOTIFICATION_UPDATE = 'dm-notifications-update',
-  MESSAGE_PROCESSED = 'message-processed'
+  MESSAGE_PROCESSED = 'message-processed',
+  NO_ACCOUNT_FOUND = 'no-account-found'
 }
 
 export enum ChannelEvents {
@@ -45,6 +47,7 @@ export type ChannelEventMap = {
 type EventHandlers = {
   [P in keyof ChannelEventMap]: (event: ChannelEventMap[P]) => void;
 } & {
+  [AppEvents.CMIX_INITALIZED]: () => void;
   [AppEvents.MESSAGE_PINNED]: (event: MessagePinEvent) => void;
   [AppEvents.MESSAGE_UNPINNED]: (event: MessageUnPinEvent) => void;
   [AppEvents.DM_RECEIVED]: (event: DMReceivedEvent) => void;
@@ -56,6 +59,7 @@ type EventHandlers = {
   [AppEvents.CHANNEL_MANAGER_LOADED]: () => void;
   [AppEvents.DM_NOTIFICATION_UPDATE]: (event: DMNotificationsUpdateEvent) => void;
   [AppEvents.MESSAGE_PROCESSED]: (message: Message, oldMessage?: Message) => void;
+  [AppEvents.NO_ACCOUNT_FOUND]: () => void;
 }
 
 const channelsEventDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEventMap[P]> } = {
@@ -92,6 +96,11 @@ export const onDmReceived: DMReceivedCallback = (uuid, pubkey, update, updateCon
 }
 
 export const onDmNotificationUpdate: DmNotificationUpdateCallback['Callback'] = (_filter, changedLevels, deletedLevels) => {
+  const filters = JSON.parse(decoder.decode(_filter as Uint8Array));
+  const changedNotificationStates = JSON.parse(decoder.decode(changedLevels));
+  const deletedNotificationStates = JSON.parse(decoder.decode(deletedLevels));
+
+  console.log('args here', { filters, changedNotificationStates, deletedNotificationStates });
   const event: DMNotificationsUpdateEvent = {
     changedNotificationStates: JSON.parse(decoder.decode(changedLevels)),
     deletedNotificationStates: JSON.parse(decoder.decode(deletedLevels))

@@ -70,7 +70,7 @@ const useCmix = () => {
     );
 
     setCmix(loadedCmix);
-  }, [encodedCmixParams, utils])
+  }, [encodedCmixParams, utils]);
 
   const initializeSynchronizedCmix = useCallback(async (password: Uint8Array, store: RemoteStore) => {
     if (!cmixPreviouslyInitialized) {
@@ -79,7 +79,13 @@ const useCmix = () => {
         STATE_PATH,
         password,
         store,
-      );
+      ).catch((e) => {
+        if ((e as Error).message.indexOf('file does not exist') !== -1) {
+          bus.emit(AppEvents.NO_ACCOUNT_FOUND);
+        } else {
+          throw e;
+        }
+      });
     }
   }, [cmixPreviouslyInitialized, utils])
 
@@ -200,6 +206,7 @@ const useCmix = () => {
   useEffect(() => {
     if (accountSync.status === AccountSyncStatus.Synced && encryptedPassword && remoteStore) {
       initializeSynchronizedCmix(encryptedPassword, remoteStore)
+        .then(() => { bus.emit(AppEvents.CMIX_INITALIZED)})
         .then(() =>  loadSynchronizedCmix(encryptedPassword, remoteStore))
         .then(() => {
           bus.emit(AppEvents.CMIX_SYNCED, remoteStore.service)
