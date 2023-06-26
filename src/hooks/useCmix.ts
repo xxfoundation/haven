@@ -207,13 +207,13 @@ const useCmix = () => {
     if (accountSync.status === AccountSyncStatus.Synced && encryptedPassword && remoteStore) {
       initializeSynchronizedCmix(encryptedPassword, remoteStore)
         .then(() => { bus.emit(AppEvents.CMIX_INITALIZED)})
-        .then(() =>  loadSynchronizedCmix(encryptedPassword, remoteStore))
+        .then(() => loadSynchronizedCmix(encryptedPassword, remoteStore))
         .then(() => {
           bus.emit(AppEvents.CMIX_SYNCED, remoteStore.service)
         })
         .catch((e) => {
           setStatus(NetworkStatus.FAILED);
-          throw e;
+          console.error('Cmix Initialization Failed', e);
         })
     }
   }, [
