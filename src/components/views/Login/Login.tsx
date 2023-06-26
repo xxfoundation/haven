@@ -47,7 +47,7 @@ const LoginView: FC = () => {
     setIsLoading(true);
     setTimeout(async () => {
       try {
-        getOrInitPassword(password);
+        await getOrInitPassword(password);
         setIsLoading(false);
         setIsAuthenticated(true);
       } catch (e) {
@@ -61,7 +61,7 @@ const LoginView: FC = () => {
     setError('');
     setIsLoading(true);
     try {
-      getOrInitPassword(password);
+      await getOrInitPassword(password);
       setLoadingInfo(t('Retrieving account...'));
       await awaitEvent(AppEvents.CMIX_SYNCED)
         .catch(() => { setError(t('Something went wrong, please check your credentials'))})
