@@ -92,8 +92,8 @@ const useDmClient = (
   const conversations = useAppSelector(dms.selectors.conversations);
   useEffect(() => {
     if (client) {
-      conversations.forEach(({ pubkey }) => {
-        const isBlocked = false; // client.IsBlocked(utils.Base64ToUint8Array(pubkey));
+      conversations.forEach(async ({ pubkey }) => {
+        const isBlocked = await client.IsBlocked(utils.Base64ToUint8Array(pubkey));
         if (isBlocked) {
           dispatch(dms.actions.blockUser(pubkey));
         } else {

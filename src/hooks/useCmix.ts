@@ -82,9 +82,8 @@ const useCmix = () => {
       ).catch((e) => {
         if ((e as Error).message.indexOf('file does not exist') !== -1) {
           bus.emit(AppEvents.NO_ACCOUNT_FOUND);
-        } else {
-          throw e;
         }
+        throw e;
       });
     }
   }, [cmixPreviouslyInitialized, utils])

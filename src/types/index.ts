@@ -28,9 +28,9 @@ export type DMClient = {
   SetNickname: (nickname: string) => void;
   GetNickname: () => string;
   GetDatabaseName: () => string;
-  BlockSender: (pubkey: Uint8Array) => void;
-  UnblockSender: (pubkey: Uint8Array) => void;
-  IsBlocked: (pubkey: Uint8Array) => boolean;
+  BlockPartner: (pubkey: Uint8Array) => Promise<void>;
+  UnblockPartner: (pubkey: Uint8Array) => Promise<void>;
+  IsBlocked: (pubkey: Uint8Array) => Promise<boolean>;
 }
 
 export type DummyTraffic = {
