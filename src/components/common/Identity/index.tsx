@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
 import { useUtils } from '@contexts/utils-context';
 import { currentMutedUsers } from 'src/store/selectors';
+import * as dms from 'src/store/dms';
 
 type Props = {
   disableMuteStyles?: boolean;
@@ -30,13 +31,14 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
     () => !disableMuteStyles && mutedUsers?.includes(pubkey),
     [disableMuteStyles, pubkey, mutedUsers]
   );
+  const isBlocked = useAppSelector(dms.selectors.isBlocked(pubkey));
   
   const { codename, color } = useMemo(
     () => getCodeNameAndColor(pubkey, codeset),
     [codeset, getCodeNameAndColor, pubkey]
   )
-  const colorHex = isMuted ? 'var(--dark-2)' : color.replace('0x', '#');
-  const codenameColor = isMuted
+  const colorHex = (isMuted || isBlocked) ? 'var(--dark-2)' : color.replace('0x', '#');
+  const codenameColor = (isMuted || isBlocked)
     ? 'var(--dark-2)'
     : (nickname
       ? '#73767C'
@@ -71,6 +73,12 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
         <>
           &nbsp;
           <span style={{ color: 'var(--red)'}}>({t('muted')})</span>
+        </>
+      )}
+      {isBlocked && (
+        <>
+          &nbsp;
+          <span style={{ color: 'var(--red)'}}>({t('blocked')})</span>
         </>
       )}
     </span>

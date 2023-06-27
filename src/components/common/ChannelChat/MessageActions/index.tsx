@@ -58,7 +58,7 @@ const MessageActions: FC<Props> = ({
   const userIsMuted = useAppSelector(userIsMutedSelector);
   const { closeModal, openModal, setModalView } = useUI();
   const pickerRef = useRef<HTMLDivElement>(null);
-  const pickerIconRef = useRef<HTMLDivElement>(null);
+  const pickerIconRef = useRef<SVGSVGElement>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [style, setStyle] = useState<CSSProperties>({});
   const isBlocked = useAppSelector(dms.selectors.isBlocked(pubkey));
@@ -131,21 +131,20 @@ const MessageActions: FC<Props> = ({
     setPickerVisible((visibile) => !visibile);
   }, [adjustPickerPosition]);
 
-  const blockUser = useCallback(() => {
+  const blockUser = useCallback(async () => {
     const encodedKey = utils.Base64ToUint8Array(pubkey);
-    dmClient?.BlockSender(encodedKey);
-    const blocked = dmClient?.IsBlocked(encodedKey);
+    await dmClient?.BlockPartner(encodedKey);
+    const blocked = await dmClient?.IsBlocked(encodedKey);
 
     if (blocked) {
       dispatch(dms.actions.blockUser(pubkey));
     }
   }, [dispatch, dmClient, pubkey, utils]);
 
-  const unblockUser = useCallback(() => {
+  const unblockUser = useCallback(async () => {
     const encodedKey = utils.Base64ToUint8Array(pubkey);
-    dmClient?.UnblockSender(encodedKey);
-    const blocked = dmClient?.IsBlocked(encodedKey);
-
+    await dmClient?.UnblockPartner(encodedKey);
+    const blocked = await dmClient?.IsBlocked(encodedKey);
     if (!blocked) {
       dispatch(dms.actions.unblockUser(pubkey));
     }
@@ -193,11 +192,10 @@ const MessageActions: FC<Props> = ({
             onClick={onDeleteMessage}
           />
         )}
-        <div ref={pickerIconRef}>
           <EmojisPickerIcon
+            ref={pickerIconRef}
             onClick={onOpenEmojiMart}
           />
-        </div>
         {pickerVisible && emojiPortalElement &&
           createPortal(
             <div

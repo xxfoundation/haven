@@ -1,9 +1,10 @@
-import { SVGProps } from 'react';
+import { SVGProps, forwardRef } from 'react';
 
 import s from './EmojisPicker.module.scss';
 
-const EmojisPicker = (props: SVGProps<SVGSVGElement>) => (
+const EmojisPicker = forwardRef<SVGSVGElement, SVGProps<SVGSVGElement>>((props, ref) => (
   <svg
+    ref={ref}
     width='24px'
     height='24px'
     viewBox='0 0 24 24'
@@ -23,6 +24,6 @@ const EmojisPicker = (props: SVGProps<SVGSVGElement>) => (
       </g>
     </g>
   </svg>
-);
+));
 
 export default EmojisPicker;

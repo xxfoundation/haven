@@ -2,11 +2,10 @@ import type { TypedEventEmitter } from 'src/types/emitter';
 import type { Message, DMReceivedEvent, MessageReceivedEvent, UserMutedEvent, MessageDeletedEvent, MessagePinEvent, MessageUnPinEvent, NicknameUpdatedEvent, NotificationUpdateEvent, AdminKeysUpdateEvent, ChannelUpdateEvent, DMNotificationsUpdateEvent } from 'src/types';
 import EventEmitter from 'events';
 import delay from 'delay';
-import { Decoder, adminKeysUpdateDecoder, channelUpdateEventDecoder, dmNotificationsUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
+import { Decoder, adminKeysUpdateDecoder, channelUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
 import { AccountSyncService } from './hooks/useAccountSync';
 import { RemoteKVWrapper } from '@contexts/remote-kv-context';
 import { DmNotificationUpdateCallback } from '@contexts/utils-context';
-import { decoder } from './utils';
 
 export enum AppEvents {
   MESSAGE_PINNED = 'pinned',
@@ -95,20 +94,21 @@ export const onDmReceived: DMReceivedCallback = (uuid, pubkey, update, updateCon
   });
 }
 
+// eslint-disable-next-line no-unused-vars
 export const onDmNotificationUpdate: DmNotificationUpdateCallback['Callback'] = (_filter, changedLevels, deletedLevels) => {
   // const filters = JSON.parse(decoder.decode(_filter as Uint8Array));
   // const changedNotificationStates = JSON.parse(decoder.decode(changedLevels));
   // const deletedNotificationStates = JSON.parse(decoder.decode(deletedLevels));
 
-  const event: DMNotificationsUpdateEvent = {
-    changedNotificationStates: JSON.parse(decoder.decode(changedLevels)),
-    deletedNotificationStates: JSON.parse(decoder.decode(deletedLevels))
-  }
+  // const event: DMNotificationsUpdateEvent = {
+  //   changedNotificationStates: JSON.parse(decoder.decode(changedLevels)),
+  //   deletedNotificationStates: JSON.parse(decoder.decode(deletedLevels))
+  // }
 
-  bus.emit(
-    AppEvents.DM_NOTIFICATION_UPDATE,
-    dmNotificationsUpdateEventDecoder(event)
-  )
+  // bus.emit(
+  //   AppEvents.DM_NOTIFICATION_UPDATE,
+  //   dmNotificationsUpdateEventDecoder(event)
+  // )
 }
 
 export const handleChannelEvent: EventHandler = (eventType, data) => {
