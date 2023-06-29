@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { encoder } from '@utils/index';
 import useGoogleDrive from './useGoogleDrive';
 import useGoogleApi from './useGoogleApi';
@@ -30,11 +30,21 @@ const useGoogleRemoteStore = () => {
   const [accessToken, setAccessToken] = useState<string>();
   const { gapi } = useGoogleApi();
   const { drive } = useGoogleDrive(gapi, accessToken);
+  const [store, setStore] = useState<RemoteStore>();
 
   useEffect(() => {
     bus.addListener(AppEvents.GOOGLE_TOKEN, setAccessToken);
 
     return () => { bus.removeListener(AppEvents.GOOGLE_TOKEN, setAccessToken) }
+  }, []);
+
+  useEffect(() => {
+    const listener = () => {
+      setStore(undefined);
+    };
+    bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
+
+    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener) }
   }, []);
 
   const deleteFile = useCallback(
@@ -167,27 +177,20 @@ const useGoogleRemoteStore = () => {
       const id = await uploadBinaryFile(prefixed, data);
       fileIdCache.set(prefixed, id);
     }
-  }, [getFileId, updateFile, uploadBinaryFile])
+  }, [getFileId, updateFile, uploadBinaryFile]);
 
-  const store = useMemo(
-    () => (drive && accessToken) ? new RemoteStore(AccountSyncService.Google, {
-      Write: writeFile,
-      Read: getBinaryFile,
-      GetLastModified: getLastModified,
-      ReadDir: readDir,
-      DeleteAll: deleteAllFiles,
-    }) : undefined,
-    [
-      accessToken,
-      deleteAllFiles,
-      drive,
-      getBinaryFile,
-      getLastModified,
-      readDir,
-      writeFile,
-    ]
-  );
-
+  useEffect(() => {
+    if (drive && accessToken) { 
+      setStore(new RemoteStore(AccountSyncService.Google, {
+        Write: writeFile,
+        Read: getBinaryFile,
+        GetLastModified: getLastModified,
+        ReadDir: readDir,
+        DeleteAll: deleteAllFiles,
+      }));
+    }
+  }, [accessToken, deleteAllFiles, drive, getBinaryFile, getLastModified, readDir, writeFile])
+  
   return store;
 }
 

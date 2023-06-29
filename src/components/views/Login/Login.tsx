@@ -35,11 +35,13 @@ const LoginView: FC = () => {
 
   useEffect(() => {
     const listener = () => {
-      setError(t('No account found'));
+      setError(t('Something went wrong, please check your credentials.'));
+      setIsLoading(false);
+      setLoadingInfo('');
     }
-    bus.addListener(AppEvents.NO_ACCOUNT_FOUND, listener);
+    bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
 
-    return () => { bus.removeListener(AppEvents.NO_ACCOUNT_FOUND, listener); }
+    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener); }
   }, [t]);
   
   const handleSubmit = useCallback(async () => {
@@ -51,7 +53,7 @@ const LoginView: FC = () => {
         if (success) {
           setIsAuthenticated(true);
         } else {
-          setError(t('Something went wrong, please check your credentials'));
+          setError(t('Something went wrong, please check your credentials.'));
         }
         setIsLoading(false);
       } catch (e) {
@@ -67,15 +69,18 @@ const LoginView: FC = () => {
     try {
       const success = await getOrInitPassword(password);
       if (!success) {
-        setError(t('Something went wrong, please check your credentials'));
+        setError(t('Something went wrong, please check your credentials.'));
         setIsLoading(false);
         return;
       }
       setLoadingInfo(t('Retrieving account...'));
       await awaitEvent(AppEvents.CMIX_SYNCED)
-        .catch(() => { setError(t('Something went wrong, please check your credentials'))})
-        .finally(() => { setLoadingInfo('')});
-      setIsAuthenticated(true);
+        .then(() => { setIsAuthenticated(true); })
+        .catch(() => { setError(t('Something went wrong, please check your credentials.'))})
+        .finally(() => {
+          setIsLoading(false);
+          setLoadingInfo('')
+        });
     } catch (e) {
       setError((e as Error).message);
       setIsLoading(false);
