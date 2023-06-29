@@ -33,6 +33,7 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const authChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('authentication'), []);
   const [encryptedPassword, setEncryptedPassword] = useState<Uint8Array>();
   const [rawPassword, setRawPassword] = useState<string>();
+
   const {
     setService: setAccountSyncService,
     setStatus: setAccountSyncStatus,
@@ -53,9 +54,19 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     setAccountSyncService(AccountSyncService.None);
   }, [setAccountSyncService, setAccountSyncStatus]);
 
+  useEffect(() => {
+    const listener = () => {
+      setEncryptedPassword(undefined);
+      setRawPassword('');
+    };
+    bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
+
+    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener) }
+  }, []);
+
   const getOrInitPassword = useCallback(async (password: string) => {
     try {
-      setRawPassword(password);
+      setRawPassword(password); 
       const encrypted = await utils.GetOrInitPassword(password);
       setEncryptedPassword(encrypted);
       return true;

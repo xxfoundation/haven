@@ -73,7 +73,7 @@ const RemoteKVContext = createContext<ContextType>({} as ContextType);
 
 export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
   const [kv, setKv] = useState<RemoteKVWrapper>();
-
+  
   useEffect(() => {
     bus.addListener(AppEvents.REMOTE_KV_INITIALIZED, setKv);
 

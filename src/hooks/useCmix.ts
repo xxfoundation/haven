@@ -26,7 +26,7 @@ export enum NetworkStatus {
 }
 
 const useCmix = () => {
-  const { cmixPreviouslyInitialized, encryptedPassword } = useAuthentication();
+  const { cmixPreviouslyInitialized, encryptedPassword, rawPassword } = useAuthentication();
   const [status, setStatus] = useState<NetworkStatus>(NetworkStatus.UNINITIALIZED);
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
   const [cmix, setCmix] = useState<CMix | undefined>();
@@ -80,13 +80,12 @@ const useCmix = () => {
         password,
         store,
       ).catch((e) => {
-        if ((e as Error).message.indexOf('file does not exist') !== -1) {
-          bus.emit(AppEvents.NO_ACCOUNT_FOUND);
-        }
+        bus.emit(AppEvents.NEW_SYNC_CMIX_FAILED);
+        utils.Purge(rawPassword ?? '')
         throw e;
       });
     }
-  }, [cmixPreviouslyInitialized, utils])
+  }, [cmixPreviouslyInitialized, rawPassword, utils])
 
   const initializeCmix = useCallback(async (password: Uint8Array) => {
     if (!cmixPreviouslyInitialized) {
@@ -206,13 +205,12 @@ const useCmix = () => {
     if (accountSync.status === AccountSyncStatus.Synced && encryptedPassword && remoteStore) {
       initializeSynchronizedCmix(encryptedPassword, remoteStore)
         .then(() => { bus.emit(AppEvents.CMIX_INITALIZED)})
-        .then(() => loadSynchronizedCmix(encryptedPassword, remoteStore))
+        .then(() =>  loadSynchronizedCmix(encryptedPassword, remoteStore))
         .then(() => {
           bus.emit(AppEvents.CMIX_SYNCED, remoteStore.service)
         })
-        .catch((e) => {
+        .catch(() => {
           setStatus(NetworkStatus.FAILED);
-          console.error('Cmix Initialization Failed', e);
         })
     }
   }, [

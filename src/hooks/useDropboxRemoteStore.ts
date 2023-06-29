@@ -1,5 +1,5 @@
 import { Dropbox } from 'dropbox';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import assert from 'assert';
 
 import { AppEvents, bus } from 'src/events';
@@ -8,6 +8,7 @@ import { AccountSyncService } from './useAccountSync';
 
 const useDropboxRemoteStore = () => {
   const [dropbox, setDropbox] = useState<Dropbox>();
+  const [store, setStore] = useState<RemoteStore>();
 
   useEffect(() => {
     const onToken = (accessToken: string) => {
@@ -21,6 +22,16 @@ const useDropboxRemoteStore = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const listener = () => {
+      setStore(undefined);
+    };
+
+    bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
+
+    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener) }
+  }, []);
+
   const getBinaryFile = useCallback(async (name: string) => {
     assert(dropbox);
     const path = name.charAt(0) !== '/' ? `/${name}` : name;
@@ -31,7 +42,7 @@ const useDropboxRemoteStore = () => {
     return new Uint8Array(buffer);
   }, [dropbox]);
 
-  const writeBinaryFile = useCallback(async (path: string, data: Uint8Array) => {
+  const writeFile = useCallback(async (path: string, data: Uint8Array) => {
     assert(dropbox);
 
     const prefixedPath = path.charAt(0) !== '/' ? `/${path}` : path;
@@ -65,13 +76,17 @@ const useDropboxRemoteStore = () => {
     await dropbox.filesDeleteBatch({ entries })
   }, [dropbox]);
 
-  const store = useMemo(() => dropbox && new RemoteStore(AccountSyncService.Dropbox, {
-    Read: getBinaryFile,
-    Write: writeBinaryFile,
-    GetLastModified: getLastModified,
-    ReadDir: readDir,
-    DeleteAll: deleteAllFiles
-  }), [deleteAllFiles, dropbox, getBinaryFile, getLastModified, readDir, writeBinaryFile]); 
+  useEffect(() => {
+    if (dropbox) { 
+      setStore(new RemoteStore(AccountSyncService.Dropbox, {
+        Write: writeFile,
+        Read: getBinaryFile,
+        GetLastModified: getLastModified,
+        ReadDir: readDir,
+        DeleteAll: deleteAllFiles,
+      }));
+    }
+  }, [deleteAllFiles, dropbox, getBinaryFile, getLastModified, readDir, writeFile]);
 
   return store;
 }

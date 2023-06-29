@@ -1,3 +1,4 @@
+export const XXDK_PATH =  '/integrations/assets/xxdk.wasm';
 export const STATE_PATH = 'speakeasyapp';
 export const CHANNELS_STORAGE_TAG = 'ELIXXIR_USERS_TAGS';
 export const DMS_DATABASE_NAME = 'DMS_DATABASE_NAME';
