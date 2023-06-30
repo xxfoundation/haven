@@ -7,7 +7,7 @@ import { decoder } from '@utils/index';
 import Loading from 'src/components/views/LoadingView';
 import { identityDecoder } from '@utils/decoders';
 import { RemoteStore } from 'src/types/collective';
-import { EventHandler, DMReceivedCallback } from 'src/events';
+import { ChannelEventHandler, DMEventHandler } from 'src/events';
 import { WebAssemblyRunner } from '@components/common';
 import { useTranslation } from 'react-i18next';
 
@@ -23,15 +23,11 @@ export type Cipher = {
 }
 
 export type ChannelManagerCallbacks = {
-  EventUpdate: EventHandler;
+  EventUpdate: ChannelEventHandler;
 }
 
-export type DmNotificationUpdateCallback = {
-  Callback: (
-    notificationFilter: unknown, // parameter only for mobile, for now
-    changedLevelStates: Uint8Array,
-    deletedLevelStates: Uint8Array
-  ) => void;
+export type DMClientEventCallback = {
+  EventUpdate: DMEventHandler;
 }
 
 export type Notifications = {
@@ -90,8 +86,7 @@ export type XXDKUtils = {
     cipherId: number,
     wasmJsPath: string,
     privateIdentity: Uint8Array,
-    messageCallback: DMReceivedCallback,
-    dmNotificationUpdateCallback: DmNotificationUpdateCallback
+    eventCallback: DMClientEventCallback
   ) => Promise<DMClient>;
   NewDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => Cipher
   LoadChannelsManagerWithIndexedDb: (

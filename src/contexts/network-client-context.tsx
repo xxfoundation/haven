@@ -8,7 +8,7 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import { bus, handleChannelEvent, ChannelEvents, AppEvents } from 'src/events';
+import { AppEvents, ChannelEvents, appBus, onChannelEvent, useChannelsListener } from 'src/events';
 
 import { decoder, encoder, exportDataToFile } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
@@ -194,7 +194,6 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
 };
 
 export const NetworkProvider: FC<WithChildren> = props => {
-  const { encryptedPassword, rawPassword } = useAuthentication();
   const pagination = usePagination();
   const dispatch = useAppDispatch();
   const db = useDb();
@@ -207,7 +206,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     cmix,
     disconnect,
     id: cmixId,
-    remoteStore,
     status: cmixStatus
   } = useCmix();
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
@@ -219,14 +217,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const allMessagesByChannelId = useAppSelector(messages.selectors.messagesByChannelId);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const privateIdentity = useMemo(
-    () => (channelManager && rawPassword)
-      ? utils.ImportPrivateIdentity(rawPassword, channelManager.ExportPrivateIdentity(rawPassword))
-      : undefined,
-    [channelManager, rawPassword, utils]
-  );
-
-  const dmClient = useDmClient(cmixId, privateIdentity, encryptedPassword);
+  const dmClient = useDmClient();
 
   const upgradeAdmin = useCallback(() => {
     if (currentChannel?.id) {
@@ -411,7 +402,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         dispatch(messages.actions.upsert(mappedMessage));
       
         if (mappedMessage.status === MessageStatus.Delivered) {
-          bus.emit(AppEvents.MESSAGE_PROCESSED, mappedMessage, oldMessage);
+          appBus.emit(AppEvents.MESSAGE_PROCESSED, mappedMessage, oldMessage);
         }
 
         if (receivedMessage.channel_id !== currentChannel?.id) {
@@ -428,11 +419,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     dispatch
   ]);
 
-  useEffect(() => {
-    bus.addListener(ChannelEvents.MESSAGE_RECEIVED, handleMessageEvent);
-
-    return () => { bus.removeListener(ChannelEvents.MESSAGE_RECEIVED, handleMessageEvent) };
-  }, [handleMessageEvent]);
+  useChannelsListener(ChannelEvents.MESSAGE_RECEIVED, handleMessageEvent);
 
   const fetchChannels = useCallback(async () => {
     assert(db);
@@ -571,13 +558,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
           new Uint8Array(),
           notifications.GetID(),
           {
-            EventUpdate: handleChannelEvent
+            EventUpdate: onChannelEvent
           },
           cipher?.id
         );
-
+        
       setChannelManager(loadedChannelsManager);
-      bus.emit(AppEvents.CHANNEL_MANAGER_LOADED);
+      appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, loadedChannelsManager);
     }
   }, [cipher, cmixId, utils]);
 
@@ -637,7 +624,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         privIdentity,
         new Uint8Array(),
         notifications.GetID(),
-        { EventUpdate: handleChannelEvent },
+        { EventUpdate: onChannelEvent },
         cipher.id
       );
       
@@ -1187,7 +1174,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     pinMessage,
     logout,
     upgradeAdmin,
-    remoteStore,
     fetchChannels,
   }
 

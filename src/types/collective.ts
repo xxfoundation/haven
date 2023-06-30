@@ -34,6 +34,7 @@ export type RemoteKV = {
 }
 
 export interface RemoteStoreServiceWrapper {
+  service: AccountSyncService;
   Read: (path: string) => Promise<Uint8Array | null>;
   Write: (path: string, data: Uint8Array) => Promise<void>;
   GetLastModified: (path: string) => Promise<string | null>;
@@ -48,8 +49,8 @@ export class RemoteStore {
 
   service: AccountSyncService;
 
-  constructor(service: AccountSyncService, store: RemoteStoreServiceWrapper) {
-    this.service = service;
+  constructor(store: RemoteStoreServiceWrapper) {
+    this.service = store.service;
     this.store = store;
   }
 

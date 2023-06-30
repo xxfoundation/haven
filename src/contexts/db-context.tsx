@@ -7,7 +7,7 @@ import { createContext, useCallback, useState } from 'react';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import { DMS_DATABASE_NAME } from 'src/constants';
 import useStorageTag from 'src/hooks/useChannelsStorageTag';
-import { AppEvents, bus } from 'src/events';
+import { AppEvents, appBus as bus } from 'src/events';
 
 export type DBMessage = {
   id: number;

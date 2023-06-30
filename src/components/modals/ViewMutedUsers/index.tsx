@@ -10,7 +10,7 @@ import Identity from 'src/components/common/Identity';
 import useAsync from 'src/hooks/useAsync';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
-import { awaitEvent, ChannelEvents } from 'src/events';
+import { awaitChannelEvent as awaitEvent, ChannelEvents } from 'src/events';
 
 export type MuteUserAction = 'mute' | 'mute+delete';
 

@@ -42,6 +42,8 @@ import AccountSyncView from '@components/modals/AccountSync';
 import useAccountSync, { AccountSyncStatus } from 'src/hooks/useAccountSync';
 import { NetworkStatus } from 'src/hooks/useCmix';
 import useEvents from 'src/hooks/useEvents';
+import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
+import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -83,6 +85,8 @@ const AuthenticatedUserModals: FC = () => {
 const DefaultLayout: FC<WithChildren> = ({
   children,
 }) => {
+  useGoogleRemoteStore();
+  useDropboxRemoteStore();
   useEvents();
   const accountSync = useAccountSync();
   const router = useRouter();

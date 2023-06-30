@@ -4,8 +4,9 @@ import { encoder } from '@utils/index';
 import useGoogleDrive from './useGoogleDrive';
 import useGoogleApi from './useGoogleApi';
 import { RemoteStore } from 'src/types/collective';
-import { AppEvents, bus } from 'src/events';
-import { AccountSyncService } from './useAccountSync';
+import { AppEvents, appBus as bus } from 'src/events';
+import useAccountSync, { AccountSyncService, AccountSyncStatus } from './useAccountSync';
+import { useRemoteStore } from '@contexts/remote-kv-context';
 
 const fileIdCache = new Map<string, string>();
 
@@ -30,21 +31,13 @@ const useGoogleRemoteStore = () => {
   const [accessToken, setAccessToken] = useState<string>();
   const { gapi } = useGoogleApi();
   const { drive } = useGoogleDrive(gapi, accessToken);
-  const [store, setStore] = useState<RemoteStore>();
+  const [remoteStore, setRemoteStore] = useRemoteStore();
+  const accountSync = useAccountSync();
 
   useEffect(() => {
     bus.addListener(AppEvents.GOOGLE_TOKEN, setAccessToken);
 
     return () => { bus.removeListener(AppEvents.GOOGLE_TOKEN, setAccessToken) }
-  }, []);
-
-  useEffect(() => {
-    const listener = () => {
-      setStore(undefined);
-    };
-    bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
-
-    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener) }
   }, []);
 
   const deleteFile = useCallback(
@@ -180,18 +173,20 @@ const useGoogleRemoteStore = () => {
   }, [getFileId, updateFile, uploadBinaryFile]);
 
   useEffect(() => {
-    if (drive && accessToken) { 
-      setStore(new RemoteStore(AccountSyncService.Google, {
+    if (drive && accessToken && !remoteStore) {
+      setRemoteStore(new RemoteStore({
+        service: AccountSyncService.Google, 
         Write: writeFile,
         Read: getBinaryFile,
         GetLastModified: getLastModified,
         ReadDir: readDir,
         DeleteAll: deleteAllFiles,
       }));
+      accountSync.setStatus(AccountSyncStatus.Synced);
+      accountSync.setService(AccountSyncService.Google);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, deleteAllFiles, drive, getBinaryFile, getLastModified, readDir, writeFile])
-  
-  return store;
 }
 
 export default useGoogleRemoteStore;
