@@ -1,10 +1,10 @@
 import { createContext, useEffect, useState, FC, useContext } from 'react';
 
-import { KV_VERSION, OperationType, RemoteKV } from 'src/types/collective';
+import { KV_VERSION, OperationType, RemoteKV, RemoteStore } from 'src/types/collective';
 import { encoder } from 'src/utils/index';
 import {  kvEntryDecoder } from 'src/utils/decoders';
 import { WithChildren } from 'src/types';
-import { AppEvents, bus } from 'src/events';
+import { AppEvents, appBus as bus } from 'src/events';
 
 type OnChangeCallback = (data?: string) => void;
 
@@ -67,12 +67,15 @@ export class RemoteKVWrapper {
 
 type ContextType = {
   kv?: RemoteKVWrapper,
+  remoteStore?: RemoteStore,
+  setRemoteStore: (store: RemoteStore | undefined) => void;
 }
 
 const RemoteKVContext = createContext<ContextType>({} as ContextType);
 
 export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
   const [kv, setKv] = useState<RemoteKVWrapper>();
+  const [remoteStore, setRemoteStore] = useState<RemoteStore>();
   
   useEffect(() => {
     bus.addListener(AppEvents.REMOTE_KV_INITIALIZED, setKv);
@@ -80,13 +83,32 @@ export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
     return () => { bus.removeListener(AppEvents.REMOTE_KV_INITIALIZED, setKv); }
   }, []);
 
+  useEffect(() => {
+    if (remoteStore) {
+      bus.emit(AppEvents.REMOTE_STORE_INITIALIZED);
+    }
+  }, [remoteStore]);
+
+  useEffect(() => {
+    const listener = () => {
+      setRemoteStore(undefined);
+    };
+    bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
+
+    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener) }
+  }, [setRemoteStore]);
+
   return (
-    <RemoteKVContext.Provider value={{ kv }}>
+    <RemoteKVContext.Provider value={{ kv, remoteStore, setRemoteStore }}>
       {children}
     </RemoteKVContext.Provider>
   )
 }
 
-
 export const useRemoteKV = () => useContext(RemoteKVContext).kv;
+
+export const useRemoteStore = () => {
+  const { remoteStore, setRemoteStore } = useContext(RemoteKVContext);
+  return [remoteStore, setRemoteStore] as [ContextType['remoteStore'], ContextType['setRemoteStore']];
+}
 

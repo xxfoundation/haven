@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useTranslation } from 'react-i18next';
 
 import { PrimaryButton } from '@components/common';
-import { AppEvents, bus } from 'src/events'
+import { AppEvents, appBus } from 'src/events'
 import { Props as ButtonProps } from './PrimaryButton/PrimaryButton';
 
 type Props = Partial<ButtonProps> & {
@@ -23,18 +23,18 @@ const DropboxButton: FC<Props> = ({
     clientId: process.env.NEXT_PUBLIC_APP_DROPBOX_CLIENT_ID,
   }), []);
 
-  useEffect(() => {
-    const onTokenMessage = (e: MessageEvent) => {
-      if (window.location.origin === e.origin && e.data.code) {
-        bus.emit(AppEvents.DROPBOX_TOKEN, e.data.code);
-        onStartLoading();
-      }
+  const onTokenMessage = useCallback((e: MessageEvent) => {
+    if (window.location.origin === e.origin && e.data.code) {
+      appBus.emit(AppEvents.DROPBOX_TOKEN, e.data.code);
+      onStartLoading();
     }
+  }, [onStartLoading]);
 
+  useEffect(() => {
     window.addEventListener('message', onTokenMessage, false);
 
     return () => window.removeEventListener('message', onTokenMessage)
-  }, [onStartLoading]);
+  }, [onStartLoading, onTokenMessage]);
 
   const onClick = useCallback(async () => {
     const redirectUrl = new URL(window.location.href);
@@ -42,7 +42,6 @@ const DropboxButton: FC<Props> = ({
     const url = (await auth.getAuthenticationUrl(redirectUrl.href, undefined, 'token')).toString();
     window.open(url, '_blank', 'width=600,height=700');
   }, [auth]);
-
 
   return (
     <PrimaryButton

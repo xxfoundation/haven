@@ -2,13 +2,15 @@ import { Dropbox } from 'dropbox';
 import { useCallback, useEffect, useState } from 'react';
 import assert from 'assert';
 
-import { AppEvents, bus } from 'src/events';
+import { AppEvents, appBus as bus } from 'src/events';
 import { RemoteStore } from 'src/types/collective';
-import { AccountSyncService } from './useAccountSync';
+import useAccountSync, { AccountSyncService, AccountSyncStatus } from './useAccountSync';
+import { useRemoteStore } from '@contexts/remote-kv-context';
 
 const useDropboxRemoteStore = () => {
   const [dropbox, setDropbox] = useState<Dropbox>();
-  const [store, setStore] = useState<RemoteStore>();
+  const [remoteStore, setStore] = useRemoteStore();
+  const { setService, setStatus } = useAccountSync();
 
   useEffect(() => {
     const onToken = (accessToken: string) => {
@@ -30,7 +32,7 @@ const useDropboxRemoteStore = () => {
     bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
 
     return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener) }
-  }, []);
+  }, [setStore]);
 
   const getBinaryFile = useCallback(async (name: string) => {
     assert(dropbox);
@@ -77,18 +79,19 @@ const useDropboxRemoteStore = () => {
   }, [dropbox]);
 
   useEffect(() => {
-    if (dropbox) { 
-      setStore(new RemoteStore(AccountSyncService.Dropbox, {
+    if (dropbox && !remoteStore) { 
+      setStore(new RemoteStore({
+        service: AccountSyncService.Dropbox,
         Write: writeFile,
         Read: getBinaryFile,
         GetLastModified: getLastModified,
         ReadDir: readDir,
         DeleteAll: deleteAllFiles,
       }));
+      setStatus(AccountSyncStatus.Synced);
+      setService(AccountSyncService.Dropbox);
     }
-  }, [deleteAllFiles, dropbox, getBinaryFile, getLastModified, readDir, writeFile]);
-
-  return store;
+  }, [deleteAllFiles, dropbox, getBinaryFile, getLastModified, readDir, setStore, writeFile, setStatus, setService, remoteStore]);
 }
 
 export default useDropboxRemoteStore;

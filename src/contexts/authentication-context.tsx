@@ -5,7 +5,7 @@ import { useUtils } from 'src/contexts/utils-context';
 import { v4 as uuid } from 'uuid';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 import useLocalStorage from 'src/hooks/useLocalStorage';
-import { AppEvents, bus } from 'src/events';
+import { AppEvents, appBus as bus } from 'src/events';
 
 type AuthenticationContextType = {
   setSyncLoginService: (service: AccountSyncService) => void;
@@ -31,7 +31,6 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const instanceId = useMemo(() => uuid(), []);
   const { utils } = useUtils();
   const authChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('authentication'), []);
-  const [encryptedPassword, setEncryptedPassword] = useState<Uint8Array>();
   const [rawPassword, setRawPassword] = useState<string>();
 
   const {
@@ -56,7 +55,6 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
 
   useEffect(() => {
     const listener = () => {
-      setEncryptedPassword(undefined);
       setRawPassword('');
     };
     bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
@@ -68,7 +66,7 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     try {
       setRawPassword(password); 
       const encrypted = await utils.GetOrInitPassword(password);
-      setEncryptedPassword(encrypted);
+      bus.emit(AppEvents.PASSWORD_DECRYPTED, encrypted, password);
       return true;
     } catch (error) {
       console.error('GetOrInitPassword failed', error);
@@ -112,7 +110,6 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
         setSyncLoginService,
         cancelSyncLogin,
         cmixPreviouslyInitialized: !!cmixPreviouslyInitialized,
-        encryptedPassword,
         attemptingSyncedLogin: !cmixPreviouslyInitialized && accountSyncStatus === AccountSyncStatus.Synced,
         getOrInitPassword,
         instanceId,

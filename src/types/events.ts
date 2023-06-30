@@ -24,8 +24,8 @@ export type UserMutedEvent = {
 }
 
 export type DMReceivedEvent = {
-  messageUuid: string;
-  pubkey: Uint8Array;
+  uuid: number;
+  pubkey: string;
   update: boolean;
   conversationUpdated: boolean;
 }
@@ -79,9 +79,8 @@ export type NotificationState = {
 }
 
 export type NotificationUpdateEvent = {
-  changedNotificationStates: NotificationState[];
-  deletedNotificationStates: ChannelId[] | null;
-  maxState: number;
+  changedNotificationStates?: NotificationState[];
+  deletedNotificationStates?: ChannelId[] | null;
 }
 
 export type DMNotificationLevelState = {
@@ -92,4 +91,9 @@ export type DMNotificationLevelState = {
 export type DMNotificationsUpdateEvent = {
   changedNotificationStates: DMNotificationLevelState[];
   deletedNotificationStates: string[];
+}
+
+export type DMBlockedUserEvent = {
+  pubkey: string;
+  blocked: boolean;
 }

@@ -4,8 +4,10 @@ import {
   ChannelJSON,
   ChannelStatus,
   ChannelUpdateEvent,
+  DMBlockedUserEvent,
   DMNotificationLevelState,
   DMNotificationsUpdateEvent,
+  DMReceivedEvent,
   IdentityJSON,
   IsReadyInfoJSON,
   MessageDeletedEvent,
@@ -194,7 +196,6 @@ export const notificationUpdateEventDecoder = makeDecoder(JsonDecoder.object<Not
   {
     changedNotificationStates: JsonDecoder.array<NotificationState>(notificationStateDecoder, 'ChangedNotificationStatesDecoder'),
     deletedNotificationStates: JsonDecoder.nullable(JsonDecoder.array<ChannelId>(JsonDecoder.string, 'DeletedNotificationStatesDecoder')),
-    maxState: JsonDecoder.number
   },
   'NotificationUpdateEventDecoder',
 ))
@@ -251,5 +252,36 @@ export const dmNotificationsUpdateEventDecoder = makeDecoder(JsonDecoder.object<
     changedNotificationStates: dmNotificationLevelStatesDecoder,
     deletedNotificationStates: dmDeletedNotificationStatesDecoder,
   },
-  'DMNotificationsUpdateEventDecoder'
+  'DMNotificationsUpdateEventDecoder',
+
+  {
+    changedNotificationStates: 'changed',
+    deletedNotificationStates: 'deleted'
+  }
 ));
+
+export const blockedUserEventDecoder = makeDecoder(JsonDecoder.object<DMBlockedUserEvent>(
+  {
+    pubkey: JsonDecoder.string,
+    blocked: JsonDecoder.boolean
+  },
+  'DMBlockedUserEvent',
+  {
+    pubkey: 'user',
+  }
+));
+
+export const dmReceivedEventDecoder = makeDecoder(JsonDecoder.object<DMReceivedEvent>(
+  {
+    uuid: JsonDecoder.number,
+    pubkey: JsonDecoder.string,
+    update: JsonDecoder.boolean,
+    conversationUpdated: JsonDecoder.boolean
+  },
+  'DMReceivedEventDecoder',
+  {
+    pubkey: 'pubKey',
+    update: 'messageUpdate',
+    conversationUpdated: 'conversationUpdate'
+  }
+))

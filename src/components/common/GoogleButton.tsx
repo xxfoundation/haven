@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 import { useTranslation } from 'react-i18next';
 import { useGoogleLogin } from '@react-oauth/google';
-import { AppEvents, bus } from 'src/events';
+import { AppEvents, appBus } from 'src/events';
 import PrimaryButton, { Props as ButtonProps } from './PrimaryButton/PrimaryButton';
 
 declare global {
@@ -29,7 +29,7 @@ const GoogleButton: FC<Props>  = ({
     prompt: 'consent',
     onSuccess: (token) => {
       onStartLoading();
-      bus.emit(AppEvents.GOOGLE_TOKEN, token.access_token)
+      appBus.emit(AppEvents.GOOGLE_TOKEN, token.access_token)
     },
   });
 

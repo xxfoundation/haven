@@ -11,7 +11,7 @@ import GoogleButton from '../../common/GoogleButton';
 import DropboxButton from '../../common/DropboxButton';
 
 import s from './styles.module.scss';
-import { AppEvents, awaitEvent } from 'src/events';
+import { AppEvents, awaitAppEvent as awaitEvent } from 'src/events';
 
 const AccountSyncView: FC = () => {
   const { t } = useTranslation();

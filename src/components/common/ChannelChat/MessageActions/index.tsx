@@ -21,7 +21,7 @@ import { useUtils } from '@contexts/utils-context';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComment, faCommentSlash } from '@fortawesome/free-solid-svg-icons';
 import { t } from 'i18next';
-import { AppEvents, awaitEvent } from 'src/events';
+import { AppEvents, awaitAppEvent as awaitEvent } from 'src/events';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;

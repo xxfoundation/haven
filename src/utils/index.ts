@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { deflateSync, inflateSync } from 'zlib';
 import DOMPurify from 'dompurify';
+import { TypedEventEmitter } from '@types';
+import { useEffect } from 'react';
+import delay from 'delay';
 
 // Encodes Uint8Array to a string.
 export const encoder = new TextEncoder();
@@ -56,3 +60,47 @@ export const inflate = (content: string) => {
 }
 
 export const deflate = (content: string) => deflateSync(content).toString('base64');
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const makeListenerHook = <T extends Record<string|number, any>>(bus: TypedEventEmitter<T>) => <K extends keyof T>(key: K, listener: T[K]) => {
+  useEffect(() => {
+    bus.addListener(key, listener);
+
+    return () => {
+      bus.removeListener(key, listener);
+    }
+  }, [key, listener]);
+}
+
+type AnyFunc = (...args: any) => any;
+export const makeEventAwaiter = <T extends Record<string|number, AnyFunc>>(bus: TypedEventEmitter<T>) =>
+  <K extends keyof T>(
+    evt: K,
+    predicate: (...params: Parameters<T[K]>) => boolean = () => true,
+    timeout = 10000
+  ): Promise<Parameters<T[K]> | undefined> => {
+    let listener: AnyFunc;
+    let resolved = false;
+    const promise = new Promise<Parameters<T[K]>>((resolve) => {
+      listener = (...args) => {
+        const result = predicate(...args);
+        if (result) {
+          resolved = true;
+          resolve(args);
+        }
+      };
+      bus.addListener(evt, listener as any);
+    });
+  
+    return Promise.race([
+      promise,
+      delay(timeout).then(() => {
+        if (!resolved) {
+          throw new Error(`Awaiting event ${String(evt)} timed out.`)
+        }
+        return undefined;
+      })
+    ]).finally(() => {
+      bus.removeListener(evt, listener as any);
+    });
+  }
