@@ -64,7 +64,8 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
 
   const getOrInitPassword = useCallback(async (password: string) => {
     try {
-      setRawPassword(password); 
+      setRawPassword(password);
+      bus.emit(AppEvents.PASSWORD_ENTERED, password);
       const encrypted = await utils.GetOrInitPassword(password);
       bus.emit(AppEvents.PASSWORD_DECRYPTED, encrypted, password);
       return true;

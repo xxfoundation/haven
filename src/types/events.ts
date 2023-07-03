@@ -60,7 +60,7 @@ export type AllowLists = {
   allowWithoutTags: AllowList;
 }
 
-export enum NotificationLevel {
+export enum ChannelNotificationLevel {
   NotifyNone = 10,
   NotifyPing = 20,
   NotifyAll = 40
@@ -74,7 +74,7 @@ export enum NotificationStatus {
 
 export type NotificationState = {
   channelId: string;
-  level: NotificationLevel;
+  level: ChannelNotificationLevel;
   status: NotificationStatus;
 }
 
@@ -85,7 +85,7 @@ export type NotificationUpdateEvent = {
 
 export type DMNotificationLevelState = {
   pubkey: string;
-  level: NotificationLevel
+  level: DMNotificationLevel;
 }
 
 export type DMNotificationsUpdateEvent = {
@@ -96,4 +96,9 @@ export type DMNotificationsUpdateEvent = {
 export type DMBlockedUserEvent = {
   pubkey: string;
   blocked: boolean;
+}
+
+export enum DMNotificationLevel {
+  NotifyNone = 10,
+  NotifyAll = 40
 }

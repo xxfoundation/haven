@@ -85,7 +85,7 @@ export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (remoteStore) {
-      bus.emit(AppEvents.REMOTE_STORE_INITIALIZED);
+      bus.emit(AppEvents.REMOTE_STORE_INITIALIZED, remoteStore);
     }
   }, [remoteStore]);
 

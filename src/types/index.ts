@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { RemoteKV } from './collective';
+import { DMNotificationLevel } from './events';
 
 export type WithChildren = {
   children?: ReactNode;
@@ -31,6 +32,7 @@ export type DMClient = {
   BlockPartner: (pubkey: Uint8Array) => Promise<void>;
   UnblockPartner: (pubkey: Uint8Array) => Promise<void>;
   IsBlocked: (pubkey: Uint8Array) => Promise<boolean>;
+  SetMobileNotificationsLevel: (pubkey: Uint8Array, level: DMNotificationLevel) => void;
 }
 
 export type DummyTraffic = {

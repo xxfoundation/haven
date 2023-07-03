@@ -1,7 +1,7 @@
 import type { Channel, ChannelId, ChannelsState } from './types';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { NotificationLevel, NotificationStatus, UserMutedEvent } from '@types';
+import { ChannelNotificationLevel, NotificationStatus, UserMutedEvent } from '@types';
 import { pickBy, omit, uniqBy, uniq } from 'lodash';
 
 const initialState: ChannelsState = {
@@ -116,7 +116,7 @@ export const slice = createSlice({
         }
       }
     },
-    updateNotificationLevel: (state: ChannelsState, { payload: { channelId, level } }: PayloadAction<{ channelId: ChannelId, level?: NotificationLevel }>) => ({
+    updateNotificationLevel: (state: ChannelsState, { payload: { channelId, level } }: PayloadAction<{ channelId: ChannelId, level?: ChannelNotificationLevel }>) => ({
       ...state,
       notificationLevels: {
         ...state.notificationLevels,

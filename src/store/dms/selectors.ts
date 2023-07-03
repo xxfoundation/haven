@@ -1,5 +1,5 @@
 import type { RootState } from 'src/store/types';
-import type { Contributor } from 'src/types';
+import type { Contributor, DMNotificationLevel } from 'src/types';
 
 import { pick, sortBy } from 'lodash';
 import { createSelector, Selector } from '@reduxjs/toolkit';
@@ -58,3 +58,5 @@ export const currentConversationContributors: Selector<RootState, Contributor[]>
 
 export const isBlocked = (pubkey: string) => (state: RootState) => state.dms.blocked.includes(pubkey);
 
+export const notificationLevel = (pubkey?: string | null) => (state: RootState): DMNotificationLevel | undefined => pubkey ? state.dms.notificationLevels[pubkey] : undefined;
+export const allNotificationLevels = (state: RootState) => state.dms.notificationLevels;

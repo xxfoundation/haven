@@ -1,4 +1,4 @@
-import { AdminKeysUpdateEvent, ChannelStatus, ChannelUpdateEvent, MessageDeletedEvent, MessageStatus, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
+import { AdminKeysUpdateEvent, ChannelStatus, ChannelUpdateEvent, DMBlockedUserEvent, DMNotificationsUpdateEvent, MessageDeletedEvent, MessageStatus, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
 import { useCallback } from 'react';
 
 import * as channels from 'src/store/channels'
@@ -7,7 +7,8 @@ import { useAppDispatch } from 'src/store/hooks';
 import useNotification from './useNotification';
 import { useNetworkClient } from '@contexts/network-client-context';
 import { Message } from 'src/types';
-import { AppEvents, ChannelEvents, appBus, useAppEventListener, useChannelsListener } from 'src/events';
+import { AppEvents, ChannelEvents, DMEvents, appBus, useAppEventListener, useChannelsListener, useDmListener } from 'src/events';
+import * as dms from 'src/store/dms';
 
 const useEvents = () => {
   const { fetchChannels } = useNetworkClient();
@@ -36,7 +37,7 @@ const useEvents = () => {
   }, [dispatch]);
 
   const onNotificationUpdate = useCallback((evt: NotificationUpdateEvent) => {
-    evt.changedNotificationStates.forEach((state) => {
+    evt.changedNotificationStates?.forEach((state) => {
       dispatch(channels.actions.updateNotificationLevel(state));
       dispatch(channels.actions.updateNotificationStatus(state));
     });
@@ -96,6 +97,29 @@ const useEvents = () => {
   useAppEventListener(AppEvents.MESSAGE_PROCESSED, notifyMentions);
   useAppEventListener(AppEvents.MESSAGE_PROCESSED, notifyReplies);
   useAppEventListener(AppEvents.MESSAGE_PINNED, notifyPinned);
+
+  const updateDmNotifications = useCallback((e: DMNotificationsUpdateEvent) => {
+    e.changedNotificationStates.forEach((state) => {
+      dispatch(dms.actions.upsertNotificationLevel(state));
+    });
+
+    e.deletedNotificationStates.forEach((pubkey) => {
+      dispatch(dms.actions.upsertNotificationLevel({ pubkey }));
+    })
+  }, [dispatch]);
+
+  const onUserBlockUpdate = useCallback((evt: DMBlockedUserEvent) => {
+    if (evt.blocked) {
+      dispatch(dms.actions.blockUser(evt.pubkey));
+    } else {
+      dispatch(dms.actions.unblockUser(evt.pubkey));
+    }
+  }, [dispatch]);
+
+
+
+  useDmListener(DMEvents.DM_NOTIFICATION_UPDATE, updateDmNotifications);
+  useDmListener(DMEvents.DM_BLOCKED_USER, onUserBlockUpdate);
 }
 
 export default useEvents;

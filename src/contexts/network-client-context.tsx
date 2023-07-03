@@ -1,4 +1,4 @@
-import { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, NotificationLevel, NotificationStatus, DMClient, MessageStatus } from 'src/types';
+import { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, ChannelNotificationLevel, NotificationStatus, DMClient, MessageStatus } from 'src/types';
 import type { WithChildren, Message } from 'src/types';
 import { MessageType } from 'src/types';
 
@@ -95,9 +95,9 @@ export type ChannelManager = {
     tags: Uint8Array
   ) => Promise<Uint8Array>;
   IsChannelAdmin: (channelId: Uint8Array) => boolean;
-  GetNotificationLevel: (channelId: Uint8Array) => NotificationLevel;
+  GetNotificationLevel: (channelId: Uint8Array) => ChannelNotificationLevel;
   GetNotificationStatus: (channelId: Uint8Array) => NotificationStatus;
-  SetMobileNotificationsLevel: (channelId: Uint8Array, notificationLevel: NotificationLevel, notificationStatus: NotificationStatus) => void;
+  SetMobileNotificationsLevel: (channelId: Uint8Array, notificationLevel: ChannelNotificationLevel, notificationStatus: NotificationStatus) => void;
   GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => Promise<string>;
   GetStorageTag: () => string | undefined;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
