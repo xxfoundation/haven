@@ -37,9 +37,9 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
     () => getCodeNameAndColor(pubkey, codeset),
     [codeset, getCodeNameAndColor, pubkey]
   )
-  const colorHex = (isMuted || isBlocked) ? 'var(--dark-2)' : color.replace('0x', '#');
+  const colorHex = (isMuted || isBlocked) ? 'var(--text-muted)' : color.replace('0x', '#');
   const codenameColor = (isMuted || isBlocked)
-    ? 'var(--dark-2)'
+    ? 'var(--text-muted)'
     : (nickname
       ? '#73767C'
       : colorHex);

@@ -1,4 +1,4 @@
-import type { CMix, DBConversation, DBDirectMessage, DMClient, DMReceivedEvent, Identity, Message } from 'src/types';
+import { MessageStatus, type CMix, type DBConversation, type DBDirectMessage, type DMClient, type DMReceivedEvent, type Identity, type Message } from 'src/types';
 import type { Conversation } from 'src/store/dms/types';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -7,15 +7,14 @@ import assert from 'assert';
 import { useUtils, XXDKContext } from '@contexts/utils-context';
 import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_DATABASE_NAME as DMS_DATABASE_NAME } from 'src/constants';
 import { decoder } from '@utils/index';
-import { AppEvents, awaitAppEvent, DMEvents, useAppEventListener, useDmListener } from 'src/events';
+import { AppEvents, DMEvents, useAppEventValue, useDmListener } from 'src/events';
 import { useDb } from '@contexts/db-context';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as dms from 'src/store/dms';
 import * as app from 'src/store/app';
 import * as identity from 'src/store/identity';
 import useLocalStorage from './useLocalStorage';
-import useNotification from './useNotification';
-import { onDmEvent } from 'src/events';
+import { onDmEvent, appBus as bus } from 'src/events';
 
 type DatabaseCipher = {
   id: number;
@@ -59,7 +58,6 @@ const makeMessageMapper = (
 })
 
 const useDmClient = () => {
-  const { dmReceived } = useNotification();
   const dmsDb = useDb('dm');
   const dispatch = useAppDispatch();
   const dmNickname = useAppSelector(dms.selectors.dmNickname);
@@ -88,20 +86,6 @@ const useDmClient = () => {
     [client, databaseCipher, dmNickname, getCodeNameAndColor, userIdentity]
   );
   
-  const conversations = useAppSelector(dms.selectors.conversations);
-  useEffect(() => {
-    if (client) {
-      conversations.forEach(async ({ pubkey }) => {
-        const isBlocked = await client.IsBlocked(utils.Base64ToUint8Array(pubkey));
-        if (isBlocked) {
-          dispatch(dms.actions.blockUser(pubkey));
-        } else {
-          dispatch(dms.actions.unblockUser(pubkey));
-        }
-      })
-    }
-  }, [client, conversations, currentConversation, dispatch, utils])
-
   useEffect(() => {
     if (client) {
       try {
@@ -155,21 +139,19 @@ const useDmClient = () => {
     }
   }, [NewDMClientWithIndexedDb, utils]);
 
-  const onPasswordDecryption = useCallback(async (password: Uint8Array, rawPassword: string) => {
-    const events = await Promise.all([
-      awaitAppEvent(AppEvents.CMIX_LOADED, undefined, 1000000000),
-      awaitAppEvent(AppEvents.CHANNEL_MANAGER_LOADED, undefined, 1000000000)
-    ]);
-    const cmix = events[0]?.[0];
-    const channelManager = events[1]?.[0];
-    assert(cmix, 'Cmix required for dm client');
-    assert(channelManager, 'Channel manager required for dm client');
-    const privateIdentity = utils.ImportPrivateIdentity(rawPassword, channelManager.ExportPrivateIdentity(rawPassword));
-    const cipher = createDatabaseCipher(cmix, password);
-    createClient(cmix, cipher, privateIdentity);
-  }, [createClient, createDatabaseCipher, utils]);
+  const rawPassword = useAppEventValue(AppEvents.PASSWORD_ENTERED);
+  const decryptedPassword = useAppEventValue(AppEvents.PASSWORD_DECRYPTED);
+  const cmix = useAppEventValue(AppEvents.CMIX_LOADED);
+  const channelManager = useAppEventValue(AppEvents.CHANNEL_MANAGER_LOADED);
 
-  useAppEventListener(AppEvents.PASSWORD_DECRYPTED, onPasswordDecryption);
+  useEffect(() => {
+    if (rawPassword && decryptedPassword && cmix && channelManager) {
+      const privateIdentity = utils.ImportPrivateIdentity(rawPassword, channelManager.ExportPrivateIdentity(rawPassword));
+      const cipher = createDatabaseCipher(cmix, decryptedPassword);
+      createClient(cmix, cipher, privateIdentity);
+    }
+  }, [channelManager, cmix, createClient, createDatabaseCipher, decryptedPassword, rawPassword, utils])
+
 
   useEffect(() => {
     if (dmsDb && conversationMapper) {
@@ -199,18 +181,23 @@ const useDmClient = () => {
     if (!dmsDb || !messageMapper || !conversationMapper) {
       return;
     }
-    const pubkey = Buffer.from(e.pubkey).toString('base64');
+
     Promise.all([
       dmsDb.table<DBDirectMessage>('messages')
         .where('id')
         .equals(e.uuid)
         .first(),
       dmsDb.table<DBConversation>('conversations')
-        .filter((c) => c.pub_key === pubkey)
+        .filter((c) => c.pub_key === e.pubkey)
         .last()
     ]).then(([message, conversation]) => {
-        if (!conversation || !message) {
-          console.error('Couldn\'t find conversation or message in database.');
+        if (!conversation) {
+          console.error('Couldn\'t find conversation in database.');
+          return;
+        }
+
+        if (!message) {
+          console.error('Couldn\'t find message in database.');
           return;
         }
 
@@ -236,13 +223,13 @@ const useDmClient = () => {
         ) {
           dispatch(app.actions.notifyNewMessage(decryptedMessage));
         }
-        dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
 
-        if (decryptedMessage.pubkey !== userIdentity?.pubkey && currentConversationId !== conversation.pub_key) {
-          dmReceived(decryptedMessage.nickname || decryptedMessage.codename, decryptedMessage.body);
+        dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
+        if (messageIsNew && message.status === MessageStatus.Delivered) {
+          bus.emit(AppEvents.DM_PROCESSED, decryptedMessage);
         }
     });
-  }, [allDms, conversationMapper, currentConversationId, dispatch, dmReceived, dmsDb, messageMapper, userIdentity?.pubkey])
+  }, [allDms, conversationMapper, currentConversationId, dispatch, dmsDb, messageMapper, userIdentity?.pubkey])
   
   useDmListener(DMEvents.DM_MESSAGE_RECEIVED, onMessageReceived);
 

@@ -5,12 +5,14 @@ import useSound from 'use-sound';
 import { convert } from 'html-to-text';
 
 import { inflate } from '@utils/index';
-import { ChannelId, DBMessage, Message, MessageStatus, MessageType, NotificationLevel, NotificationStatus } from '@types';
+import { ChannelId, DBMessage, Message, MessageStatus, MessageType, ChannelNotificationLevel, NotificationStatus, DMNotificationLevel } from '@types';
 import { useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
 import { useUtils } from '@contexts/utils-context';
 import { useDb } from '@contexts/db-context';
 import * as channels from 'src/store/channels';
+import * as dms from 'src/store/dms';
+import { AppEvents, useAppEventListener } from 'src/events';
 
 const getText = (content: string) => {
   let text = ''; 
@@ -38,8 +40,9 @@ const useNotification = () => {
     }
   }, [isPermissionGranted, playNotification]);
   const allChannels = useAppSelector(channels.selectors.channels);
-  const notificationLevels = useAppSelector(channels.selectors.notificationLevels);
+  const channelNotificationLevels = useAppSelector(channels.selectors.notificationLevels);
   const notificationStatuses = useAppSelector(channels.selectors.notificationStatuses);
+  const dmNotificationLevels = useAppSelector(dms.selectors.allNotificationLevels);
 
   const messageReplied = useCallback((username: string, message: string) => {
     notify(`${username} replied to you`, {
@@ -72,11 +75,19 @@ const useNotification = () => {
     notify(`${username} just sent you a direct message`, { icon, body: getText(message) });
   }, [notify]);
 
+  const onDmProcessed = useCallback((msg: Message) => {
+    if (dmNotificationLevels[msg.pubkey] === DMNotificationLevel.NotifyAll) {
+      dmReceived(msg.nickname || msg.codename, msg.body);
+    }
+  }, [dmNotificationLevels, dmReceived]);
+
+  useAppEventListener(AppEvents.DM_PROCESSED, onDmProcessed);
+
   const isUserPingableOnThisChannel = useCallback((channelId: ChannelId) => {
-    const level = notificationLevels[channelId] ?? NotificationLevel.NotifyPing;
+    const level = channelNotificationLevels[channelId] ?? ChannelNotificationLevel.NotifyPing;
     const status = notificationStatuses[channelId] ?? NotificationStatus.WhenOpen;
-    return level >= NotificationLevel.NotifyPing && status >= NotificationStatus.Mute;
-  }, [notificationLevels, notificationStatuses])
+    return level >= ChannelNotificationLevel.NotifyPing && status >= NotificationStatus.Mute;
+  }, [channelNotificationLevels, notificationStatuses])
 
   const notifyMentions = useCallback((message: Message) => {
     const canNotify = isUserPingableOnThisChannel(message.channelId);
@@ -139,7 +150,6 @@ const useNotification = () => {
   return {
     isPermissionGranted,
     permissionIgnored,
-    dmReceived,
     setPermissionIgnored,
     setIsPermissionGranted,
     close,

@@ -3,6 +3,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { channelsSearch } from '../app/selectors';
 import { sortBy } from 'lodash';
 import { ChannelId } from './types';
+import { NotificationStatus } from '@types';
 
 export const channels = (state: RootState) => state.channels.sortedChannels;
 
@@ -33,6 +34,6 @@ export const mutedUsers = (state: RootState) => state.channels.mutedUsersByChann
 export const notificationLevels = (state: RootState) => state.channels.notificationLevels;
 export const notificationStatuses = (state: RootState) => state.channels.notificationStatuses;
 
-export const notificationLevel = (channelId?: ChannelId) => (state: RootState) => channelId && notificationLevels(state)[channelId];
-export const notificationStatus =  (channelId?: ChannelId) => (state: RootState) => channelId && notificationStatuses(state)[channelId];
+export const notificationLevel = (channelId?: ChannelId) => (state: RootState) => channelId ? notificationLevels(state)[channelId] : undefined;
+export const notificationStatus =  (channelId?: ChannelId) => (state: RootState): NotificationStatus | undefined => channelId ? notificationStatuses(state)[channelId] : undefined;
 export const dmsEnabled = (channelId?: ChannelId) => (state: RootState) => !!(channelId &&  state.channels.dmsEnabled[channelId]);

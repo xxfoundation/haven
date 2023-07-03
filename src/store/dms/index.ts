@@ -4,7 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Message } from '../messages/types';
 
 import { reactionsReducer } from '../utils';
-import { MessageType } from '@types';
+import { DMNotificationLevel, MessageType } from '@types';
 import { uniq } from 'lodash';
 
 const initialState: DMState = {
@@ -12,6 +12,7 @@ const initialState: DMState = {
   messagesByPubkey: {},
   reactions: {},
   blocked: [],
+  notificationLevels: {}
 };
 
 const upsertConversation = (state: DMState, conversation: Conversation) => ({
@@ -22,6 +23,10 @@ const upsertConversation = (state: DMState, conversation: Conversation) => ({
       ...state.conversationsByPubkey[conversation.pubkey],
       ...conversation,
     }
+  },
+  notificationLevels: {
+    ...state.notificationLevels,
+    [conversation.pubkey]: state.notificationLevels[conversation.pubkey] || DMNotificationLevel.NotifyAll
   }
 });
 
@@ -72,6 +77,13 @@ export const slice = createSlice({
       ...state,
       blocked: state.blocked.filter((b) => b !== pubkey)
     }),
+    upsertNotificationLevel: (state: DMState, { payload: { level, pubkey } }: PayloadAction<{ pubkey: string, level?: DMNotificationLevel }>) => ({
+      ...state,
+      notificationLevels: {
+        ...state.notificationLevels,
+        [pubkey]: level
+      }
+    })
   }
 });
 

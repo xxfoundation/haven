@@ -4,9 +4,10 @@ import React, { FC, useCallback, useMemo } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faStar } from '@fortawesome/free-solid-svg-icons';
+import assert from 'assert';
 
-import { PrivacyLevel } from 'src/contexts/utils-context';
+import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import Ellipsis from '@components/icons/Ellipsis';
 import Share from '@components/icons/Share';
 import { useUI } from '@contexts/ui-context';
@@ -17,6 +18,9 @@ import * as app from 'src/store/app';
 import s from './styles.module.scss';
 import Badge from '../Badge';
 import useChannelFavorites from 'src/hooks/useChannelFavorites';
+import * as dms from 'src/store/dms';
+import { DMNotificationLevel } from '@types';
+import { useNetworkClient } from '@contexts/network-client-context';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
@@ -31,10 +35,14 @@ const ChannelHeader: FC<Props> = ({
   privacyLevel
 }) => {
   const { t } = useTranslation();
+  const { utils } = useUtils();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
-  const currentConversationId = useAppSelector(app.selectors.currentChannelOrConversationId);
-  const channelId = currentChannel?.id || currentConversationId;
+  const conversationId = useAppSelector(dms.selectors.currentConversation)?.pubkey;
+  const channelId = useAppSelector(app.selectors.currentChannelOrConversationId);
+  const { dmClient } = useNetworkClient();
+
   const { isFavorite, toggle: toggleFavorite } = useChannelFavorites();
+  const notificationLevel = useAppSelector(dms.selectors.notificationLevel(conversationId))
 
   const isChannelFavorited = useMemo(() => isFavorite(channelId), [isFavorite, channelId])
   const { openModal, setModalView } = useUI();
@@ -63,6 +71,16 @@ const ChannelHeader: FC<Props> = ({
     [PrivacyLevel.Public]: t('Anyone can join this channel'),
     [PrivacyLevel.Secret]: t('Only people with a password can join this channel')
   }), [t]);
+
+  const toggleNotifications = useCallback(() => {
+    assert(conversationId, 'Conversation ID required to set notification level');
+    dmClient?.SetMobileNotificationsLevel(
+      utils.Base64ToUint8Array(conversationId),
+      notificationLevel === DMNotificationLevel.NotifyNone
+        ? DMNotificationLevel.NotifyAll
+        : DMNotificationLevel.NotifyNone
+    )
+  }, [conversationId, dmClient, notificationLevel, utils])
 
   return (
     <div data-testid='channel-header' className={s.root}>
@@ -101,6 +119,13 @@ const ChannelHeader: FC<Props> = ({
                 onClick={openShareModal} />
               <Ellipsis onClick={openChannelSettings} className={s.icon} />
             </>
+          )}
+          {conversationId && (
+            <FontAwesomeIcon
+              onClick={toggleNotifications}
+              className={cn(s.icon, notificationLevel === DMNotificationLevel.NotifyAll ? s.gold : s.grey)}
+              icon={faBell}
+            />
           )}
         </div>
       </div>

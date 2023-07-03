@@ -1,15 +1,17 @@
 import type { CMix, CMixParams, DummyTraffic, RemoteStore } from 'src/types';
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import assert from 'assert';
+
 import { useUtils } from '@contexts/utils-context';
 import { encoder, decoder } from '@utils/index';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DUMMY_TRAFFIC_ARGS, FOLLOWER_TIMEOUT_PERIOD, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
 import { ndf } from 'src/sdk-utils/ndf';
 import useTrackNetworkPeriod from './useNetworkTrackPeriod';
 import { useAuthentication } from '@contexts/authentication-context';
 import { AppEvents, appBus as bus, useAppEventListener } from 'src/events';
 import { RemoteKVWrapper } from '@contexts/remote-kv-context';
-import useRemoteStore from './useRemoteStore';
+import useAccountSync, { AccountSyncStatus } from './useAccountSync';
 
 type DatabaseCipher = {
   id: number;
@@ -33,8 +35,8 @@ const useCmix = () => {
   const cmixId = useMemo(() => cmix?.GetID(), [cmix]);
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
   const { trackingMs } = useTrackNetworkPeriod();
-  const [remoteStore] = useRemoteStore();
   const [decryptedPass, setDecryptedPass] = useState<Uint8Array>();
+  const accountSync = useAccountSync();
 
   const encodedCmixParams = useMemo(() => {
     const params = JSON.parse(decoder.decode(utils.GetDefaultCMixParams())) as CMixParams;
@@ -229,14 +231,19 @@ const useCmix = () => {
 
   const onPasswordDecryption = useCallback(async (password: Uint8Array) => {
     setDecryptedPass(password);
-    if (remoteStore) {
-      await initializeSync(password, remoteStore);
-    } else {
+    if (accountSync.status !== AccountSyncStatus.Synced) {
       await initialize(password);
     }
-  }, [initialize, initializeSync, remoteStore]);
+  }, [accountSync.status, initialize]);
 
   useAppEventListener(AppEvents.PASSWORD_DECRYPTED, onPasswordDecryption);
+
+  const onRemoteStoreInitialized = useCallback(async (remoteStore: RemoteStore) => {
+    assert(decryptedPass, 'Password required for sync login');
+    initializeSync(decryptedPass, remoteStore);
+  }, [decryptedPass, initializeSync]);
+
+  useAppEventListener(AppEvents.REMOTE_STORE_INITIALIZED, onRemoteStoreInitialized);
 
   useEffect(() => {
     if (cmix) {

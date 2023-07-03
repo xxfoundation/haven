@@ -2,7 +2,7 @@
 import { deflateSync, inflateSync } from 'zlib';
 import DOMPurify from 'dompurify';
 import { TypedEventEmitter } from '@types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import delay from 'delay';
 
 // Encodes Uint8Array to a string.
@@ -70,6 +70,24 @@ export const makeListenerHook = <T extends Record<string|number, any>>(bus: Type
       bus.removeListener(key, listener);
     }
   }, [key, listener]);
+}
+
+export const makeEventHook = <T extends Record<string|number, any>>(bus: TypedEventEmitter<T>) => <K extends keyof T>(key: K) => {
+  const [value, setValue] = useState<Parameters<T[K]>[0]>();
+
+  useEffect(() => {
+    const listener = (...args: Parameters<T[K]>) => {
+      setValue(args[0]);
+    }
+
+    bus.addListener(key, listener as any);
+
+    return () => {
+      bus.removeListener(key, listener as any);
+    }
+  }, [key, value]);
+
+  return value;
 }
 
 type AnyFunc = (...args: any) => any;

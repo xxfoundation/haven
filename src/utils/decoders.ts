@@ -13,13 +13,14 @@ import {
   MessageDeletedEvent,
   MessageReceivedEvent,
   NicknameUpdatedEvent,
-  NotificationLevel,
+  ChannelNotificationLevel,
   NotificationState,
   NotificationStatus,
   NotificationUpdateEvent,
   ShareURLJSON,
   UserMutedEvent,
-  VersionJSON
+  VersionJSON,
+  DMNotificationLevel
 } from 'src/types';
 import { KVEntry } from 'src/types/collective';
 import { Err, JsonDecoder } from 'ts.data.json';
@@ -178,7 +179,7 @@ export const nicknameUpdatedEventDecoder = makeDecoder(JsonDecoder.object<Nickna
   }
 ));
 
-export const notificationLevelDecoder = JsonDecoder.enumeration<NotificationLevel>(NotificationLevel, 'NotificationLevelDecoder');
+export const notificationLevelDecoder = JsonDecoder.enumeration<ChannelNotificationLevel>(ChannelNotificationLevel, 'NotificationLevelDecoder');
 export const notificationStatusDecoder = JsonDecoder.enumeration<NotificationStatus>(NotificationStatus, 'NotificationStatusDecoder');
 const notificationStateDecoder = JsonDecoder.object<NotificationState>(
   {
@@ -231,11 +232,13 @@ export const channelUpdateEventDecoder = makeDecoder(
     'ChannelUpdateEventDecoder')
 );
 
+export const dmNotificationLevelDecoder = JsonDecoder.enumeration<DMNotificationLevel>(DMNotificationLevel, 'DMNotificationLevel');
+
 const dmNotificationLevelStatesDecoder = JsonDecoder.array<DMNotificationLevelState>(
   JsonDecoder.object<DMNotificationLevelState>(
     {
       pubkey: JsonDecoder.string,
-      level: notificationLevelDecoder
+      level: dmNotificationLevelDecoder
     },
     'DMNotificationLevelState',
     {
@@ -253,7 +256,6 @@ export const dmNotificationsUpdateEventDecoder = makeDecoder(JsonDecoder.object<
     deletedNotificationStates: dmDeletedNotificationStatesDecoder,
   },
   'DMNotificationsUpdateEventDecoder',
-
   {
     changedNotificationStates: 'changed',
     deletedNotificationStates: 'deleted'

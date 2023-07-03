@@ -14,7 +14,7 @@ import RightFromBracket from '@components/icons/RightFromBracket';
 import { useNetworkClient } from '@contexts/network-client-context';
 import CheckboxToggle from '@components/common/CheckboxToggle';
 import { Spinner } from '@components/common';
-import { NotificationLevel, NotificationStatus } from '@types';
+import { ChannelNotificationLevel, NotificationStatus } from '@types';
 import { useUtils } from '@contexts/utils-context';
 import { notificationLevelDecoder, notificationStatusDecoder } from '@utils/decoders';
 
@@ -37,17 +37,45 @@ const ChannelSettingsView: FC = () => {
     channelManager?.[fn](Buffer.from(currentChannel.id, 'base64'));
   }, [channelManager, currentChannel, dmsEnabled]);
 
-  const changeNotificationLevel = useCallback((level: NotificationLevel) => {
-    if (currentChannel?.id) {
-      const status = notificationStatus || NotificationStatus.WhenOpen;
+  const correctInvalidNotificationStates = useCallback((level = ChannelNotificationLevel.NotifyPing, status = NotificationStatus.WhenOpen) => {
+    const previousStatus = notificationStatus;
+    const previousLevel = notificationLevel;
 
+    const notificationStatusMuted = status === NotificationStatus.Mute && previousStatus !== NotificationStatus.Mute;
+    const notificationStatusUnmuted = status !== NotificationStatus.Mute && previousStatus === NotificationStatus.Mute;
+    const notificationLevelMuted = level === ChannelNotificationLevel.NotifyNone && previousLevel !== ChannelNotificationLevel.NotifyNone;
+    const notificationLevelUnmuted = level !== ChannelNotificationLevel.NotifyNone && previousLevel === ChannelNotificationLevel.NotifyNone;
+
+    let stat = status;
+    let lev = level;
+
+    if (notificationStatusMuted) {
+      lev = ChannelNotificationLevel.NotifyNone;
+    }
+
+    if (notificationStatusUnmuted && lev === ChannelNotificationLevel.NotifyNone) {
+      lev = ChannelNotificationLevel.NotifyPing;
+    }
+
+    if (notificationLevelMuted) {
+      stat = NotificationStatus.Mute;
+    }
+
+    if (notificationLevelUnmuted && stat === NotificationStatus.Mute) {
+      stat = NotificationStatus.WhenOpen;
+    }
+
+    return [lev, stat] as [ChannelNotificationLevel, NotificationStatus];
+  }, [notificationLevel, notificationStatus]);
+
+  const changeNotificationLevel = useCallback((level: ChannelNotificationLevel) => {
+    if (currentChannel?.id) {
       channelManager?.SetMobileNotificationsLevel(
         utils.Base64ToUint8Array(currentChannel?.id),
-        level,
-        status,
+        ...correctInvalidNotificationStates(level, notificationStatus)
       )
     }
-  }, [channelManager, currentChannel?.id, notificationStatus, utils]);
+  }, [channelManager, correctInvalidNotificationStates, currentChannel?.id, notificationStatus, utils]);
 
   const onNotificationLevelChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
     const level = notificationLevelDecoder.decode(parseInt(evt.target.value, 10));
@@ -60,15 +88,14 @@ const ChannelSettingsView: FC = () => {
 
   const changeNotificationStatus = useCallback((status: NotificationStatus) => {
     if (currentChannel?.id) {
-      const level = status === NotificationStatus.Mute ? NotificationLevel.NotifyNone : (notificationLevel || NotificationLevel.NotifyPing);
+      const level = status === NotificationStatus.Mute ? ChannelNotificationLevel.NotifyNone : (notificationLevel || ChannelNotificationLevel.NotifyPing);
       
       channelManager?.SetMobileNotificationsLevel(
         utils.Base64ToUint8Array(currentChannel?.id),
-        level,
-        status,
+        ...correctInvalidNotificationStates(level, status)
       )
     }
-  }, [channelManager, currentChannel?.id, utils, notificationLevel]);
+  }, [currentChannel?.id, notificationLevel, channelManager, utils, correctInvalidNotificationStates]);
 
   const onNotificationStatusChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
     const status = notificationStatusDecoder.decode(parseInt(evt.target.value, 10));
@@ -151,11 +178,10 @@ const ChannelSettingsView: FC = () => {
               className={s.select}
               onChange={onNotificationLevelChange}
               value={notificationLevel}
-              disabled={notificationStatus === NotificationStatus.Mute}
               id='notification-levels'>
-              <option value={NotificationLevel.NotifyAll}>All</option>
-              <option value={NotificationLevel.NotifyPing}>Tags, replies, and pins</option>
-              <option value={NotificationLevel.NotifyNone}>None</option>
+              <option value={ChannelNotificationLevel.NotifyAll}>All</option>
+              <option value={ChannelNotificationLevel.NotifyPing}>Tags, replies, and pins</option>
+              <option value={ChannelNotificationLevel.NotifyNone}>None</option>
             </select>
           </div>
           <div>
