@@ -75,9 +75,12 @@ const LoginView: FC = () => {
         return;
       }
       setLoadingInfo(t('Retrieving account...'));
-      await awaitEvent(AppEvents.CMIX_SYNCED)
+      await awaitEvent(AppEvents.CMIX_SYNCED, undefined, 20000)
         .then(() => { setIsAuthenticated(true); })
-        .catch(() => { setError(t('Something went wrong, please check your credentials.'))})
+        .catch(() => {
+          console.error('Cmix Sync timed out.')
+          setError(t('Something went wrong, please check your credentials.'));
+        })
         .finally(() => {
           setIsLoading(false);
           setLoadingInfo('')
