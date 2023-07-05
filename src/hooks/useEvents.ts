@@ -116,8 +116,6 @@ const useEvents = () => {
     }
   }, [dispatch]);
 
-
-
   useDmListener(DMEvents.DM_NOTIFICATION_UPDATE, updateDmNotifications);
   useDmListener(DMEvents.DM_BLOCKED_USER, onUserBlockUpdate);
 }

@@ -21,8 +21,7 @@ const listDirectory = (filenames: string[], search: string) => {
       acc.add(sliced.slice(0, nextSlash !== -1 ? nextSlash : undefined))
     }
     return acc;
-  }, new Set())
-  .values();
+  }, new Set()).values();
 
   return Array.from(set);
 }
@@ -186,7 +185,7 @@ const useGoogleRemoteStore = () => {
       accountSync.setService(AccountSyncService.Google);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, deleteAllFiles, drive, getBinaryFile, getLastModified, readDir, writeFile])
+  }, [accessToken, deleteAllFiles, drive, getBinaryFile, getLastModified, readDir, writeFile]);
 }
 
 export default useGoogleRemoteStore;
