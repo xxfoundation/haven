@@ -68,7 +68,8 @@ export type XXDKUtils = {
   LoadNotificationsDummy:  (
     cmixId: number
   ) => Notifications;
-  GetDefaultCMixParams: () => Uint8Array;GetChannelInfo: (prettyPrint: string) => Uint8Array;
+  GetDefaultCMixParams: () => Uint8Array;
+  GetChannelInfo: (prettyPrint: string) => Uint8Array;
   Base64ToUint8Array: (base64: string) => Uint8Array;
   GenerateChannelIdentity: (cmixId: number) => Uint8Array;
   NewChannelsManagerWithIndexedDb: (
