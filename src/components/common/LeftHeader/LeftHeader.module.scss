@@ -1,0 +1,8 @@
+.root {
+  display: flex;
+  border-top-left-radius: var(--border-radius);
+  background-color: var(--charcoal-4);
+  padding: 1rem 0.75rem;
+  border-right: 1px solid var(--our-black);
+  justify-content: space-between;
+}

@@ -3,40 +3,34 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Montserrat";
+  font-family: 'Roboto Flex', sans-serif;
   font-style: normal;
   font-weight: 100;
   font-display: swap;
-  src: url("/fonts/Montserrat/Montserrat-Thin.woff2") format("woff2");
+  src: url("/fonts/RobotoFlex-Regular.ttf") format("ttf");
 }
 
 @font-face {
-  font-family: "Montserrat";
+  font-family: 'Roboto Flex', sans-serif;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/Montserrat/Montserrat-Regular.woff2") format("woff2");
+  src: url("/fonts/RobotoFlex-Regular.ttf") format("ttf");
 }
 
 @font-face {
-  font-family: "Montserrat";
+  font-family: 'Roboto Flex', sans-serif;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 600;
   font-display: swap;
-  src: url("/fonts/Montserrat/Montserrat-Medium.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "Montserrat";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/Montserrat/Montserrat-Bold.woff2") format("woff2");
+  src: url("/fonts/RobotoFlex-Regular.ttf") format("ttf");
 }
 
 * {
-  font-family: "Montserrat";
+  font-family: 'Roboto Flex', sans-serif;
 }
+
+$border-radius: 12px;
 
 @import url("./_variables.css");
 @import "variables";

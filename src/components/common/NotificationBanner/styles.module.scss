@@ -16,7 +16,7 @@
   width: 100%;
 
   button {
-    color: var(--orange);
+    color: var(--primary);
   }
 
   display: flex;
@@ -27,7 +27,7 @@
   }
 
   svg path {
-    fill: var(--orange);
+    fill: var(--primary);
     stroke-width: 2px;
   }
 }

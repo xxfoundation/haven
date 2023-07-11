@@ -134,7 +134,7 @@ const SettingsView: FC = () => {
             {t('Account Sync')}
           </h3>
           {notSynced ? (
-            <FontAwesomeIcon size='2x' style={{ color: 'var(--orange)' }} onClick={() => {
+            <FontAwesomeIcon size='2x' style={{ color: 'var(--primary)' }} onClick={() => {
               setModalView('ACCOUNT_SYNC');
               openModal();
             }} className='pt-1' icon={faSync} />

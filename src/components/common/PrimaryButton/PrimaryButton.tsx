@@ -8,7 +8,7 @@ const PrimaryButton: FC<Props> = ({
 }) => {
   return (
     <Button
-      style={{ backgroundColor: 'var(--orange)', border: 'none', ...rest.style }}
+      style={{ backgroundColor: 'var(--primary)', border: 'none', ...rest.style }}
       {...rest}
     >
       {children}

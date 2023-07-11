@@ -1,36 +1,39 @@
+$header-height: 3.75rem;
+
 .root {
-  display: flex;
-  height: 100vh;
   overflow: hidden;
-
-  &.collapsed {
-    main {
-      max-width: calc(100vw - 19rem);
-    }
-    .rightSideBar {
-      transition: width 1s;
-      flex: 0 0 1rem;
-    }
-  }
-
-  .leftSideBar {
-    flex: 0 0 18rem;
-  }
-
-  .rightSideBar {
-    flex: 0 0 18rem;
-    max-width: 18rem;
-  }
-
-  main {
-    flex-grow: 1;
-    max-width: calc(100vw - 36rem);
-  }
 }
 
-.view-pinned-messages {
-  padding: 4rem;
-  width: 90vw;
-  max-height: 90vh;
-  max-width: unset;
+.main-layout {
+  display: flex;
+}
+
+.left-sidebar {
+  flex-basis: 21.75rem;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 21.75rem;
+}
+
+.left-header {
+  flex-basis: $header-height;
+  overflow: hidden;
+}
+
+.left-menu {
+  flex-grow: 1;
+}
+
+.main-screen {
+  flex-grow: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header {
+  flex-basis: $header-height;
+  overflow: hidden;
 }

@@ -22,7 +22,7 @@
     .replyHeader {
       font-size: 14px;
       font-weight: 700;
-      color: var(--orange);
+      color: var(--primary);
     }
     .closeButton {
       cursor: pointer;
@@ -38,7 +38,7 @@
     }
 
     svg path {
-      fill: var(--orange);
+      fill: var(--primary);
     }
   }
 

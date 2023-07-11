@@ -24,11 +24,9 @@ import { useNetworkClient } from '@contexts/network-client-context';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
-  description: React.ReactNode;
 }
 
 const ChannelHeader: FC<Props> = ({
-  description,
   id,
   isAdmin,
   name,
@@ -83,58 +81,57 @@ const ChannelHeader: FC<Props> = ({
   }, [conversationId, dmClient, notificationLevel, utils])
 
   return (
-    <div data-testid='channel-header' className={s.root}>
-      <div className='flex justify-between'>
-        <div className={'headline--sm flex flex-wrap items-center'}>
+    <div data-testid='channel-header' className={cn('flex', s.root)}>
+      <div className='flex-grow'>
+        <div data-testid='channel-name' className={s.channelName}>
+          {name}
+        </div>
+        <div>
+        <div className={cn(s.channelId, 'space-x-2')}>
+          {isAdmin && (
+            <Badge
+              data-testid='channel-admin-badge'
+              color='gold'
+              title={t('You have admin privileges in this channel')}
+            >
+            {t('Admin')}
+            </Badge>
+          )}
           {privacyLevel !== null && (
             <Badge
               data-testid='channel-privacy-level-badge'
-              color={privacyLevel === PrivacyLevel.Public ? 'gold' : 'cyan'}
+              color={privacyLevel === PrivacyLevel.Public ? 'gold' : 'grey'}
               title={privacyLevelDescriptions[privacyLevel]}
             >
               {privacyLevelLabels[privacyLevel]}
             </Badge>
           )}
-          {isAdmin && (
-            <span
-              data-testid='channel-admin-badge'
-              className={cn(s.badge, s.gold, s.outlined)}
-              title={t('You have admin privileges in this channel')}
-            >
-            {t('Admin')}
-            </span>
-          )}
-          <span data-testid='channel-name' className={cn('mr-2', s.channelName)}>
-            {name}{' '}
+          <span className={s.channelId}>
+            (id: {id})
           </span>
         </div>
-        <div className='flex space-x-2 mt-1'>
-          <FontAwesomeIcon
-            onClick={() => channelId && toggleFavorite(channelId)}
-            className={cn(s.icon, isChannelFavorited ? s.gold : s.grey )} icon={faStar} />
-          {currentChannel && (
-            <>
-              <Share
-                className={s.icon}
-                onClick={openShareModal} />
-              <Ellipsis onClick={openChannelSettings} className={s.icon} />
-            </>
-          )}
-          {conversationId && (
-            <FontAwesomeIcon
-              onClick={toggleNotifications}
-              className={cn(s.icon, notificationLevel === DMNotificationLevel.NotifyAll ? s.gold : s.grey)}
-              icon={faBell}
-            />
-          )}
         </div>
       </div>
-      <p>
-        <span className={cn('headline--xs break-all', s.channelId)}>
-          (id: {id})
-        </span>
-      </p>
-      <p className={'text mt-2'}>{description}</p>
+      <div className='flex space-x-4 items-center'>
+        <FontAwesomeIcon
+          onClick={() => channelId && toggleFavorite(channelId)}
+          className={cn(s.icon, isChannelFavorited ? s.gold : s.grey )} icon={faStar} />
+        {currentChannel && (
+          <>
+            <Share
+              className={s.icon}
+              onClick={openShareModal} />
+            <Ellipsis onClick={openChannelSettings} className={s.icon} />
+          </>
+        )}
+        {conversationId && (
+          <FontAwesomeIcon
+            onClick={toggleNotifications}
+            className={cn(s.icon, notificationLevel === DMNotificationLevel.NotifyAll ? s.gold : s.grey)}
+            icon={faBell}
+          />
+        )}
+      </div>
     </div>
   );
 }
