@@ -1,0 +1,36 @@
+import React, { FC } from 'react';
+import cn from 'classnames';
+
+import { useAppSelector } from 'src/store/hooks';
+import ChannelHeader from '../ChannelHeader';
+import * as channels from 'src/store/channels';
+import * as dms from 'src/store/dms';
+import Identity from '../Identity';
+
+import s from './styles.module.scss';
+
+type Props = {
+  className?: string;
+}
+
+const MainHeader: FC<Props> = ({ className }) => {
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const currentConversation = useAppSelector(dms.selectors.currentConversation);
+
+  return (
+    <div className={cn(s.root, className)}>
+      {currentChannel && (
+        <ChannelHeader {...currentChannel} />
+      )}
+      {currentConversation && (
+        <ChannelHeader
+          id={currentConversation.pubkey}
+          isAdmin={false}
+          name={<Identity {...currentConversation} />}
+          privacyLevel={null} />
+      )}
+    </div>
+  )
+};
+
+export default MainHeader;

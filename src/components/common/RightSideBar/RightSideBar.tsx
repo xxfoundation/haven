@@ -35,7 +35,6 @@ const RightSideBar: FC<Props> = ({ collapsed, cssClasses, onToggle }) => {
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const { codename, color, pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const contributors = useAppSelector(messages.selectors.currentContributors);
-  const dmNickname = useAppSelector(dms.selectors.dmNickname);
 
   const channelNickname = currentChannel && getNickName();
   const nickname = currentChannel ? channelNickname : dmNickname;

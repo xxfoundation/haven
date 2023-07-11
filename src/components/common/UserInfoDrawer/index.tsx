@@ -186,7 +186,7 @@ const UserInfoDrawer = () => {
             <button onClick={selectDm} className={s.option}>
               <Envelope
                 className={cn(s.actionIcon, 'mr-3 cursor-pointer')}
-                size='sm' color='var(--orange)' />
+                size='sm' color='var(--primary)' />
               {t('Direct Message')}
             </button>
           ) : (

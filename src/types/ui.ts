@@ -1,0 +1,1 @@
+export type SidebarView = 'spaces' | 'dms' | 'settings';

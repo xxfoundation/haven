@@ -30,7 +30,8 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
         setLoading(false);
       });
     }
-  }, [decoder, key, kv]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, kv]);
 
   const set = useCallback(async (v: T) => {
     assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);

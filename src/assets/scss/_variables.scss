@@ -6,7 +6,7 @@ $text-primary: var(--text-primary);
 $text-secondary: var(--text-secondary);
 
 // Fonts
-$font-primary: var(--font-montserrat);
+$font-primary: var(--font-sans);
 
 // Browser Context Sizing for unit/measurement
 $browser-context: 10px;
@@ -31,3 +31,4 @@ $tablet-wide: map-get($breakpoints, lg);
 $small-desktop: map-get($breakpoints, smdtp);
 $desktop: map-get($breakpoints, xl);
 $desktop-wide: map-get($breakpoints, 2xl);
+

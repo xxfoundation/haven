@@ -142,8 +142,8 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
           className={s.generateButton}
           style={{
             backgroundColor: 'var(--black-1)',
-            color: 'var(--orange)',
-            borderColor: 'var(--orange)',
+            color: 'var(--primary)',
+            borderColor: 'var(--primary)',
             borderWidth: '2px',
           }}
           onClick={() => {

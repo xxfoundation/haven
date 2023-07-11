@@ -466,7 +466,7 @@ const UserTextArea: FC<Props> = ({
             className={s.closeButton}
             width={14}
             height={14}
-            fill={'var(--orange)'}
+            fill={'var(--primary)'}
             onClick={() => {
               setReplyToMessage(null);
             }}

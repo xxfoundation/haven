@@ -6,7 +6,7 @@
     background-color: greenyellow;
   }
   &__connecting:after {
-    background-color: var(--orange);
+    background-color: var(--primary);
   }
   &__failed:after {
     background-color: var(--red);
@@ -21,7 +21,7 @@
     background-color: greenyellow;
   }
   &__connecting:hover:after {
-    background-color: var(--orange);
+    background-color: var(--primary);
   }
   &__failed:hover:after {
     background-color: var(--red);
