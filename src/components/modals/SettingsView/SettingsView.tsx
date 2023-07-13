@@ -78,14 +78,6 @@ const SettingsView: FC = () => {
     }, 0);
   }, [t]);
 
-  const onNotificationsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      request();
-    } else {
-      setIsPermissionGranted(false);
-    }
-  }, [request, setIsPermissionGranted]);
-
   const notSynced = accountSync.status === null
     || [AccountSyncStatus.NotSynced, AccountSyncStatus.Ignore]
       .includes(accountSync.status)

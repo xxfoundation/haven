@@ -1,10 +1,10 @@
 import type { WithChildren } from 'src/types';
 
 import cn from 'classnames';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 
-import { useUI } from 'src/contexts/ui-context';
+import { ModalViews, useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
 
@@ -22,11 +22,69 @@ import { NetworkStatus } from 'src/hooks/useCmix';
 import useEvents from 'src/hooks/useEvents';
 import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
 import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
-import { SidebarView } from 'src/types/ui';
 import Spaces from 'src/components/common/Spaces';
 import LeftSideBar  from '@components/common/LeftSideBar';
-import ChannelHeader from '@components/common/ChannelHeader';
 import MainHeader from '@components/common/MainHeader';
+import SettingsView from '@components/views/SettingsViews';
+
+
+import {
+  CreateChannelView,
+  ClaimAdminKeys,
+  JoinChannelView,
+  ShareChannelView,
+  LeaveChannelConfirmationView,
+  NickNameSetView,
+  ExportCodenameView,
+  NetworkNotReadyView,
+  JoinChannelSuccessView,
+  LogoutView,
+  UserWasMuted,
+  ViewPinnedMessages,
+  ExportAdminKeys,
+  ViewMutedUsers
+} from 'src/components/modals';
+import AccountSyncView from '@components/modals/AccountSync';
+import Modal from '@components/modals/Modal';
+import SettingsMenu from '@components/common/SettingsMenu';
+import DMs from 'src/components/common/DMs';
+
+type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
+
+const AuthenticatedUserModals: FC = () => {
+  const { closeModal, closeableOverride, displayModal, modalView = '' } = useUI();
+  const modalClass = modalView?.toLowerCase().replace(/_/g, '-');
+
+  const modals = useMemo<ModalMap>(() => ({
+    ACCOUNT_SYNC: <AccountSyncView />,
+    CLAIM_ADMIN_KEYS: <ClaimAdminKeys />,
+    EXPORT_CODENAME:  <ExportCodenameView />,
+    EXPORT_ADMIN_KEYS: <ExportAdminKeys />,
+    SHARE_CHANNEL: <ShareChannelView />,
+    CREATE_CHANNEL: <CreateChannelView />,
+    JOIN_CHANNEL: <JoinChannelView />,
+    LOGOUT: <LogoutView />,
+    LOADING: <></>,
+    LEAVE_CHANNEL_CONFIRMATION: <LeaveChannelConfirmationView />,
+    SET_NICK_NAME: <NickNameSetView />,
+    CHANNEL_SETTINGS: null,
+    SETTINGS: null,
+    NETWORK_NOT_READY: <NetworkNotReadyView />,
+    JOIN_CHANNEL_SUCCESS: <JoinChannelSuccessView />,
+    USER_WAS_MUTED: <UserWasMuted />,
+    VIEW_MUTED_USERS: <ViewMutedUsers />,
+    VIEW_PINNED_MESSAGES: <ViewPinnedMessages />
+  }), []);
+
+  return displayModal && modalView && modalView !== 'IMPORT_CODENAME' ? (
+    <Modal
+      loading={modalView === 'LOADING'}
+      closeable={closeableOverride}
+      className={s[modalClass]} onClose={closeModal}>
+      {modals[modalView]}
+    </Modal>
+  ) : null;
+};
 
 const DefaultLayout: FC<WithChildren> = ({
   children,
@@ -42,9 +100,8 @@ const DefaultLayout: FC<WithChildren> = ({
     getShareUrlType,
     networkStatus
   } = useNetworkClient();
-  const { openModal, setChannelInviteLink, setModalView } = useUI();
-  const [rightSideCollapsed, { set: setRightSideCollapsed, toggle }] = useToggle(false);
-  const [sidebarView, setSidebarView] = useState<SidebarView>('spaces');
+  const { openModal, setChannelInviteLink, setModalView, sidebarView } = useUI();
+  const [rightSideCollapsed, { set: setRightSideCollapsed }] = useToggle(false);
 
   useEffect(() => {
     const privacyLevel = getShareUrlType(window.location.href);
@@ -100,25 +157,31 @@ const DefaultLayout: FC<WithChildren> = ({
         {isAuthenticated ? (
           <>
             <ConnectingDimmer />
+            <AuthenticatedUserModals />
             <div className={s['main-layout']}>
               <LeftSideBar className={s['left-sidebar']}>
-                <LeftHeader className={s['left-header']} view={sidebarView} onViewChange={setSidebarView} />
+                <LeftHeader className={s['left-header']} />
                 <div className={s['left-menu']}>
                   {sidebarView === 'spaces' && (
                     <Spaces />
                   )}
                   {sidebarView === 'dms' && (
-                    <>suh</>
+                    <DMs />
                   )}
                   {sidebarView === 'settings' && (
-                    <>settings</>
+                    <SettingsMenu />
                   )}
                 </div>
               </LeftSideBar>
               <div className={s['main-screen']}>
                 <MainHeader className={s['main-header']} />
+                {sidebarView === 'settings' && (
+                  <SettingsView />
+                )}
+                {(sidebarView === 'spaces' || sidebarView === 'dms') && (
+                  <>{children}</>
+                )}
               </div>
-
             </div>
           </>
         ) : (

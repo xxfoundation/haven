@@ -17,6 +17,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDropbox, faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 import { AccountSyncService } from 'src/hooks/useAccountSync';
 import { useAuthentication } from '@contexts/authentication-context';
+import Input from '@components/common/Input';
 
 type Props = {
   onPasswordConfirmation: (password: string) => void;
@@ -85,7 +86,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 >
                   {t('Enter a password to secure your sovereign speakeasy identity')}
                 </p>
-                <input
+                <Input
                   data-testid='registration-password-input'
                   type='password'
                   placeholder={t('Enter your password')}
@@ -101,7 +102,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                   }}
                 />
 
-                <input
+                <Input
                   data-testid='registration-password-confirmation'
                   type='password'
                   placeholder={t('Confirm your password')}

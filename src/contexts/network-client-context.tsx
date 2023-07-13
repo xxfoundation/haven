@@ -10,7 +10,7 @@ import assert from 'assert';
 
 import { AppEvents, ChannelEvents, appBus, onChannelEvent, useChannelsListener } from 'src/events';
 
-import { decoder, encoder, exportDataToFile } from 'src/utils';
+import { HTMLToPlaintext, decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
 import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, CHANNELS_WORKER_JS_PATH, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
@@ -321,7 +321,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       if (appendToCurrent) {
         dispatch(channels.actions.upsert(channel));
-        dispatch(app.actions.selectChannel(channel.id));
+        dispatch(app.actions.selectChannelOrConversation(channel.id));
       }
 
       if (enableDms) {
@@ -354,11 +354,16 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const dbMessageMapper = useCallback((dbMsg: DBMessage): Message => {
     assert(cipher, 'Cipher required');
+
+    const inflated = inflate(cipher.decrypt(dbMsg.text));
+    const plaintext = HTMLToPlaintext(inflated);
+
     return {
       ...getCodeNameAndColor(dbMsg.pubkey, dbMsg.codeset_version),
       id: dbMsg.message_id,
-      body: cipher.decrypt(dbMsg.text) ?? undefined,
+      body: inflated ?? undefined,
       repliedTo: dbMsg.parent_message_id,
+      plaintext,
       type: dbMsg.type,
       timestamp: dbMsg.timestamp,
       nickname: dbMsg.nickname || '',
@@ -526,7 +531,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   useEffect(() => {
     if (!currentChannel && currentChannels.length > 0 && currentConversationId === null) {
-      dispatch(app.actions.selectChannel(currentChannels[0]?.id));
+      dispatch(app.actions.selectChannelOrConversation(currentChannels[0]?.id));
     }
   }, [currentChannel, currentChannels, currentConversationId, dispatch])
 
@@ -695,7 +700,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
             privacyLevel: getPrivacyLevel(chanInfo?.channelId),
             isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
           }));
-          dispatch(app.actions.selectChannel(chanInfo.channelId));
+          dispatch(app.actions.selectChannelOrConversation(chanInfo.channelId));
         }
       } catch (error) {
         console.error('Error joining channel')
@@ -743,7 +748,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         await joinChannel(channelPrettyPrint, false);
         savePrettyPrint(channel.id, channelPrettyPrint);
         dispatch(channels.actions.upsert(channel));
-        dispatch(app.actions.selectChannel(channel.id));
+        dispatch(app.actions.selectChannelOrConversation(channel.id));
         
         if (enableDms) {
           channelManager.EnableDirectMessages(utils.Base64ToUint8Array(channel.id));

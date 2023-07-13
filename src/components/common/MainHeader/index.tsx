@@ -8,6 +8,7 @@ import * as dms from 'src/store/dms';
 import Identity from '../Identity';
 
 import s from './styles.module.scss';
+import { useUI } from '@contexts/ui-context';
 
 type Props = {
   className?: string;
@@ -16,13 +17,14 @@ type Props = {
 const MainHeader: FC<Props> = ({ className }) => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
+  const { sidebarView } = useUI();
 
   return (
     <div className={cn(s.root, className)}>
-      {currentChannel && (
+      {currentChannel && sidebarView === 'spaces' && (
         <ChannelHeader {...currentChannel} />
       )}
-      {currentConversation && (
+      {currentConversation && sidebarView === 'dms' && (
         <ChannelHeader
           id={currentConversation.pubkey}
           isAdmin={false}

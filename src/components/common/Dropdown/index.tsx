@@ -1,12 +1,20 @@
 import { WithChildren } from '@types';
-import React, { FC, useCallback, useRef } from 'react';
+import React, { FC, HTMLAttributes, useCallback, useRef } from 'react';
 import { useOnClickOutside } from 'usehooks-ts';
 import cn from 'classnames';
+
+import s from './Dropdown.module.scss';
 
 type Props = WithChildren & {
   isOpen: boolean;
   onChange: (isOpen: boolean) => void;
 }
+
+export const DropdownItem: FC<WithChildren & HTMLAttributes<HTMLDivElement>> = ({ children, ...props }) => (
+  <div className={cn(props.className, s.item, 'space-x-2')} {...props}>
+    {children}
+  </div>
+)
 
 const Dropdown: FC<Props> = ({ children, isOpen, onChange }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -14,7 +22,7 @@ const Dropdown: FC<Props> = ({ children, isOpen, onChange }) => {
   useOnClickOutside(dropdownRef, close);
 
   return (
-    <div ref={dropdownRef} className={cn({ hidden: !isOpen }, 'absolute p-2 w-full left-0 mt-6 rounded drop-shadow-md')} style={{ backgroundColor: 'var(--dark-2)' }}>
+    <div ref={dropdownRef} className={cn(s.root, { hidden: !isOpen })}>
       {children}
     </div>
   )

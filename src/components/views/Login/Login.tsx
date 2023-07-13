@@ -17,6 +17,7 @@ import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks
 import GoogleButton from '@components/common/GoogleButton';
 import DropboxButton from '@components/common/DropboxButton';
 import { AppEvents, awaitAppEvent as awaitEvent, appBus as bus } from 'src/events';
+import Input from '@components/common/Input';
 
 const LoginView: FC = () => {
   const { t } = useTranslation();
@@ -130,7 +131,7 @@ const LoginView: FC = () => {
             >
               {t('Use your password to unlock your speakeasy identity')}
             </p>
-            <input
+            <Input
               data-testid='password-input'
               type='password'
               placeholder={t('Enter your password')}

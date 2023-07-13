@@ -1,0 +1,20 @@
+.root {
+  border-radius: 5px;
+  width: 100%;
+  display: block;
+  padding: 0rem 0.5rem 0rem 1rem;
+  align-items: center; 
+  border-radius: 1.5rem;
+  background: none;
+  border: 1px solid var(--charcoal-2);
+  height: 2rem;
+
+  &::placeholder {
+    font-size: 12px;
+    color: var(--charcoal-1);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}

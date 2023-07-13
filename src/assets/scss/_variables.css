@@ -22,6 +22,5 @@
   --text-muted: var(--charcoal-2);
   --border-radius: 1rem;
 
-  --font-sans: -apple-system, system-ui, BlinkMacSystemFont, "Roboto Flex",
-    "Roboto", sans-serif;
+  --font-sans: "Roboto Flex", sans-serif;
 }

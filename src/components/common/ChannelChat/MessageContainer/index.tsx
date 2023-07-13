@@ -104,7 +104,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   }, [message.id, sendReaction]);
 
   useEffect(() => {
-    if (missedMessages[message.channelId]?.id === message.id) {
+    if (missedMessages?.[message.channelId]?.[0] === message.id) {
       setIsNewMessage(true);
       dispatch(app.actions.dismissNewMessages(message.channelId));
     }

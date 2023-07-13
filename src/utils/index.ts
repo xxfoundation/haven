@@ -122,3 +122,7 @@ export const makeEventAwaiter = <T extends Record<string|number, AnyFunc>>(bus: 
       bus.removeListener(evt, listener as any);
     });
   }
+
+  export const HTMLToPlaintext = (html: string) => new DOMParser()
+    .parseFromString(html, 'text/html')
+    .documentElement.textContent;

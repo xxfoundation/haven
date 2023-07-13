@@ -1,5 +1,8 @@
 import { WithChildren } from '@types';
 import React, { FC, useCallback, useMemo, useState } from 'react';
+import { SettingsView, SidebarView } from 'src/types/ui';
+import toast, { Toaster } from 'react-hot-toast';
+import Alert, { AlertType } from '@components/common/Alerts';
 
 export type ModalViews =
   | 'SHARE_CHANNEL'
@@ -22,8 +25,15 @@ export type ModalViews =
   | 'CLAIM_ADMIN_KEYS'
   | 'ACCOUNT_SYNC';
 
+
 export interface State {
+  alert: (alert: AlertType) => void;
+  dismissAlert: (id: string) => void;
   displayModal: boolean;
+  sidebarView: SidebarView;
+  setSidebarView: (view: SidebarView) => void;
+  settingsView: SettingsView;
+  setSettingsView: (view: SettingsView) => void;
   modalView?: ModalViews;
   activeModals: object[];
   channelInviteLink: string;
@@ -97,6 +107,8 @@ function uiReducer(state: State, action: Action) {
 export const UIProvider: FC<WithChildren> = ({ children }) => {
   const [state, dispatch] = React.useReducer(uiReducer, initialState);
   const [closeableOverride, setCloseableOverride] = useState<boolean>();
+  const [sidebarView, setSidebarView] = useState<SidebarView>('spaces');
+  const [settingsView, setSettingsView] = useState<SettingsView>('notifications');
 
   const openModal = useCallback(() => dispatch({ type: 'OPEN_MODAL' }), [
     dispatch
@@ -123,9 +135,23 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
     []
   );
 
+  const dismissAlert = useCallback<State['dismissAlert']>((id) => {
+    toast.dismiss(id);
+  }, []);
+
+  const alert = useCallback<State['alert']>((al) => {
+    return toast.custom(<Alert {...al} />);
+  }, []);
+
   const value = useMemo(
     () => ({
       ...state,
+      alert,
+      dismissAlert,
+      sidebarView,
+      setSidebarView,
+      settingsView,
+      setSettingsView,
       closeableOverride,
       openModal,
       closeModal,
@@ -133,11 +159,17 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       setChannelInviteLink,
     }),
     [
+      alert,
       closeModal,
       closeableOverride,
+      dismissAlert,
       openModal,
       setChannelInviteLink,
       setModalView,
+      settingsView,
+      setSettingsView,
+      setSidebarView,
+      sidebarView,
       state
   ]
   );
@@ -158,5 +190,8 @@ export const useUI = () => {
 };
 
 export const ManagedUIContext: FC<WithChildren> = ({ children }) => (
-  <UIProvider>{children}</UIProvider>
+  <UIProvider>
+    <Toaster />
+    {children}
+  </UIProvider>
 );

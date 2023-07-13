@@ -18,7 +18,8 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
   const [privateIdentity, setPrivateIdentity] = useState<string>('');
   const [error, setError] = useState('');
 
-  const handleSubmission = useCallback(async () => {
+  const handleSubmission = useCallback(async (evt: React.FormEvent<HTMLFormElement>) => {
+    evt.preventDefault();
     try {
       await onSubmit({ password, identity: privateIdentity });
     } catch (e) {
@@ -50,11 +51,6 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
 
   return (
     <form
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          handleSubmission();
-        }
-      }}
       onSubmit={handleSubmission}
       className={cn('w-full flex flex-col items-center', s.root)}
     >

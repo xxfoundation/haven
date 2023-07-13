@@ -5,18 +5,17 @@ import type { ConversationId } from '../dms/types';
 import type { Message } from '../messages/types';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { omit } from 'lodash';
 import { MessageType } from '@types';
-
 
 const initialState: AppState = {
   selectedChannelIdOrConversationId: null,
   selectedUserPubkey: null,
   messageDraftsByChannelId: {},
   channelsSearch: '',
+  dmsSearch: '',
   contributorsSearch: '',
   channelFavorites: [],
-  oldestMissedMessageByChannelId: {},
+  missedMessages: {},
 };
 
 type LastSeenMessagePayload = Message
@@ -26,28 +25,26 @@ const slice = createSlice({
   initialState,
   reducers: {
     notifyNewMessage: (state: AppState, { payload: message }: PayloadAction<LastSeenMessagePayload>) => {
-      const currentMissedMessage = state.oldestMissedMessageByChannelId?.[message.channelId];
+      const missedMessages = state.missedMessages?.[message.channelId];
 
-      if (
-        message?.type === MessageType.Reaction
-        || (currentMissedMessage &&
-          new Date(currentMissedMessage.timestamp).getTime()
-            < new Date(message.timestamp).getTime())
-      ) {
+      if (message?.type === MessageType.Reaction || missedMessages?.includes(message.id)) {
         return state;
       }
 
       return {
         ...state,
-        oldestMissedMessageByChannelId: {
-          ...state.oldestMissedMessageByChannelId,
-          [message.channelId]: message,
+        missedMessages: {
+          ...state.missedMessages,
+          [message.channelId]: (state.missedMessages?.[message.channelId] || []).concat(message.id),
         }
       }
     },
-    dismissNewMessages: (state: AppState, { payload: messageId }: PayloadAction<ChannelId | ConversationId>) => ({
+    dismissNewMessages: (state: AppState, { payload: channelId }: PayloadAction<ChannelId | ConversationId>) => ({
       ...state,
-      oldestMissedMessageByChannelId: omit(state.oldestMissedMessageByChannelId, messageId)
+      missedMessages: {
+        ...state.missedMessages,
+        [channelId]: undefined,
+      }
     }),
     toggleFavorite: (state: AppState, { payload: channelId }: PayloadAction<ChannelId>) => ({
       ...state,
@@ -63,10 +60,16 @@ const slice = createSlice({
       ...state,
       channelsSearch
     }),
-    selectChannel: (state: AppState, { payload: channelId }: PayloadAction<ChannelId | ConversationId>) => ({
+    updateDmsSearch: (state: AppState, { payload: dmsSearch }: PayloadAction<string>) => ({
       ...state,
-      selectedChannelIdOrConversationId: channelId,
+      dmsSearch
     }),
+    selectChannelOrConversation: (state: AppState, { payload: channelId }: PayloadAction<ChannelId | ConversationId>) => {
+      return {
+        ...state,
+        selectedChannelIdOrConversationId: channelId,
+      }
+    },
     selectUser: (state: AppState, { payload: pubkey }: PayloadAction<string | null>) => ({
       ...state,
       selectedUserPubkey: pubkey

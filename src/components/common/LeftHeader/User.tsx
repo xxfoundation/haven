@@ -3,22 +3,18 @@ import React, { FC } from 'react';
 import { useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
 import { Elixxir } from '@components/icons';
-import { SidebarView } from 'src/types/ui';
 import Profile from '@components/icons/Profile';
+import { useUI } from '@contexts/ui-context';
 
-type Props = {
-  view: SidebarView;
-  onViewChange: (view: SidebarView) => void;
-}
-
-const User: FC<Props> = ({ onViewChange, view }) => {
+const User: FC= () => {
+  const { setSidebarView, sidebarView } = useUI();
   const { codename } = useAppSelector(identity.selectors.identity) ?? {};
 
   return codename ? (
-    <button className='flex items-center text-blue font-semibold text-xs flex-nowrap' onClick={() => onViewChange('settings')}>
+    <button className='flex items-center text-blue font-semibold text-xs flex-nowrap' onClick={() => setSidebarView('settings')}>
         <Profile 
           style={{
-            fill: view === 'settings'
+            fill: sidebarView === 'settings'
               ? 'var(--primary)'
               : 'var(--charcoal-1)'
           }}

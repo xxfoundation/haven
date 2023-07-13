@@ -12,6 +12,7 @@ import { contributorsSearch, currentChannelOrConversationId } from '../app/selec
 export const reactions = (state: RootState) => state.messages.reactions;
 export const contributors = (state: RootState) => state.messages.contributorsByChannelId;
 export const messagesByChannelId = (state: RootState) => state.messages.byChannelId;
+export const sortedMessagesByChannelId = (state: RootState) => state.messages.sortedMessagesByChannelId;
 
 export const currentChannelMessages = (state: RootState) => {
   if (state.app.selectedChannelIdOrConversationId === null) {

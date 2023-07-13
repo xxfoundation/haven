@@ -22,6 +22,7 @@ import 'react-tooltip/dist/react-tooltip.css'
 import ErrorBoundary from 'src/components/common/ErrorBoundary';
 import { DBProvider } from '@contexts/db-context';
 import '../i18n';
+import 'src/utils/extend-dayjs';
 import { RemoteKVProvider } from '@contexts/remote-kv-context';
 
 const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;

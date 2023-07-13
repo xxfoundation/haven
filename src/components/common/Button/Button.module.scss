@@ -2,11 +2,10 @@
   color: var(--dark-1);
 
   border-radius: 5px;
-  padding: 9px;
+  padding: 0.6rem 1rem;
   font-weight: 700;
   font-size: 14px;
-  background-color: var(--primary);
-  min-width: 212px;
+  min-width: 9.5rem;
 
   &:disabled:hover {
     cursor: not-allowed;
