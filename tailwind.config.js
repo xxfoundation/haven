@@ -13,6 +13,12 @@ module.exports = {
       orange: 'var(--orange)',
       green: 'var(--green)',
       blue: 'var(--blue)',
+      'charcoal-1': 'var(--charcoal-1)',
+      'charcoal-2': 'var(--charcoal-2)',
+      'charcoal-3': 'var(--charcoal-3)',
+      'charcoal-4': 'var(--charcoal-4)',
+      'near-black': 'var(--near-black)',
+      'our-black': 'var(--our-black)'
     },
     fontFamily: {
       sans: ["Moderat"]

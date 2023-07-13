@@ -1,18 +1,14 @@
-import type { SidebarView } from 'src/types/ui';
 import { FC } from 'react';
 import Spaces from 'src/components/icons/Spaces';
 import Dms from 'src/components/icons/Dms';
 import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 import { useTranslation } from 'react-i18next';
+import { useUI } from '@contexts/ui-context';
 
-type Props = {
-  view: SidebarView;
-  onViewChange: (view: SidebarView) => void;
-}
-
-const SidebarControls: FC<Props> = ({ onViewChange, view }) => {
+const SidebarControls: FC= () => {
   const { t } = useTranslation();
+  const { setSidebarView, sidebarView } = useUI();
   const allChannels = useAppSelector(channels.selectors.channels);
   const dmsDisabled = allChannels.length === 0;
 
@@ -20,10 +16,10 @@ const SidebarControls: FC<Props> = ({ onViewChange, view }) => {
     <div className='space-x-1 flex items-center'>
       <button
         title={t('Spaces')}
-        onClick={() => onViewChange('spaces')}>
+        onClick={() => setSidebarView('spaces')}>
         <Spaces
           style={{
-            fill: view === 'spaces'
+            fill: sidebarView === 'spaces'
               ? 'var(--primary)'
               : 'var(--charcoal-1)'
           }}
@@ -33,10 +29,10 @@ const SidebarControls: FC<Props> = ({ onViewChange, view }) => {
         title={dmsDisabled ? t('Join or create a channel first.') : t('Direct Messages')}
         disabled={dmsDisabled}
         style={{ opacity: dmsDisabled ? 0.25 : 1 }}
-        onClick={() => onViewChange('dms')}>
+        onClick={() => setSidebarView('dms')}>
         <Dms
           style={{
-            fill: view === 'dms'
+            fill: sidebarView === 'dms'
               ? 'var(--primary)'
               : 'var(--charcoal-1)'
           }}

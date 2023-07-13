@@ -2,8 +2,6 @@ import { Message, MessageStatus } from 'src/types';
 
 import React, { CSSProperties, FC, HTMLAttributes, useEffect, useMemo, useState } from 'react';
 import cn from 'classnames';
-import 'moment-timezone';
-import moment from 'moment';
 import Clamp from 'react-multiline-clamp';
 import { useTranslation } from 'react-i18next';
 
@@ -16,6 +14,8 @@ import * as messages from 'src/store/messages';
 import { inflate } from '@utils/index';
 import { Tooltip } from 'react-tooltip';
 import { selectors } from 'src/store/messages';
+import dayjs from 'dayjs';
+import Badge from '@components/common/Badge';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
@@ -114,7 +114,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
           )}
 
           <span className={cn(s.messageTimestamp)}>
-            {moment(message.timestamp).format('hh:mm A')}
+            {dayjs(message.timestamp).format('hh:mm A')}
           </span>
           {message.status === MessageStatus.Unsent || message.status === MessageStatus.Sent && (
             <Spinner size='xs' />
@@ -125,15 +125,8 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
               target='_blank'
               rel='noreferrer'
               className='text text--xs ml-2'
-              style={{
-                whiteSpace: 'nowrap',
-                fontSize: '9px',
-                color: 'var(--text-secondary)',
-                textDecoration: 'underline',
-                marginBottom: '1px'
-              }}
             >
-              {t('Show mix')}
+              <Badge className='rounded-lg hover:text-primary hover:border-primary' color='grey'>{t('Mix')}</Badge>
             </a>
           )}
           &nbsp;

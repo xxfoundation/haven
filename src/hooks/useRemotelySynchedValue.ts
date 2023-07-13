@@ -8,7 +8,7 @@ import { JsonDecoder } from 'ts.data.json';
 
 const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultValue?: T) => {
   const [value, setValue] = useState<T | undefined>(defaultValue);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const kv = useRemoteKV();
   
   useEffect(() => {

@@ -20,7 +20,7 @@ const Button: FC<Props> = ({
   return (
     <Component
       {...rest}
-      className={cn(rest.className, s.root)}
+      className={cn(rest.className, s.root, 'text-near-black rounded-3xl bg-primary')}
       style={{
         width,
         ...(size === 'sm' && {

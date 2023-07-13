@@ -77,7 +77,7 @@ const UserInfoDrawer = () => {
         }));
       }
 
-      dispatch(app.actions.selectChannel(userInfo.pubkey));
+      dispatch(app.actions.selectChannelOrConversation(userInfo.pubkey));
       closeDrawer();
     }
   }, [dispatch, existingConversation, userInfo, closeDrawer])

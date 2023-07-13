@@ -1,5 +1,3 @@
-import type { SidebarView } from 'src/types/ui';
-
 import React, { FC } from 'react';
 import cn from 'classnames';
 
@@ -9,15 +7,13 @@ import SidebarControls from './SidebarControls';
 
 type Props = {
   className?: string;
-  view: SidebarView;
-  onViewChange: (view: SidebarView) => void;
 }
 
-const Header: FC<Props> = ({ className, ...props }) => {
+const Header: FC<Props> = ({ className }) => {
   return (
     <div className={cn(className, s.root)}>
-      <User {...props} />
-      <SidebarControls {...props} />
+      <User />
+      <SidebarControls />
     </div>
   )
 }

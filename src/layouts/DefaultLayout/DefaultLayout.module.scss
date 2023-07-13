@@ -19,6 +19,8 @@ $header-height: 3.75rem;
 
 .left-header {
   flex-basis: $header-height;
+  min-height: $header-height;
+  max-height: $header-height;
   overflow: hidden;
 }
 
@@ -35,5 +37,7 @@ $header-height: 3.75rem;
 
 .main-header {
   flex-basis: $header-height;
+  min-height: $header-height;
+  max-height: $header-height;
   overflow: hidden;
 }

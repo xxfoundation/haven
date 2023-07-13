@@ -6,7 +6,7 @@ import assert from 'assert';
 
 import { useUtils, XXDKContext } from '@contexts/utils-context';
 import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_DATABASE_NAME as DMS_DATABASE_NAME } from 'src/constants';
-import { decoder } from '@utils/index';
+import { decoder, HTMLToPlaintext, inflate } from '@utils/index';
 import { AppEvents, DMEvents, useAppEventValue, useDmListener } from 'src/events';
 import { useDb } from '@contexts/db-context';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
@@ -39,28 +39,35 @@ const makeMessageMapper = (
   cipher: DatabaseCipher,
   userIdentity: Identity,
   nickname?: string
-) => (message: DBDirectMessage, conversation: Conversation): Message => ({
-  nickname:  message.sender_pub_key === userIdentity?.pubkey ? nickname : conversation?.nickname,
-  ...codenameConverter(message.sender_pub_key, message.codeset_version),
-  uuid: message.id,
-  id: message.message_id,
-  status: message.status,
-  type: message.type,
-  channelId: message.conversation_pub_key,
-  repliedTo: message.parent_message_id === 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' ? null : message.parent_message_id,
-  timestamp: message.timestamp,
-  body: cipher.decrypt(message.text),
-  round: message.round,
-  pubkey: message.sender_pub_key,
-  codeset: message.codeset_version,
-  pinned: false,
-  hidden: false
-})
+) => (message: DBDirectMessage, conversation: Conversation): Message => {
+  const inflated = inflate(cipher.decrypt(message.text));
+  const plaintext = HTMLToPlaintext(inflated);
+
+  return ({
+    nickname:  message.sender_pub_key === userIdentity?.pubkey ? nickname : conversation?.nickname,
+    ...codenameConverter(message.sender_pub_key, message.codeset_version),
+    uuid: message.id,
+    id: message.message_id,
+    status: message.status,
+    type: message.type,
+    channelId: message.conversation_pub_key,
+    repliedTo: message.parent_message_id === 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' ? null : message.parent_message_id,
+    timestamp: message.timestamp,
+    body: inflated,
+    plaintext,
+    round: message.round,
+    pubkey: message.sender_pub_key,
+    codeset: message.codeset_version,
+    pinned: false,
+    hidden: false
+  })
+}
 
 const useDmClient = () => {
   const dmsDb = useDb('dm');
   const dispatch = useAppDispatch();
   const dmNickname = useAppSelector(dms.selectors.dmNickname);
+  const conversations = useAppSelector(dms.selectors.conversations);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const currentConversationId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const allDms = useAppSelector((state) => state.dms.messagesByPubkey)
@@ -166,16 +173,22 @@ const useDmClient = () => {
   }, [conversationMapper, dispatch, dmsDb, currentConversationId]);
 
   useEffect(() => {
-    if (dmsDb && messageMapper && currentConversation && currentConversationId !== null) {
-      dmsDb.table<DBDirectMessage>('messages')
-        .where('conversation_pub_key')
-        .equals(currentConversationId)
+    if (dmsDb && messageMapper && conversations) {
+        dmsDb.table<DBDirectMessage>('messages')
         .toArray()
         .then((messages) => {
-          dispatch(dms.actions.upsertManyDirectMessages(messages.map((m) => messageMapper(m, currentConversation))))
+          const mapped = messages.reduce((acc, msg) => {
+            const convo = conversations.find((c) => c.pubkey === msg.conversation_pub_key);
+            if (convo) {
+              acc.push(messageMapper(msg, convo));
+            }
+            return acc;
+          }, [] as Message[]);
+
+          dispatch(dms.actions.upsertManyDirectMessages(mapped));
         })
     }
-  }, [currentConversation, currentConversationId, dispatch, dmsDb, messageMapper])
+  }, [conversations, currentConversation, dispatch, dmsDb, messageMapper])
 
   const onMessageReceived = useCallback((e: DMReceivedEvent) => {
     if (!dmsDb || !messageMapper || !conversationMapper) {
