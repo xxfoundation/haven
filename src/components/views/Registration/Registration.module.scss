@@ -1,5 +1,4 @@
 .root {
-  background-color: var(--black-1);
   height: 100vh;
   width: 100%;
   display: flex;
@@ -57,19 +56,6 @@
       color: white;
     }
   }
-
-  input {
-    border: none;
-    outline: none;
-    background-color: var(--dark-7);
-    padding: 18px 10px;
-    color: var(--text-primary);
-    font-size: 14px;
-    max-width: 444px;
-    width: 100%;
-    height: 40px;
-    border-radius: 8px;
-  }
 }
 
 .perkCard:nth-of-type(1) {
@@ -117,10 +103,9 @@
 }
 
 .highlighted {
-  background-color: var(--cyan);
+  background-color: var(--secondary);
   padding: 8px;
   margin-left: 12px;
-  color: var(--black-1);
   font-weight: 700;
   font-size: 18px;
 }
@@ -128,13 +113,6 @@
 .normal {
   font-size: 18px;
   margin-top: 18px;
-}
-
-.button {
-  border-radius: 8px;
-  color: var(--black-1);
-  font-weight: 700;
-  font-size: 14px;
 }
 
 .loading {

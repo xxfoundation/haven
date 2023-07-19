@@ -7,7 +7,6 @@ export { default as ShareChannelView } from './ShareChannelView';
 export { default as LeaveChannelConfirmationView } from './LeaveChannelConfirmationView';
 export { default as NickNameSetView } from './NickNameSetView';
 export { default as ChannelSettingsView } from './ChannelSettingsView';
-export { default as SettingsView } from './SettingsView';
 export { default as ExportCodenameView } from './ExportCodenameView';
 export { default as ImportAccountView } from './ImportAccountView';
 export { default as NetworkNotReadyView } from './NetworkNotReadyView';

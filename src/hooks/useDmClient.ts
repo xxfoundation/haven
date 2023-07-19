@@ -128,7 +128,7 @@ const useDmClient = () => {
       return dbCipher;
   }, [utils]);
 
-  const createClient = useCallback((cmix: CMix, cipher: DatabaseCipher, privateIdentity: Uint8Array) => {
+  const createDMClient = useCallback((cmix: CMix, cipher: DatabaseCipher, privateIdentity: Uint8Array) => {
     assert(privateIdentity, 'Private identity required for dmClient');
     
     try {
@@ -155,9 +155,9 @@ const useDmClient = () => {
     if (rawPassword && decryptedPassword && cmix && channelManager) {
       const privateIdentity = utils.ImportPrivateIdentity(rawPassword, channelManager.ExportPrivateIdentity(rawPassword));
       const cipher = createDatabaseCipher(cmix, decryptedPassword);
-      createClient(cmix, cipher, privateIdentity);
+      createDMClient(cmix, cipher, privateIdentity);
     }
-  }, [channelManager, cmix, createClient, createDatabaseCipher, decryptedPassword, rawPassword, utils])
+  }, [channelManager, cmix, createDMClient, createDatabaseCipher, decryptedPassword, rawPassword, utils])
 
 
   useEffect(() => {

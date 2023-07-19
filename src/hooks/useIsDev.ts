@@ -1,34 +1,30 @@
+import { envIsDev } from '@utils/index';
 import { useEffect, useState, useCallback } from 'react';
 
-const KONAMI_CODE = [
+const DEV_CODE = [
   'ArrowUp',
   'ArrowUp',
   'ArrowDown',
   'ArrowDown',
-  'ArrowLeft',
-  'ArrowRight',
-  'ArrowLeft',
-  'ArrowRight',
-  'b',
-  'a'
 ];
 
-function useKonami(action: () => void, { code = KONAMI_CODE } = {}) {
+function useIsDev() {
   const [input, setInput] = useState<string[]>([]);
+  const [inputted, setInputted] = useState<boolean>(envIsDev());
 
   const onKeyUp = useCallback(
     (e: KeyboardEvent) => {
       const newInput = input;
       newInput.push(e.key);
-      newInput.splice(-code.length - 1, input.length - code.length);
+      newInput.splice(-DEV_CODE.length - 1, input.length - DEV_CODE.length);
 
       setInput(newInput);
 
-      if (newInput.join('').includes(code.join(''))) {
-        action();
+      if (newInput.join('').includes(DEV_CODE.join(''))) {
+        setInputted(true);
       }
     },
-    [input, setInput, code, action],
+    [input, setInput],
   );
 
   useEffect(() => {
@@ -37,6 +33,8 @@ function useKonami(action: () => void, { code = KONAMI_CODE } = {}) {
       document.removeEventListener('keyup', onKeyUp);
     };
   }, [onKeyUp]);
+
+  return inputted;
 }
 
-export default useKonami;
+export default useIsDev;

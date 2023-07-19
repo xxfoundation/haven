@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import useSound from 'use-sound';
 import Select from 'react-tailwindcss-select';
-
-import Modal from 'src/components/modals/Modal';
-import useKonami from 'src/hooks/useKonamiCode';
-import useToggle from 'src/hooks/useToggle';
-
-import s from './SecretModal.module.scss';
 import { useRemotelySynchedString } from 'src/hooks/useRemotelySynchedValue';
 
 const options = [
@@ -17,8 +11,7 @@ const options = [
   { label: 'ICQ', value: '/sounds/classic-icq.wav' }
 ];
 
-const SecretModal = () => {
-  const [showModal, { toggle, toggleOff }] = useToggle();
+const SoundSelector = () => {
   const [touched, setTouched] = useState(false);
   const { set: setNotificationSound, value: notificationSound } = useRemotelySynchedString('notification-sound', '/sounds/notification.mp3');
   const [play, { stop }] = useSound(notificationSound ?? '');
@@ -26,8 +19,6 @@ const SecretModal = () => {
     () => options.find((o) => o.value === notificationSound) ?? null,
     [notificationSound]
   )
-  
-  useKonami(toggle);
 
   useEffect(() => {
     if (touched) {
@@ -37,22 +28,29 @@ const SecretModal = () => {
     return () => stop();
   }, [play, stop, touched])
 
-  return showModal ? (
-    <Modal className={s.root} onClose={toggleOff}>
-      <h2 className='text-center mb-8'>Secret Menu</h2>
-      <div className='flex justify-between items-center h-20'>
-        <h3>Notification Sound</h3>
-        <div>
-          <Select primaryColor='orange' options={options} value={selectedOption} onChange={(o) => {
-            if (o && !Array.isArray(o) && o !== null) {
-              setTouched(true);
-              setNotificationSound(o.value);
-            }
-          }} />
-        </div>
-      </div>
-    </Modal>
-  ) : null;
+  return (
+    <Select
+      classNames={{
+        menu: 'bg-charcoal-4 py-4 rounded-xl mt-1 absolute w-full',
+        menuButton: () => 'text-md rounded-3xl px-4 font-semibold flex bg-primary text-near-black justify-center',
+        listItem: ({ isSelected }) => (
+          `block transition  font-semibold duration-200 hover:bg-primary hover:text-near-black p-2 cursor-pointer select-none truncate ${
+              isSelected
+                  ? ' bg-charcoal-3'
+                  : 'text-charcoal-1'
+          }`
+      )
+      }}
+      primaryColor={'primary'}
+      options={options}
+      value={selectedOption}
+      onChange={(o) => {
+      if (o && !Array.isArray(o) && o !== null) {
+        setTouched(true);
+        setNotificationSound(o.value);
+      }
+    }} />
+  )
 }
 
-export default SecretModal;
+export default SoundSelector;

@@ -2,7 +2,6 @@ import { ChannelNotificationLevel, NotificationStatus } from 'src/types';
 
 export enum PrivacyLevel {
   Public = 0,
-  Private = 1,
   Secret = 2
 }
 

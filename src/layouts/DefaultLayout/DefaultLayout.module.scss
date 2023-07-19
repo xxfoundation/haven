@@ -1,11 +1,7 @@
 $header-height: 3.75rem;
 
-.root {
-  overflow: hidden;
-}
-
 .main-layout {
-  display: flex;
+  display: grid;
 }
 
 .left-sidebar {
@@ -29,10 +25,9 @@ $header-height: 3.75rem;
 }
 
 .main-screen {
-  flex-grow: 1;
+  flex-basis: calc(100vw - 21.75rem);
   height: 100vh;
-  display: flex;
-  flex-direction: column;
+  max-width: 100%;
 }
 
 .main-header {

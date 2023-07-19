@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import useCopyClipboard from 'src/hooks/useCopyToClipboard';
 import * as channels from 'src/store/channels';
@@ -81,7 +81,7 @@ const ShareChannelView: FC = () => {
         <div className='mb-5' style={{ color: 'var(--green)', opacity: copied ? 1 : 0, transition: 'all 0.2s ease-out' }}>
           {t('Copied!')}
         </div>
-        <PrimaryButton
+        <Button
           className={cn(s.button)}
           onClick={() => {
             copy(credentials.password
@@ -90,7 +90,7 @@ const ShareChannelView: FC = () => {
           }}
         >
           {t('Copy')}
-        </PrimaryButton>
+        </Button>
       </div>
       <p
         className={cn('mb-8 text text--xs', s.warn)}

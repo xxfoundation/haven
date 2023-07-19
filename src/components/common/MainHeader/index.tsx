@@ -20,7 +20,7 @@ const MainHeader: FC<Props> = ({ className }) => {
   const { sidebarView } = useUI();
 
   return (
-    <div className={cn(s.root, className)}>
+    <div className={cn(className, s.root)}>
       {currentChannel && sidebarView === 'spaces' && (
         <ChannelHeader {...currentChannel} />
       )}

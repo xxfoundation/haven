@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import { Upload } from 'src/components/icons';
-import { PrimaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 
 import s from './ImportAccountForm.module.scss';
 
@@ -91,12 +91,12 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
           setPassword(e.target.value);
         }}
       />
-      <PrimaryButton
+      <Button
         type='submit'
         className={cn('mt-5', s.button)}
       >
         {t('Import')}
-      </PrimaryButton>
+      </Button>
     </form>
   );
 };

@@ -4,8 +4,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 import { useTranslation } from 'react-i18next';
 import { useGoogleLogin } from '@react-oauth/google';
+import cn from 'classnames';
+
 import { AppEvents, appBus } from 'src/events';
-import PrimaryButton, { Props as ButtonProps } from './PrimaryButton/PrimaryButton';
+import Button, { Props as ButtonProps } from './Button';
 
 declare global {
   interface Window {
@@ -34,17 +36,18 @@ const GoogleButton: FC<Props>  = ({
   });
 
   return (
-    <PrimaryButton
+    <Button
       {...props}
+      className={cn('flex justify-center items-center space-x-1')}
       id='google-auth-button'
       onClick={() => {
         login()
       }}
     >
-      <FontAwesomeIcon icon={faGoogleDrive} />
+      <FontAwesomeIcon className='w-5 h-5' icon={faGoogleDrive} />
       &nbsp;
-      {t('Google Drive')}
-    </PrimaryButton>
+      <span>{t('Google Drive')}</span>
+    </Button>
   );
 }
 

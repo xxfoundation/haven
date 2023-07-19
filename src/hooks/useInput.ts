@@ -1,6 +1,6 @@
 import { useState, useCallback, ChangeEvent } from 'react';
 
-type OnChangeType = (e: ChangeEvent<HTMLInputElement>) => void;
+type OnChangeType = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 type UseInput = (initialValue?: string) => [string, OnChangeType, { set: (value: string) => void, touched: boolean }];
 
 const useInput: UseInput = (initValue = '') => {

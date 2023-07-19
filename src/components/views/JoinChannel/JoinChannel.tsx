@@ -3,7 +3,7 @@ import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
-import { PrimaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { WarningComponent } from 'src/pages/_app';
 
 import s from './JoinChannel.module.scss';
@@ -84,18 +84,18 @@ const JoinChannelView: FC<Props> = ({ channelInfo, dmsEnabled, onConfirm, onDmsE
         <CheckboxToggle checked={dmsEnabled} onChange={() => onDmsEnabledChange(!dmsEnabled)} />
       </div>
       <div className='flex justify-center'>
-        <PrimaryButton
+        <Button
           className={cn('mb-7 mt-16 mr-4', s.button)}
           onClick={handleConfirmation}
         >
           {t('Join')}
-        </PrimaryButton>
-        <PrimaryButton
+        </Button>
+        <Button
           className={cn('mb-7 mt-16', s.button)}
           onClick={handleCancelation}
         >
           {t('Cancel')}
-        </PrimaryButton>
+        </Button>
       </div>
     </div>
   );
