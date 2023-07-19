@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useCallback, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
@@ -15,6 +15,7 @@ import joinButton from 'src/assets/images/join.svg';
 import { useUI } from '@contexts/ui-context';
 import Space from 'src/components/common/Spaces/Space';
 import Identity from '../Identity';
+import Button from '../Button';
 
 const DMs = () => {
   const { t } = useTranslation();
@@ -48,6 +49,7 @@ const DMs = () => {
     <div className={s.root}>
       <div className='flex items-center relative mb-2'>
         <SearchInput
+          size='sm'
           className='mb-0 flex-grow'
           onChange={updateDmsSearch}
           value={dmsSearch} />
@@ -93,7 +95,31 @@ const DMs = () => {
             </>
           );
         })}
+        
       </div>
+      {conversations.length === 0 && (
+        <div className='px-8 py-12 space-y-8'>
+          <h3>{t('Direct Messages')}</h3>
+          <p className='text-primary text-xl leading-relaxed font-thin'>
+            <Trans>
+              This is the beginning of
+              your <strong className='text-white font-semibold'>quantum-secure</strong> and
+              completely private messaging experience.
+            </Trans>
+          </p>
+          <div className='space-y-4'>
+            <Button 
+              onClick={() => {
+                setModalView('CREATE_CHANNEL');
+                openModal();
+              }}
+              className='w-full'
+            >
+              {t('Send a Direct Message')}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 };

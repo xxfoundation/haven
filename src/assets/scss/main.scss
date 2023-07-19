@@ -2,32 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Roboto Flex', sans-serif;
-  font-style: normal;
-  font-weight: 100;
-  font-display: swap;
-  src: url("/fonts/RobotoFlex-Regular.ttf") format("ttf");
-}
-
-@font-face {
-  font-family: 'Roboto Flex', sans-serif;
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/RobotoFlex-Regular.ttf") format("ttf");
-}
-
-@font-face {
-  font-family: 'Roboto Flex', sans-serif;
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fonts/RobotoFlex-Regular.ttf") format("ttf");
-}
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100;400;500;600;700&display=swap');
 
 * {
   font-family: 'Roboto Flex', sans-serif;
+  font-style: normal;
 }
 
 $border-radius: 12px;

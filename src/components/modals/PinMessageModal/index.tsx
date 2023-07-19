@@ -2,7 +2,7 @@ import { FC } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton, SecondaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import Modal from 'src/components/modals';
 
 import s from './PinMessage.module.scss';
@@ -37,16 +37,17 @@ const PinMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
           get unpinned again`)}
         </p>
         <div className={cn('mb-6', s.buttonGroup)}>
-          <PrimaryButton
+          <Button
             onClick={handleConfirmation}
           >
             {t('Confirm and Pin')}
-          </PrimaryButton>
-          <SecondaryButton
+          </Button>
+          <Button
+            variant='secondary'
             onClick={onCancel}
           >
             {t('Cancel')}
-          </SecondaryButton>
+          </Button>
         </div>
       </div>
     </Modal>

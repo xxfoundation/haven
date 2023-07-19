@@ -1,12 +1,12 @@
-import { FC, InputHTMLAttributes } from 'react';
+import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
-import Input from 'src/components/common/Input';
+import Input, { Props } from 'src/components/common/Input';
 
 import s from './SearchInput.module.scss';
 
-const SearchInput: FC<InputHTMLAttributes<HTMLInputElement>> = ({ className, ...props}) => {
+const SearchInput: FC<Props> = ({ className, ...props}) => {
   const { t } = useTranslation();
   return (
     <div className={cn(className, s.search)}>

@@ -27,7 +27,6 @@ import { ChannelId, Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
-import { RemoteStore } from 'src/types/collective';
 import useChannelsStorageTag from 'src/hooks/useChannelsStorageTag';
 
 const BATCH_COUNT = 1000;
@@ -165,7 +164,6 @@ export type NetworkContext = {
   pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
-  remoteStore?: RemoteStore;
   fetchChannels: () => Promise<Channel[]>;
 };
 

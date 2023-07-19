@@ -6,11 +6,10 @@
   align-items: center; 
   border-radius: 1.5rem;
   background: none;
-  border: 1px solid var(--charcoal-2);
-  height: 2rem;
+  border: 1px solid var(--charcoal-1);
 
   &::placeholder {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--charcoal-1);
   }
 

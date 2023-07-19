@@ -41,6 +41,7 @@
   }
 
   &:hover, &.active {
+    border: none;
     border-radius: var(--border-radius);
     background-color: var(--charcoal-4);
     cursor: pointer;

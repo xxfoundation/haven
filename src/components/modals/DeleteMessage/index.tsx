@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useState } from 'react';
 
-import { PrimaryButton, SecondaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
 
 import s from './DeleteMessage.module.scss';
@@ -37,16 +37,17 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
           ** {t('Important to note that deleting messages cannot be undone.')} **
         </p>
         <div className={cn('mb-6', s.buttonGroup)}>
-          <PrimaryButton
+          <Button
             onClick={handleConfirmation}
           >
             {t('Delete')}
-          </PrimaryButton>
-          <SecondaryButton
+          </Button>
+          <Button
+            variant='secondary'
             onClick={onCancel}
           >
             {t('Cancel')}
-          </SecondaryButton>
+          </Button>
         </div>
       </div>
     </Modal>

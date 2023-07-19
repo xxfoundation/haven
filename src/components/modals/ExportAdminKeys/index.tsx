@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { saveAs } from 'file-saver';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton, SecondaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import useStep from 'src/hooks/useStep';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import useInput from 'src/hooks/useInput';
@@ -74,12 +74,12 @@ const ExportCodenameView: FC = () => {
             value={password}
             onChange={setPassword}
           />
-          <PrimaryButton
+          <Button
             className={cn('mt-5', s.button)}
             onClick={checkPassword}
           >
             {t('Unlock')}
-          </PrimaryButton>
+          </Button>
         </>
       )}
       {step === 2 && (
@@ -117,18 +117,18 @@ const ExportCodenameView: FC = () => {
             />
           </div>
           <div className='space-x-4 flex'>
-            <SecondaryButton
+            <Button
               className={cn('mt-5', s.button)}
               onClick={reset}
             >
               {t('Cancel')}
-            </SecondaryButton>
-            <PrimaryButton
+            </Button>
+            <Button
               className={cn('mt-5', s.button)}
               onClick={onExport}
             >
               {t('Export')}
-            </PrimaryButton>
+            </Button>
           </div>
         </>
       )}

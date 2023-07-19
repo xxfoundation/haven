@@ -14,7 +14,6 @@ import LeftHeader from 'src/components/common/LeftHeader';
 
 import s from './DefaultLayout.module.scss';
 import UpdatesModal from '../../components/modals/UpdatesModal';
-import SecretModal from './SecretModal';
 import useToggle from 'src/hooks/useToggle';
 import ConnectingDimmer from './ConnectingDimmer';
 import useAccountSync, { AccountSyncStatus } from 'src/hooks/useAccountSync';
@@ -48,6 +47,7 @@ import AccountSyncView from '@components/modals/AccountSync';
 import Modal from '@components/modals/Modal';
 import SettingsMenu from '@components/common/SettingsMenu';
 import DMs from 'src/components/common/DMs';
+import Notices from '@components/common/Notices';
 
 type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
 
@@ -152,29 +152,32 @@ const DefaultLayout: FC<WithChildren> = ({
     <>
       <NotificationBanner />
       <UpdatesModal />
-      <SecretModal />
       <div className={cn(s.root, { [s.collapsed]: rightSideCollapsed } )}>
         {isAuthenticated ? (
           <>
             <ConnectingDimmer />
             <AuthenticatedUserModals />
-            <div className={s['main-layout']}>
-              <LeftSideBar className={s['left-sidebar']}>
-                <LeftHeader className={s['left-header']} />
-                <div className={s['left-menu']}>
-                  {sidebarView === 'spaces' && (
-                    <Spaces />
-                  )}
-                  {sidebarView === 'dms' && (
-                    <DMs />
-                  )}
-                  {sidebarView === 'settings' && (
-                    <SettingsMenu />
-                  )}
-                </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '21.75rem 1fr',
+              gridTemplateRows: '3.75rem 1fr',
+              height: '100vh'
+            }}>
+              <LeftHeader />
+              <MainHeader  />
+              <LeftSideBar  className='overflow-y-auto'  >
+                {sidebarView === 'spaces' && (
+                  <Spaces />
+                )}
+                {sidebarView === 'dms' && (
+                  <DMs />
+                )}
+                {sidebarView === 'settings' && (
+                  <SettingsMenu />
+                )}
               </LeftSideBar>
-              <div className={s['main-screen']}>
-                <MainHeader className={s['main-header']} />
+              <div className='overflow-hidden'>
+                <Notices />
                 {sidebarView === 'settings' && (
                   <SettingsView />
                 )}

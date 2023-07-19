@@ -2,7 +2,7 @@ import { FC, useCallback, useEffect, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation, Trans } from 'react-i18next';
 
-import { PrimaryButton, SecondaryButton, Spinner } from 'src/components/common';
+import { Button, Spinner } from 'src/components/common';
 
 import s from './Login.module.scss';
 
@@ -177,19 +177,18 @@ const LoginView: FC = () => {
                 />
               )}
               {accountSyncStatus !== AccountSyncStatus.Synced && (
-                <PrimaryButton
+                <Button
                   data-testid='login-button'
                   disabled={isLoading}
-                  className={s.button}
                   onClick={handleSubmit}
                 >
                   {t('Login')}
-                </PrimaryButton>
+                </Button>
               )}
               {attemptingSyncedLogin && (
-                <SecondaryButton onClick={cancelSyncLogin}>
+                <Button variant='secondary' onClick={cancelSyncLogin}>
                   Cancel
-                </SecondaryButton>
+                </Button>
               )}
             </div>
             {isLoading && (

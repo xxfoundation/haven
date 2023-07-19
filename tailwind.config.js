@@ -1,9 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx}",
-    "./src/components/**/*.{js,ts,jsx,tsx}",
-    "./node_modules/react-tailwindcss-select/dist/index.esm.js"
+    "./src/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     colors: {
@@ -18,7 +16,8 @@ module.exports = {
       'charcoal-3': 'var(--charcoal-3)',
       'charcoal-4': 'var(--charcoal-4)',
       'near-black': 'var(--near-black)',
-      'our-black': 'var(--our-black)'
+      'our-black': 'var(--our-black)',
+      'white': 'var(--primary-white)'
     },
     fontFamily: {
       sans: ["Moderat"]

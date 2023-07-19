@@ -3,7 +3,7 @@ import s from './NickNameSetView.module.scss';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
@@ -64,12 +64,12 @@ const NickNameSetView: FC = () => {
           {error}
         </div>
       )}
-      <PrimaryButton
+      <Button
         className='my-7'
         onClick={onSubmit}
       >
         {t('Save')}
-      </PrimaryButton>
+      </Button>
     </div>
   );
 };

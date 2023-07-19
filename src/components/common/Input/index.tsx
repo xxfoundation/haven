@@ -3,8 +3,20 @@ import cn from 'classnames';
 
 import s from './styles.module.scss';
 
-const Input: FC<InputHTMLAttributes<HTMLInputElement>> = (props) => (
-  <input {...props} className={cn(s.root, props.className)} />
+type Size = 'sm' | 'md' | 'lg';
+
+export type Props = {
+  size?: Size
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'size'>
+
+const sizeMap: Record<Size, string> = {
+  sm: 'h-8',
+  md: 'h-10',
+  lg: 'h-14'
+}
+
+const Input: FC<Props> = ({ size = 'md', ...props }) => (
+  <input {...props} className={cn(sizeMap[size], s.root, props.className)} />
 );
 
 export default Input;

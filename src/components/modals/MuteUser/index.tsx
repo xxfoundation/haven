@@ -2,7 +2,7 @@ import { FC, useCallback, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton, SecondaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import Modal from 'src/components/modals';
 
 import s from './MuteUser.module.scss';
@@ -43,22 +43,23 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
           ** {t('Important to note that deleting messages cannot be undone.')} **
         </p>
         <div className={cn('mb-6', s.buttonGroup)}>
-          <PrimaryButton
+          <Button
             style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)'  }}
             onClick={handleConfirmation('mute+delete')}
           >
             {t('Mute and delete the last message')}
-          </PrimaryButton>
-          <PrimaryButton
+          </Button>
+          <Button
             onClick={handleConfirmation('mute')}
           >
             {t('Just Mute')}
-          </PrimaryButton>
-          <SecondaryButton
+          </Button>
+          <Button
+            variant='secondary'
             onClick={onCancel}
           >
             {t('Cancel')}
-          </SecondaryButton>
+          </Button>
         </div>
       </div>
     </Modal>
