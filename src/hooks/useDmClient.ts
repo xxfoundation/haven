@@ -1,4 +1,4 @@
-import { MessageStatus, type CMix, type DBConversation, type DBDirectMessage, type DMClient, type DMReceivedEvent, type Identity, type Message } from 'src/types';
+import { MessageStatus, type CMix, type DBConversation, type DBDirectMessage, type DMClient, type DMReceivedEvent, type Identity, type Message, Contributor } from 'src/types';
 import type { Conversation } from 'src/store/dms/types';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -70,7 +70,7 @@ const useDmClient = () => {
   const conversations = useAppSelector(dms.selectors.conversations);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const currentConversationId = useAppSelector(app.selectors.currentChannelOrConversationId);
-  const allDms = useAppSelector((state) => state.dms.messagesByPubkey)
+  const allDms = useAppSelector((state) => state.dms.messagesByPubkey);
   const [client, setClient] = useState<DMClient | undefined>();
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
   const { getCodeNameAndColor, utils } = useUtils();
@@ -246,7 +246,23 @@ const useDmClient = () => {
   
   useDmListener(DMEvents.DM_MESSAGE_RECEIVED, onMessageReceived);
 
-  return client;
+  const createConversation = useCallback((c: Contributor) => {
+    const conversation = conversations.find((convo) => convo.pubkey === c.pubkey);
+    if (!conversation && c.dmToken !== undefined) {
+      dispatch(dms.actions.upsertConversation({
+        pubkey: c.pubkey,
+        token: c.dmToken,
+        codeset: c.codeset,
+        codename: c.codename,
+        color: c.color ?? '#fefefe',
+        blocked: false,
+      }));
+    }
+    dispatch(app.actions.selectChannelOrConversation(c.pubkey));
+  }, [conversations, dispatch]);
+
+
+  return { client, createConversation };
 }
 
 export default useDmClient;

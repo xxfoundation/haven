@@ -1,15 +1,16 @@
 import type { Channel } from 'src/store/channels/types';
 
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell, faStar } from '@fortawesome/free-solid-svg-icons';
 import assert from 'assert';
 
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { PrivacyLevel } from 'src/types';
+import { useUtils } from 'src/contexts/utils-context';
 import Ellipsis from '@components/icons/Ellipsis';
-import Share from '@components/icons/Share';
+// import Edit from '@components/icons/Edit';
 import { useUI } from '@contexts/ui-context';
 import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
@@ -21,6 +22,12 @@ import useChannelFavorites from 'src/hooks/useChannelFavorites';
 import * as dms from 'src/store/dms';
 import { DMNotificationLevel } from '@types';
 import { useNetworkClient } from '@contexts/network-client-context';
+import Dropdown, { DropdownItem } from '../Dropdown';
+import Notice from '@components/icons/Notice';
+import Share from '@components/icons/Share';
+import BannedUser from '@components/icons/BannedUser';
+import ViewPinned from '@components/icons/ViewPinned';
+import Leave from '@components/icons/Leave';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
@@ -38,10 +45,10 @@ const ChannelHeader: FC<Props> = ({
   const conversationId = useAppSelector(dms.selectors.currentConversation)?.pubkey;
   const channelId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const { dmClient } = useNetworkClient();
-
+  const [dropdownToggled, setDropdownToggle] = useState(false);
   const { isFavorite, toggle: toggleFavorite } = useChannelFavorites();
   const notificationLevel = useAppSelector(dms.selectors.notificationLevel(conversationId))
-
+  
   const isChannelFavorited = useMemo(() => isFavorite(channelId), [isFavorite, channelId])
   const { openModal, setModalView } = useUI();
   const openShareModal = useCallback(() => {
@@ -51,21 +58,12 @@ const ChannelHeader: FC<Props> = ({
     }
   }, [currentChannel, openModal, setModalView]);
 
-  const openChannelSettings = useCallback(() => {
-    if (currentChannel) {
-      setModalView('CHANNEL_SETTINGS');
-      openModal();
-    }
-  }, [currentChannel, openModal, setModalView]);
-
   const privacyLevelLabels: Record<PrivacyLevel, string> = useMemo(() => ({
-    [PrivacyLevel.Private]: t('Private'),
     [PrivacyLevel.Public]: t('Public'),
     [PrivacyLevel.Secret]: t('Secret')
   }), [t]);
   
   const privacyLevelDescriptions: Record<PrivacyLevel, string> = useMemo(() => ({
-    [PrivacyLevel.Private]: t(''),
     [PrivacyLevel.Public]: t('Anyone can join this channel'),
     [PrivacyLevel.Secret]: t('Only people with a password can join this channel')
   }), [t]);
@@ -78,7 +76,7 @@ const ChannelHeader: FC<Props> = ({
         ? DMNotificationLevel.NotifyAll
         : DMNotificationLevel.NotifyNone
     )
-  }, [conversationId, dmClient, notificationLevel, utils])
+  }, [conversationId, dmClient, notificationLevel, utils]);
 
   return (
     <div data-testid='channel-header' className={cn('flex', s.root)}>
@@ -112,16 +110,46 @@ const ChannelHeader: FC<Props> = ({
         </div>
         </div>
       </div>
-      <div className='flex space-x-4 items-center'>
+      <div className='flex space-x-4 items-center relative'>
         <FontAwesomeIcon
           onClick={() => channelId && toggleFavorite(channelId)}
           className={cn(s.icon, isChannelFavorited ? s.gold : s.grey )} icon={faStar} />
         {currentChannel && (
           <>
-            <Share
-              className={s.icon}
-              onClick={openShareModal} />
-            <Ellipsis onClick={openChannelSettings} className={s.icon} />
+            <Ellipsis onClick={() => { setDropdownToggle(true); }} className={s.icon} />
+            <Dropdown isOpen={dropdownToggled} onChange={setDropdownToggle}>
+              <DropdownItem icon={Notice}>
+                {t('Space Details')}
+              </DropdownItem>
+              {/* {currentChannel.isAdmin && (
+                <DropdownItem icon={Edit}>
+                  {t('Edit Space')}
+                </DropdownItem>
+              )} */}
+              <DropdownItem
+                onClick={openShareModal}
+                icon={Share}>
+                {t('Share Space')}
+              </DropdownItem>
+              <DropdownItem
+                icon={BannedUser}
+                onClick={() => {
+                  setModalView('VIEW_MUTED_USERS');
+                  openModal();
+                }}
+              >
+                {t('View Muted Users')}
+              </DropdownItem>
+              <DropdownItem icon={ViewPinned}>
+                {t('View Pinned Messages')}
+              </DropdownItem>
+              <DropdownItem onClick={() => {
+                setModalView('LEAVE_CHANNEL_CONFIRMATION');
+                openModal();
+              }} icon={Leave}>
+                {t('Leave Space')}
+              </DropdownItem>
+            </Dropdown>
           </>
         )}
         {conversationId && (

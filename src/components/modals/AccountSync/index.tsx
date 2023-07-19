@@ -8,6 +8,7 @@ import GoogleButton from '../../common/GoogleButton';
 import DropboxButton from '../../common/DropboxButton';
 
 import { AppEvents, awaitAppEvent as awaitEvent } from 'src/events';
+import ModalTitle from '../ModalTitle';
 
 const AccountSyncView: FC = () => {
   const { t } = useTranslation();
@@ -30,9 +31,9 @@ const AccountSyncView: FC = () => {
 
   return (
     <>
-      <h2 className='text-center'>
+      <ModalTitle>
         {t('Account Sync')}
-      </h2>
+      </ModalTitle>
       <p>
         Sync your account with multiple devices using the cloud with account sync.
         The file is encrypted so there are no privacy concerns with using these

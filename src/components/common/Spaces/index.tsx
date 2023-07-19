@@ -15,10 +15,9 @@ import useToggle from 'src/hooks/useToggle';
 import Dropdown, { DropdownItem } from '../Dropdown';
 import { useUI } from '@contexts/ui-context';
 
-import addButton from 'src/assets/images/add.svg';
-import joinButton from 'src/assets/images/join.svg';
 import havenLogo from 'src/assets/images/haven-logo.svg';
 import Button from '../Button';
+import { Join, Plus } from '@components/icons';
 
 const Spaces = () => {
   const { t } = useTranslation();
@@ -26,6 +25,7 @@ const Spaces = () => {
   const { openModal, setModalView } = useUI();
   const { favorites, loading: favsLoading } = useChannelFavorites();
   const channelsSearch = useAppSelector(app.selectors.channelsSearch);
+  const allChannels = useAppSelector(channels.selectors.channels);
   const filteredChannels = useAppSelector(channels.selectors.searchFilteredChannels(favorites));
   const selectedChannelId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const msgs = useAppSelector(messages.selectors.sortedMessagesByChannelId);
@@ -53,37 +53,41 @@ const Spaces = () => {
 
   return (
     <div className={s.root}>
-      <div className='flex items-center relative mb-2'>
-        <SearchInput
-          size='sm'
-          className='mb-0 flex-grow'
-          onChange={updateChannelsSearch}
-          value={channelsSearch} />
-        <button onClick={() => set(true)}>
-          <Add />
-        </button>
-        <Dropdown isOpen={dropdownToggled} onChange={set}>
-          <DropdownItem onClick={() => {
-            setModalView('CREATE_CHANNEL');
-            openModal();
-          }}>
-            <img src={addButton.src} />
-            <span>
+      {allChannels.length > 0 && (
+        <div className='flex items-center relative mb-2'>
+          <SearchInput
+            size='sm'
+            className='mb-0 flex-grow'
+            onChange={updateChannelsSearch}
+            value={channelsSearch} />
+          <button onClick={() => set(true)}>
+            <Add className='text-primary' />
+          </button>
+          <Dropdown isOpen={dropdownToggled} onChange={set}>
+            <DropdownItem
+            icon={Plus}
+              onClick={() => {
+                setModalView('CREATE_CHANNEL');
+                openModal();
+              }}
+            >
               {t('Create New Space')}
-            </span>
-          </DropdownItem>
-          <DropdownItem onClick={() => {
-            setModalView('JOIN_CHANNEL');
-            openModal();
-          }}>
-            <img src={joinButton.src} />
-            <span>
+            </DropdownItem>
+            <DropdownItem
+              icon={Join}
+              onClick={() => {
+                setModalView('JOIN_CHANNEL');
+                openModal();
+              }}>
               {t('Join Space')}
-            </span>
-          </DropdownItem>
-        </Dropdown>
-      </div>
+            </DropdownItem>
+          </Dropdown>
+        </div>
+      )}
       <div className='space-y-1'>
+        {allChannels.length > 0 && filteredChannels.length === 0 && (
+          <p className='p-3  text-sm text-orange'>{t('No channels found with your search criteria')}</p>
+        )}
         {filteredChannels.map((channel, i) => {
           const latestMsg = msgs[channel.id]?.[msgs[channel.id]?.length - 1];
           const active = selectedChannelId === channel.id;
@@ -105,7 +109,7 @@ const Spaces = () => {
           );
         })}
       </div>
-      {filteredChannels.length === 0 && (
+      {allChannels.length === 0 && (
         <div className='px-8 py-12 space-y-8'>
           <img src={havenLogo.src} />
           <p className='text-primary text-xl leading-relaxed font-thin'>

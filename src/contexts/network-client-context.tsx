@@ -1,6 +1,5 @@
 import { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, ChannelNotificationLevel, NotificationStatus, DMClient, MessageStatus } from 'src/types';
-import type { WithChildren, Message } from 'src/types';
-import { MessageType } from 'src/types';
+import { MessageType, PrivacyLevel, type Message, type WithChildren } from 'src/types';
 
 import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
 
@@ -9,10 +8,9 @@ import Cookies from 'js-cookie';
 import assert from 'assert';
 
 import { AppEvents, ChannelEvents, appBus, onChannelEvent, useChannelsListener } from 'src/events';
-
 import { HTMLToPlaintext, decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { useUtils } from 'src/contexts/utils-context';
 import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, CHANNELS_WORKER_JS_PATH, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
 
 import { useDb } from './db-context';
@@ -129,6 +127,7 @@ export type NetworkContext = {
     enableDms: boolean
   ) => void;
   dmClient?: DMClient;
+  createConversation: ReturnType<typeof useDmClient>['createConversation'],
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
@@ -215,7 +214,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const allMessagesByChannelId = useAppSelector(messages.selectors.messagesByChannelId);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const dmClient = useDmClient();
+  const { client: dmClient, createConversation } = useDmClient();
 
   const upgradeAdmin = useCallback(() => {
     if (currentChannel?.id) {
@@ -1178,6 +1177,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     logout,
     upgradeAdmin,
     fetchChannels,
+    createConversation,
   }
 
   return (

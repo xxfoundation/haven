@@ -80,7 +80,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
       {...htmlProps}
       className={cn(
         htmlProps.className,
-        'flex items-center',
+        'flex items-center bg-near-black',
         s.root,
         {
           [s.root__withReply]: message.repliedTo !== null

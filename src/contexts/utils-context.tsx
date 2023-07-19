@@ -10,12 +10,7 @@ import { RemoteStore } from 'src/types/collective';
 import { ChannelEventHandler, DMEventHandler } from 'src/events';
 import { WebAssemblyRunner } from '@components/common';
 import { useTranslation } from 'react-i18next';
-
-export enum PrivacyLevel {
-  Public = 0,
-  Private = 1,
-  Secret = 2
-}
+import { PrivacyLevel } from '@types';
 
 export type Cipher = {
   GetID: () => number;

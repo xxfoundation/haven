@@ -13,6 +13,7 @@ import * as dms from 'src/store/dms';
 import {  useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
 import { useTranslation } from 'react-i18next';
+import { useUI } from '@contexts/ui-context';
 
 type Props = {
   messages: Message[];
@@ -25,8 +26,9 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const { reset } = pagination;
   
   const [replyToMessage, setReplyToMessage] = useState<Message | null>();
+  const { sidebarView } = useUI();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
-  const currentConversation = useAppSelector(dms.selectors.currentConversation)
+  const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const paginatedItems = useMemo(() => pagination.paginate(messages), [messages, pagination]);
 
   useEffect(() => {
@@ -44,31 +46,30 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   }, [currentChannel?.id, reset]);
 
   return (
-    <div className={s.root}>
+    <>
+      {((currentChannel && sidebarView === 'spaces') || (currentConversation && sidebarView === 'dms')) && (
         <>
-          {messages.length === 0 && (
-            <div className='flex flex-col justify-center items-center h-full'>
+
+          {messages.length === 0 ? (
+            <div className='flex flex-col justify-center items-center flex-grow'>
               <img style={{ margin: '-15%'}} src={spaceman.src} />
               <p className='text-charcoal-2 font-bold'>
                 {t('It\'s pretty quiet in this space...')}
               </p>
             </div>
+          ) : (
+            <ScrollDiv
+              canSetAutoScroll={pagination.page === 1}
+              autoScrollBottom={autoScroll}
+              setAutoScrollBottom={setAutoScroll}
+              nearBottom={pagination.previous}
+              nearTop={pagination.next}
+              className={s.messagesContainer}>
+              <MessagesContainer
+                messages={paginatedItems}
+                handleReplyToMessage={setReplyToMessage} />
+            </ScrollDiv>
           )}
-        </>
-      {(currentChannel || currentConversation) && (
-        <>
-          <div className={s.channelHeader}></div>
-          <ScrollDiv
-            canSetAutoScroll={pagination.page === 1}
-            autoScrollBottom={autoScroll}
-            setAutoScrollBottom={setAutoScroll}
-            nearBottom={pagination.previous}
-            nearTop={pagination.next}
-            className={s.messagesContainer}>
-            <MessagesContainer
-              messages={paginatedItems}
-              handleReplyToMessage={setReplyToMessage} />
-          </ScrollDiv>
           <UserTextArea
             className={s.textArea}
             replyToMessage={replyToMessage}
@@ -76,7 +77,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
           />
         </>
       )}
-    </div>
+    </>
   );
 };
 
