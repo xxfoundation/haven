@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useCallback, useEffect } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import cn from 'classnames';
 
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
@@ -8,11 +9,7 @@ import useChannelFavorites from 'src/hooks/useChannelFavorites';
 import s from 'src/components/common/Spaces/styles.module.scss';
 import * as dms from 'src/store/dms';
 import Add from 'src/components/icons/Add';
-import useToggle from 'src/hooks/useToggle';
-import Dropdown, { DropdownItem } from '../Dropdown';
-import addButton from 'src/assets/images/add.svg';
-import joinButton from 'src/assets/images/join.svg';
-import { useUI } from '@contexts/ui-context';
+import { useUI } from 'src/contexts/ui-context';
 import Space from 'src/components/common/Spaces/Space';
 import Identity from '../Identity';
 import Button from '../Button';
@@ -23,7 +20,8 @@ const DMs = () => {
   const { openModal, setModalView } = useUI();
   const { favorites, loading: favsLoading } = useChannelFavorites();
   const dmsSearch = useAppSelector(app.selectors.dmsSearch);
-  const conversations = useAppSelector(dms.selectors.searchFilteredConversations(favorites));
+  const allConversations = useAppSelector(dms.selectors.conversations);
+  const filteredConversations = useAppSelector(dms.selectors.searchFilteredConversations(favorites));
   const selectedChannelId = useAppSelector(app.selectors.currentChannelOrConversationId);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const msgs = useAppSelector(dms.selectors.sortedDmsByPubkey);
@@ -38,66 +36,54 @@ const DMs = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!currentConversation && conversations.length > 0 && !favsLoading) {
-      dispatch(app.actions.selectChannelOrConversation(conversations[0]?.pubkey))
+    if (!currentConversation && filteredConversations.length > 0 && !favsLoading) {
+      dispatch(app.actions.selectChannelOrConversation(filteredConversations[0]?.pubkey))
     }
-  }, [conversations, currentConversation, dispatch, favsLoading]);
-
-  const [dropdownToggled, { set }] = useToggle();
+  }, [filteredConversations, currentConversation, dispatch, favsLoading]);
 
   return (
     <div className={s.root}>
-      <div className='flex items-center relative mb-2'>
-        <SearchInput
-          size='sm'
-          className='mb-0 flex-grow'
-          onChange={updateDmsSearch}
-          value={dmsSearch} />
-        <button onClick={() => set(true)}>
-          <Add />
-        </button>
-        <Dropdown isOpen={dropdownToggled} onChange={set}>
-          <DropdownItem onClick={() => {
-            setModalView('CREATE_CHANNEL');
+      {allConversations.length > 0 && (
+        <div className='flex items-center relative mb-2'>
+          <SearchInput
+            size='sm'
+            className='mb-0 flex-grow'
+            onChange={updateDmsSearch}
+            value={dmsSearch} />
+          <button onClick={() => {
+            setModalView('NEW_DM');
             openModal();
           }}>
-            <img src={addButton.src} />
-            <span>
-              {t('Create New Space')}
-            </span>
-          </DropdownItem>
-          <DropdownItem onClick={() => {
-            setModalView('JOIN_CHANNEL');
-            openModal();
-          }}>
-            <img src={joinButton.src} />
-            <span>
-              {t('Join Space')}
-            </span>
-          </DropdownItem>
-        </Dropdown>
-      </div>
+            <Add className='text-primary' />
+          </button>
+        </div>
+      )}
       <div className='space-y-1'>
-        {conversations.map((convo) => {
+        {allConversations.length > 0 && filteredConversations.length === 0 && (
+          <p className='p-3  text-sm text-orange'>{t('No conversations found with your search criteria')}</p>
+        )}
+        {filteredConversations.map((convo, i) => {
           const latestMsg = msgs[convo.pubkey]?.[msgs[convo.pubkey]?.length - 1];
+          const active = selectedChannelId === convo.pubkey;
+          const nextActive = filteredConversations[i + 1]?.pubkey === selectedChannelId;
+          
           return (
             <>
-            <Space
-              favorite={favorites.includes(convo.pubkey)}
-              missedMessagesCount={missedMessages?.[convo.pubkey]?.length ?? 0}
-              message={latestMsg?.plaintext ?? ''}
-              date={latestMsg?.timestamp}
-              name={<Identity {...convo} />}
-              active={selectedChannelId === convo.pubkey}
-              onClick={() => { selectChannel(convo.pubkey); } }
-            />
-            <hr className='border-charcoal-4 border-1' />
+              <Space
+                favorite={favorites.includes(convo.pubkey)}
+                missedMessagesCount={missedMessages?.[convo.pubkey]?.length ?? 0}
+                message={latestMsg?.plaintext ?? ''}
+                date={latestMsg?.timestamp}
+                name={<Identity {...convo} />}
+                active={active}
+                onClick={() => { selectChannel(convo.pubkey); } }
+              />
+              <hr className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })} />
             </>
           );
         })}
-        
       </div>
-      {conversations.length === 0 && (
+      {allConversations.length === 0 && (
         <div className='px-8 py-12 space-y-8'>
           <h3>{t('Direct Messages')}</h3>
           <p className='text-primary text-xl leading-relaxed font-thin'>
@@ -110,7 +96,7 @@ const DMs = () => {
           <div className='space-y-4'>
             <Button 
               onClick={() => {
-                setModalView('CREATE_CHANNEL');
+                setModalView('NEW_DM');
                 openModal();
               }}
               className='w-full'

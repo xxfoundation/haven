@@ -1,14 +1,16 @@
 import { FC, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { PrivacyLevel } from 'src/types';
 import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
-import CheckboxToggle from '@components/common/CheckboxToggle';
+import { useUtils } from 'src/contexts/utils-context';
+import CheckboxToggle from 'src/components/common/CheckboxToggle';
 import { useRouter } from 'next/router';
-import Input from '@components/common/Input';
-import ErrorIcon from '@components/icons/Error';
+import Input from 'src/components/common/Input';
+import ErrorIcon from 'src/components/icons/Error';
+import ModalTitle from '../ModalTitle';
 
 const JoinChannelView: FC = () => {
   const { t } = useTranslation();
@@ -80,9 +82,9 @@ const JoinChannelView: FC = () => {
 
   return (
     <>
-      <h2 className='text-3xl mb-2'>
+      <ModalTitle>
         {t('Join a Space')}
-      </h2>
+      </ModalTitle>
       <Input
         name=''
         placeholder={t('Enter invite link')}

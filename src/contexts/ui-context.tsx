@@ -2,7 +2,7 @@ import { WithChildren } from '@types';
 import React, { FC, useCallback, useMemo, useState } from 'react';
 import { SettingsView, SidebarView } from 'src/types/ui';
 import toast, { Toaster } from 'react-hot-toast';
-import Alert, { AlertType } from '@components/common/Alerts';
+import Alert, { AlertType } from '@components/common/Alert';
 
 export type ModalViews =
   | 'SHARE_CHANNEL'
@@ -23,7 +23,8 @@ export type ModalViews =
   | 'VIEW_MUTED_USERS'
   | 'EXPORT_ADMIN_KEYS'
   | 'CLAIM_ADMIN_KEYS'
-  | 'ACCOUNT_SYNC';
+  | 'ACCOUNT_SYNC'
+  | 'NEW_DM';
 
 
 export interface State {
@@ -140,7 +141,7 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
   }, []);
 
   const alert = useCallback<State['alert']>((al) => {
-    return toast.custom(<Alert {...al} />);
+    toast.custom(<Alert {...al} />);
   }, []);
 
   const value = useMemo(

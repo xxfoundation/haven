@@ -1,10 +1,9 @@
 import type { WithChildren } from 'src/types';
 
-import cn from 'classnames';
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { FC, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
-import { ModalViews, useUI } from 'src/contexts/ui-context';
+import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
 
@@ -12,9 +11,7 @@ import AuthenticationUI from './AuthenticationUI';
 import NotificationBanner from 'src/components/common/NotificationBanner';
 import LeftHeader from 'src/components/common/LeftHeader';
 
-import s from './DefaultLayout.module.scss';
 import UpdatesModal from '../../components/modals/UpdatesModal';
-import useToggle from 'src/hooks/useToggle';
 import ConnectingDimmer from './ConnectingDimmer';
 import useAccountSync, { AccountSyncStatus } from 'src/hooks/useAccountSync';
 import { NetworkStatus } from 'src/hooks/useCmix';
@@ -26,69 +23,12 @@ import LeftSideBar  from '@components/common/LeftSideBar';
 import MainHeader from '@components/common/MainHeader';
 import SettingsView from '@components/views/SettingsViews';
 
-
-import {
-  CreateChannelView,
-  ClaimAdminKeys,
-  JoinChannelView,
-  ShareChannelView,
-  LeaveChannelConfirmationView,
-  NickNameSetView,
-  ExportCodenameView,
-  NetworkNotReadyView,
-  JoinChannelSuccessView,
-  LogoutView,
-  UserWasMuted,
-  ViewPinnedMessages,
-  ExportAdminKeys,
-  ViewMutedUsers
-} from 'src/components/modals';
-import AccountSyncView from '@components/modals/AccountSync';
-import Modal from '@components/modals/Modal';
 import SettingsMenu from '@components/common/SettingsMenu';
 import DMs from 'src/components/common/DMs';
-import Notices from '@components/common/Notices';
+import Notices from 'src/components/common/Notices';
+import AppModals from 'src/components/modals/AppModals';
 
-type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
-
-const AuthenticatedUserModals: FC = () => {
-  const { closeModal, closeableOverride, displayModal, modalView = '' } = useUI();
-  const modalClass = modalView?.toLowerCase().replace(/_/g, '-');
-
-  const modals = useMemo<ModalMap>(() => ({
-    ACCOUNT_SYNC: <AccountSyncView />,
-    CLAIM_ADMIN_KEYS: <ClaimAdminKeys />,
-    EXPORT_CODENAME:  <ExportCodenameView />,
-    EXPORT_ADMIN_KEYS: <ExportAdminKeys />,
-    SHARE_CHANNEL: <ShareChannelView />,
-    CREATE_CHANNEL: <CreateChannelView />,
-    JOIN_CHANNEL: <JoinChannelView />,
-    LOGOUT: <LogoutView />,
-    LOADING: <></>,
-    LEAVE_CHANNEL_CONFIRMATION: <LeaveChannelConfirmationView />,
-    SET_NICK_NAME: <NickNameSetView />,
-    CHANNEL_SETTINGS: null,
-    SETTINGS: null,
-    NETWORK_NOT_READY: <NetworkNotReadyView />,
-    JOIN_CHANNEL_SUCCESS: <JoinChannelSuccessView />,
-    USER_WAS_MUTED: <UserWasMuted />,
-    VIEW_MUTED_USERS: <ViewMutedUsers />,
-    VIEW_PINNED_MESSAGES: <ViewPinnedMessages />
-  }), []);
-
-  return displayModal && modalView && modalView !== 'IMPORT_CODENAME' ? (
-    <Modal
-      loading={modalView === 'LOADING'}
-      closeable={closeableOverride}
-      className={s[modalClass]} onClose={closeModal}>
-      {modals[modalView]}
-    </Modal>
-  ) : null;
-};
-
-const DefaultLayout: FC<WithChildren> = ({
-  children,
-}) => {
+const DefaultLayout: FC<WithChildren> = ({ children }) => {
   useGoogleRemoteStore();
   useDropboxRemoteStore();
   useEvents();
@@ -101,7 +41,6 @@ const DefaultLayout: FC<WithChildren> = ({
     networkStatus
   } = useNetworkClient();
   const { openModal, setChannelInviteLink, setModalView, sidebarView } = useUI();
-  const [rightSideCollapsed, { set: setRightSideCollapsed }] = useToggle(false);
 
   useEffect(() => {
     const privacyLevel = getShareUrlType(window.location.href);
@@ -135,62 +74,49 @@ const DefaultLayout: FC<WithChildren> = ({
     }
   }, [accountSync.status, isAuthenticated, networkStatus, openModal, setModalView]);
 
-  useEffect(() => {
-    const adjustActiveState = () => {
-      if (window?.innerWidth <= 760) {
-        setRightSideCollapsed(false);
-      }
-    };
-
-    adjustActiveState();
-    window?.addEventListener('resize', adjustActiveState);
-    return () => window?.removeEventListener('resize', adjustActiveState);
-  }, [setRightSideCollapsed]);
-
-
   return (
     <>
       <NotificationBanner />
       <UpdatesModal />
-      <div className={cn(s.root, { [s.collapsed]: rightSideCollapsed } )}>
-        {isAuthenticated ? (
-          <>
-            <ConnectingDimmer />
-            <AuthenticatedUserModals />
-            <div style={{
+      {isAuthenticated ? (
+        <>
+          <ConnectingDimmer />
+          <AppModals />
+          <div
+            style={{
               display: 'grid',
               gridTemplateColumns: '21.75rem 1fr',
               gridTemplateRows: '3.75rem 1fr',
               height: '100vh'
-            }}>
-              <LeftHeader />
-              <MainHeader  />
-              <LeftSideBar  className='overflow-y-auto'  >
-                {sidebarView === 'spaces' && (
-                  <Spaces />
-                )}
-                {sidebarView === 'dms' && (
-                  <DMs />
-                )}
-                {sidebarView === 'settings' && (
-                  <SettingsMenu />
-                )}
-              </LeftSideBar>
-              <div className='overflow-hidden'>
-                <Notices />
-                {sidebarView === 'settings' && (
-                  <SettingsView />
-                )}
-                {(sidebarView === 'spaces' || sidebarView === 'dms') && (
-                  <>{children}</>
-                )}
-              </div>
+            }}
+          >
+            <LeftHeader className='z-10' />
+            <MainHeader className='z-10'  />
+            <LeftSideBar  className='overflow-y-auto'  >
+              {sidebarView === 'spaces' && (
+                <Spaces />
+              )}
+              {sidebarView === 'dms' && (
+                <DMs />
+              )}
+              {sidebarView === 'settings' && (
+                <SettingsMenu />
+              )}
+            </LeftSideBar>
+            <div className='overflow-hidden flex flex-col'>
+              <Notices />
+              {sidebarView === 'settings' && (
+                <SettingsView />
+              )}
+              {(sidebarView === 'spaces' || sidebarView === 'dms') && (
+                <>{children}</>
+              )}
             </div>
-          </>
-        ) : (
-          <AuthenticationUI />
-        )}
-      </div>
+          </div>
+        </>
+      ) : (
+        <AuthenticationUI />
+      )}
     </>
     
   );

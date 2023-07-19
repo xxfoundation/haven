@@ -98,7 +98,6 @@ const LoginView: FC = () => {
         <div className={cn(s.header)}>
           <NormalSpeakeasy data-testid='speakeasy-logo' />
         </div>
-
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
             <Trans>
