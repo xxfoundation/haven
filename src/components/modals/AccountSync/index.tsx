@@ -45,10 +45,11 @@ const AccountSyncView: FC = () => {
       </p>
       {loading ? <Spinner size='md' /> : (
         <div data-testid='account-sync-buttons' className='grid grid-cols-2 gap-4 pt-4'>
-          <GoogleButton onStartLoading={waitForRemoteSyncThenClose} />
+          <GoogleButton className='whitespace-nowrap' onStartLoading={waitForRemoteSyncThenClose} />
           <DropboxButton onStartLoading={waitForRemoteSyncThenClose} />
-          <div className='col-span-2'>
+          <div className='col-span-2 text-center'>
             <Button
+              className=''
               data-testid='account-sync-local-only-button'
               onClick={ignoreSync}
             >

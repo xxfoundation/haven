@@ -39,6 +39,14 @@ const slice = createSlice({
         }
       }
     },
+    replyTo: (state: AppState, { payload: messageId }: PayloadAction<string | undefined>) => ({
+      ...state,
+      replyingToMessageId: messageId,
+    }),
+    highlightMessage: (state: AppState, { payload: messageId }: PayloadAction<string | undefined>) => ({
+      ...state,
+      highlightedMessageId: messageId,
+    }),
     dismissNewMessages: (state: AppState, { payload: channelId }: PayloadAction<ChannelId | ConversationId>) => ({
       ...state,
       missedMessages: {
@@ -68,6 +76,7 @@ const slice = createSlice({
       return {
         ...state,
         selectedChannelIdOrConversationId: channelId,
+        replyingToMessageId: undefined
       }
     },
     selectUser: (state: AppState, { payload: pubkey }: PayloadAction<string | null>) => ({

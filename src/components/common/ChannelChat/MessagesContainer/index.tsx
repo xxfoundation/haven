@@ -15,7 +15,6 @@ import s from './MessagesContainer.module.scss';
 type Props = HTMLAttributes<HTMLDivElement> & {
   readonly?: boolean;
   messages: Message[];
-  handleReplyToMessage?: (message: Message) => void;
 }
 
 const formatDate = (date: string, datetime?: string) => {
@@ -26,9 +25,8 @@ const formatDate = (date: string, datetime?: string) => {
 }
 
 const MessagesContainer: FC<Props> = ({
-  readonly = false,
-  handleReplyToMessage = () => {},
   messages,
+  readonly = false,
   ...props
 }) => {
   const sortedGroupedMessagesPerDay = useMemo(() => {
@@ -59,7 +57,6 @@ const MessagesContainer: FC<Props> = ({
             <MessageContainer
               readonly={readonly}
               key={m.id}
-              handleReplyToMessage={handleReplyToMessage}
               message={m} />
           ))}
         </div>

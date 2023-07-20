@@ -632,6 +632,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
       
       setChannelManager(createdChannelManager);
 
+      appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, createdChannelManager);
+
       const tag = createdChannelManager.GetStorageTag();
       if (tag) {
         setStorageTag(tag);
@@ -900,9 +902,9 @@ export const NetworkProvider: FC<WithChildren> = props => {
   ]);
 
   const setNickname = useCallback((nickName: string) => {
-    if (channelManager?.SetNickname && currentChannel?.id) {
+    if (channelManager && currentChannel?.id) {
       try {
-        channelManager?.SetNickname(
+        channelManager.SetNickname(
           nickName,
           utils.Base64ToUint8Array(currentChannel?.id)
         );

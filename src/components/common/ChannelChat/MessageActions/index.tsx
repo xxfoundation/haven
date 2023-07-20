@@ -22,6 +22,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComment, faCommentSlash } from '@fortawesome/free-solid-svg-icons';
 import { t } from 'i18next';
 import { AppEvents, awaitAppEvent as awaitEvent } from 'src/events';
+import { WithChildren } from '@types';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
@@ -35,6 +36,14 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   onDeleteMessage: () => void;
   onMuteUser: () => void;
   onPinMessage: (unpin?: boolean) => Promise<void>;
+}
+
+const MessageAction: FC<WithChildren & HTMLAttributes<HTMLButtonElement>> = ({ children, ...props }) => {
+  return (
+    <button {...props} className={cn('text-charcoal-1 hover:text-primary w-5', props.className)}>
+      {children}
+    </button>
+  );
 }
 
 const MessageActions: FC<Props> = ({
@@ -56,7 +65,7 @@ const MessageActions: FC<Props> = ({
   const dispatch = useAppDispatch();
   const isDms = !!useAppSelector(dms.selectors.currentConversation);
   const userIsMuted = useAppSelector(userIsMutedSelector);
-  const { closeModal, openModal, setModalView } = useUI();
+  const { closeModal, openModal, setModalView, setSidebarView } = useUI();
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerIconRef = useRef<SVGSVGElement>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -113,8 +122,9 @@ const MessageActions: FC<Props> = ({
   }, []);
 
   const dmUser = useCallback(() => {
+    setSidebarView('dms');
     dispatch(app.actions.selectUser(pubkey));
-  }, [dispatch, pubkey])
+  }, [dispatch, pubkey, setSidebarView])
 
   useEffect(() => {
     if (loading) {
@@ -153,49 +163,57 @@ const MessageActions: FC<Props> = ({
   const emojiPortalElement = document.getElementById('emoji-portal');
 
   return (
-    <div  {...props} className={cn(props.className, classes.root)}>
+    <div  {...props} className={cn(props.className, 'bg-near-black-80 p-3 backdrop-blur-md space-x-4 rounded-lg')}>
       <>
         {dmsEnabled && (
-          <Envelope style={{ cursor: 'pointer' }} width='20px' color='var(--cyan)' onClick={dmUser} />
+          <MessageAction onClick={dmUser}>
+            <Envelope />
+          </MessageAction>
         )}
         {(isAdmin && !isOwn && !isMuted) && (
-          <Mute
-            onClick={onMuteUser}
-          />
+          <MessageAction 
+            onClick={onMuteUser}>
+            <Mute />
+          </MessageAction>
         )}
         {isBlocked && !isOwn && (
-          <FontAwesomeIcon
-            color='var(--green)'
-            title={t('Unblock')}
-            icon={faComment}
-            onClick={unblockUser}
-          />
+          <MessageAction 
+            onClick={unblockUser}>
+            <FontAwesomeIcon
+              title={t('Unblock')}
+              icon={faComment}
+            />
+          </MessageAction>
+          
         )}
         {!isBlocked && !isOwn && (
-          <FontAwesomeIcon
-            style={{ color: 'var(--red)'}}
-            title={t('Block')}
-            icon={faCommentSlash}
-            onClick={blockUser}
-          />
+          <MessageAction 
+            onClick={blockUser}>
+            <FontAwesomeIcon
+              title={t('Block')}
+              icon={faCommentSlash}
+            />
+          </MessageAction>
         )}
         {(isAdmin && !isPinned && !isDms) && (
-          <Pin
-            onClick={() => onPinMessage()}
-          />
+          <MessageAction onClick={() => onPinMessage()}>
+            <Pin />
+          </MessageAction>
         )}
         {(isAdmin && isPinned) && (
-          <Unpin onClick={onUnpin}/>
+          <MessageAction onClick={onUnpin}>
+            <Unpin />
+          </MessageAction>
         )}
         {(isOwn || isAdmin) && !isPinned && !userIsMuted && !isDms && (
-          <Delete
-            onClick={onDeleteMessage}
-          />
+          <MessageAction 
+            onClick={onDeleteMessage}>
+            <Delete />
+          </MessageAction>
         )}
-          <EmojisPickerIcon
-            ref={pickerIconRef}
-            onClick={onOpenEmojiMart}
-          />
+        <MessageAction onClick={onOpenEmojiMart}>
+          <EmojisPickerIcon ref={pickerIconRef} />
+        </MessageAction>
         {pickerVisible && emojiPortalElement &&
           createPortal(
             <div
@@ -212,11 +230,9 @@ const MessageActions: FC<Props> = ({
             emojiPortalElement
           )
         }
-        <Reply
-          onClick={() => {
-            onReplyClicked();
-          }}
-        />
+        <MessageAction onClick={onReplyClicked}>
+          <Reply />
+        </MessageAction>
       </>
     </div>
   );

@@ -1,10 +1,8 @@
 import icon from 'src/assets/images/logo.svg';
 import { useRef, useCallback } from 'react';
-import { useLocalStorage, useSessionStorage } from 'usehooks-ts';
+import { useSessionStorage } from 'usehooks-ts';
 import useSound from 'use-sound';
-import { convert } from 'html-to-text';
 
-import { inflate } from '@utils/index';
 import { ChannelId, DBMessage, Message, MessageStatus, MessageType, ChannelNotificationLevel, NotificationStatus, DMNotificationLevel } from '@types';
 import { useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
@@ -13,32 +11,34 @@ import { useDb } from '@contexts/db-context';
 import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
 import { AppEvents, useAppEventListener } from 'src/events';
-
-const getText = (content: string) => {
-  let text = ''; 
-  try {
-    text = convert(inflate(content));
-  } catch (e) {
-    text = content;
-  }
-  return text;
-}
+import { EasterEggs, useUI } from '@contexts/ui-context';
+import { useNetworkClient } from '@contexts/network-client-context';
+import useLocalStorage from './useLocalStorage';
+import { useRemotelySynchedString } from './useRemotelySynchedValue';
 
 const useNotification = () => {
   const { getCodeNameAndColor } = useUtils();
+  const { triggerEasterEgg } = useUI();
+  const { setNickname } = useNetworkClient();
   const db = useDb('channels');
-  const [notificationSound] = useLocalStorage('notification-sound', '/sounds/notification.mp3');
-  const [playNotification] = useSound(notificationSound);
+  const { value: notificationSound } = useRemotelySynchedString('notification-sound', '/sounds/notification.mp3');
+  const [playNotification] = useSound(notificationSound ?? '');
   const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>('notification-permission', Notification?.permission === 'granted');
   const notification = useRef<Notification | null>(null);
   const [permissionIgnored, setPermissionIgnored] = useSessionStorage('notifications_ignored', false);
   const userIdentity = useAppSelector(identity.selectors.identity);
+
   const notify = useCallback((title: string, options?: NotificationOptions) => {
     if (isPermissionGranted) {
+      if (notificationSound?.includes('augh')) {
+        triggerEasterEgg(EasterEggs.Masochist);
+        setNickname('Masochist');
+      }
       notification.current = new Notification(title, options);
       playNotification();
     }
-  }, [isPermissionGranted, playNotification]);
+  }, [isPermissionGranted, notificationSound, playNotification, setNickname, triggerEasterEgg]);
+
   const allChannels = useAppSelector(channels.selectors.channels);
   const channelNotificationLevels = useAppSelector(channels.selectors.notificationLevels);
   const notificationStatuses = useAppSelector(channels.selectors.notificationStatuses);
@@ -46,20 +46,20 @@ const useNotification = () => {
 
   const messageReplied = useCallback((username: string, message: string) => {
     notify(`${username} replied to you`, {
-      body: getText(message),
+      body: message,
       icon
     });
   }, [notify]);
 
   const notifyMentioned = useCallback((username: string, message: string) => {
     notify(`${username} mentioned you`, {
-      body: getText(message),
+      body: message,
       icon
     });
   }, [notify]);
 
   const messagePinned = useCallback((message: string, channelName: string) => {
-    notify(`New message pinned in ${channelName}`, { icon, body: getText(message) });
+    notify(`New message pinned in ${channelName}`, { icon, body: message });
   }, [notify]);
 
   const close = useCallback(() => {
@@ -72,12 +72,12 @@ const useNotification = () => {
   }, [setIsPermissionGranted]);
 
   const dmReceived = useCallback((username: string, message: string) => {
-    notify(`${username} just sent you a direct message`, { icon, body: getText(message) });
+    notify(`${username} just sent you a direct message`, { icon, body: message });
   }, [notify]);
 
   const onDmProcessed = useCallback((msg: Message) => {
     if (dmNotificationLevels[msg.pubkey] === DMNotificationLevel.NotifyAll) {
-      dmReceived(msg.nickname || msg.codename, msg.body);
+      dmReceived(msg.nickname || msg.codename, msg.plaintext ?? '');
     }
   }, [dmNotificationLevels, dmReceived]);
 
@@ -93,9 +93,8 @@ const useNotification = () => {
     const canNotify = isUserPingableOnThisChannel(message.channelId);
 
     if (message.status === MessageStatus.Delivered && canNotify) {
-      const inflatedText = inflate(message.body);
       const mentions = new DOMParser()
-        .parseFromString(inflatedText, 'text/html')
+        .parseFromString(message.body, 'text/html')
         .getElementsByClassName('mention');
 
       for (let i = 0; i < mentions.length; i++) {
@@ -106,7 +105,7 @@ const useNotification = () => {
           const { codename } = getCodeNameAndColor(message.pubkey, message.codeset);
           notifyMentioned(
             message.nickname || codename,
-            message.body
+            message.plaintext ?? ''
           );
           break;
         }
@@ -131,7 +130,7 @@ const useNotification = () => {
           const { codename } = getCodeNameAndColor(message.pubkey, message.codeset);
           messageReplied(
             message.nickname || codename,
-            message.body
+            message.plaintext ?? ''
           )
         }
       }
@@ -143,7 +142,7 @@ const useNotification = () => {
     const canNotify = isUserPingableOnThisChannel(message.channelId);
 
     if (channel && canNotify) {
-      messagePinned(message.body, channel.name);
+      messagePinned(message.plaintext ?? '', channel.name);
     }
   }, [allChannels, isUserPingableOnThisChannel, messagePinned]);
 

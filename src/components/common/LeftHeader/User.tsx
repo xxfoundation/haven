@@ -11,7 +11,7 @@ const User: FC= () => {
   const { codename } = useAppSelector(identity.selectors.identity) ?? {};
 
   return codename ? (
-    <button className='flex items-center text-blue font-semibold text-xs flex-nowrap text-md' onClick={() => setSidebarView('settings')}>
+    <button className='flex items-center text-blue font-semibold text-xs flex-nowrap text-md overflow-hidden' onClick={() => setSidebarView('settings')}>
       <Profile 
         style={{
           fill: sidebarView === 'settings'

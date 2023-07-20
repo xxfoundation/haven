@@ -94,7 +94,7 @@ const Spaces = () => {
           const nextActive = filteredChannels[i + 1]?.id === selectedChannelId;
           
           return (
-            <>
+            <React.Fragment key={channel.id}>
               <Space
                 favorite={favorites.includes(channel.id)}
                 missedMessagesCount={missedMessages?.[channel.id]?.length ?? 0}
@@ -105,7 +105,7 @@ const Spaces = () => {
                 onClick={() => { selectChannel(channel.id); } }
               />
               <hr className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })} />
-            </>
+            </React.Fragment>
           );
         })}
       </div>

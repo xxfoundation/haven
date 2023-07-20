@@ -1,8 +1,11 @@
 :root {
   --our-black: #07080A;
   --near-black: #0A0C0F;
+  --near-black-80: rgba(10, 12, 15, 0.80);
   --charcoal-4: #16181D;
   --charcoal-3-20: rgba(46, 49, 55, 0.20);
+  --charcoal-4-80: rgba(22, 24, 29, 0.80);
+  --charcoal-4-40: rgba(22, 24, 29, 0.40);
   --charcoal-3: #2E3137;
   --charcoal-2: #41444A;
   --charcoal-1: #6C6E74;
@@ -11,9 +14,11 @@
   --near-white: #F5F6FA;
 
   --primary: #ECBA60;
+  --primary-15: rgba(236, 186, 96, 0.15);
   --red: #E3304B;
   --orange: #FA7B48;
   --green: #00C291;
+  --green-10: rgba(0, 194, 145, 0.10);
   --blue: #259CDB;
 
   --secondary: var(--blue);

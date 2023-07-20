@@ -25,10 +25,9 @@ type Props = {
   clamped?: boolean;
   readonly?: boolean;
   message: Message;
-  handleReplyToMessage: (message: Message) => void;
 }
 
-const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, readonly }) => {
+const MessageContainer: FC<Props> = ({ clamped = false, className, message, readonly }) => {
   const { t } = useTranslation();
 
   const dispatch = useAppDispatch();
@@ -56,8 +55,8 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   }] = useToggle();
 
   const onReplyMessage = useCallback(() => {
-    handleReplyToMessage(message);
-  }, [handleReplyToMessage, message]);
+    dispatch(app.actions.replyTo(message.id));
+  }, [dispatch, message.id]);
 
   const handleDeleteMessage = useCallback(async () => {
     await deleteMessage(message);
@@ -111,7 +110,16 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   }, [dispatch, message.channelId, message.id, missedMessages])
   
   return (
-    <>{!readonly && (
+    <>
+      {isNewMessage && (
+        <div className='relative flex items-center px-4'>
+          <div className='flex-grow border-t' style={{ borderColor: 'var(--primary)'}}></div>
+          <span className='flex-shrink mx-4' style={{ color: 'var(--primary)'}}>
+            {t('New!')}
+          </span>
+        </div>
+      )}
+      {!readonly && (
       <>
         {muteUserModalOpen && (
           <MuteUserModal
@@ -151,14 +159,6 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
           </div>
         )}
       </>
-    )}
-    {isNewMessage && (
-      <div className='relative flex items-center px-4'>
-        <div className='flex-grow border-t' style={{ borderColor: 'var(--primary)'}}></div>
-        <span className='flex-shrink mx-4' style={{ color: 'var(--primary)'}}>
-          {t('New!')}
-        </span>
-      </div>
     )}
     <ChatMessage
       className={className}

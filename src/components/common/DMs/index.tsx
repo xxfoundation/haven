@@ -68,7 +68,7 @@ const DMs = () => {
           const nextActive = filteredConversations[i + 1]?.pubkey === selectedChannelId;
           
           return (
-            <>
+            <React.Fragment key={convo.pubkey}>
               <Space
                 favorite={favorites.includes(convo.pubkey)}
                 missedMessagesCount={missedMessages?.[convo.pubkey]?.length ?? 0}
@@ -79,7 +79,7 @@ const DMs = () => {
                 onClick={() => { selectChannel(convo.pubkey); } }
               />
               <hr className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })} />
-            </>
+            </React.Fragment>
           );
         })}
       </div>
