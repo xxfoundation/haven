@@ -83,12 +83,7 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
           <ConnectingDimmer />
           <AppModals />
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '21.75rem 1fr',
-              gridTemplateRows: '3.75rem 1fr',
-              height: '100vh'
-            }}
+            className='grid lg:grid-cols-[21.75rem_1fr] grid-cols-[18rem_1fr]  grid-rows-[3.75rem_1fr] h-screen'
           >
             <LeftHeader className='z-10' />
             <MainHeader className='z-10'  />

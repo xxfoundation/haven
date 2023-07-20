@@ -1,10 +1,8 @@
-import type { Message } from 'src/types';
 import { default as ReactQuill, ReactQuillProps } from 'react-quill';
 import type { Quill, RangeStatic, StringMap } from 'quill';
 import type { QuillAutoDetectUrlOptions } from 'quill-auto-detect-url'
 import React, { FC, useEffect, useState, useCallback, useMemo, CSSProperties, useRef } from 'react';
 import cn from 'classnames';
-import Clamp from 'react-multiline-clamp';
 import dynamic from 'next/dynamic';
 import EventEmitter from 'events';
 import { Tooltip } from 'react-tooltip';
@@ -13,7 +11,7 @@ import { createPortal } from 'react-dom';
 import Picker from '@emoji-mart/react';
 
 import emojiMap from '@emoji-mart/data';
-import { Close } from 'src/components/icons';
+import { EmojisPicker } from 'src/components/icons';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import s from './UserTextArea.module.scss';
@@ -24,10 +22,12 @@ import { userIsMuted } from 'src/store/selectors';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import Spinner from 'src/components/common/Spinner';
 
-import { deflate, inflate } from 'src/utils/index';
+import { deflate } from 'src/utils/index';
 import classes from 'src/components/common/ChannelChat/MessageActions/MessageActions.module.scss';
 import { useOnClickOutside } from 'usehooks-ts';
 import { MESSAGE_TAGS_LIMIT } from 'src/constants';
+import X from '@components/icons/X';
+import Identity from '@components/common/Identity';
 
 export const bus = new EventEmitter();
 
@@ -56,17 +56,16 @@ const Editor = dynamic(
 
 type Props = {
   className: string;
-  replyToMessage: Message | null | undefined;
-  setReplyToMessage: (msg: Message | null) => void;
 };
 
 const MESSAGE_MAX_SIZE = 700;
 
 type CustomToolbarProps = {
   onEmojiButtonClicked: (ref: HTMLButtonElement | null) => void;
+  className?: string;
 }
 
-const CustomToolbar: FC<CustomToolbarProps> = ({ onEmojiButtonClicked }) => {
+const CustomToolbar: FC<CustomToolbarProps> = ({ className, onEmojiButtonClicked }) => {
   const { t } = useTranslation();
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -75,7 +74,7 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ onEmojiButtonClicked }) => {
   }, [onEmojiButtonClicked]);
 
   return (
-    <div id='custom-toolbar'>
+    <div className={className} id='custom-toolbar'>
       <span className='ql-formats'>
         <Tooltip className='text-center' anchorId='bold-button'>
           <strong>
@@ -161,12 +160,7 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ onEmojiButtonClicked }) => {
       </span>
       <span className='ql-formats'>
         <button ref={pickerButtonRef} onClick={onClick}>
-          <svg viewBox='0 0 18 18'>
-            <circle className='ql-fill' cx='7' cy='7' r='1'></circle>
-            <circle className='ql-fill' cx='11' cy='7' r='1'></circle>
-            <path className='ql-stroke' d='M7,10a2,2,0,0,0,4,0H7Z'></path>
-            <circle className='ql-stroke' cx='9' cy='9' r='6'></circle>
-          </svg>
+          <EmojisPicker />
         </button>
       </span>
     </div>
@@ -179,9 +173,8 @@ let atMentions: { id: string, value: string }[] = [];
 
 const UserTextArea: FC<Props> = ({
   className,
-  replyToMessage,
-  setReplyToMessage,
 }) => {
+  const replyToMessage = useAppSelector(messages.selectors.replyingToMessage);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const contributors = useAppSelector(messages.selectors.currentContributors);
@@ -206,7 +199,7 @@ const UserTextArea: FC<Props> = ({
       : t('Type your message here...'),
     [t, isMuted]
   );
-  const replyMessageMarkup = useMemo(() => replyToMessage && inflate(replyToMessage.body), [replyToMessage]);
+  const replyMessageMarkup = useMemo(() => replyToMessage && replyToMessage.body, [replyToMessage]);
   const ctrlOrCmd = useMemo(() => {
     const isMac = navigator?.userAgent.indexOf('Mac') !== -1;
     return isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
@@ -323,11 +316,11 @@ const UserTextArea: FC<Props> = ({
       resetEditor();
     }
 
-    setReplyToMessage(null);
+    dispatch(app.actions.replyTo(undefined));
   }, [
+    dispatch,
     tooManyTags,
     cmix,
-    setReplyToMessage,
     setModalView,
     openModal,
     isMuted,
@@ -453,26 +446,7 @@ const UserTextArea: FC<Props> = ({
   ], []);
 
   return (
-    <div className={cn('relative', s.textArea, className)}>
-      {replyToMessage && replyMessageMarkup && (
-        <div className={cn(s.replyContainer)}>
-          <div className={s.replyHeader}>
-            {t('Replying to {{codename}}', { codename: replyToMessage.codename })}
-          </div>
-          <Clamp lines={1}>
-            <pre dangerouslySetInnerHTML={{ __html: replyMessageMarkup }} />
-          </Clamp>
-          <Close
-            className={s.closeButton}
-            width={14}
-            height={14}
-            fill={'var(--primary)'}
-            onClick={() => {
-              setReplyToMessage(null);
-            }}
-          />
-        </div>
-      )}
+    <div className={cn('relative bg-charcoal-4-80 p-2 pl-3', s.textArea, className)}>
       {pickerVisible && emojiPortalElement &&
         createPortal(
           <div
@@ -489,20 +463,39 @@ const UserTextArea: FC<Props> = ({
           emojiPortalElement
         )
       }
-      <div className={cn('editor', s.editorWrapper)}>
-        <CustomToolbar onEmojiButtonClicked={onEmojiButtonClicked} />
-        {editorLoaded && (
-          <Editor
-            forwardedRef={editorRef}
-            id='editor'
-            preserveWhitespace
-            value={message}
-            theme='snow'
-            formats={formats}
-            modules={modules}
-            onChange={updateMessage}
-            placeholder={placeholder} />
-        )}
+
+      {replyToMessage && replyMessageMarkup && (
+        <div className='flex justify-between mb-3 items-center'>
+          <div className={s.replyHeader}>
+            {t('Replying to')} &nbsp;<Identity className='text-charcoal-3-important' {...replyToMessage} />
+          </div>
+          <button className='hover:bg-charcoal-3-20 hover:text-primary p-2 rounded-full'>
+            <X
+              className='w-5 h-5'
+              onClick={() => {
+                dispatch(app.actions.replyTo(undefined));
+              }}
+            />
+          </button>
+        </div>
+      )}
+      <div className='flex items-end'>
+        <div className='rounded-2xl bg-near-black flex-grow'>
+          <CustomToolbar onEmojiButtonClicked={onEmojiButtonClicked} />
+          {editorLoaded && (
+            <Editor
+              className='flex-grow'
+              forwardedRef={editorRef}
+              id='editor'
+              preserveWhitespace
+              value={message}
+              theme='snow'
+              formats={formats}
+              modules={modules}
+              onChange={updateMessage}
+              placeholder={placeholder} />
+          )}
+        </div>
         {tooManyTags && (
           <div className={s.error}>
             {t('Too many tags.')}
@@ -515,7 +508,6 @@ const UserTextArea: FC<Props> = ({
         )}
         <SendButton
           disabled={!messageIsUnderLimit || tooManyTags}
-          className={s.button}
           onClick={sendCurrentMessage}
         />
       </div>

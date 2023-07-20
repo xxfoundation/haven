@@ -7,7 +7,7 @@ import { createSelector } from '@reduxjs/toolkit';
 
 import { currentDirectMessages, dmReactions, currentConversationContributors } from '../dms/selectors';
 
-import { contributorsSearch, currentChannelOrConversationId } from '../app/selectors';
+import { contributorsSearch, currentChannelOrConversationId, replyingToId } from '../app/selectors';
 
 export const reactions = (state: RootState) => state.messages.reactions;
 export const contributors = (state: RootState) => state.messages.contributorsByChannelId;
@@ -77,3 +77,9 @@ export const currentContributors: (root: RootState) => Contributor[] = createSel
 );
 
 export const commonChannels = (pubkey: string) => (state: RootState) => state.messages.commonChannelsByPubkey[pubkey] || [];
+
+export const replyingToMessage = createSelector(
+  replyingToId,
+  currentChannelMessages,
+  (id, msgs) => msgs?.find((m) => m.id === id),
+);

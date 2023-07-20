@@ -31,7 +31,7 @@ const Modal: FC<ModalProps> = ({
   return (
     <div {...props} className={cn(s.root)}>
       <div
-        className={cn('drop-shadow-xl rounded-2xl bg-charcoal-4 w-[28rem] p-12 relative', className)}
+        className={cn(className, 'drop-shadow-xl rounded-2xl bg-charcoal-4 w-[28rem] p-12 relative')}
         role='dialog'
         ref={ref}>
         {closeable && (<Close

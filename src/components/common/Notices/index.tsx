@@ -1,23 +1,38 @@
 import { Trans, useTranslation } from 'react-i18next';
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 import * as messages from 'src/store/messages';
 import * as dms from 'src/store/dms';
-import { useUI } from '@contexts/ui-context';
+import { EasterEggs, useUI } from '@contexts/ui-context';
 import { WithChildren } from '@types';
 import Identity from '../Identity';
 import NoticeIcon from 'src/components/icons/Notice';
 
-const Notice: FC<WithChildren> = ({ children }) => (
-  <div className='px-6 py-10 flex space-x-2 items-center border-b border-charcoal-4 font-semibold'>
-    <NoticeIcon className='w-14 h-14 text-charcoal-1' />
-    <span>
-      {children}
-    </span>
-  </div>
-);
+const Notice: FC<WithChildren> = ({ children }) => {
+  const { easterEggs, triggerEasterEgg } = useUI();
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (count === 3) {
+      triggerEasterEgg(EasterEggs.CarWarranty);
+    }
+  }, [count, triggerEasterEgg])
+
+  return (
+    <div className='px-6 py-10 flex space-x-2 items-center border-b border-charcoal-4 font-semibold'>
+      <NoticeIcon onClick={() => setCount((c) => c + 1)} className='w-14 h-14 text-charcoal-1' />
+      <span>
+        {easterEggs.includes(EasterEggs.CarWarranty) 
+          ? <>
+            We've been trying to reach you about your <strong className='text-primary'>car's extended warranty</strong>.
+          </>
+          : children}
+      </span>
+    </div>
+  );
+}
 
 const Notices = () => {
   const { t } = useTranslation();
@@ -39,7 +54,7 @@ const Notices = () => {
           </Trans>
         </Notice>
       )}
-      {(currentChannel && (!msgs || msgs.length < 5) && sidebarView === 'spaces') && (
+      {(currentChannel && (!msgs || msgs.length === 0) && sidebarView === 'spaces') && (
         <Notice>
           <Trans t={t}>
             This is the very beginning of the <strong className='text-primary'>{currentChannel.name}</strong>&nbsp;space

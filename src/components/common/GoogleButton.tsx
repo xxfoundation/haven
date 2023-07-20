@@ -46,7 +46,7 @@ const GoogleButton: FC<Props>  = ({
     >
       <FontAwesomeIcon className='w-5 h-5' icon={faGoogleDrive} />
       &nbsp;
-      <span>{t('Google Drive')}</span>
+      <span className='whitespace-nowrap'>{t('Google Drive')}</span>
     </Button>
   );
 }

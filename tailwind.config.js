@@ -18,7 +18,12 @@ module.exports = {
       'near-black': 'var(--near-black)',
       'our-black': 'var(--our-black)',
       'white': 'var(--primary-white)',
-      'charcoal-3-20': 'var(--charcoal-3-20)'
+      'charcoal-3-20': 'var(--charcoal-3-20)',
+      'charcoal-4-40': 'var(--charcoal-4-40)',
+      'charcoal-4-80': 'var(--charcoal-4-80)',
+      'near-black-80': 'var(--near-black-80)',
+      'green-10': 'var(--green-10)',
+      'primary-15': 'var(--primary-15)'
     },
     fontFamily: {
       sans: ["Moderat"]

@@ -27,6 +27,12 @@ export type ModalViews =
   | 'NEW_DM';
 
 
+export enum EasterEggs {
+  Spaceman,
+  CarWarranty,
+  Masochist
+}
+  
 export interface State {
   alert: (alert: AlertType) => void;
   dismissAlert: (id: string) => void;
@@ -46,6 +52,8 @@ export interface State {
   closeModal: () => void;
   setModalView: (view: ModalViews, closeableOverride?: boolean) => void;
   setChannelInviteLink: (link: string) => void;
+  triggerEasterEgg: (egg: EasterEggs) => void;
+  easterEggs: EasterEggs[];
 }
 
 const initialState = {
@@ -104,12 +112,12 @@ function uiReducer(state: State, action: Action) {
     }
   }
 }
-
 export const UIProvider: FC<WithChildren> = ({ children }) => {
   const [state, dispatch] = React.useReducer(uiReducer, initialState);
   const [closeableOverride, setCloseableOverride] = useState<boolean>();
   const [sidebarView, setSidebarView] = useState<SidebarView>('spaces');
   const [settingsView, setSettingsView] = useState<SettingsView>('notifications');
+  const [easterEggs, setEasterEggs] = useState<EasterEggs[]>([]);
 
   const openModal = useCallback(() => dispatch({ type: 'OPEN_MODAL' }), [
     dispatch
@@ -144,9 +152,20 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
     toast.custom(<Alert {...al} />);
   }, []);
 
+  const triggerEasterEgg = useCallback((egg: EasterEggs) => {
+    setEasterEggs((eggs) => {
+      const found = !eggs.includes(egg);
+      if (found) {
+        alert({ type: 'success', content: `Easter egg #${egg + 1} of 3 found.` });
+      }
+      return found ? eggs.concat(egg) : eggs;
+    });
+  }, [alert]);
+
   const value = useMemo(
     () => ({
       ...state,
+      easterEggs,
       alert,
       dismissAlert,
       sidebarView,
@@ -158,9 +177,11 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       closeModal,
       setModalView,
       setChannelInviteLink,
+      triggerEasterEgg,
     }),
     [
       alert,
+      easterEggs,
       closeModal,
       closeableOverride,
       dismissAlert,
@@ -171,7 +192,8 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       setSettingsView,
       setSidebarView,
       sidebarView,
-      state
+      state,
+      triggerEasterEgg
   ]
   );
 

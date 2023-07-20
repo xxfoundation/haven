@@ -45,7 +45,9 @@ const ChatReactions: FC<Props> = ({ message }) => {
           <div
             key={`${id}-${message.id}-${emoji}`}
             id={`${id}-${message.id}-${emoji}-emojis-users-reactions`}
-            className={cn(s.emoji)}
+            className={cn('hover:bg-charcoal-3', s.emoji, {
+              'bg-primary-15 border border-primary': reactionInfos.map((i) => i.pubkey).includes(userPubkey ?? '')
+            })}
             onClick={() => toggleReaction(emoji, message.id)}
           >
             <span className='mr-1'>{emoji}</span>

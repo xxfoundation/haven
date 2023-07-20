@@ -11,6 +11,8 @@ export type AppState = {
   contributorsSearch: string;
   channelFavorites: string[];
   missedMessages?: Record<ChannelId | ConversationId, MessageId[] | undefined>;
+  replyingToMessageId?: string;
+  highlightedMessageId?: string;
 }
 
 declare module 'src/store/types' {

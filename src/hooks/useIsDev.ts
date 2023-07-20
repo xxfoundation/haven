@@ -1,3 +1,4 @@
+import { useUI } from '@contexts/ui-context';
 import { envIsDev } from '@utils/index';
 import { useEffect, useState, useCallback } from 'react';
 
@@ -11,6 +12,7 @@ const DEV_CODE = [
 function useIsDev() {
   const [input, setInput] = useState<string[]>([]);
   const [inputted, setInputted] = useState<boolean>(envIsDev());
+  const { alert } = useUI();
 
   const onKeyUp = useCallback(
     (e: KeyboardEvent) => {
@@ -20,11 +22,12 @@ function useIsDev() {
 
       setInput(newInput);
 
-      if (newInput.join('').includes(DEV_CODE.join(''))) {
+      if (!inputted && newInput.join('').includes(DEV_CODE.join(''))) {
+        alert({ type: 'success', content: 'Dev mode enabled' });
         setInputted(true);
       }
     },
-    [input, setInput],
+    [alert, input, inputted],
   );
 
   useEffect(() => {
