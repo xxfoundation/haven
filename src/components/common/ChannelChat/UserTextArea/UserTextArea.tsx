@@ -28,6 +28,7 @@ import { useOnClickOutside } from 'usehooks-ts';
 import { MESSAGE_TAGS_LIMIT } from 'src/constants';
 import X from '@components/icons/X';
 import Identity from '@components/common/Identity';
+import { replyingToMessage } from 'src/store/selectors';
 
 export const bus = new EventEmitter();
 
@@ -171,10 +172,8 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ className, onEmojiButtonClicked
 // so we're instantiating a reference outside of the component, lol
 let atMentions: { id: string, value: string }[] = [];
 
-const UserTextArea: FC<Props> = ({
-  className,
-}) => {
-  const replyToMessage = useAppSelector(messages.selectors.replyingToMessage);
+const UserTextArea: FC<Props> = ({ className }) => {
+  const replyToMessage = useAppSelector(replyingToMessage);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const contributors = useAppSelector(messages.selectors.currentContributors);

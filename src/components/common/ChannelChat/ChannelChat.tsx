@@ -24,7 +24,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
   const { t } = useTranslation();
   const {  pagination } = useNetworkClient();
   const { reset } = pagination;
-  const { easterEggs, sidebarView, triggerEasterEgg } = useUI();
+  const { easterEggs, leftSidebarView: sidebarView, triggerEasterEgg } = useUI();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const paginatedItems = useMemo(() => pagination.paginate(messages), [messages, pagination]);

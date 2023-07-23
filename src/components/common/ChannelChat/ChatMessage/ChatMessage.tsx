@@ -98,7 +98,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
       {repliedToMessage && (
         <p
           ref={replyRef}
-          className='cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative'
+          className='cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative hover:bg-charcoal-4'
           onClick={() => {
             const originalMessage = document.getElementById(
               repliedToMessage.id || ''

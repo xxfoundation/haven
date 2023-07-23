@@ -1,6 +1,6 @@
 import { WithChildren } from '@types';
 import React, { FC, useCallback, useMemo, useState } from 'react';
-import { SettingsView, SidebarView } from 'src/types/ui';
+import { SettingsView, LeftSidebarView, RightSidebarView } from 'src/types/ui';
 import toast, { Toaster } from 'react-hot-toast';
 import Alert, { AlertType } from '@components/common/Alert';
 
@@ -37,8 +37,10 @@ export interface State {
   alert: (alert: AlertType) => void;
   dismissAlert: (id: string) => void;
   displayModal: boolean;
-  sidebarView: SidebarView;
-  setSidebarView: (view: SidebarView) => void;
+  leftSidebarView: LeftSidebarView;
+  setLeftSidebarView: (view: LeftSidebarView) => void;
+  rightSidebarView: RightSidebarView | null;
+  setRightSidebarView: (view: RightSidebarView | null) => void;
   settingsView: SettingsView;
   setSettingsView: (view: SettingsView) => void;
   modalView?: ModalViews;
@@ -115,7 +117,8 @@ function uiReducer(state: State, action: Action) {
 export const UIProvider: FC<WithChildren> = ({ children }) => {
   const [state, dispatch] = React.useReducer(uiReducer, initialState);
   const [closeableOverride, setCloseableOverride] = useState<boolean>();
-  const [sidebarView, setSidebarView] = useState<SidebarView>('spaces');
+  const [leftSidebarView, setLeftSidebarView] = useState<LeftSidebarView>('spaces');
+  const [rightSidebarView, setRightSidebarView] =  useState<RightSidebarView | null>(null);
   const [settingsView, setSettingsView] = useState<SettingsView>('notifications');
   const [easterEggs, setEasterEggs] = useState<EasterEggs[]>([]);
 
@@ -168,8 +171,8 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       easterEggs,
       alert,
       dismissAlert,
-      sidebarView,
-      setSidebarView,
+      leftSidebarView,
+      setLeftSidebarView,
       settingsView,
       setSettingsView,
       closeableOverride,
@@ -178,6 +181,8 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       setModalView,
       setChannelInviteLink,
       triggerEasterEgg,
+      rightSidebarView,
+      setRightSidebarView,
     }),
     [
       alert,
@@ -190,10 +195,12 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       setModalView,
       settingsView,
       setSettingsView,
-      setSidebarView,
-      sidebarView,
+      setLeftSidebarView,
+      leftSidebarView,
       state,
-      triggerEasterEgg
+      triggerEasterEgg,
+      rightSidebarView,
+      setRightSidebarView
   ]
   );
 

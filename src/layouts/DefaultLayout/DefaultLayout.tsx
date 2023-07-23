@@ -18,15 +18,13 @@ import { NetworkStatus } from 'src/hooks/useCmix';
 import useEvents from 'src/hooks/useEvents';
 import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
 import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
-import Spaces from 'src/components/common/Spaces';
 import LeftSideBar  from '@components/common/LeftSideBar';
 import MainHeader from '@components/common/MainHeader';
 import SettingsView from '@components/views/SettingsViews';
 
-import SettingsMenu from '@components/common/SettingsMenu';
-import DMs from 'src/components/common/DMs';
 import Notices from 'src/components/common/Notices';
 import AppModals from 'src/components/modals/AppModals';
+import { RightSideBar } from '@components/common';
 
 const DefaultLayout: FC<WithChildren> = ({ children }) => {
   useGoogleRemoteStore();
@@ -40,7 +38,7 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
     getShareUrlType,
     networkStatus
   } = useNetworkClient();
-  const { openModal, setChannelInviteLink, setModalView, sidebarView } = useUI();
+  const { leftSidebarView: sidebarView, openModal, setChannelInviteLink, setModalView } = useUI();
 
   useEffect(() => {
     const privacyLevel = getShareUrlType(window.location.href);
@@ -87,25 +85,21 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
           >
             <LeftHeader className='z-10' />
             <MainHeader className='z-10'  />
-            <LeftSideBar  className='overflow-y-auto'  >
-              {sidebarView === 'spaces' && (
-                <Spaces />
-              )}
-              {sidebarView === 'dms' && (
-                <DMs />
-              )}
-              {sidebarView === 'settings' && (
-                <SettingsMenu />
-              )}
-            </LeftSideBar>
-            <div className='overflow-hidden flex flex-col'>
+            <LeftSideBar  className='overflow-y-auto'  />
+
+            <div className='overflow-hidden flex flex-col items-stretch'>
               <Notices />
-              {sidebarView === 'settings' && (
-                <SettingsView />
-              )}
-              {(sidebarView === 'spaces' || sidebarView === 'dms') && (
-                <>{children}</>
-              )}
+              <div className='flex h-full'>
+                <div className='flex flex-col flex-grow '>
+                  {sidebarView === 'settings' && (
+                    <SettingsView />
+                  )}
+                  {(sidebarView === 'spaces' || sidebarView === 'dms') && (
+                    <>{children}</>
+                  )}
+                </div>
+                <RightSideBar />
+              </div>
             </div>
           </div>
         </>

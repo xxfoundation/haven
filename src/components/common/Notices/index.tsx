@@ -18,7 +18,7 @@ const Notice: FC<WithChildren> = ({ children }) => {
     if (count === 3) {
       triggerEasterEgg(EasterEggs.CarWarranty);
     }
-  }, [count, triggerEasterEgg])
+  }, [count, triggerEasterEgg]);
 
   return (
     <div className='px-6 py-10 flex space-x-2 items-center border-b border-charcoal-4 font-semibold'>
@@ -36,7 +36,7 @@ const Notice: FC<WithChildren> = ({ children }) => {
 
 const Notices = () => {
   const { t } = useTranslation();
-  const { sidebarView } = useUI();
+  const { leftSidebarView: sidebarView } = useUI();
   const allChannels = useAppSelector(channels.selectors.channels);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const msgs = useAppSelector(messages.selectors.currentChannelMessages);

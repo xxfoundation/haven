@@ -8,7 +8,7 @@ import { useUI } from '@contexts/ui-context';
 
 const SidebarControls: FC= () => {
   const { t } = useTranslation();
-  const { setSidebarView, sidebarView } = useUI();
+  const { leftSidebarView, setLeftSidebarView: setSidebarView } = useUI();
   const allChannels = useAppSelector(channels.selectors.channels);
   const dmsDisabled = allChannels.length === 0;
 
@@ -19,7 +19,7 @@ const SidebarControls: FC= () => {
         onClick={() => setSidebarView('spaces')}>
         <Spaces
           style={{
-            fill: sidebarView === 'spaces'
+            fill: leftSidebarView === 'spaces'
               ? 'var(--primary)'
               : 'var(--charcoal-1)'
           }}
@@ -32,7 +32,7 @@ const SidebarControls: FC= () => {
         onClick={() => setSidebarView('dms')}>
         <Dms
           style={{
-            fill: sidebarView === 'dms'
+            fill: leftSidebarView === 'dms'
               ? 'var(--primary)'
               : 'var(--charcoal-1)'
           }}

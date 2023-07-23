@@ -5,6 +5,7 @@ import { currentChannelMessages } from './messages/selectors';
 import { dmNickname } from './dms/selectors';
 import { channelNicknames, currentChannel, mutedUsers } from './channels/selectors';
 import { identity } from './identity/selectors';
+import { replyingToId } from './app/selectors';
 
 export const currentMessages = createSelector(
   currentDirectMessages,
@@ -34,4 +35,12 @@ export const currentMutedUsers = createSelector(
   currentChannel,
   mutedUsers,
   (channel, muted) => channel?.id ? (muted[channel.id] ?? []) : []
+);
+
+
+export const replyingToMessage = createSelector(
+  replyingToId,
+  currentChannelMessages,
+  currentDirectMessages,
+  (id, msgs, dms) => msgs?.find((m) => m.id === id) || dms?.find((d) => d.id === id),
 );
