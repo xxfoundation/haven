@@ -17,7 +17,7 @@ type Props = {
 const MainHeader: FC<Props> = ({ className }) => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const { sidebarView } = useUI();
+  const { leftSidebarView: sidebarView } = useUI();
 
   return (
     <div className={cn(className, s.root)}>

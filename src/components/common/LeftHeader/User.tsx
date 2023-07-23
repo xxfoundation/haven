@@ -7,7 +7,7 @@ import Profile from '@components/icons/Profile';
 import { useUI } from '@contexts/ui-context';
 
 const User: FC= () => {
-  const { setSidebarView, sidebarView } = useUI();
+  const { leftSidebarView: sidebarView, setLeftSidebarView: setSidebarView } = useUI();
   const { codename } = useAppSelector(identity.selectors.identity) ?? {};
 
   return codename ? (

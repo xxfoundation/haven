@@ -72,13 +72,13 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
       {isMuted && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>({t('muted')})</span>
+          <span style={{ color: 'var(--red)'}}>[{t('muted')}]</span>
         </>
       )}
       {isBlocked && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>({t('blocked')})</span>
+          <span style={{ color: 'var(--red)'}}>[{t('blocked')}]</span>
         </>
       )}
     </span>
