@@ -88,9 +88,9 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
             <LeftSideBar  className='overflow-y-auto'  />
 
             <div className='overflow-hidden flex flex-col items-stretch'>
-              <Notices />
               <div className='flex h-full'>
                 <div className='flex flex-col flex-grow '>
+                  <Notices />
                   {sidebarView === 'settings' && (
                     <SettingsView />
                   )}
