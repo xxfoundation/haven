@@ -37,10 +37,17 @@ type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
 }
 
-const HeaderButton: FC<HTMLAttributes<HTMLButtonElement> & { notification?: boolean }> = (props) => (
+const HeaderButton: FC<HTMLAttributes<HTMLButtonElement> & { notification?: boolean, active?: boolean }> = (props) => (
   <button
     {...props}
-    className={cn('relative w-8 h-8 p-1 text-charcoal-1 hover:text-primary hover:bg-charcoal-3-20 rounded-full', props.className)}>
+    className={cn(
+      'relative w-8 h-8 p-1 hover:text-primary hover:bg-charcoal-3-20 rounded-full',
+      props.className,
+      {
+        'text-primary': props.active,
+        'text-charcoal-1': !props.active 
+      }
+    )}>
     {props.children}
     {props.notification && (
       <div className='rounded-full w-2 h-2 absolute bottom-1 right-1 bg-red' />
@@ -95,7 +102,7 @@ const ChannelHeader: FC<Props> = ({
       </div>
       <div className='flex space-x-2 items-center relative'>
         <HeaderButton
-          className={isChannelFavorited ? 'text-primary' : 'text-charcoal-1'}
+          active={!!isChannelFavorited}
           onClick={() => channelId && toggleFavorite(channelId)}>
           <FontAwesomeIcon className='' icon={faStar} />
         </HeaderButton>

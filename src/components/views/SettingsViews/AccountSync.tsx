@@ -46,7 +46,7 @@ const AccountSync = () => {
         {isSynced && (
           <div className='flex justify-between items-center'>
             <h3 className='headline--sm'>{t('Service')}</h3>
-            <Badge color='gold' className='text-[0.875rem] p-2 flex space-x-2 tracking-normal'>
+            <Badge color='gold' className='text-[0.875rem] p-2 flex space-x-2 tracking-normal rounded-lg'>
               {service === AccountSyncService.Google && (<>
                 <FontAwesomeIcon className='w-5 h-5' icon={faGoogleDrive} />
                 <span>Google Drive</span>

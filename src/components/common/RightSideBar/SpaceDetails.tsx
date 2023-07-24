@@ -1,5 +1,6 @@
 import { FC, useCallback, useState } from 'react';
 import assert from 'assert';
+import cn from 'classnames';
 
 import CloseButton from '../CloseButton';
 import { useUI } from '@contexts/ui-context';
@@ -21,7 +22,6 @@ import { Mute } from '@components/icons';
 import useAsync from 'src/hooks/useAsync';
 import Spinner from '../Spinner/Spinner';
 import { ChannelEvents, awaitChannelEvent } from 'src/events';
-import RightSideTitle from './RightSideTitle';
 
 const ContributorComponent: FC<Contributor> = (contributor) => {
   const { t } = useTranslation();
@@ -52,8 +52,8 @@ const ContributorComponent: FC<Contributor> = (contributor) => {
   });
 
   return (
-    <div className='relative w-[calc(100%_+_3rem)] group -mx-6 py-1 pl-6 pr-4 hover:bg-charcoal-3-20 flex items-center justify-between'>
-      <Identity className='block text-charcoal-1 truncate' {...contributor} />
+    <div className='relative w-[calc(100%_+_3rem)] group -mx-6 py-1.5 pl-6 pr-4 hover:bg-charcoal-3-20 flex items-center justify-between'>
+      <Identity clickable className='block text-charcoal-1 truncate' {...contributor} />
       <button disabled={muteToggleAsync.status === 'pending'} onClick={() => setIsOpen(true)}>
         {muteToggleAsync.status === 'pending'
           ? <Spinner size='xs' />
@@ -69,7 +69,7 @@ const ContributorComponent: FC<Contributor> = (contributor) => {
         )}
         <DropdownItem
           onClick={muteToggleAsync.execute}
-          className='text-sm'
+          className={cn('text-sm', { 'text-primary': isMuted })}
           icon={Mute}>
           {isMuted ? t('Local Unmute') : t('Local Mute')}
         </DropdownItem>
@@ -88,17 +88,15 @@ const SpaceDetails = () => {
   return (currentChannel && identity) ? (
     <div className='p-6'>
       <div className='flex justify-between items-center'>
-        <div>
-          <RightSideTitle>
-            {currentChannel.name}
-          </RightSideTitle>
-        </div>
+        <h2 className='font-medium'>
+          {currentChannel.name}
+        </h2>
         <CloseButton className='w-8 h-8' onClick={() => setRightSidebarView(null) } />
       </div>
       <p className='space-x-2'>
         <ChannelBadges {...currentChannel} />
       </p>
-      <div className='mt-6 space-y-6'>
+      <div className='mt-8 space-y-8'>
         {currentChannel.description && (
           <p className='text-charcoal-1 mt-6'>
             {currentChannel.description}
@@ -118,11 +116,13 @@ const SpaceDetails = () => {
             {t('Set nickname')}
           </Button>
         </div>
-        <div className='space-y-2 text-sm'>
+        <div className='space-y-4 text-sm'>
           <h6 className='uppercase'>{t('Recent contributors')}</h6>
-          {recentContributors.map((contributor) => (
-            <ContributorComponent key={contributor.pubkey} {...contributor} />
-          ))}
+          <div>
+            {recentContributors.map((contributor) => (
+              <ContributorComponent key={contributor.pubkey} {...contributor} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

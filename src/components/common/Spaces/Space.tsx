@@ -27,7 +27,7 @@ const Space: FC<Props> = ({ active, date, favorite, message, missedMessagesCount
         <h5 className={cn(s.name, 'flex items-center space-x-1')}>
           {name}
           {favorite && (
-            <FontAwesomeIcon width='1ch' className='text-primary ml-1' icon={faStar} />
+            <FontAwesomeIcon width='1.5ch' className='text-primary ml-1' icon={faStar} />
           )}
         </h5>
         <div className='flex space-x-1'>

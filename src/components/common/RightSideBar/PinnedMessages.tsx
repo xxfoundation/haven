@@ -62,7 +62,7 @@ const PinnedMessages: FC = () => {
       </div>
       <div className='space-y-2'>
         {(!pinnedMessages || pinnedMessages?.length === 0) && (
-          <p className='text-red'>
+          <p className='text-charcoal-1'>
             {t('There are currently no pinned messages in this channel')}
           </p>
         )}
@@ -81,7 +81,7 @@ const PinnedMessages: FC = () => {
             )}
             <ChatMessage
               noReply
-              style={{ backgroundColor: 'transparent'}}
+              style={{ backgroundColor: 'transparent' }}
               message={m}
               clamped={false} />
           </div>
