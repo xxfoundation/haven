@@ -2,21 +2,22 @@ import { contrastColor as getContrastColor } from 'contrast-color';
 import React, { useCallback, useMemo } from 'react';
 
 import useSelectedUserInfo from 'src/hooks/useSelectedUserInfo';
-import { Elixxir } from '@components/icons';
+import { Elixxir, Mute } from '@components/icons';
 import Envelope from 'src/components/icons/Envelope';
 import Close from 'src/components/icons/X';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
 import * as dms from 'src/store/dms';
 import * as identity from 'src/store/identity';
+import * as channels from 'src/store/channels';
 import { useTranslation } from 'react-i18next';
 import { useUI } from '@contexts/ui-context';
 import Block from '@components/icons/Block';
-import { useUtils } from '@contexts/utils-context';
-import { useNetworkClient } from '@contexts/network-client-context';
 import useAsync from 'src/hooks/useAsync';
 import Spinner from '../Spinner/Spinner';
-
+import useDmClient from 'src/hooks/useDmClient';
+import { ChannelEvents, awaitChannelEvent } from 'src/events';
+import { useNetworkClient } from '@contexts/network-client-context';
 
 const calculateContrastColor = (color?: string) => getContrastColor({
   bgColor: color ?? '#000',
@@ -24,47 +25,42 @@ const calculateContrastColor = (color?: string) => getContrastColor({
 });
 
 const UserDetails = () => {
-  const { utils } = useUtils();
-  const { dmClient } = useNetworkClient();
+  const { setRightSidebarView } = useUI();
+  const { createConversation, toggleBlocked } = useDmClient();
+  const { muteUser } = useNetworkClient();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const details = useSelectedUserInfo();
   const userInfo = details?.info;
   const commonChannels = details?.commonChannels;
-  const conversations = useAppSelector(dms.selectors.conversationsByPubkey);
   const isBlocked = useAppSelector(dms.selectors.isBlocked(userInfo?.pubkey ?? ''));
   const { setLeftSidebarView } = useUI();
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const isMuted = useAppSelector(channels.selectors.mutedUsers)
+    [currentChannel?.id ?? '']?.includes(userInfo?.pubkey ?? '');
 
   const isSelf = useAppSelector(identity.selectors.identity)?.pubkey === userInfo?.pubkey;
 
+
+  const toggleMute = useCallback(
+    () => muteUser(userInfo?.pubkey ?? '', isMuted),
+    [userInfo?.pubkey, isMuted, muteUser]
+  );
+
+  const muteToggleAsync = useAsync(async () => {
+    await toggleMute();
+    await awaitChannelEvent(ChannelEvents.USER_MUTED, (e) => e.pubkey === userInfo?.pubkey);
+  });
+
   const onClose = useCallback(() => {
     dispatch(app.actions.selectUser(null));
-  }, [dispatch]);
+    setRightSidebarView(null);
+  }, [dispatch, setRightSidebarView]);
 
   const contrastColor = useMemo(
     () => calculateContrastColor(userInfo?.color),
     [userInfo?.color]
   );
-
-  const selectDm = useCallback(() => {
-    if (userInfo && userInfo.dmToken) {
-      const existingConversation = conversations[userInfo.pubkey];
-      if (!existingConversation) {
-        dispatch(dms.actions.upsertConversation({
-          pubkey: userInfo.pubkey,
-          token: userInfo.dmToken,
-          codeset: userInfo.codeset,
-          codename: userInfo.codename,
-          color: userInfo.color,
-          blocked: false,
-        }));
-      }
-
-      setLeftSidebarView('dms');
-      dispatch(app.actions.selectChannelOrConversation(userInfo.pubkey));
-      onClose();
-    }
-  }, [userInfo, conversations, setLeftSidebarView, dispatch, onClose]);
 
   const selectChannel = useCallback((id: string) => {
     setLeftSidebarView('spaces');
@@ -72,33 +68,9 @@ const UserDetails = () => {
   }, [dispatch, setLeftSidebarView]);
 
 
-  const blockUser = useCallback(async (pubkey: string) => {
-    const encodedKey = utils.Base64ToUint8Array(pubkey);
-    await dmClient?.BlockPartner(encodedKey);
-    const blocked = await dmClient?.IsBlocked(encodedKey);
+  const toggleBlockAsync = useAsync(toggleBlocked);
 
-    if (blocked) {
-      dispatch(dms.actions.blockUser(pubkey));
-    }
-  }, [dispatch, dmClient, utils]);
-
-  const unblockUser = useCallback(async (pubkey: string) => {
-    const encodedKey = utils.Base64ToUint8Array(pubkey);
-    await dmClient?.UnblockPartner(encodedKey);
-    const blocked = await dmClient?.IsBlocked(encodedKey);
-    if (!blocked) {
-      dispatch(dms.actions.unblockUser(pubkey));
-    }
-  }, [dispatch, dmClient, utils]);  
-
-  const toggleBlock = useCallback(async () => {
-    const pubkey = userInfo?.pubkey ?? '';
-    return isBlocked ? unblockUser(pubkey) : blockUser(pubkey);
-  }, [blockUser, isBlocked, unblockUser, userInfo?.pubkey]);
-
-  const toggleBlockAsync = useAsync(toggleBlock);
-
-  return details && (
+  return (userInfo?.dmToken !== undefined) ? (
     <div className='min-w-[22rem] max-w-[22rem] flex flex-col '>
       <div className='px-6 py-4 flex flex-nowrap justify-between'  style={{ backgroundColor: `${userInfo?.color}` }}>
         <span className='whitespace-nowrap' style={{ color: contrastColor }}>
@@ -112,26 +84,50 @@ const UserDetails = () => {
         </button>
       </div>
       <div className='px-2 py-8'>
-        {userInfo?.dmToken && (
-          <button className='w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6' onClick={selectDm}>
+        {userInfo.dmToken && (
+          <button className='w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6' onClick={() => {
+            if (userInfo.dmToken) {
+              createConversation({
+                ...userInfo,
+                token: userInfo.dmToken
+              });
+            }
+          }}>
             <Envelope className='w-6 h-6 text-charcoal-1 group-hover:text-primary' />
             <span>{t('Direct Message')}</span>
           </button>
         )}
         {!isSelf && (
-          <button
-            disabled={toggleBlockAsync.status === 'pending'}
-            onClick={toggleBlockAsync.execute}
-            className='w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6'>
-            {toggleBlockAsync.status === 'pending' ? (
-              <Spinner size='sm' />
-            ) : (
-              <>
-                <Block className='w-6 h-6 text-charcoal-1 group-hover:text-primary' />
-                <span>{isBlocked ? t('Unblock') : t('Block')}</span>
-              </>
+          <>
+            <button
+              disabled={toggleBlockAsync.status === 'pending'}
+              onClick={() => toggleBlockAsync.execute(userInfo?.pubkey ?? '')}
+              className='w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6'>
+              {toggleBlockAsync.status === 'pending' ? (
+                <Spinner size='sm' />
+              ) : (
+                <>
+                  <Block className='w-6 h-6 text-charcoal-1 group-hover:text-primary' />
+                  <span>{isBlocked ? t('Unblock') : t('Block')}</span>
+                </>
+              )}
+            </button>
+            {currentChannel && (
+              <button
+                disabled={muteToggleAsync.status === 'pending'}
+                onClick={muteToggleAsync.execute}
+                className='w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6'>
+                {muteToggleAsync.status === 'pending' ? (
+                  <Spinner size='sm' />
+                ) : (
+                  <>
+                    <Mute className='w-6 h-6 text-charcoal-1 group-hover:text-primary' />
+                    <span>{isMuted ? t('Local Unmute') : t('Local Mute')}</span>
+                  </>
+                )}
+              </button>
             )}
-          </button>
+          </>
         )}
       </div>
       {commonChannels && commonChannels.length > 0 && (
@@ -163,7 +159,7 @@ const UserDetails = () => {
         </>
       )}
     </div>
-  )
+  ) : null;
 };
 
 export default UserDetails;

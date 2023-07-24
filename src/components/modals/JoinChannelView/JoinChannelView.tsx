@@ -9,8 +9,8 @@ import { useUtils } from 'src/contexts/utils-context';
 import CheckboxToggle from 'src/components/common/CheckboxToggle';
 import { useRouter } from 'next/router';
 import Input from 'src/components/common/Input';
-import ErrorIcon from 'src/components/icons/Error';
 import ModalTitle from '../ModalTitle';
+import FormError from '@components/common/FormError';
 
 const JoinChannelView: FC = () => {
   const { t } = useTranslation();
@@ -114,18 +114,15 @@ const JoinChannelView: FC = () => {
           }}
         />
       )}
+      {error && (
+        <FormError>{error}</FormError>
+      )}
       <div className='flex justify-between mt-8 w-full px-3'>
         <h3 className='headline--sm'>
           {t('Enable direct messages')}
         </h3>
         <CheckboxToggle checked={dmsEnabled} onChange={() => setDmsEnabled((e) => !e)} />
       </div>
-      {error && (
-        <div className='flex w-full space-x-2 p-3 rounded-2xl border border-red bg-red-200' style={{ background: 'rgba(227, 48, 75, 0.15)'}}>
-          <ErrorIcon />
-          <span>{error}</span>
-        </div>
-      )}
       <Button
         className='w-full'
         onClick={handleSubmit}

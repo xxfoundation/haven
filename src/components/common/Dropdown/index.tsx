@@ -1,21 +1,37 @@
 import { WithChildren } from '@types';
-import React, { FC, HTMLAttributes, SVGProps, useCallback, useRef } from 'react';
+import React, { FC, HTMLAttributes, MouseEventHandler, SVGProps, createContext, useCallback, useContext, useRef } from 'react';
 import { useOnClickOutside } from 'usehooks-ts';
 import cn from 'classnames';
 
 import s from './Dropdown.module.scss';
 
 
+type CTX = { isOpen: boolean, close: () => void };
+const DropdownContext = createContext<CTX>({} as CTX);
+
 type DropdownItemProps = WithChildren
-  & HTMLAttributes<HTMLDivElement>
+  & HTMLAttributes<HTMLButtonElement>
   & { icon?: FC<SVGProps<SVGSVGElement>> };
 
-export const DropdownItem: FC<DropdownItemProps> = ({ children, icon: Icon, ...props }) => (
-  <div className={cn(props.className, s.item, 'group space-x-2 hover:text-primary text-white')} {...props}>
-    {Icon && <Icon className='w-9 h-9 text-charcoal-1 group-hover:text-primary' />}
-    <span className=''>{children}</span>
-  </div>
-)
+export const DropdownItem: FC<DropdownItemProps> = ({ children, icon: Icon, onClick: _onClick, ...props }) => {
+  const { close } = useContext(DropdownContext);
+  const onClick = useCallback<MouseEventHandler<HTMLButtonElement>>((evt) => {
+    if (_onClick) {
+      _onClick(evt);
+      close();
+    }
+  }, [close, _onClick]);
+
+  return (
+    <button
+      {...props}
+      className={cn(props.className, s.item, 'group w-full space-x-2 hover:text-primary text-white')}
+      onClick={onClick}>
+      {Icon && <Icon className='w-9 h-9 text-charcoal-1 group-hover:text-primary' />}
+      <span className=''>{children}</span>
+    </button>
+  )
+}
 
 type Props = WithChildren & {
   isOpen: boolean;
@@ -29,9 +45,11 @@ const Dropdown: FC<Props> = ({ children, className, isOpen, onChange }) => {
   useOnClickOutside(dropdownRef, close);
 
   return (
-    <div ref={dropdownRef} className={cn(className, 'min-w-[16rem]', s.root, { hidden: !isOpen })}>
-      {children}
-    </div>
+    <DropdownContext.Provider value={{ isOpen, close }}>
+      <div ref={dropdownRef} className={cn(className, 'bg-charcoal-4-80 backdrop-blur-md min-w-[16rem]', s.root, { hidden: !isOpen })}>
+        {children}
+      </div>
+    </DropdownContext.Provider>
   )
 };
 

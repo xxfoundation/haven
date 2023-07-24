@@ -14,6 +14,7 @@ import { useAppSelector } from 'src/store/hooks';
 import { useNetworkClient } from '@contexts/network-client-context';
 import Identity from 'src/components/common/Identity';
 import Spinner from '@components/common/Spinner';
+import { EmojiPicker } from '@components/common/EmojiPortal';
 
 type Props = {
   message: Message;
@@ -36,11 +37,11 @@ const ChatReactions: FC<Props> = ({ message }) => {
     } else {
       sendReaction(emoji, reactingTo);
     }
-  }, [currentChannelId, deleteMessage, reactions, sendReaction, userPubkey])
+  }, [currentChannelId, deleteMessage, reactions, sendReaction, userPubkey]);
 
   return (
     <>
-      <div className={cn(s.wrapper)}>
+      <div className={cn('space-x-1', s.wrapper)}>
         {reactions?.map(([emoji, reactionInfos]) => reactionInfos?.length > 0 && (
           <div
             key={`${id}-${message.id}-${emoji}`}
@@ -59,6 +60,13 @@ const ChatReactions: FC<Props> = ({ message }) => {
             )}
           </div>
         ))}
+        {reactions.length > 0 && (
+          <button className='bg-charcoal-4 text-charcoal-1 hover:text-primary rounded-xl p-1'>
+            <EmojiPicker onSelect={(e) => {
+              sendReaction(e, message.id);
+            }} />
+          </button>
+        )}
       </div>
       {reactions?.map(([emoji, users]) => (
         <Tooltip

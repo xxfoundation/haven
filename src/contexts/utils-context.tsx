@@ -1,4 +1,4 @@
-import type { CMix, DummyTraffic, WithChildren } from '@types';
+import type { CMix, DummyTraffic, RawCipher, WithChildren } from '@types';
 import type { ChannelManager } from './network-client-context';
 import type { DMClient } from 'src/types';
 
@@ -11,11 +11,6 @@ import { ChannelEventHandler, DMEventHandler } from 'src/events';
 import { WebAssemblyRunner } from '@components/common';
 import { useTranslation } from 'react-i18next';
 import { PrivacyLevel } from '@types';
-
-export type Cipher = {
-  GetID: () => number;
-  Decrypt: (plaintext: string) => Uint8Array;
-}
 
 export type ChannelManagerCallbacks = {
   EventUpdate: ChannelEventHandler;
@@ -84,7 +79,11 @@ export type XXDKUtils = {
     privateIdentity: Uint8Array,
     eventCallback: DMClientEventCallback
   ) => Promise<DMClient>;
-  NewDatabaseCipher: (cmixId: number, storagePassword: Uint8Array, payloadMaximumSize: number) => Cipher
+  NewDatabaseCipher: (
+    cmixId: number,
+    storagePassword: Uint8Array,
+    payloadMaximumSize: number
+  ) => RawCipher;
   LoadChannelsManagerWithIndexedDb: (
     cmixId: number,
     wasmJsPath: string,
