@@ -62,7 +62,7 @@ export const currentConversationContributors: Selector<RootState, Contributor[]>
   ] as Contributor[] : [],
 );
 
-export const isBlocked = (pubkey: string) => (state: RootState) => state.dms.blocked.includes(pubkey);
-
+export const blockedUsers = (state: RootState) => state.dms.blocked;
+export const isBlocked = (pubkey: string) => (state: RootState) => blockedUsers(state).includes(pubkey);
 export const notificationLevel = (pubkey?: string | null) => (state: RootState): DMNotificationLevel | undefined => pubkey ? state.dms.notificationLevels[pubkey] : undefined;
 export const allNotificationLevels = (state: RootState) => state.dms.notificationLevels;

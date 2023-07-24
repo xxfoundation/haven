@@ -17,9 +17,7 @@ export const currentNickname = createSelector(
   currentChannel,
   channelNicknames,
   dmNickname,
-  (channel, nicknames, globalNickname) => {
-    return channel?.id ? nicknames[channel?.id] : globalNickname;
-  }
+  (channel, nicknames, globalNickname): string => ((channel && channel.id && nicknames[channel.id]) || globalNickname) ?? ''
 );
 
 export const userIsMuted = createSelector(
@@ -29,7 +27,6 @@ export const userIsMuted = createSelector(
   (channel, ident, muted) =>
     !!(channel?.id && ident?.pubkey && muted[channel.id]?.includes(ident.pubkey))
 );
-
 
 export const currentMutedUsers = createSelector(
   currentChannel,
@@ -43,4 +40,13 @@ export const replyingToMessage = createSelector(
   currentChannelMessages,
   currentDirectMessages,
   (id, msgs, dms) => msgs?.find((m) => m.id === id) || dms?.find((d) => d.id === id),
+);
+
+export const fullIdentity = createSelector(
+  identity,
+  currentNickname,
+  (ident, nickname) => ident && ({
+    ...ident,
+    nickname
+  })
 );

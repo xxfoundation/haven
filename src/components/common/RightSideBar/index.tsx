@@ -4,10 +4,12 @@ import { RightSidebarView } from 'src/types/ui';
 import UserDetails from './UserDetails';
 import SpaceDetails from './SpaceDetails';
 import { useAppSelector } from 'src/store/hooks';
+import PinnedMessages from './PinnedMessages';
 
 const views: Record<RightSidebarView, FC> = {
   'space-details': SpaceDetails,
-  'user-details': UserDetails
+  'user-details': UserDetails,
+  'pinned-messages': PinnedMessages
 }
 
 const RightSideBar = () => {
@@ -22,8 +24,8 @@ const RightSideBar = () => {
     }
   }, [selectedUserId, setRightSidebarView])
 
-  return (
-    <div className='border-l border-charcoal-4'>
+  return rightSidebarView && (
+    <div className='border-l border-charcoal-4 bg-charcoal-4-40 basis-80 min-w-[21.75rem] overflow-y-auto'>
       <Component />
     </div>
   );

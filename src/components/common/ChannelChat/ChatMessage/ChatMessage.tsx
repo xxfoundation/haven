@@ -22,6 +22,8 @@ import { useOnClickOutside } from 'usehooks-ts';
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
   message: Message;
+  className?: string;
+  noReply?: boolean;
 }
 
 const HoveredMention = ({ codename }: { codename: string }) => {
@@ -35,7 +37,7 @@ const HoveredMention = ({ codename }: { codename: string }) => {
   ) : null;
 }
 
-const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
+const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
@@ -95,7 +97,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
       )}
     >
       
-      {repliedToMessage && (
+      {(repliedToMessage && !noReply) && (
         <p
           ref={replyRef}
           className='cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative hover:bg-charcoal-4'

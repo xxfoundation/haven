@@ -19,6 +19,7 @@ import * as identity from 'src/store/identity';
 import { awaitChannelEvent, AppEvents, ChannelEvents, awaitAppEvent } from 'src/events';
 
 import classes from './MessageContainer.module.scss';
+import useAsync from 'src/hooks/useAsync';
 
 type Props = {
   className?: string;
@@ -82,7 +83,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   const handlePinMessage = useCallback(async (unpin?: boolean) => {
     if (unpin === true) {
       await Promise.all([
-        pinMessage(message, unpin),
+        pinMessage(message.id, unpin),
         awaitAppEvent(AppEvents.MESSAGE_UNPINNED) // delay to let the nodes propagate
       ]);
     } else {
@@ -92,7 +93,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
 
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
-      pinMessage(message),
+      pinMessage(message.id),
       awaitAppEvent(AppEvents.MESSAGE_PINNED) // delay to let the nodes propagate
     ]);
     hidePinModal();
@@ -107,7 +108,18 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
       setIsNewMessage(true);
       dispatch(app.actions.dismissNewMessages(message.channelId));
     }
-  }, [dispatch, message.channelId, message.id, missedMessages])
+  }, [dispatch, message.channelId, message.id, missedMessages]);
+
+  const handleMute = useCallback(async (unmute: boolean) => {
+    if (!unmute) {
+      muteUserModalToggle.toggleOn();
+    } else {
+      await muteUser(message.pubkey, unmute);
+      await awaitChannelEvent(ChannelEvents.USER_MUTED, (e) => e.pubkey === message.pubkey);
+    }
+  }, [message.pubkey, muteUser, muteUserModalToggle]);
+
+  const asyncMuter = useAsync(handleMute);
   
   return (
     <>
@@ -148,7 +160,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
               dmsEnabled={message.dmToken !== undefined}
               isPinned={message.pinned}
               isMuted={mutedUsers[message.channelId]?.includes(message.pubkey)}
-              onMuteUser={muteUserModalToggle.toggleOn}
+              onMuteUser={asyncMuter.execute}
               onPinMessage={handlePinMessage}
               onReactToMessage={handleEmojiReaction}
               onReplyClicked={onReplyMessage}

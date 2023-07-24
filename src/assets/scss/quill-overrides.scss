@@ -236,6 +236,9 @@
 
 .mention {
   color: var(--primary);
+  background-color: var(--primary-15);
+  padding: 0.2rem;
+  border-radius: 3px;
   cursor: pointer;
 }
 

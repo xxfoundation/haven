@@ -29,7 +29,7 @@ const Button: FC<Props> = ({
           'border-secondary border text-secondary': variant === 'secondary'
         },
         variant !== 'unstyled' && {
-          'h-6': size === 'sm',
+          'h-7 text-xs py-1 px-0': size === 'sm',
           'h-10': size === 'md',
           'h-14': size === 'lg'
         },

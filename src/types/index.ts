@@ -22,9 +22,28 @@ export type CMix = {
 }
 
 export type DMClient = {
-  SendText: (pubkey: Uint8Array, dmToken: number, message: string, leaseTimeMs: number, cmixParams: Uint8Array) => Promise<void>;
-  SendReply: (pubkey: Uint8Array, dmToken: number, message: string, replyToId: Uint8Array, leaseTimeMs: number, cmixParams: Uint8Array) => Promise<void>;
-  SendReaction: (pubkey: Uint8Array, dmToken: number, message: string, reactToId: Uint8Array, cmixParams: Uint8Array) => Promise<void>;
+  SendText: (
+    pubkey: Uint8Array,
+    dmToken: number,
+    message: string,
+    leaseTimeMs: number,
+    cmixParams: Uint8Array
+  ) => Promise<void>;
+  SendReply: (
+    pubkey: Uint8Array,
+    dmToken: number,
+    message: string,
+    replyToId: Uint8Array,
+    leaseTimeMs: number,
+    cmixParams: Uint8Array
+  ) => Promise<void>;
+  SendReaction: (
+    pubkey: Uint8Array,
+    dmToken: number,
+    message: string,
+    reactToId: Uint8Array,
+    cmixParams: Uint8Array
+  ) => Promise<void>;
   GetIdentity: () => Uint8Array;
   SetNickname: (nickname: string) => void;
   GetNickname: () => string;
@@ -33,6 +52,13 @@ export type DMClient = {
   UnblockPartner: (pubkey: Uint8Array) => Promise<void>;
   IsBlocked: (pubkey: Uint8Array) => Promise<boolean>;
   SetMobileNotificationsLevel: (pubkey: Uint8Array, level: DMNotificationLevel) => void;
+  DeleteMessage: (
+    pubkey: Uint8Array,
+    dmToken: number,
+    messageId: Uint8Array,
+    noop: undefined,
+    cmixParams: Uint8Array
+  ) => void;
 }
 
 export type DummyTraffic = {
@@ -95,6 +121,19 @@ export type CMixParams = {
     Critical: boolean;
   }
 }
+
+export type DatabaseCipher  = {
+  id: number;
+  decrypt: (encrypted: string) => string;
+};
+
+
+export type RawCipher = {
+  GetID: () => number;
+  Decrypt: (plaintext: string) => Uint8Array;
+}
+
+
 
 export * from './collective';
 export * from './db';

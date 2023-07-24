@@ -24,6 +24,7 @@ import { DBProvider } from '@contexts/db-context';
 import '../i18n';
 import 'src/utils/extend-dayjs';
 import { RemoteKVProvider } from '@contexts/remote-kv-context';
+import { DMContextProvider } from '@contexts/dm-client-context';
 
 const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
 const isDesktop = () => {
@@ -91,15 +92,17 @@ const Providers: FC<WithChildren> = ({ children }) => (
       <Provider store={store}>
         <UtilsProvider>
           <AuthenticationProvider>
-            <ManagedNetworkContext>
-              <ManagedUIContext>
-                <GoogleOAuthProvider
-                  clientId={process.env.NEXT_PUBLIC_APP_GOOGLE_DRIVE_CLIENT_ID ?? ''}
-                >
-                  {children}
-                </GoogleOAuthProvider>
-              </ManagedUIContext>
-            </ManagedNetworkContext>
+            <DMContextProvider>
+              <ManagedNetworkContext>
+                <ManagedUIContext>
+                  <GoogleOAuthProvider
+                    clientId={process.env.NEXT_PUBLIC_APP_GOOGLE_DRIVE_CLIENT_ID ?? ''}
+                  >
+                    {children}
+                  </GoogleOAuthProvider>
+                </ManagedUIContext>
+              </ManagedNetworkContext>
+            </DMContextProvider>
           </AuthenticationProvider>
         </UtilsProvider>
       </Provider>

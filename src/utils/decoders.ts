@@ -54,8 +54,6 @@ export type Decoder<T> = ReturnType<typeof makeDecoder<T>>;
 
 const uint8ArrayDecoder = JsonDecoder.array(JsonDecoder.number, 'Uint8Decoder');
 
-const uint8ArrayToStringDecoder = uint8ArrayDecoder.map((uintArray) => uintDecoder.decode(uintArray as unknown as Uint8Array))
-
 export const channelDecoder = makeDecoder(JsonDecoder.object<ChannelJSON>(
   {
     receptionId: JsonDecoder.optional(JsonDecoder.string),
@@ -143,15 +141,15 @@ export const messageReceivedEventDecoder = makeDecoder(JsonDecoder.object<Messag
 
 export const userMutedEventDecoder = makeDecoder(JsonDecoder.object<UserMutedEvent>(
   {
-    channelId: uint8ArrayToStringDecoder,
+    channelId: JsonDecoder.string,
     pubkey: JsonDecoder.string,
     unmute: JsonDecoder.boolean,
   },
   'UserMutedEventDecoder',
   {
-    pubkey: 'PubKey',
-    channelId: 'ChannelId',
-    unmute: 'Unmute'
+    pubkey: 'pubKey',
+    channelId: 'channelID',
+    unmute: 'unmute'
   }
 ));
 

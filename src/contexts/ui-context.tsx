@@ -1,8 +1,9 @@
 import { WithChildren } from '@types';
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, {FC, useCallback, useMemo, useState } from 'react';
 import { SettingsView, LeftSidebarView, RightSidebarView } from 'src/types/ui';
 import toast, { Toaster } from 'react-hot-toast';
 import Alert, { AlertType } from '@components/common/Alert';
+import { EmojiPortal } from '@components/common/EmojiPortal';
 
 export type ModalViews =
   | 'SHARE_CHANNEL'
@@ -201,12 +202,14 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       triggerEasterEgg,
       rightSidebarView,
       setRightSidebarView
-  ]
+    ]
   );
 
   return (
     <UIContext.Provider value={value}>
-      {children}
+      <EmojiPortal>
+        {children}
+      </EmojiPortal>
     </UIContext.Provider>
     );
 };

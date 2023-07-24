@@ -49,7 +49,9 @@ export const currentPinnedMessages = (state: RootState) => currentChannelMessage
 export const currentChannelContributors = createSelector(
   currentChannelOrConversationId,
   contributors,
-  (channelId, allContributors) => channelId !== null && allContributors[channelId] ? allContributors[channelId] : []
+  (channelId, allContributors): Contributor[] => (channelId !== null && allContributors[channelId])
+    ? allContributors[channelId]
+    : []
 );
 
 export const messageableContributors = createSelector(
