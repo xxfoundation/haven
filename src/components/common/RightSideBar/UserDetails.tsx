@@ -1,5 +1,6 @@
 import { contrastColor as getContrastColor } from 'contrast-color';
 import React, { useCallback, useMemo } from 'react';
+import cn from 'classnames';
 
 import useSelectedUserInfo from 'src/hooks/useSelectedUserInfo';
 import { Elixxir, Mute } from '@components/icons';
@@ -93,7 +94,7 @@ const UserDetails = () => {
               });
             }
           }}>
-            <Envelope className='w-6 h-6 text-charcoal-1 group-hover:text-primary' />
+            <Envelope className='w-6 h-6 group-hover:text-primary  text-charcoal-1' />
             <span>{t('Direct Message')}</span>
           </button>
         )}
@@ -102,29 +103,41 @@ const UserDetails = () => {
             <button
               disabled={toggleBlockAsync.status === 'pending'}
               onClick={() => toggleBlockAsync.execute(userInfo?.pubkey ?? '')}
-              className='w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6'>
+              className={cn('w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6', {
+                'text-white': !isBlocked,
+                'text-primary': isBlocked
+              })}>
               {toggleBlockAsync.status === 'pending' ? (
-                <Spinner size='sm' />
+                <Spinner className='inline -m-1 w-6 h-6' size='sm' />
               ) : (
                 <>
-                  <Block className='w-6 h-6 text-charcoal-1 group-hover:text-primary' />
-                  <span>{isBlocked ? t('Unblock') : t('Block')}</span>
+                  <Block className={cn('w-6 h-6 group-hover:text-primary', {
+                    'text-charcoal-1': !isBlocked,
+                    'text-primary': isBlocked
+                  })} />
                 </>
               )}
+              <span>{isBlocked ? t('Blocked') : t('Block')}</span>
             </button>
             {currentChannel && (
               <button
                 disabled={muteToggleAsync.status === 'pending'}
                 onClick={muteToggleAsync.execute}
-                className='w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6'>
+                className={cn('w-full flex space-x-4 text-lg items-center group hover:text-primary hover:bg-charcoal-3-20 rounded-xl py-4 px-6', {
+                  'text-white': !isMuted,
+                  'text-primary': isMuted
+                })}>
                 {muteToggleAsync.status === 'pending' ? (
-                  <Spinner size='sm' />
+                  <Spinner className='inline -m-1 w-6 h-6' size='sm' />
                 ) : (
                   <>
-                    <Mute className='w-6 h-6 text-charcoal-1 group-hover:text-primary' />
-                    <span>{isMuted ? t('Local Unmute') : t('Local Mute')}</span>
+                    <Mute className={cn('w-6 h-6 group-hover:text-primary', {
+                      'text-charcoal-1': !isMuted,
+                      'text-primary': isMuted
+                    })} />
                   </>
                 )}
+                <span>{isMuted ? t('Local Muted') : t('Local Mute')}</span>
               </button>
             )}
           </>
