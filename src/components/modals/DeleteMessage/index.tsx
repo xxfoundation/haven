@@ -8,6 +8,7 @@ import { Button } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
 
 import s from './DeleteMessage.module.scss';
+import ModalTitle from '../ModalTitle';
 
 type Props = {
   onConfirm: () => Promise<void>;
@@ -27,28 +28,24 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
 
   return (
     <Modal loading={loading} onClose={onCancel}>
-      <div
-        className={cn('w-full flex flex-col justify-center items-center')}
-      >
-        <h2 className={cn('mt-9 mb-4')}>
-          {t('Warning')}
-        </h2>
-        <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
-          ** {t('Important to note that deleting messages cannot be undone.')} **
-        </p>
-        <div className={cn('mb-6', s.buttonGroup)}>
-          <Button
-            onClick={handleConfirmation}
-          >
-            {t('Delete')}
-          </Button>
-          <Button
-            variant='secondary'
-            onClick={onCancel}
-          >
-            {t('Cancel')}
-          </Button>
-        </div>
+      <ModalTitle>
+        {t('Warning')}
+      </ModalTitle>
+      <p className='mb-4 text-red uppercase text-center'>
+        ** {t('Important to note that deleting messages cannot be undone.')} **
+      </p>
+      <div className={cn('mb-6', s.buttonGroup)}>
+        <Button
+          variant='outlined'
+          onClick={onCancel}
+        >
+          {t('Cancel')}
+        </Button>
+        <Button
+          onClick={handleConfirmation}
+        >
+          {t('Delete')}
+        </Button>
       </div>
     </Modal>
   );

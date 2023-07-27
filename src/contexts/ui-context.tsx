@@ -21,7 +21,6 @@ export type ModalViews =
   | 'LOGOUT'
   | 'USER_WAS_MUTED'
   | 'VIEW_PINNED_MESSAGES'
-  | 'VIEW_MUTED_USERS'
   | 'EXPORT_ADMIN_KEYS'
   | 'CLAIM_ADMIN_KEYS'
   | 'ACCOUNT_SYNC'

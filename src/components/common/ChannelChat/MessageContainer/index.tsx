@@ -16,7 +16,7 @@ import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
-import { awaitChannelEvent, AppEvents, ChannelEvents, awaitAppEvent } from 'src/events';
+import { AppEvents, awaitAppEvent } from 'src/events';
 
 import classes from './MessageContainer.module.scss';
 import useAsync from 'src/hooks/useAsync';
@@ -73,8 +73,6 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
 
     promises.push(muteUser(message.pubkey, false));
 
-    promises.push(awaitChannelEvent(ChannelEvents.USER_MUTED));  // delay to let the nodes propagate
-
     await Promise.all(promises);
 
     muteUserModalToggle.toggleOff();
@@ -115,7 +113,6 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
       muteUserModalToggle.toggleOn();
     } else {
       await muteUser(message.pubkey, unmute);
-      await awaitChannelEvent(ChannelEvents.USER_MUTED, (e) => e.pubkey === message.pubkey);
     }
   }, [message.pubkey, muteUser, muteUserModalToggle]);
 

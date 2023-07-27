@@ -5,8 +5,7 @@
   align-items: center;
   flex-wrap: wrap;
   margin-top: 8px;
-  z-index: 2;
-
+  
   .emoji {
     margin-right: 2px;
     padding: 0px 6px;
@@ -24,7 +23,7 @@
 
 .tooltip {
   position: absolute;
-  z-index: 3;
+  z-index: 1;
   padding: 4px 8px 8px 8px !important;
   opacity: 1 !important;
   max-width: 320px !important;

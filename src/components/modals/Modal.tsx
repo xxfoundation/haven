@@ -29,7 +29,7 @@ const Modal: FC<ModalProps> = ({
   useOnClickOutside(ref, closeable ? onClose : () => {});
 
   return (
-    <div {...props} className={cn(s.root)}>
+    <div {...props} className={cn('z-20', s.root)}>
       <div
         className={cn(className, 'drop-shadow-xl rounded-2xl bg-charcoal-4 w-[28rem] p-12 relative')}
         role='dialog'

@@ -49,7 +49,7 @@ export const inflate = (content: string) => {
   try {
     inflated = inflateSync(Buffer.from(content, 'base64')).toString();
   } catch (e) {
-    console.error('Couldn\'t decode message. Falling back to plaintext.', e);
+    console.error(`Couldn\'t decode message "${content}". Falling back to plaintext.`, e);
     inflated = content;
   }
 
