@@ -1,5 +1,5 @@
 import { WithChildren } from '@types';
-import React, {FC, useCallback, useMemo, useState } from 'react';
+import React, {FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { SettingsView, LeftSidebarView, RightSidebarView } from 'src/types/ui';
 import toast, { Toaster } from 'react-hot-toast';
 import Alert, { AlertType } from '@components/common/Alert';
@@ -164,6 +164,10 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       return found ? eggs.concat(egg) : eggs;
     });
   }, [alert]);
+
+  useEffect(() => {
+    setRightSidebarView(null);
+  }, [leftSidebarView])
 
   const value = useMemo(
     () => ({

@@ -17,7 +17,6 @@ import Block from '@components/icons/Block';
 import useAsync from 'src/hooks/useAsync';
 import Spinner from '../Spinner/Spinner';
 import useDmClient from 'src/hooks/useDmClient';
-import { ChannelEvents, awaitChannelEvent } from 'src/events';
 import { useNetworkClient } from '@contexts/network-client-context';
 
 const calculateContrastColor = (color?: string) => getContrastColor({
@@ -42,16 +41,12 @@ const UserDetails = () => {
 
   const isSelf = useAppSelector(identity.selectors.identity)?.pubkey === userInfo?.pubkey;
 
-
   const toggleMute = useCallback(
     () => muteUser(userInfo?.pubkey ?? '', isMuted),
     [userInfo?.pubkey, isMuted, muteUser]
   );
 
-  const muteToggleAsync = useAsync(async () => {
-    await toggleMute();
-    await awaitChannelEvent(ChannelEvents.USER_MUTED, (e) => e.pubkey === userInfo?.pubkey);
-  });
+  const muteToggleAsync = useAsync(toggleMute);
 
   const onClose = useCallback(() => {
     dispatch(app.actions.selectUser(null));
@@ -119,7 +114,7 @@ const UserDetails = () => {
               )}
               <span>{isBlocked ? t('Blocked') : t('Block')}</span>
             </button>
-            {currentChannel && (
+            {(currentChannel && currentChannel.isAdmin) && (
               <button
                 disabled={muteToggleAsync.status === 'pending'}
                 onClick={muteToggleAsync.execute}

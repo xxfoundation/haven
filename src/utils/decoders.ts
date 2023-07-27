@@ -20,7 +20,8 @@ import {
   ShareURLJSON,
   UserMutedEvent,
   VersionJSON,
-  DMNotificationLevel
+  DMNotificationLevel,
+  ChannelDMTokenUpdate
 } from 'src/types';
 import { KVEntry } from 'src/types/collective';
 import { Err, JsonDecoder } from 'ts.data.json';
@@ -211,6 +212,17 @@ export const adminKeysUpdateDecoder = makeDecoder(JsonDecoder.object<AdminKeysUp
   }
 ));
 
+export const channelDMTokenUpdateDecoder = makeDecoder(JsonDecoder.object<ChannelDMTokenUpdate>(
+  {
+    channelId: JsonDecoder.string,
+    sendToken: JsonDecoder.boolean
+  },
+  'ChannelDMTokenDecoder',
+  {
+    channelId: 'channelID'
+  }
+))
+
 export const channelStatusDecoder = JsonDecoder.enumeration<ChannelStatus>(ChannelStatus, 'ChannelStatusDecoder');
 
 export const channelUpdateEventDecoder = makeDecoder(
@@ -219,12 +231,10 @@ export const channelUpdateEventDecoder = makeDecoder(
       {
         channelId: JsonDecoder.string,
         status: channelStatusDecoder,
-        tokenEnabled: JsonDecoder.boolean
       },
       'ChannelUpdateDecoder',
       {
         channelId: 'channelID',
-        tokenEnabled: 'broadcastDMToken'
       }
     ),
     'ChannelUpdateEventDecoder')

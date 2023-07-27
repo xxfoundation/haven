@@ -58,7 +58,7 @@ export const messageableContributors = createSelector(
   contributors,
   (mapped) => {
     const flattened = flatten(Object.values(mapped))
-    .filter((c) => c.dmToken !== undefined);
+      .filter((c) => c.dmToken !== undefined);
 
     return sortBy(uniqBy(flattened, (c) => c.pubkey), (c) => `${c.nickname?.toLocaleLowerCase() ?? ''}${c.codename.toLocaleLowerCase()}`);
   }

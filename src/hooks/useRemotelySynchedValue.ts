@@ -30,7 +30,8 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
         setLoading(false);
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // decoders never change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, kv]);
 
   const set = useCallback(async (v: T) => {
