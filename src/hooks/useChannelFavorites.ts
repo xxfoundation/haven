@@ -23,6 +23,7 @@ const useChannelFavorites = () => {
   );
 
   return {
+    loading,
     favorites,
     toggle: toggleFavorite,
     isFavorite

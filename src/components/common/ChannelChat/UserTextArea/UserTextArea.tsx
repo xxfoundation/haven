@@ -1,19 +1,13 @@
-import type { Message } from 'src/types';
 import { default as ReactQuill, ReactQuillProps } from 'react-quill';
 import type { Quill, RangeStatic, StringMap } from 'quill';
 import type { QuillAutoDetectUrlOptions } from 'quill-auto-detect-url'
-import React, { FC, useEffect, useState, useCallback, useMemo, CSSProperties, useRef } from 'react';
+import React, { FC, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import cn from 'classnames';
-import Clamp from 'react-multiline-clamp';
 import dynamic from 'next/dynamic';
 import EventEmitter from 'events';
 import { Tooltip } from 'react-tooltip';
 import { useTranslation } from 'react-i18next';
-import { createPortal } from 'react-dom';
-import Picker from '@emoji-mart/react';
 
-import emojiMap from '@emoji-mart/data';
-import { Close } from 'src/components/icons';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import s from './UserTextArea.module.scss';
@@ -24,10 +18,12 @@ import { userIsMuted } from 'src/store/selectors';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import Spinner from 'src/components/common/Spinner';
 
-import { deflate, inflate } from 'src/utils/index';
-import classes from 'src/components/common/ChannelChat/MessageActions/MessageActions.module.scss';
-import { useOnClickOutside } from 'usehooks-ts';
+import { deflate } from 'src/utils/index';
 import { MESSAGE_TAGS_LIMIT } from 'src/constants';
+import X from '@components/icons/X';
+import Identity from '@components/common/Identity';
+import { replyingToMessage } from 'src/store/selectors';
+import { EmojiPicker } from '@components/common/EmojiPortal';
 
 export const bus = new EventEmitter();
 
@@ -56,26 +52,20 @@ const Editor = dynamic(
 
 type Props = {
   className: string;
-  replyToMessage: Message | null | undefined;
-  setReplyToMessage: (msg: Message | null) => void;
 };
 
 const MESSAGE_MAX_SIZE = 700;
 
 type CustomToolbarProps = {
-  onEmojiButtonClicked: (ref: HTMLButtonElement | null) => void;
+  onEmojiSelected: (emoji: string) => void;
+  className?: string;
 }
 
-const CustomToolbar: FC<CustomToolbarProps> = ({ onEmojiButtonClicked }) => {
+const CustomToolbar: FC<CustomToolbarProps> = ({ className, onEmojiSelected }) => {
   const { t } = useTranslation();
-  const pickerButtonRef = useRef<HTMLButtonElement>(null);
-
-  const onClick = useCallback(() => {
-    onEmojiButtonClicked(pickerButtonRef.current);
-  }, [onEmojiButtonClicked]);
 
   return (
-    <div id='custom-toolbar'>
+    <div className={className} id='custom-toolbar'>
       <span className='ql-formats'>
         <Tooltip className='text-center' anchorId='bold-button'>
           <strong>
@@ -160,13 +150,8 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ onEmojiButtonClicked }) => {
         <button id='code-block-button' className='ql-code-block' />
       </span>
       <span className='ql-formats'>
-        <button ref={pickerButtonRef} onClick={onClick}>
-          <svg viewBox='0 0 18 18'>
-            <circle className='ql-fill' cx='7' cy='7' r='1'></circle>
-            <circle className='ql-fill' cx='11' cy='7' r='1'></circle>
-            <path className='ql-stroke' d='M7,10a2,2,0,0,0,4,0H7Z'></path>
-            <circle className='ql-stroke' cx='9' cy='9' r='6'></circle>
-          </svg>
+        <button>
+          <EmojiPicker onSelect={onEmojiSelected} />
         </button>
       </span>
     </div>
@@ -177,11 +162,8 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ onEmojiButtonClicked }) => {
 // so we're instantiating a reference outside of the component, lol
 let atMentions: { id: string, value: string }[] = [];
 
-const UserTextArea: FC<Props> = ({
-  className,
-  replyToMessage,
-  setReplyToMessage,
-}) => {
+const UserTextArea: FC<Props> = ({ className }) => {
+  const replyToMessage = useAppSelector(replyingToMessage);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const contributors = useAppSelector(messages.selectors.currentContributors);
@@ -206,46 +188,21 @@ const UserTextArea: FC<Props> = ({
       : t('Type your message here...'),
     [t, isMuted]
   );
-  const replyMessageMarkup = useMemo(() => replyToMessage && inflate(replyToMessage.body), [replyToMessage]);
+  const replyMessageMarkup = useMemo(() => replyToMessage && replyToMessage.body, [replyToMessage]);
   const ctrlOrCmd = useMemo(() => {
     const isMac = navigator?.userAgent.indexOf('Mac') !== -1;
     return isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
   }, []);
   const editorRef = useRef<ReactQuill>(null);
 
-  const emojiPortalElement = document.getElementById('emoji-portal');
-  const [pickerVisible, setPickerVisible] = useState(false);
-  const [pickerStyle, setPickerStyle] = useState<CSSProperties>({});
-  const pickerRef = useRef<HTMLDivElement>(null);
-  useOnClickOutside(pickerRef, () => setPickerVisible(false));
-
-  const onEmojiButtonClicked = useCallback((button: HTMLButtonElement | null) => {
-    const iconRect = button?.getBoundingClientRect();
-
-    if (iconRect) {
-      setPickerStyle({
-        position: 'absolute',
-        zIndex: 3,
-        top: Math.min(iconRect?.bottom + 5, window.innerHeight - 440),
-        left: iconRect.left - 350
-      });
-      setPickerVisible(true);
-    }
-  }, []);
-
-  const inserEmoji = useCallback((emoji: { native: string }) => {
+  const insertEmoji = useCallback((emoji: string) => {
     const quill = editorRef.current?.editor;
     if (!quill) { return }
     const { index } = quill.getSelection(true);
     
-    quill.insertEmbed(index, 'emoji', emoji.native, 'user');
-    setTimeout(() => quill.setSelection(index + emoji.native.length, 0), 0);
+    quill.insertEmbed(index, 'emoji', emoji, 'user');
+    setTimeout(() => quill.setSelection(index + emoji.length, 0), 0);
   }, []);
-  
-  const onPickEmoji = useCallback((emoji: { native: string }) => {
-    inserEmoji(emoji);
-    setPickerVisible(false);
-  }, [inserEmoji]);
 
   const loadQuillModules = useCallback(async () => {
     await import('quill-mention');
@@ -256,7 +213,7 @@ const UserTextArea: FC<Props> = ({
     const icons = Quill.import('ui/icons');
     const EmojiBlot = (await import('src/quill/EmojiBlot')).default;
 
-    icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fill-rule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clip-rule=\'evenodd\'></path></svg>';
+    icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fillRule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clipRule=\'evenodd\'></path></svg>';
     Link.PROTOCOL_WHITELIST = ['http', 'https', 'mailto', 'tel', 'radar', 'rdar', 'smb', 'sms']
     
     class CustomLinkSanitizer extends Link {
@@ -323,11 +280,11 @@ const UserTextArea: FC<Props> = ({
       resetEditor();
     }
 
-    setReplyToMessage(null);
+    dispatch(app.actions.replyTo(undefined));
   }, [
+    dispatch,
     tooManyTags,
     cmix,
-    setReplyToMessage,
     setModalView,
     openModal,
     isMuted,
@@ -453,56 +410,39 @@ const UserTextArea: FC<Props> = ({
   ], []);
 
   return (
-    <div className={cn('relative', s.textArea, className)}>
+    <div className={cn('relative bg-charcoal-4-80 p-2 pl-3', s.textArea, className)}>
       {replyToMessage && replyMessageMarkup && (
-        <div className={cn(s.replyContainer)}>
+        <div className='flex justify-between mb-3 items-center'>
           <div className={s.replyHeader}>
-            {t('Replying to {{codename}}', { codename: replyToMessage.codename })}
+            {t('Replying to')} &nbsp;<Identity className='text-charcoal-3-important' {...replyToMessage} />
           </div>
-          <Clamp lines={1}>
-            <pre dangerouslySetInnerHTML={{ __html: replyMessageMarkup }} />
-          </Clamp>
-          <Close
-            className={s.closeButton}
-            width={14}
-            height={14}
-            fill={'var(--orange)'}
-            onClick={() => {
-              setReplyToMessage(null);
-            }}
-          />
+          <button className='hover:bg-charcoal-3-20 hover:text-primary p-2 rounded-full'>
+            <X
+              className='w-5 h-5'
+              onClick={() => {
+                dispatch(app.actions.replyTo(undefined));
+              }}
+            />
+          </button>
         </div>
       )}
-      {pickerVisible && emojiPortalElement &&
-        createPortal(
-          <div
-            ref={pickerRef}
-            style={pickerStyle}
-            className={cn(classes.emojisPickerWrapper)}
-          >
-            <Picker
-              data={emojiMap}
-              previewPosition='none'
-              onEmojiSelect={onPickEmoji}
-            />
-          </div>,
-          emojiPortalElement
-        )
-      }
-      <div className={cn('editor', s.editorWrapper)}>
-        <CustomToolbar onEmojiButtonClicked={onEmojiButtonClicked} />
-        {editorLoaded && (
-          <Editor
-            forwardedRef={editorRef}
-            id='editor'
-            preserveWhitespace
-            value={message}
-            theme='snow'
-            formats={formats}
-            modules={modules}
-            onChange={updateMessage}
-            placeholder={placeholder} />
-        )}
+      <div className='flex items-end'>
+        <div className='rounded-2xl bg-near-black flex-grow'>
+          <CustomToolbar onEmojiSelected={insertEmoji} />
+          {editorLoaded && (
+            <Editor
+              className='flex-grow'
+              forwardedRef={editorRef}
+              id='editor'
+              preserveWhitespace
+              value={message}
+              theme='snow'
+              formats={formats}
+              modules={modules}
+              onChange={updateMessage}
+              placeholder={placeholder} />
+          )}
+        </div>
         {tooManyTags && (
           <div className={s.error}>
             {t('Too many tags.')}
@@ -515,7 +455,6 @@ const UserTextArea: FC<Props> = ({
         )}
         <SendButton
           disabled={!messageIsUnderLimit || tooManyTags}
-          className={s.button}
           onClick={sendCurrentMessage}
         />
       </div>

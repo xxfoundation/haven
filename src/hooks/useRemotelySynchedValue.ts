@@ -8,7 +8,7 @@ import { JsonDecoder } from 'ts.data.json';
 
 const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultValue?: T) => {
   const [value, setValue] = useState<T | undefined>(defaultValue);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const kv = useRemoteKV();
   
   useEffect(() => {
@@ -30,7 +30,9 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
         setLoading(false);
       });
     }
-  }, [decoder, key, kv]);
+    // decoders never change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, kv]);
 
   const set = useCallback(async (v: T) => {
     assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);

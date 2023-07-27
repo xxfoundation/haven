@@ -8,15 +8,12 @@
     width:100%;
   }
 
-  z-index: 1;
-  background-color: rgba(255, 255, 255, 0.04);
-
   top: 0;
   left: 0;
   width: 100%;
 
   button {
-    color: var(--orange);
+    color: var(--primary);
   }
 
   display: flex;
@@ -27,7 +24,7 @@
   }
 
   svg path {
-    fill: var(--orange);
+    fill: var(--primary);
     stroke-width: 2px;
   }
 }

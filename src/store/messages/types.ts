@@ -10,6 +10,7 @@ export interface Message {
   color?: string;
   codename: string;
   nickname?: string;
+  plaintext: string | null;
   channelId: string;
   status?: MessageStatus;
   uuid: number;

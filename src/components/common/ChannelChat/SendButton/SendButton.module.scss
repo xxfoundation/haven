@@ -4,13 +4,13 @@
   border: none;
   display: flex;
   align-items: center;
-  color: var(--orange);
+  color: var(--primary);
   font-size: 16px;
   font-weight: 700;
 
   svg,
   path {
-    fill: var(--orange);
+    fill: var(--primary);
   }
 
   &[disabled] {

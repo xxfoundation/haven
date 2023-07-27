@@ -1,32 +1,32 @@
 :root {
-  --primary: #2d3136;
-  --secondary: #f5f5f5;
+  --our-black: #07080A;
+  --near-black: #0A0C0F;
+  --near-black-80: rgba(10, 12, 15, 0.80);
+  --charcoal-4: #16181D;
+  --charcoal-3-20: rgba(46, 49, 55, 0.20);
+  --charcoal-4-80: rgba(22, 24, 29, 0.80);
+  --charcoal-4-40: rgba(22, 24, 29, 0.40);
+  --charcoal-3: #2E3137;
+  --charcoal-2: #41444A;
+  --charcoal-1: #6C6E74;
+  --primary-white: #DADCE5;
+  --light: #EBECF2;
+  --near-white: #F5F6FA;
 
-  --cyan: #259cdb;
+  --primary: #ECBA60;
+  --primary-15: rgba(236, 186, 96, 0.15);
+  --red: #E3304B;
+  --orange: #FA7B48;
+  --green: #00C291;
+  --green-10: rgba(0, 194, 145, 0.10);
+  --blue: #259CDB;
 
-  --orange: #ecba60;
-  --light-orange: #f4d8a4;
-  --green: rgb(132, 196, 37);
-  --red: #DE7171;
-  --white: #f5f5f5;
-  --grey: #95989e;
-  --dark-1: #2d3136;
-  --dark-1-translucent: rgba(35, 39, 44, 0.93);
-  --dark-2: #40444a;
-  --dark-3: #43464d;
-  --dark-4: #282b2f;
-  --dark-5: #36393e;
-  --dark-6: #484c52;
-  --dark-7: #16181d;
-  --dark-8: #37393e;
+  --secondary: var(--blue);
 
-  --black-1: #0a0c0f;
+  --text-primary: var(--primary-white);
+  --text-secondary: var(--charcoal-1);
+  --text-muted: var(--charcoal-2);
+  --border-radius: 1rem;
 
-  --text-primary: #f5f5f5;
-  --text-secondary: #d2d2d2;
-  --text-muted: #84868e;
-
-  --font-sans: -apple-system, system-ui, BlinkMacSystemFont, "Helvetica Neue",
-    "Helvetica", sans-serif;
-  --font-montserrat: "Montserrat", "Helvetica Neue", "Helvetica", sans-serif;
+  --font-sans: "Roboto Flex", sans-serif;
 }

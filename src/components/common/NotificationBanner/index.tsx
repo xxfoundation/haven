@@ -1,7 +1,7 @@
 import cn from 'classnames';
 
 import useNotification from 'src/hooks/useNotification';
-import { Close } from 'src/components/icons';
+import Close from 'src/components/icons/X';
 import { useTranslation } from 'react-i18next';
 
 import s from './styles.module.scss';
@@ -12,7 +12,7 @@ const NotificationBanner = () => {
   const showBanner = !isPermissionGranted && !permissionIgnored;
 
   return showBanner ? (
-    <div className={cn(s.root, 'drop-shadow-xl')}>
+    <div className={cn(s.root, 'drop-shadow-xl absolute bg-charcoal-4 flex justify-between')}>
       <span>
         {t('Speakeasy uses desktop notifications.')}
         &nbsp;
@@ -26,7 +26,7 @@ const NotificationBanner = () => {
         data-testid='close-notification-banner-button'
         onClick={() => setPermissionIgnored(true)}
         aria-label={t('Close panel')}
-        className={s.close}
+        className={cn('w-6 h-6', s.close)}
       />
     </div>
   ) : null;

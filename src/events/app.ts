@@ -20,7 +20,8 @@ export enum AppEvents {
   DM_NOTIFICATION_UPDATE = 'dm-notifications-update',
   MESSAGE_PROCESSED = 'message-processed',
   DM_PROCESSED = 'dm-processed',
-  NEW_SYNC_CMIX_FAILED = 'new-sync-cmix-failed'
+  NEW_SYNC_CMIX_FAILED = 'new-sync-cmix-failed',
+  EMOJI_SELECTED = 'emoji-selected'
 }
 
 export type AppEventHandlers = {
@@ -38,6 +39,7 @@ export type AppEventHandlers = {
   [AppEvents.MESSAGE_PROCESSED]: (message: Message, oldMessage?: Message) => void;
   [AppEvents.NEW_SYNC_CMIX_FAILED]: () => void;
   [AppEvents.DM_PROCESSED]: (message: Message) => void;
+  [AppEvents.EMOJI_SELECTED]: (emoji: string) => void;
 }
 
 export const appBus = new EventEmitter() as TypedEventEmitter<AppEventHandlers>;

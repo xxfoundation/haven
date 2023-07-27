@@ -1,3 +1,4 @@
+import cn from 'classnames';
 import { Button } from '@components/common';
 import Modal from 'src/components/modals/Modal';
 import useLocalStorage from 'src/hooks/useLocalStorage';
@@ -8,7 +9,7 @@ const UpdatesModal = () => {
   const [showModal, setShowModal] = useLocalStorage(`update-notice_${process.env.NEXT_PUBLIC_APP_VERSION}`, true);
   
   return showModal ? (
-    <Modal data-testid='updates-modal' className={s.root} onClose={() => setShowModal(false)}>
+    <Modal data-testid='updates-modal' className={cn(s.root, 'w-[42rem]')} onClose={() => setShowModal(false)}>
       <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>
       <ul style={{ marginLeft: '-1rem'}}>
         <li className='text-center'>

@@ -1,15 +1,16 @@
 import { FC, useCallback, useState } from 'react';
-import s from './NickNameSetView.module.scss';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
 import * as globalSelectors from 'src/store/selectors';
+import ModalTitle from '../ModalTitle';
+import Input from '@components/common/Input';
+import FormError from '@components/common/FormError';
 
 const NickNameSetView: FC = () => {
   const { t } = useTranslation();
@@ -32,19 +33,17 @@ const NickNameSetView: FC = () => {
   }, [t, closeModal, localNickname, setNickName]);
 
   return (
-    <div
-      className={cn('w-full flex flex-col justify-center items-center', s.root)}
-    >
-      <h2 className='mt-9 mb-4'>
+    <>
+      <ModalTitle>
         {t('Set Nickname')}
-      </h2>
-      <p className='mb-8 text text--xs' style={{ color: 'var(--cyan)' }}>
+      </ModalTitle>
+      <p className='text-charcoal-1'>
         {currentConversation
          ? t('Set your nickname for the {{channelName}} channel', { channelName: currentChannel?.name })
          : t('Set your nickname for all direct messages')
         }
       </p>
-      <input
+      <Input
         type='text'
         placeholder={t('Enter your nickname')}
         className='mt-1'
@@ -60,17 +59,17 @@ const NickNameSetView: FC = () => {
         }}
       />
       {error && (
-        <div className={'text text--xs mt-2'} style={{ color: 'var(--red)' }}>
+        <FormError>
           {error}
-        </div>
+        </FormError>
       )}
-      <PrimaryButton
+      <Button
         className='my-7'
         onClick={onSubmit}
       >
         {t('Save')}
-      </PrimaryButton>
-    </div>
+      </Button>
+    </>
   );
 };
 

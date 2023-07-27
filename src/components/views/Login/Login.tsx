@@ -2,7 +2,7 @@ import { FC, useCallback, useEffect, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation, Trans } from 'react-i18next';
 
-import { PrimaryButton, SecondaryButton, Spinner } from 'src/components/common';
+import { Button, Spinner } from 'src/components/common';
 
 import s from './Login.module.scss';
 
@@ -17,6 +17,7 @@ import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks
 import GoogleButton from '@components/common/GoogleButton';
 import DropboxButton from '@components/common/DropboxButton';
 import { AppEvents, awaitAppEvent as awaitEvent, appBus as bus } from 'src/events';
+import Input from '@components/common/Input';
 
 const LoginView: FC = () => {
   const { t } = useTranslation();
@@ -97,7 +98,6 @@ const LoginView: FC = () => {
         <div className={cn(s.header)}>
           <NormalSpeakeasy data-testid='speakeasy-logo' />
         </div>
-
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
             <Trans>
@@ -130,7 +130,7 @@ const LoginView: FC = () => {
             >
               {t('Use your password to unlock your speakeasy identity')}
             </p>
-            <input
+            <Input
               data-testid='password-input'
               type='password'
               placeholder={t('Enter your password')}
@@ -176,19 +176,18 @@ const LoginView: FC = () => {
                 />
               )}
               {accountSyncStatus !== AccountSyncStatus.Synced && (
-                <PrimaryButton
+                <Button
                   data-testid='login-button'
                   disabled={isLoading}
-                  className={s.button}
                   onClick={handleSubmit}
                 >
                   {t('Login')}
-                </PrimaryButton>
+                </Button>
               )}
               {attemptingSyncedLogin && (
-                <SecondaryButton onClick={cancelSyncLogin}>
+                <Button variant='secondary' onClick={cancelSyncLogin}>
                   Cancel
-                </SecondaryButton>
+                </Button>
               )}
             </div>
             {isLoading && (

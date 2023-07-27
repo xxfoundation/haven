@@ -7,7 +7,6 @@
   backdrop-filter: blur(3px);
   height: 100%;
   -webkit-backdrop-filter: blur(3px);
-  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -38,6 +37,5 @@
   position: absolute;
   right: 20px;
   top: 20px;
-  z-index: 10;
   cursor: pointer;
 }
