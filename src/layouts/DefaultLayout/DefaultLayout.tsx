@@ -91,12 +91,16 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
               <div className='flex h-full'>
                 <div className='flex flex-col flex-grow'>
                   <Notices />
-                  <PinnedMessage />
+                  {sidebarView === 'spaces' && (
+                    <PinnedMessage />
+                  )}
                   {sidebarView === 'settings' && (
                     <SettingsView />
                   )}
                   {(sidebarView === 'spaces' || sidebarView === 'dms') && (
-                    <>{children}</>
+                    <>
+                      {children}
+                    </>
                   )}
                 </div>
                 <RightSideBar />

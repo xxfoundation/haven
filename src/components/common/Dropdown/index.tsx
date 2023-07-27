@@ -11,7 +11,7 @@ const DropdownContext = createContext<CTX>({} as CTX);
 
 type DropdownItemProps = WithChildren
   & HTMLAttributes<HTMLButtonElement>
-  & { icon?: FC<SVGProps<SVGSVGElement>> };
+  & { icon?: FC<SVGProps<SVGSVGElement>> | FC<{ className?: string }> };
 
 export const DropdownItem: FC<DropdownItemProps> = ({ children, icon: Icon, onClick: _onClick, ...props }) => {
   const { close } = useContext(DropdownContext);

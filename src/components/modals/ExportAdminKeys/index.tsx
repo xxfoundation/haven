@@ -1,4 +1,4 @@
-import { FC, useCallback, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import cn from 'classnames';
 import { saveAs } from 'file-saver';
 import { useTranslation } from 'react-i18next';
@@ -12,9 +12,14 @@ import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
 
 import s from './styles.module.scss';
+import ModalTitle from '../ModalTitle';
+import Input from '@components/common/Input';
+import { useUI } from '@contexts/ui-context';
+import Keys from '@components/icons/Keys';
 
 const ExportCodenameView: FC = () => {
   const { t } = useTranslation();
+  const { alert, closeModal } = useUI();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const { exportChannelAdminKeys } = useNetworkClient();
   const { getOrInitPassword } = useAuthentication();
@@ -51,15 +56,20 @@ const ExportCodenameView: FC = () => {
     encryptionPasswordConfirmation,
     exportChannelAdminKeys,
     next
-  ])
+  ]);
+
+  useEffect(() => {
+    if (step === 3) {
+      alert({ type: 'success', content: t('Admin keys successfully exported'), icon: Keys });
+      closeModal();
+    }
+  }, [alert, step, t, closeModal])
 
   return (
-    <div
-      className={cn('w-full flex flex-col justify-center items-center', s.root)}
-    >
-      <h2 className='mb-10'>
+    <>
+      <ModalTitle className='text-center'>
         {t('Export Channel Admin Keys')}
-      </h2>
+      </ModalTitle>
       {step === 1 && (
         <>
           {error && (
@@ -67,7 +77,7 @@ const ExportCodenameView: FC = () => {
               {error}
             </div>
           )}
-          <input
+          <Input
             type='password'
             placeholder={t('Unlock export with your password')}
             onKeyDown={(e) => e.key === 'Enter' && checkPassword()}
@@ -87,44 +97,45 @@ const ExportCodenameView: FC = () => {
           <h3 className='mb-6' style={{ color: 'var(--red)' }}>
             {t('Warning!')}
           </h3>
-          <p style={{ color: 'var(--red)' }}>
+          <p className='text-center' style={{ color: 'var(--red)' }}>
             {t(`Anyone with these keys and encryption password can be an admin
             of this channel, they can pin messages, delete messages, and mute
             users.`)}
           </p>
-          <div className='mt-10'>
+          <div className='mt-10 w-full'>
             {error && (
               <div className={'text text-center text--xs mt-2 mb-4'} style={{ color: 'var(--red)' }}>
                 {error}
               </div>
             )}
-            <input
-              type='password'
-              placeholder={t('Password to encrypt the exported file')}
-              value={encryptionPassword}
-              onChange={setEncryptionPassword}
-            />
-            <input
-              type='password'
-              placeholder={t('Confirm encryption password')}
-              value={encryptionPasswordConfirmation}
-              onChange={setEncryptionPasswordConfirmation}
-            />
+            <div className='space-y-6'>
+              <Input
+                type='password'
+                placeholder={t('Password to encrypt the exported file')}
+                value={encryptionPassword}
+                onChange={setEncryptionPassword}
+              />
+              <Input
+                type='password'
+                placeholder={t('Confirm encryption password')}
+                value={encryptionPasswordConfirmation}
+                onChange={setEncryptionPasswordConfirmation}
+              />
+            </div>
             <input
               type='file'
               hidden
               ref={fileInputRef}
             />
           </div>
-          <div className='space-x-4 flex'>
+          <div className='space-x-4 flex justify-between w-full'>
             <Button
-              className={cn('mt-5', s.button)}
+              variant='outlined'
               onClick={reset}
             >
               {t('Cancel')}
             </Button>
             <Button
-              className={cn('mt-5', s.button)}
               onClick={onExport}
             >
               {t('Export')}
@@ -132,18 +143,7 @@ const ExportCodenameView: FC = () => {
           </div>
         </>
       )}
-
-      {step === 3 && (
-        <>
-          <h3 className='mb-6' style={{ color: 'var(--green)' }}>
-            {t('Success!')}
-          </h3>
-          <p style={{ textAlign: 'center' }}>
-            {t('The admin keys to {{channelName}} were successfully exported.', { channelName: currentChannel?.name })}
-          </p>
-        </>
-      )}
-    </div>
+    </>
   );
 };
 

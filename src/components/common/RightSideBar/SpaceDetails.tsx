@@ -8,12 +8,27 @@ import Button from '../Button';
 import { fullIdentity } from 'src/store/selectors';
 import * as channels from 'src/store/channels';
 import { Contributors } from './Contributors';
+import CheckboxToggle from '../CheckboxToggle';
+import { useNetworkClient } from '@contexts/network-client-context';
+import { useCallback } from 'react';
+import Spinner from '../Spinner/Spinner';
 
 const SpaceDetails = () => {
   const { t } = useTranslation();
+  const { channelManager } = useNetworkClient(); 
   const { openModal, setModalView, setRightSidebarView } = useUI();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const dmsEnabled = useAppSelector(channels.selectors.dmsEnabled(currentChannel?.id));
   const identity = useAppSelector(fullIdentity);
+
+  const toggleDms = useCallback(() => {
+    if (!currentChannel || !channelManager) {
+      return;
+    }
+
+    const fn = dmsEnabled ? 'DisableDirectMessages' : 'EnableDirectMessages'
+    channelManager?.[fn](Buffer.from(currentChannel.id, 'base64'));
+  }, [channelManager, currentChannel, dmsEnabled]);
 
   return (currentChannel && identity) ? (
     <div className='p-6'>
@@ -45,6 +60,12 @@ const SpaceDetails = () => {
           }} variant='outlined' size='sm'>
             {t('Set nickname')}
           </Button>
+        </div>
+        <div className='flex justify-between'>
+          <h6 className='uppercase'>{t('Direct Messages')}</h6>
+          {dmsEnabled === null ? <Spinner className='m-0 mr-1' /> : (
+            <CheckboxToggle checked={dmsEnabled} onChange={toggleDms} />
+          )}
         </div>
         <div className='space-y-4 text-sm'>
           <h6 className='uppercase'>{t('Recent contributors')}</h6>
