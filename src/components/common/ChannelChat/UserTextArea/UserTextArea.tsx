@@ -431,7 +431,7 @@ const UserTextArea: FC<Props> = ({ className }) => {
           <CustomToolbar onEmojiSelected={insertEmoji} />
           {editorLoaded && (
             <Editor
-              className='flex-grow'
+              className={cn('flex-grow', { 'text-red': isMuted })}
               forwardedRef={editorRef}
               id='editor'
               preserveWhitespace
@@ -454,7 +454,7 @@ const UserTextArea: FC<Props> = ({ className }) => {
           </div>
         )}
         <SendButton
-          disabled={!messageIsUnderLimit || tooManyTags}
+          disabled={!messageIsUnderLimit || tooManyTags || isMuted}
           onClick={sendCurrentMessage}
         />
       </div>

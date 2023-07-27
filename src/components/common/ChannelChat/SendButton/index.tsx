@@ -5,7 +5,7 @@ import Send from '@components/icons/Send';
 
 const SendButton: FC<ButtonHTMLAttributes<HTMLButtonElement>> = (props) => {
   return (
-    <button data-testid='textarea-send-button'  {...props} className={cn(props.className, s.root)}>
+    <button data-testid='textarea-send-button'  {...props} className={cn(props.className, s.root, 'disabled:cursor-not-allowed')}>
       <span className='mr-1'>
         <Send />
       </span>
