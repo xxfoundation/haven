@@ -5,11 +5,15 @@ import UserDetails from './UserDetails';
 import SpaceDetails from './SpaceDetails';
 import { useAppSelector } from 'src/store/hooks';
 import PinnedMessages from './PinnedMessages';
+import MutedUsers from './MutedUsers';
+import ContributorsView from './Contributors';
 
 const views: Record<RightSidebarView, FC> = {
   'space-details': SpaceDetails,
   'user-details': UserDetails,
-  'pinned-messages': PinnedMessages
+  'pinned-messages': PinnedMessages,
+  'muted-users': MutedUsers,
+  'contributors': ContributorsView
 }
 
 const RightSideBar = () => {

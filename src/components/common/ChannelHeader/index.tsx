@@ -32,6 +32,7 @@ import { Pin } from '@components/icons';
 
 import s from './styles.module.scss';
 import ChannelBadges from '../ChannelBadges';
+import Contributors from '@components/icons/Contributors';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
@@ -95,7 +96,7 @@ const ChannelHeader: FC<Props> = ({
         <div className={cn(s.channelId, 'space-x-2')}>
           <ChannelBadges privacyLevel={privacyLevel}  isAdmin={isAdmin} />
           <span className={s.channelId}>
-            (id: {id})
+            ID: {id}
           </span>
         </div>
         </div>
@@ -107,11 +108,16 @@ const ChannelHeader: FC<Props> = ({
           <FontAwesomeIcon className='' icon={faStar} />
         </HeaderButton>
         {currentChannel && (
-          <HeaderButton
-            notification={!!pinnedMessages?.length}
-            onClick={() => { setRightSidebarView('pinned-messages') }}>
-            <Pin className='w-full h-full' />
-          </HeaderButton>
+          <>
+            <HeaderButton
+              notification={!!pinnedMessages?.length}
+              onClick={() => { setRightSidebarView('pinned-messages') }}>
+              <Pin className='w-full h-full' />
+            </HeaderButton>
+            <HeaderButton onClick={() => setRightSidebarView('contributors')}>
+              <Contributors />
+            </HeaderButton>
+          </>
         )}
         <HeaderButton onClick={() => { setDropdownToggle(true); }}>
           <Ellipsis className='w-full h-full' />
@@ -146,13 +152,14 @@ const ChannelHeader: FC<Props> = ({
             <DropdownItem
               icon={BannedUser}
               onClick={() => {
-                setModalView('VIEW_MUTED_USERS');
-                openModal();
+                setRightSidebarView('muted-users');
               }}
             >
               {t('View Muted Users')}
             </DropdownItem>
-            <DropdownItem icon={ViewPinned}>
+            <DropdownItem onClick={() => {
+              setRightSidebarView('pinned-messages');
+            }} icon={ViewPinned}>
               {t('View Pinned Messages')}
             </DropdownItem>
             <DropdownItem onClick={() => {

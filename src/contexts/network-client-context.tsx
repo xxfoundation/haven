@@ -7,7 +7,7 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import { AppEvents, ChannelEvents, appBus, onChannelEvent, useChannelsListener } from 'src/events';
+import { AppEvents, ChannelEvents, appBus, awaitChannelEvent, onChannelEvent, useChannelsListener } from 'src/events';
 import { HTMLToPlaintext, decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { useUtils } from 'src/contexts/utils-context';
@@ -211,6 +211,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     deleteDirectMessage,
     getDmNickname,
     sendDMReaction,
+    sendDMReply,
     sendDirectMessage,
     setDmNickname
   } = useDmClient();
@@ -792,9 +793,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       } catch (e) {
         console.error('Error sending message', e);
       }
-    }
-
-    if (currentConversation) {
+    } else if (currentConversation) {
       sendDirectMessage(message);
     }
   }, [channelManager, currentChannel, sendDirectMessage, currentConversation, utils]);
@@ -819,12 +818,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
       } catch (error) {
         console.error(`Test failed to reply to messageId ${replyToMessageId}`);
       }
+    } else if (reply.length && currentConversation) {
+      sendDMReply(reply, replyToMessageId);
     }
-
-    if (reply.length && currentConversation) {
-      sendReply(reply, replyToMessageId);
-    }
-  }, [channelManager, currentChannel, currentConversation, utils]);
+  }, [channelManager, currentChannel, currentConversation, utils, sendDMReply]);
 
   const deleteMessage = useCallback(async ({ channelId, id }: Pick<Message, 'channelId' | 'id'>) => {
     if (currentChannel) {
@@ -835,9 +832,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       );
   
       dispatch(messages.actions.delete(id));
-    }
-
-    if (currentConversation) {
+    } else if (currentConversation) {
       deleteDirectMessage(id);
     }
   }, [
@@ -1043,6 +1038,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         utils.ValidForever(),
         utils.GetDefaultCMixParams()
       )
+
+      await awaitChannelEvent(ChannelEvents.USER_MUTED, (e) => e.pubkey === pubkey);
     }
   }, [channelManager, currentChannel, utils]);
 

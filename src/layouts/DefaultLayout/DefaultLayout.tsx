@@ -25,6 +25,7 @@ import SettingsView from '@components/views/SettingsViews';
 import Notices from 'src/components/common/Notices';
 import AppModals from 'src/components/modals/AppModals';
 import { RightSideBar } from '@components/common';
+import PinnedMessage from '@components/common/ChannelChat/PinnedMessage';
 
 const DefaultLayout: FC<WithChildren> = ({ children }) => {
   useGoogleRemoteStore();
@@ -81,16 +82,16 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
           <ConnectingDimmer />
           <AppModals />
           <div
-            className='grid lg:grid-cols-[21.75rem_1fr] grid-cols-[18rem_1fr]  grid-rows-[3.75rem_1fr] h-screen'
+            className='grid lg:grid-cols-[21.75rem_1fr] grid-cols-[18rem_1fr] grid-rows-[3.75rem_1fr] h-screen'
           >
-            <LeftHeader className='z-10' />
-            <MainHeader className='z-10'  />
-            <LeftSideBar  className='overflow-y-auto'  />
-
+            <LeftHeader />
+            <MainHeader />
+            <LeftSideBar className='overflow-y-auto'  />
             <div className='overflow-hidden flex flex-col items-stretch'>
               <div className='flex h-full'>
-                <div className='flex flex-col flex-grow '>
+                <div className='flex flex-col flex-grow'>
                   <Notices />
+                  <PinnedMessage />
                   {sidebarView === 'settings' && (
                     <SettingsView />
                   )}

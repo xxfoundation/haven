@@ -1,4 +1,4 @@
-import { MessageStatus, type CMix, type DBConversation, type DBDirectMessage, type DMClient, type DMReceivedEvent, type Identity, type Message, WithChildren, DatabaseCipher } from 'src/types';
+import { MessageStatus, type CMix, type DBConversation, type DBDirectMessage, type DMClient, type DMReceivedEvent, type Identity, type Message, WithChildren, DatabaseCipher, MessageType } from 'src/types';
 import type { Conversation } from 'src/store/dms/types';
 
 import { FC, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -37,7 +37,9 @@ const makeMessageMapper = (
   userIdentity: Identity,
   nickname?: string
 ) => (message: DBDirectMessage, conversation: Conversation): Message => {
-  const inflated = inflate(cipher.decrypt(message.text));
+  const inflated = message.type === MessageType.Reaction
+    ? message.text
+    : inflate(cipher.decrypt(message.text));
   const plaintext = HTMLToPlaintext(inflated);
 
   return ({

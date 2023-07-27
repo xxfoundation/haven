@@ -12,7 +12,6 @@ import {
   UserWasMuted,
   ViewPinnedMessages,
   ExportAdminKeys,
-  ViewMutedUsers
 } from 'src/components/modals';
 import { ModalViews, useUI } from 'src/contexts/ui-context';
 
@@ -44,7 +43,6 @@ const AppModals: FC = () => {
     NETWORK_NOT_READY: <NetworkNotReadyView />,
     JOIN_CHANNEL_SUCCESS: <JoinChannelSuccessView />,
     USER_WAS_MUTED: <UserWasMuted />,
-    VIEW_MUTED_USERS: <ViewMutedUsers />,
     VIEW_PINNED_MESSAGES: <ViewPinnedMessages />
   }), []);
 

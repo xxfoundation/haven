@@ -46,7 +46,7 @@ const Dropdown: FC<Props> = ({ children, className, isOpen, onChange }) => {
 
   return (
     <DropdownContext.Provider value={{ isOpen, close }}>
-      <div ref={dropdownRef} className={cn(className, 'bg-charcoal-4-80 backdrop-blur-md min-w-[16rem]', s.root, { hidden: !isOpen })}>
+      <div ref={dropdownRef} className={cn(className, 'bg-charcoal-4-80 backdrop-blur-md min-w-[16rem] z-10', s.root, { hidden: !isOpen })}>
         {children}
       </div>
     </DropdownContext.Provider>

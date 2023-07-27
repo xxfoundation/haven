@@ -51,7 +51,7 @@ const ChannelChat: FC<Props> = ({ messages }) => {
         <>
           {messages.length === 0 ? (
             <div className='flex flex-col justify-center items-center flex-grow relative'>
-              <div onClick={() => triggerEasterEgg(EasterEggs.Spaceman)} className='w-3 h-3 cursor-pointer absolute top-[53%] left-[51.5%]' />
+              <div onClick={() => triggerEasterEgg(EasterEggs.Spaceman)} className='w-3.5 h-3.5 cursor-pointer absolute top-[52%] left-[51%]' />
               <Spaceman className='w-full' style={spacemanStyles}  />
               <p className='text-charcoal-2 font-bold absolute top-[72%]'>
                 {t('It\'s pretty quiet in this space...')}

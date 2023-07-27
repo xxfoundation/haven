@@ -15,7 +15,6 @@
     position: absolute;
     right: 0.5rem;
     bottom: 0.3rem;
-    z-index: 2;
   }
 }
 
@@ -23,7 +22,6 @@
   position: absolute;
   left: 0.7rem;
   bottom: 0.3rem;
-  z-index: 2;
   color: var(--red);
 }
 
@@ -32,6 +30,5 @@
   border-radius: 5px;
   padding: 0.2rem;
   position: relative;
-  z-index: 2;
   padding-bottom: 2rem;
 }

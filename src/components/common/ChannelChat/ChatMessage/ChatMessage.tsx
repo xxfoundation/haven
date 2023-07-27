@@ -86,8 +86,8 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
         'transition-all',
         {
           'bg-charcoal-4-40 border-l-2 border-charcoal-2': highlighted,
-          'bg-near-black hover:bg-charcoal-4-40': !message.id || message.id !== userReplyId,
-          'bg-green-10 border-l-2 border-green': userReplyId && message.id === userReplyId,
+          'bg-near-black hover:bg-charcoal-4-40': (!message.id || message.id !== userReplyId) && !htmlProps.className?.includes('bg-'),
+          'bg-green-10 border-l-2 border-green': userReplyId && message.id === userReplyId && !noReply,
         },
         s.root,
         {
@@ -98,7 +98,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
     >
       
       {(repliedToMessage && !noReply) && (
-        <p
+        <div
           ref={replyRef}
           className='cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative hover:bg-charcoal-4'
           onClick={() => {
@@ -116,7 +116,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
             <>
               <Identity clickable {...repliedToMessage} />
               <Clamp lines={3}>
-                <p
+                <div
                   className='message'
                   dangerouslySetInnerHTML={{
                     __html: repliedToMessage.body
@@ -127,7 +127,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
           ) : (
             <>{t('This message is unknown/deleted')}</>
           )}
-        </p>
+        </div>
       )}
       <Tooltip clickable style={tooltipStyles} isOpen={hoveredMention !== null}>
         {hoveredMention && <HoveredMention codename={hoveredMention} />}

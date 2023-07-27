@@ -89,7 +89,7 @@ const MessageActions: FC<Props> = ({
 
 
   return (
-    <div {...props} className={cn(props.className, 'bg-near-black-80 p-3 backdrop-blur-md space-x-4 rounded-lg')}>
+    <div {...props} className={cn(props.className, 'bg-near-black-80 p-3 backdrop-blur-md space-x-4 rounded-lg z-10')}>
       <>
         {dmsEnabled && (
           <MessageAction onClick={dmUser}>
