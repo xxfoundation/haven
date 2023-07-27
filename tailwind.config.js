@@ -1,27 +1,29 @@
 /** @type {import('tailwindcss').Config} */
-const colors = require('tailwindcss/colors')
-
 module.exports = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx}",
-    "./src/components/**/*.{js,ts,jsx,tsx}",
-    "./node_modules/react-tailwindcss-select/dist/index.esm.js"
+    "./src/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     colors: {
-      ...colors,
-      cyan: 'var(--cyan)',
-      orange: {
-        100: '#faecd1',
-        200: '#f4d8a4',
-        300: '#efc576',
-        400: '#eab148',
-        500: '#e49e1b',
-        600: '#b77e15',
-        700: '#a06e13',
-        800: '#895f10',
-        900: '#724f0d'
-      }
+      primary: 'var(--primary)',
+      secondary: 'var(--secondary)',
+      red: 'var(--red)',
+      orange: 'var(--orange)',
+      green: 'var(--green)',
+      blue: 'var(--blue)',
+      'charcoal-1': 'var(--charcoal-1)',
+      'charcoal-2': 'var(--charcoal-2)',
+      'charcoal-3': 'var(--charcoal-3)',
+      'charcoal-4': 'var(--charcoal-4)',
+      'near-black': 'var(--near-black)',
+      'our-black': 'var(--our-black)',
+      'white': 'var(--primary-white)',
+      'charcoal-3-20': 'var(--charcoal-3-20)',
+      'charcoal-4-40': 'var(--charcoal-4-40)',
+      'charcoal-4-80': 'var(--charcoal-4-80)',
+      'near-black-80': 'var(--near-black-80)',
+      'green-10': 'var(--green-10)',
+      'primary-15': 'var(--primary-15)'
     },
     fontFamily: {
       sans: ["Moderat"]

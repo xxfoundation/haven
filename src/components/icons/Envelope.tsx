@@ -1,7 +1,21 @@
-import { FC } from 'react';
-import { FontAwesomeIcon, FontAwesomeIconProps } from '@fortawesome/react-fontawesome';
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { SVGProps } from 'react';
 
-const Envelope: FC<Omit<FontAwesomeIconProps, 'icon'>> = (props) => <FontAwesomeIcon  {...props} icon={faEnvelope} />;
+const Bold = (props: SVGProps<SVGSVGElement>) => {
+  return (
+  <svg
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+    {...props}
+  >
+    <g id='Icon'>
+      <path id='vector' fillRule='evenodd' clipRule='evenodd' d='M5.50001 5.5C4.67158 5.5 4.00001 6.17157 4.00001 7V7.44272C4 7.44457 4 7.44641 4.00001 7.44826V17C4.00001 17.8284 4.67158 18.5 5.50001 18.5H18.3572C19.1856 18.5 19.8572 17.8284 19.8572 17V7.44928C19.8572 7.44675 19.8572 7.44423 19.8572 7.4417V7C19.8572 6.17157 19.1856 5.5 18.3572 5.5H5.50001ZM18.8572 7.21345V7C18.8572 6.72386 18.6333 6.5 18.3572 6.5H5.50001C5.22387 6.5 5.00001 6.72386 5.00001 7V7.21344L11.5139 12.7105L11.5139 12.7105C11.6299 12.8084 11.7768 12.8621 11.9286 12.8621C12.0804 12.8621 12.2272 12.8084 12.3432 12.7105L12.3433 12.7105L18.8572 7.21345ZM5.00001 8.52193V17C5.00001 17.2761 5.22387 17.5 5.50001 17.5H18.3572C18.6333 17.5 18.8572 17.2761 18.8572 17V8.52194L12.9882 13.4747C12.6918 13.7249 12.3165 13.8621 11.9286 13.8621C11.5407 13.8621 11.1653 13.7249 10.8689 13.4747L5.00001 8.52193Z' fill='currentColor'/>
+    </g>
+  </svg>
 
-export default Envelope;
+  );
+};
+
+export default Bold;

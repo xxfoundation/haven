@@ -1,5 +1,5 @@
-import { AdminKeysUpdateEvent, ChannelUpdateEvent, MessageDeletedEvent, MessageReceivedEvent, NicknameUpdatedEvent, NotificationUpdateEvent, TypedEventEmitter, UserMutedEvent } from '@types';
-import { Decoder, adminKeysUpdateDecoder, channelUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
+import { AdminKeysUpdateEvent, ChannelDMTokenUpdate, ChannelUpdateEvent, MessageDeletedEvent, MessageReceivedEvent, NicknameUpdatedEvent, NotificationUpdateEvent, TypedEventEmitter, UserMutedEvent } from '@types';
+import { Decoder, adminKeysUpdateDecoder, channelDMTokenUpdateDecoder, channelUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
 import { makeEventAwaiter, makeListenerHook } from '@utils/index';
 import EventEmitter from 'events';
 
@@ -10,7 +10,8 @@ export enum ChannelEvents {
   USER_MUTED = 4000,
   MESSAGE_DELETED = 5000,
   ADMIN_KEY_UPDATE = 6000,
-  CHANNEL_UPDATE = 7000
+  DM_TOKEN_UPDATE = 7000,
+  CHANNEL_UPDATE = 8000
 }
 
 export type ChannelEventMap = {
@@ -21,6 +22,7 @@ export type ChannelEventMap = {
   [ChannelEvents.USER_MUTED]: UserMutedEvent;
   [ChannelEvents.ADMIN_KEY_UPDATE]: AdminKeysUpdateEvent;
   [ChannelEvents.CHANNEL_UPDATE]: ChannelUpdateEvent[];
+  [ChannelEvents.DM_TOKEN_UPDATE]: ChannelDMTokenUpdate;
 }
 
 export type ChannelEventHandlers = {
@@ -36,6 +38,7 @@ const channelsEventDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEv
   [ChannelEvents.USER_MUTED]: userMutedEventDecoder,
   [ChannelEvents.NICKNAME_UPDATE]: nicknameUpdatedEventDecoder,
   [ChannelEvents.CHANNEL_UPDATE]: channelUpdateEventDecoder,
+  [ChannelEvents.DM_TOKEN_UPDATE]: channelDMTokenUpdateDecoder,
   [ChannelEvents.ADMIN_KEY_UPDATE]: adminKeysUpdateDecoder,
 }
 

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ErrorBoundary as LibBoundary } from 'react-error-boundary';
 
 import { Download } from '@components/icons';
-import PrimaryButton from './PrimaryButton/PrimaryButton';
+import Button from './Button';
 
 type ErrorProps = {
   resetErrorBoundary: () => void;
@@ -41,16 +41,16 @@ const ErrorComponent: FC<ErrorProps> = ({ resetErrorBoundary }) => {
         <h2 className='mb-6'>
           {t('Oops, something went wrong!')}</h2>
         <p className='space-x-4'>
-          <PrimaryButton onClick={exportLogs}>
+          <Button onClick={exportLogs}>
             {t('Logs for the nerds')}
             <Download height='1rem' className='inline ml-1' />
-          </PrimaryButton>
-          <PrimaryButton
+          </Button>
+          <Button
             type='button'
             onClick={resetErrorBoundary}
           >
             {t('Try again?')}
-          </PrimaryButton>
+          </Button>
         </p>
       </div>
     </div>

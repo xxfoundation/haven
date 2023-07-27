@@ -16,19 +16,19 @@ import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
-import { awaitChannelEvent, AppEvents, ChannelEvents, awaitAppEvent } from 'src/events';
+import { AppEvents, awaitAppEvent } from 'src/events';
 
 import classes from './MessageContainer.module.scss';
+import useAsync from 'src/hooks/useAsync';
 
 type Props = {
   className?: string;
   clamped?: boolean;
   readonly?: boolean;
   message: Message;
-  handleReplyToMessage: (message: Message) => void;
 }
 
-const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, readonly }) => {
+const MessageContainer: FC<Props> = ({ clamped = false, className, message, readonly }) => {
   const { t } = useTranslation();
 
   const dispatch = useAppDispatch();
@@ -56,8 +56,8 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   }] = useToggle();
 
   const onReplyMessage = useCallback(() => {
-    handleReplyToMessage(message);
-  }, [handleReplyToMessage, message]);
+    dispatch(app.actions.replyTo(message.id));
+  }, [dispatch, message.id]);
 
   const handleDeleteMessage = useCallback(async () => {
     await deleteMessage(message);
@@ -73,8 +73,6 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
 
     promises.push(muteUser(message.pubkey, false));
 
-    promises.push(awaitChannelEvent(ChannelEvents.USER_MUTED));  // delay to let the nodes propagate
-
     await Promise.all(promises);
 
     muteUserModalToggle.toggleOff();
@@ -83,7 +81,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   const handlePinMessage = useCallback(async (unpin?: boolean) => {
     if (unpin === true) {
       await Promise.all([
-        pinMessage(message, unpin),
+        pinMessage(message.id, unpin),
         awaitAppEvent(AppEvents.MESSAGE_UNPINNED) // delay to let the nodes propagate
       ]);
     } else {
@@ -93,7 +91,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
 
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
-      pinMessage(message),
+      pinMessage(message.id),
       awaitAppEvent(AppEvents.MESSAGE_PINNED) // delay to let the nodes propagate
     ]);
     hidePinModal();
@@ -104,14 +102,33 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   }, [message.id, sendReaction]);
 
   useEffect(() => {
-    if (missedMessages[message.channelId]?.id === message.id) {
+    if (missedMessages?.[message.channelId]?.[0] === message.id) {
       setIsNewMessage(true);
       dispatch(app.actions.dismissNewMessages(message.channelId));
     }
-  }, [dispatch, message.channelId, message.id, missedMessages])
+  }, [dispatch, message.channelId, message.id, missedMessages]);
+
+  const handleMute = useCallback(async (unmute: boolean) => {
+    if (!unmute) {
+      muteUserModalToggle.toggleOn();
+    } else {
+      await muteUser(message.pubkey, unmute);
+    }
+  }, [message.pubkey, muteUser, muteUserModalToggle]);
+
+  const asyncMuter = useAsync(handleMute);
   
   return (
-    <>{!readonly && (
+    <>
+      {isNewMessage && (
+        <div className='relative flex items-center px-4'>
+          <div className='flex-grow border-t' style={{ borderColor: 'var(--primary)'}}></div>
+          <span className='flex-shrink mx-4' style={{ color: 'var(--primary)'}}>
+            {t('New!')}
+          </span>
+        </div>
+      )}
+      {!readonly && (
       <>
         {muteUserModalOpen && (
           <MuteUserModal
@@ -140,7 +157,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
               dmsEnabled={message.dmToken !== undefined}
               isPinned={message.pinned}
               isMuted={mutedUsers[message.channelId]?.includes(message.pubkey)}
-              onMuteUser={muteUserModalToggle.toggleOn}
+              onMuteUser={asyncMuter.execute}
               onPinMessage={handlePinMessage}
               onReactToMessage={handleEmojiReaction}
               onReplyClicked={onReplyMessage}
@@ -151,14 +168,6 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
           </div>
         )}
       </>
-    )}
-    {isNewMessage && (
-      <div className='relative flex items-center px-4'>
-        <div className='flex-grow border-t' style={{ borderColor: 'var(--orange)'}}></div>
-        <span className='flex-shrink mx-4' style={{ color: 'var(--orange)'}}>
-          {t('New!')}
-        </span>
-      </div>
     )}
     <ChatMessage
       className={className}

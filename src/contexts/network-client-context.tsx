@@ -1,6 +1,5 @@
-import { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, ChannelNotificationLevel, NotificationStatus, DMClient, MessageStatus } from 'src/types';
-import type { WithChildren, Message } from 'src/types';
-import { MessageType } from 'src/types';
+import { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, ChannelNotificationLevel, NotificationStatus, MessageStatus, MessageId } from 'src/types';
+import { MessageType, PrivacyLevel, type Message, type WithChildren } from 'src/types';
 
 import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
 
@@ -8,11 +7,10 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import { AppEvents, ChannelEvents, appBus, onChannelEvent, useChannelsListener } from 'src/events';
-
-import { decoder, encoder, exportDataToFile } from 'src/utils';
+import { AppEvents, ChannelEvents, appBus, awaitChannelEvent, onChannelEvent, useChannelsListener } from 'src/events';
+import { HTMLToPlaintext, decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { useUtils } from 'src/contexts/utils-context';
 import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, CHANNELS_WORKER_JS_PATH, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
 
 import { useDb } from './db-context';
@@ -27,7 +25,6 @@ import { ChannelId, Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
-import { RemoteStore } from 'src/types/collective';
 import useChannelsStorageTag from 'src/hooks/useChannelsStorageTag';
 
 const BATCH_COUNT = 1000;
@@ -37,11 +34,6 @@ export type User = {
   codeset: number;
   color: string;
   pubkey: string;
-}
-
-export type DatabaseCipher = {
-  GetID: () => number;
-  Decrypt: (plaintext: Uint8Array) => Uint8Array;
 }
 
 export type ChannelManager = {
@@ -129,7 +121,6 @@ export type NetworkContext = {
     privacyLevel: 0 | 2,
     enableDms: boolean
   ) => void;
-  dmClient?: DMClient;
   decryptMessageContent?: (text: string) => string;
   upgradeAdmin: () => void;
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
@@ -162,10 +153,9 @@ export type NetworkContext = {
   getClientVersion: () => string | null;
   loadMoreChannelData: (channelId: string) => Promise<void>;
   exportPrivateIdentity: (password: string) => Promise<Uint8Array | false>;
-  pinMessage: (message: Message, unpin?: boolean) => Promise<void>;
+  pinMessage: (message: MessageId, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
-  remoteStore?: RemoteStore;
   fetchChannels: () => Promise<Channel[]>;
 };
 
@@ -217,7 +207,14 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const currentMessages = useAppSelector(messages.selectors.currentChannelMessages);
   const allMessagesByChannelId = useAppSelector(messages.selectors.messagesByChannelId);
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const dmClient = useDmClient();
+  const {
+    deleteDirectMessage,
+    getDmNickname,
+    sendDMReaction,
+    sendDMReply,
+    sendDirectMessage,
+    setDmNickname
+  } = useDmClient();
 
   const upgradeAdmin = useCallback(() => {
     if (currentChannel?.id) {
@@ -321,7 +318,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
       if (appendToCurrent) {
         dispatch(channels.actions.upsert(channel));
-        dispatch(app.actions.selectChannel(channel.id));
+        dispatch(app.actions.selectChannelOrConversation(channel.id));
       }
 
       if (enableDms) {
@@ -354,11 +351,17 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   const dbMessageMapper = useCallback((dbMsg: DBMessage): Message => {
     assert(cipher, 'Cipher required');
+
+    const decrypted = cipher.decrypt(dbMsg.text);
+    const inflated = dbMsg.type !== MessageType.Reaction ? inflate(decrypted) : decrypted;
+    const plaintext = HTMLToPlaintext(inflated);
+
     return {
       ...getCodeNameAndColor(dbMsg.pubkey, dbMsg.codeset_version),
       id: dbMsg.message_id,
-      body: cipher.decrypt(dbMsg.text) ?? undefined,
+      body: inflated ?? undefined,
       repliedTo: dbMsg.parent_message_id,
+      plaintext,
       type: dbMsg.type,
       timestamp: dbMsg.timestamp,
       nickname: dbMsg.nickname || '',
@@ -526,7 +529,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   useEffect(() => {
     if (!currentChannel && currentChannels.length > 0 && currentConversationId === null) {
-      dispatch(app.actions.selectChannel(currentChannels[0]?.id));
+      dispatch(app.actions.selectChannelOrConversation(currentChannels[0]?.id));
     }
   }, [currentChannel, currentChannels, currentConversationId, dispatch])
 
@@ -630,6 +633,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
       
       setChannelManager(createdChannelManager);
 
+      appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, createdChannelManager);
+
       const tag = createdChannelManager.GetStorageTag();
       if (tag) {
         setStorageTag(tag);
@@ -695,7 +700,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
             privacyLevel: getPrivacyLevel(chanInfo?.channelId),
             isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
           }));
-          dispatch(app.actions.selectChannel(chanInfo.channelId));
+          dispatch(app.actions.selectChannelOrConversation(chanInfo.channelId));
         }
       } catch (error) {
         console.error('Error joining channel')
@@ -743,7 +748,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
         await joinChannel(channelPrettyPrint, false);
         savePrettyPrint(channel.id, channelPrettyPrint);
         dispatch(channels.actions.upsert(channel));
-        dispatch(app.actions.selectChannel(channel.id));
+        dispatch(app.actions.selectChannelOrConversation(channel.id));
         
         if (enableDms) {
           channelManager.EnableDirectMessages(utils.Base64ToUint8Array(channel.id));
@@ -788,22 +793,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
       } catch (e) {
         console.error('Error sending message', e);
       }
+    } else if (currentConversation) {
+      sendDirectMessage(message);
     }
-
-    if (dmClient && message.length && currentConversation) {
-      try {
-        await dmClient.SendText(
-          utils.Base64ToUint8Array(currentConversation.pubkey),
-          currentConversation.token,
-          message,
-          MESSAGE_LEASE,
-          new Uint8Array()
-        )
-      } catch (e) {
-        console.error('Error sending dm', e);
-      }
-    }
-  }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
+  }, [channelManager, currentChannel, sendDirectMessage, currentConversation, utils]);
 
   const sendReply = useCallback(async (reply: string, replyToMessageId: string, tags: string[] = []) => {
     if (
@@ -825,33 +818,31 @@ export const NetworkProvider: FC<WithChildren> = props => {
       } catch (error) {
         console.error(`Test failed to reply to messageId ${replyToMessageId}`);
       }
+    } else if (reply.length && currentConversation) {
+      sendDMReply(reply, replyToMessageId);
     }
-
-    if (reply.length && dmClient && currentConversation) {
-      try {
-        await dmClient.SendReply(
-          utils.Base64ToUint8Array(currentConversation.pubkey),
-          currentConversation.token,
-          reply,
-          utils.Base64ToUint8Array(replyToMessageId),
-          30000,
-          new Uint8Array()
-        );
-      } catch (error) {
-        console.error(`Test failed to reply to messageId ${replyToMessageId}`);
-      }
-    }
-  }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
+  }, [channelManager, currentChannel, currentConversation, utils, sendDMReply]);
 
   const deleteMessage = useCallback(async ({ channelId, id }: Pick<Message, 'channelId' | 'id'>) => {
-    await channelManager?.DeleteMessage(
-      utils.Base64ToUint8Array(channelId),
-      utils.Base64ToUint8Array(id),
-      utils.GetDefaultCMixParams()
-    );
-
-    dispatch(messages.actions.delete(id));
-  }, [channelManager, dispatch, utils]);
+    if (currentChannel) {
+      await channelManager?.DeleteMessage(
+        utils.Base64ToUint8Array(channelId),
+        utils.Base64ToUint8Array(id),
+        utils.GetDefaultCMixParams()
+      );
+  
+      dispatch(messages.actions.delete(id));
+    } else if (currentConversation) {
+      deleteDirectMessage(id);
+    }
+  }, [
+    channelManager,
+    currentChannel,
+    currentConversation,
+    deleteDirectMessage,
+    dispatch,
+    utils
+  ]);
 
   const sendReaction = useCallback(async (reaction: string, reactToMessageId: string) => {
     if (channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
@@ -871,36 +862,22 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
 
-    if (dmClient && currentConversationId !== null && currentConversation?.token !== undefined) {
-      try {
-        await dmClient.SendReaction(
-          utils.Base64ToUint8Array(currentConversationId),
-          currentConversation.token,
-          reaction,
-          utils.Base64ToUint8Array(reactToMessageId),
-          new Uint8Array()
-        );
-      } catch (error) {
-        console.error(
-          `Test failed to react to messageId ${reactToMessageId}`,
-          error
-        );
-      }
-
+    if (currentConversationId !== null && currentConversation?.token !== undefined) {
+      sendDMReaction(reaction, reactToMessageId)
     }
   }, [
     currentConversationId,
     currentConversation?.token,
-    dmClient,
     channelManager,
     currentChannel,
+    sendDMReaction,
     utils
   ]);
 
   const setNickname = useCallback((nickName: string) => {
-    if (channelManager?.SetNickname && currentChannel?.id) {
+    if (channelManager && currentChannel?.id) {
       try {
-        channelManager?.SetNickname(
+        channelManager.SetNickname(
           nickName,
           utils.Base64ToUint8Array(currentChannel?.id)
         );
@@ -911,23 +888,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
 
-    if (dmClient && currentConversation) {
-      try {
-        dmClient.SetNickname(nickName);
-        dispatch(dms.actions.setUserNickname(nickName));
-        return true;
-      } catch (e) {
-        console.error('Error setting DM nickname', e);
-        return false;
-      }
+    if (currentConversation) {
+      return setDmNickname(nickName);
     }
     return false;
   }, [
+    setDmNickname,
     channelManager,
     currentChannel?.id,
     currentConversation,
-    dispatch,
-    dmClient,
     utils
   ]);
 
@@ -943,15 +912,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
       }
     }
 
-    if (currentConversation && dmClient) {
-      try {
-        nickName = dmClient?.GetNickname();
-      } catch (error) {
-        nickName = '';
-      }
+    if (currentConversation ) {
+      nickName = getDmNickname();
     }
     return nickName;
-  }, [channelManager, currentChannel, currentConversation, dmClient, utils]);
+  }, [channelManager, currentChannel, currentConversation, getDmNickname, utils]);
 
   useEffect(() => {
     if (currentChannel) {
@@ -964,7 +929,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [currentChannel, currentConversation, dispatch, getNickName]);
 
-  // Identity object is combination of private identity and code name
   const generateIdentities = useCallback((amountOfIdentities: number) => {
     const identitiesObjects: ReturnType<NetworkContext['generateIdentities']> = [];
     if (utils && utils.GenerateChannelIdentity && cmix) {
@@ -1074,6 +1038,8 @@ export const NetworkProvider: FC<WithChildren> = props => {
         utils.ValidForever(),
         utils.GetDefaultCMixParams()
       )
+
+      await awaitChannelEvent(ChannelEvents.USER_MUTED, (e) => e.pubkey === pubkey);
     }
   }, [channelManager, currentChannel, utils]);
 
@@ -1081,7 +1047,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     getMutedUsers();
   }, [currentChannel, getMutedUsers]);
 
-  const pinMessage = useCallback(async ({ id }: Message, unpin = false) => {
+  const pinMessage = useCallback(async (id: MessageId, unpin = false) => {
     if (currentChannel && channelManager) {
       await channelManager.PinMessage(
         utils.Base64ToUint8Array(currentChannel?.id),
@@ -1137,7 +1103,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const ctx: NetworkContext = {
     decryptMessageContent: cipher?.decrypt,
     channelManager,
-    dmClient,
     getMutedUsers,
     mutedUsers,
     exportChannelAdminKeys,
@@ -1157,7 +1122,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
     createChannelManager,
     loadChannelManager,
     handleInitialLoadData: fetchInitialData,
-    setNickname: setNickname,
+    setNickname,
     getNickName,
     sendReply,
     sendReaction,

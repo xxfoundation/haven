@@ -2,7 +2,7 @@ import { FC, useCallback, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import cn from 'classnames';
 
-import { PrimaryButton, SecondaryButton, Spinner } from 'src/components/common';
+import { Button, Spinner } from 'src/components/common';
 
 import {
   NormalSpeakeasy,
@@ -17,6 +17,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDropbox, faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 import { AccountSyncService } from 'src/hooks/useAccountSync';
 import { useAuthentication } from '@contexts/authentication-context';
+import Input from '@components/common/Input';
 
 type Props = {
   onPasswordConfirmation: (password: string) => void;
@@ -85,7 +86,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 >
                   {t('Enter a password to secure your sovereign speakeasy identity')}
                 </p>
-                <input
+                <Input
                   data-testid='registration-password-input'
                   type='password'
                   placeholder={t('Enter your password')}
@@ -101,7 +102,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                   }}
                 />
 
-                <input
+                <Input
                   data-testid='registration-password-confirmation'
                   type='password'
                   placeholder={t('Confirm your password')}
@@ -134,14 +135,13 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 )}
 
                 <div className='flex flex-col mt-4'>
-                  <PrimaryButton
+                  <Button
                     data-testid='registration-button'
-                    className={s.button}
                     disabled={isLoading}
                     onClick={onContinue}
                   >
                     {t('Continue')}
-                  </PrimaryButton>
+                  </Button>
                 </div>
                 <div className='pt-3'>
                   {t('Already have an account?')} <Trans t={t}>
@@ -188,19 +188,19 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                   {t('Select your cloud provider')}
                 </p>
                 <div className='flex flex-col space-y-3'>
-                  <PrimaryButton onClick={() => {
+                  <Button onClick={() => {
                     setSyncLoginService(AccountSyncService.Google);
                   }}>
                     Google Drive <FontAwesomeIcon icon={faGoogleDrive} />
-                  </PrimaryButton>
-                  <PrimaryButton onClick={() => {
+                  </Button>
+                  <Button onClick={() => {
                     setSyncLoginService(AccountSyncService.Dropbox);
                   }}>
                     Dropbox <FontAwesomeIcon icon={faDropbox} />
-                  </PrimaryButton>
-                  <SecondaryButton onClick={() => { setShowSelectServiceMenu(false); }}>
+                  </Button>
+                  <Button variant='secondary' onClick={() => { setShowSelectServiceMenu(false); }}>
                     Cancel
-                  </SecondaryButton>
+                  </Button>
                 </div>
               </>
             )}

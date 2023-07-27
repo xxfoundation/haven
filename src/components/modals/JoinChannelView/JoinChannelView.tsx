@@ -1,14 +1,16 @@
 import { FC, useState, useEffect, useCallback } from 'react';
-import s from './JoinChannelView.module.scss';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { PrimaryButton } from 'src/components/common';
+import { PrivacyLevel } from 'src/types';
+import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
-import CheckboxToggle from '@components/common/CheckboxToggle';
+import { useUtils } from 'src/contexts/utils-context';
+import CheckboxToggle from 'src/components/common/CheckboxToggle';
 import { useRouter } from 'next/router';
+import Input from 'src/components/common/Input';
+import ModalTitle from '../ModalTitle';
+import FormError from '@components/common/FormError';
 
 const JoinChannelView: FC = () => {
   const { t } = useTranslation();
@@ -31,6 +33,10 @@ const JoinChannelView: FC = () => {
       }
     };
   }, [channelInviteLink?.length, router, setChannelInviteLink]);
+
+  useEffect(() => {
+    setError('');
+  }, [password, dmsEnabled, url])
 
   const handleSubmit = useCallback(async () => {
     if (url.length === 0) {
@@ -75,13 +81,11 @@ const JoinChannelView: FC = () => {
   }, [closeModal, dmsEnabled, getShareUrlType, joinChannel, needPassword, password, t, url, utils]);
 
   return (
-    <div
-      className={cn('w-full flex flex-col justify-center items-center', s.root)}
-    >
-      <h2 className='mt-9 mb-4'>
-        {t('Join a Speakeasy')}
-      </h2>
-      <input
+    <>
+      <ModalTitle>
+        {t('Join a Space')}
+      </ModalTitle>
+      <Input
         name=''
         placeholder={t('Enter invite link')}
         value={url}
@@ -93,9 +97,9 @@ const JoinChannelView: FC = () => {
         onChange={e => {
           setUrl(e.target.value);
         }}
-      ></input>
+      />
       {needPassword && (
-        <input
+        <Input
           className='mt-3 mb-4'
           name=''
           placeholder={t('Enter passphrase')}
@@ -110,27 +114,22 @@ const JoinChannelView: FC = () => {
           }}
         />
       )}
+      {error && (
+        <FormError>{error}</FormError>
+      )}
       <div className='flex justify-between mt-8 w-full px-3'>
         <h3 className='headline--sm'>
-          {t('Enable Direct Messages')}
+          {t('Enable direct messages')}
         </h3>
         <CheckboxToggle checked={dmsEnabled} onChange={() => setDmsEnabled((e) => !e)} />
       </div>
-      {error && (
-        <div
-          className={cn('text text--xs mt-2', s.error)}
-          style={{ color: 'var(--red)' }}
-        >
-          {error}
-        </div>
-      )}
-      <PrimaryButton
-        className={cn('mt-12 mb-10', s.button)}
+      <Button
+        className='w-full'
         onClick={handleSubmit}
       >
-        {needPassword ? t('Join') : t('Go')}
-      </PrimaryButton>
-    </div>
+        {t('Continue')}
+      </Button>
+    </>
   );
 };
 

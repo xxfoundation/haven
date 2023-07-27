@@ -1,0 +1,49 @@
+.root {
+  padding: 0.75rem 0.875rem 0.8125rem 0.875rem;
+  
+  .name {
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .message-preview {
+    color: var(--charcoal-1);
+    font-size: 0.8125rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.1875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .badge {
+    font-size: 0.6875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 0.0275rem; 
+    padding: 0.25rem 0.375rem 0.1875rem 0.375rem;
+    border-radius: 1rem;
+    background: var(--charcoal-2); 
+  }
+
+  .date {
+    color: var(--charcoal-2);
+    font-size: 0.6875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 0.0275rem; 
+  }
+
+  &:hover, &.active {
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: var(--charcoal-4);
+    cursor: pointer;
+  }
+}

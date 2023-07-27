@@ -9,22 +9,6 @@
     max-width: 534px;
   }
 
-  input {
-    border: none;
-    outline: none;
-    background-color: var(--dark-5);
-    padding: 18px 14px;
-    color: var(--text-primary);
-    font-size: 11px;
-    line-height: 13px;
-    font-weight: 300;
-    width: 100%;
-    max-width: 520px;
-    border-radius: 5px;
-    margin-top: 8px;
-    font-weight: 400;
-  }
-
   .button {
     color: black;
     &:disabled:hover {

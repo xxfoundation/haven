@@ -12,6 +12,7 @@ import { contributorsSearch, currentChannelOrConversationId } from '../app/selec
 export const reactions = (state: RootState) => state.messages.reactions;
 export const contributors = (state: RootState) => state.messages.contributorsByChannelId;
 export const messagesByChannelId = (state: RootState) => state.messages.byChannelId;
+export const sortedMessagesByChannelId = (state: RootState) => state.messages.sortedMessagesByChannelId;
 
 export const currentChannelMessages = (state: RootState) => {
   if (state.app.selectedChannelIdOrConversationId === null) {
@@ -48,14 +49,16 @@ export const currentPinnedMessages = (state: RootState) => currentChannelMessage
 export const currentChannelContributors = createSelector(
   currentChannelOrConversationId,
   contributors,
-  (channelId, allContributors) => channelId !== null && allContributors[channelId] ? allContributors[channelId] : []
+  (channelId, allContributors): Contributor[] => (channelId !== null && allContributors[channelId])
+    ? allContributors[channelId]
+    : []
 );
 
 export const messageableContributors = createSelector(
   contributors,
   (mapped) => {
     const flattened = flatten(Object.values(mapped))
-    .filter((c) => c.dmToken !== undefined);
+      .filter((c) => c.dmToken !== undefined);
 
     return sortBy(uniqBy(flattened, (c) => c.pubkey), (c) => `${c.nickname?.toLocaleLowerCase() ?? ''}${c.codename.toLocaleLowerCase()}`);
   }

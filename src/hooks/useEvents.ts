@@ -1,4 +1,4 @@
-import { AdminKeysUpdateEvent, ChannelStatus, ChannelUpdateEvent, DMBlockedUserEvent, DMNotificationsUpdateEvent, MessageDeletedEvent, MessageStatus, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
+import { AdminKeysUpdateEvent, ChannelDMTokenUpdate, ChannelStatus, ChannelUpdateEvent, DMBlockedUserEvent, DMNotificationsUpdateEvent, MessageDeletedEvent, MessageStatus, NicknameUpdatedEvent, NotificationUpdateEvent, UserMutedEvent } from '@types';
 import { useCallback } from 'react';
 
 import * as channels from 'src/store/channels'
@@ -48,13 +48,12 @@ const useEvents = () => {
     });
   }, [dispatch]);
 
+  const onDmTokenEnabledUpdate = useCallback((e: ChannelDMTokenUpdate) => {
+    dispatch(channels.actions.updateDmsEnabled({ channelId: e.channelId, enabled: e.sendToken }));
+  }, [dispatch]);
+
   const onChannelUpdate = useCallback((evt: ChannelUpdateEvent[]) => {
     evt.forEach(async (e) => {
-      dispatch(channels.actions.updateDmsEnabled({
-        channelId: e.channelId,
-        enabled: e.tokenEnabled
-      }));
-
       if (e.status === ChannelStatus.SYNC_DELETED) {
         dispatch(channels.actions.leaveChannel(e.channelId));
       }
@@ -63,13 +62,15 @@ const useEvents = () => {
         fetchChannels();
       }
     });
-  }, [dispatch, fetchChannels])
+  }, [dispatch, fetchChannels]);
+
 
   useChannelsListener(ChannelEvents.NICKNAME_UPDATE, onNicknameUpdate);
   useChannelsListener(ChannelEvents.MESSAGE_DELETED, onMessageDeleted);
   useChannelsListener(ChannelEvents.USER_MUTED, onUserMuted);
   useChannelsListener(ChannelEvents.ADMIN_KEY_UPDATE, onAdminKeysUpdate);
   useChannelsListener(ChannelEvents.NOTIFICATION_UPDATE, onNotificationUpdate);
+  useChannelsListener(ChannelEvents.DM_TOKEN_UPDATE, onDmTokenEnabledUpdate);
   useChannelsListener(ChannelEvents.CHANNEL_UPDATE, onChannelUpdate);
   
   const onMessageProcessed = useCallback(async (message: Message, oldMessage?: Message) => {

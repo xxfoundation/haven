@@ -9,7 +9,6 @@ import { useAppSelector } from 'src/store/hooks';
 import s from './ChannelSettingsView.module.scss';
 import Keys from '@components/icons/Keys';
 import LockOpen from '@components/icons/LockOpen';
-import CommentSlash from '@components/icons/CommentSlash';
 import RightFromBracket from '@components/icons/RightFromBracket';
 import { useNetworkClient } from '@contexts/network-client-context';
 import CheckboxToggle from '@components/common/CheckboxToggle';
@@ -147,21 +146,9 @@ const ChannelSettingsView: FC = () => {
           )}
           <div>
             <h3 className='headline--sm'>
-              {t('View Muted Users')}
-            </h3>
-            <CommentSlash
-              onClick={() => {
-                setModalView('VIEW_MUTED_USERS');
-                openModal();
-              }}
-            />
-          </div>
-          <div>
-            <h3 className='headline--sm'>
               {t('Notifications')}
             </h3>
             <select
-              className={s.select}
               onChange={onNotificationStatusChange}
               value={notificationStatus}
               id='notification-levels'>
@@ -175,7 +162,6 @@ const ChannelSettingsView: FC = () => {
               {t('Notification Level')}
             </h3>
             <select
-              className={s.select}
               onChange={onNotificationLevelChange}
               value={notificationLevel}
               id='notification-levels'>

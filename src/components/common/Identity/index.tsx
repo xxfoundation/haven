@@ -11,6 +11,7 @@ import * as app from 'src/store/app';
 import { useUtils } from '@contexts/utils-context';
 import { currentMutedUsers } from 'src/store/selectors';
 import * as dms from 'src/store/dms';
+import { useUI } from '@contexts/ui-context';
 
 type Props = {
   disableMuteStyles?: boolean;
@@ -26,6 +27,7 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
   const { t } = useTranslation();
   const { getCodeNameAndColor } = useUtils();
   const dispatch = useAppDispatch();
+  const { setRightSidebarView } = useUI();
   const mutedUsers = useAppSelector(currentMutedUsers);
   const isMuted = useMemo(
     () => !disableMuteStyles && mutedUsers?.includes(pubkey),
@@ -47,8 +49,9 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
   const onClick = useCallback(() => {
     if (clickable) {
       dispatch(app.actions.selectUser(pubkey));
+      setRightSidebarView('user-details');
     }
-  }, [clickable, dispatch, pubkey])
+  }, [clickable, dispatch, pubkey, setRightSidebarView])
 
   return (
     <span
@@ -72,13 +75,13 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
       {isMuted && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>({t('muted')})</span>
+          <span style={{ color: 'var(--red)'}}>[{t('muted')}]</span>
         </>
       )}
       {isBlocked && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>({t('blocked')})</span>
+          <span style={{ color: 'var(--red)'}}>[{t('blocked')}]</span>
         </>
       )}
     </span>

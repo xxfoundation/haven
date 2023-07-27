@@ -2,7 +2,7 @@ import { createContext, useEffect, useState, FC, useContext } from 'react';
 
 import { KV_VERSION, OperationType, RemoteKV, RemoteStore } from 'src/types/collective';
 import { encoder } from 'src/utils/index';
-import {  kvEntryDecoder } from 'src/utils/decoders';
+import { kvEntryDecoder } from 'src/utils/decoders';
 import { WithChildren } from 'src/types';
 import { AppEvents, appBus as bus } from 'src/events';
 

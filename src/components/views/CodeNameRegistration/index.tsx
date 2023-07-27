@@ -2,7 +2,7 @@ import { FC, useState, useEffect, useCallback } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ImportCodeNameLoading, PrimaryButton } from 'src/components/common';
+import { Button, ImportCodeNameLoading } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Spinner } from 'src/components/common';
 
@@ -114,7 +114,7 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
           {identities.map((i) => (
             <div
               key={i.codename}
-              className={cn(s.codename, {
+              className={cn('rounded-xl bg-charcoal-4', s.codename, {
                 [s.selected]: i.codename === selectedCodeName
               })}
               onClick={() => {
@@ -137,15 +137,10 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
       )}
 
       <div className='flex mb-5 mt-12'>
-        <PrimaryButton
+        <Button
+          variant='outlined'
           data-testid='discover-more-button'
           className={s.generateButton}
-          style={{
-            backgroundColor: 'var(--black-1)',
-            color: 'var(--orange)',
-            borderColor: 'var(--orange)',
-            borderWidth: '2px',
-          }}
           onClick={() => {
             setSelectedCodeName('');
             setIdentites(generateIdentities(AMOUNT_OF_IDENTITIES_TO_GENERATE));
@@ -153,15 +148,14 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
           disabled={!cmix}
         >
           {t('Discover More')}
-        </PrimaryButton>
-        <PrimaryButton
+        </Button>
+        <Button
           data-testid='claim-codename-button'
-          className={s.registerButton}
           onClick={register}
           disabled={!cmix || selectedCodeName.length === 0}
         >
           {t('Claim')}
-        </PrimaryButton>
+        </Button>
       </div>
     </div>
   );

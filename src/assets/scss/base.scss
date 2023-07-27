@@ -16,11 +16,10 @@ html {
 
 html,
 body {
-  font-family: $font-primary;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: $primary;
+  background-color: var(--near-black);
   color: $text-primary;
   overscroll-behavior-x: none;
   overscroll-behavior-y: contain;

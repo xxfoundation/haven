@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import { Upload } from 'src/components/icons';
-import { PrimaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 
 import s from './ImportAccountForm.module.scss';
 
@@ -18,7 +18,8 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
   const [privateIdentity, setPrivateIdentity] = useState<string>('');
   const [error, setError] = useState('');
 
-  const handleSubmission = useCallback(async () => {
+  const handleSubmission = useCallback(async (evt: React.FormEvent<HTMLFormElement>) => {
+    evt.preventDefault();
     try {
       await onSubmit({ password, identity: privateIdentity });
     } catch (e) {
@@ -50,11 +51,6 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
 
   return (
     <form
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          handleSubmission();
-        }
-      }}
       onSubmit={handleSubmission}
       className={cn('w-full flex flex-col items-center', s.root)}
     >
@@ -95,12 +91,12 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
           setPassword(e.target.value);
         }}
       />
-      <PrimaryButton
+      <Button
         type='submit'
         className={cn('mt-5', s.button)}
       >
         {t('Import')}
-      </PrimaryButton>
+      </Button>
     </form>
   );
 };

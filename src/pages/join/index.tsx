@@ -1,4 +1,5 @@
-import type { ChannelJSON } from '@types';
+import { type ChannelJSON, PrivacyLevel } from '@types';
+
 import { NextPage } from 'next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
@@ -6,10 +7,10 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
 import JoinChannelView from 'src/components/views/JoinChannel';
-import { PrimaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { Spinner } from 'src/components/common';
 import { decoder } from 'src/utils';
 
@@ -208,12 +209,12 @@ const Join: NextPage = () => {
               {error}
             </div>
           )}
-          <PrimaryButton
+          <Button
             className={cn('mb-7 mt-8 mr-4', s.button)}
             onClick={joinPrivateChannel}
           >
             {t('Confirm')}
-          </PrimaryButton>
+          </Button>
         </div>
       )}
     </>

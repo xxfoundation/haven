@@ -1,5 +1,9 @@
 import { WithChildren } from '@types';
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, {FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { SettingsView, LeftSidebarView, RightSidebarView } from 'src/types/ui';
+import toast, { Toaster } from 'react-hot-toast';
+import Alert, { AlertType } from '@components/common/Alert';
+import { EmojiPortal } from '@components/common/EmojiPortal';
 
 export type ModalViews =
   | 'SHARE_CHANNEL'
@@ -17,13 +21,28 @@ export type ModalViews =
   | 'LOGOUT'
   | 'USER_WAS_MUTED'
   | 'VIEW_PINNED_MESSAGES'
-  | 'VIEW_MUTED_USERS'
   | 'EXPORT_ADMIN_KEYS'
   | 'CLAIM_ADMIN_KEYS'
-  | 'ACCOUNT_SYNC';
+  | 'ACCOUNT_SYNC'
+  | 'NEW_DM';
 
+
+export enum EasterEggs {
+  Spaceman,
+  CarWarranty,
+  Masochist
+}
+  
 export interface State {
+  alert: (alert: AlertType) => void;
+  dismissAlert: (id: string) => void;
   displayModal: boolean;
+  leftSidebarView: LeftSidebarView;
+  setLeftSidebarView: (view: LeftSidebarView) => void;
+  rightSidebarView: RightSidebarView | null;
+  setRightSidebarView: (view: RightSidebarView | null) => void;
+  settingsView: SettingsView;
+  setSettingsView: (view: SettingsView) => void;
   modalView?: ModalViews;
   activeModals: object[];
   channelInviteLink: string;
@@ -35,6 +54,8 @@ export interface State {
   closeModal: () => void;
   setModalView: (view: ModalViews, closeableOverride?: boolean) => void;
   setChannelInviteLink: (link: string) => void;
+  triggerEasterEgg: (egg: EasterEggs) => void;
+  easterEggs: EasterEggs[];
 }
 
 const initialState = {
@@ -93,10 +114,13 @@ function uiReducer(state: State, action: Action) {
     }
   }
 }
-
 export const UIProvider: FC<WithChildren> = ({ children }) => {
   const [state, dispatch] = React.useReducer(uiReducer, initialState);
   const [closeableOverride, setCloseableOverride] = useState<boolean>();
+  const [leftSidebarView, setLeftSidebarView] = useState<LeftSidebarView>('spaces');
+  const [rightSidebarView, setRightSidebarView] =  useState<RightSidebarView | null>(null);
+  const [settingsView, setSettingsView] = useState<SettingsView>('notifications');
+  const [easterEggs, setEasterEggs] = useState<EasterEggs[]>([]);
 
   const openModal = useCallback(() => dispatch({ type: 'OPEN_MODAL' }), [
     dispatch
@@ -123,28 +147,72 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
     []
   );
 
+  const dismissAlert = useCallback<State['dismissAlert']>((id) => {
+    toast.dismiss(id);
+  }, []);
+
+  const alert = useCallback<State['alert']>((al) => {
+    toast.custom(<Alert {...al} />);
+  }, []);
+
+  const triggerEasterEgg = useCallback((egg: EasterEggs) => {
+    setEasterEggs((eggs) => {
+      const found = !eggs.includes(egg);
+      if (found) {
+        alert({ type: 'success', content: `Easter egg #${egg + 1} of 3 found.` });
+      }
+      return found ? eggs.concat(egg) : eggs;
+    });
+  }, [alert]);
+
+  useEffect(() => {
+    setRightSidebarView(null);
+  }, [leftSidebarView])
+
   const value = useMemo(
     () => ({
       ...state,
+      easterEggs,
+      alert,
+      dismissAlert,
+      leftSidebarView,
+      setLeftSidebarView,
+      settingsView,
+      setSettingsView,
       closeableOverride,
       openModal,
       closeModal,
       setModalView,
       setChannelInviteLink,
+      triggerEasterEgg,
+      rightSidebarView,
+      setRightSidebarView,
     }),
     [
+      alert,
+      easterEggs,
       closeModal,
       closeableOverride,
+      dismissAlert,
       openModal,
       setChannelInviteLink,
       setModalView,
-      state
-  ]
+      settingsView,
+      setSettingsView,
+      setLeftSidebarView,
+      leftSidebarView,
+      state,
+      triggerEasterEgg,
+      rightSidebarView,
+      setRightSidebarView
+    ]
   );
 
   return (
     <UIContext.Provider value={value}>
-      {children}
+      <EmojiPortal>
+        {children}
+      </EmojiPortal>
     </UIContext.Provider>
     );
 };
@@ -158,5 +226,8 @@ export const useUI = () => {
 };
 
 export const ManagedUIContext: FC<WithChildren> = ({ children }) => (
-  <UIProvider>{children}</UIProvider>
+  <UIProvider>
+    <Toaster />
+    {children}
+  </UIProvider>
 );

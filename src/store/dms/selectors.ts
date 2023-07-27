@@ -1,12 +1,13 @@
 import type { RootState } from 'src/store/types';
 import type { Contributor, DMNotificationLevel } from 'src/types';
 
-import { pick, sortBy } from 'lodash';
+import { mapValues, pick, sortBy } from 'lodash';
 import { createSelector, Selector } from '@reduxjs/toolkit';
 
 import { Conversation } from './types';
 import { identity } from '../identity/selectors';
-import { channelsSearch, currentChannelOrConversationId } from '../app/selectors';
+import { dmsSearch, currentChannelOrConversationId } from '../app/selectors';
+import { byTimestamp } from '../utils';
 
 export const dmNickname = (state: RootState) => state.dms.nickname;
 export const currentConversation = (state: RootState): Conversation | null => state.dms.conversationsByPubkey[state.app.selectedChannelIdOrConversationId ?? ''] || null;
@@ -15,9 +16,14 @@ export const conversations = createSelector(conversationsByPubkey, (byPubkey) =>
 export const allDms = (state: RootState) => state.dms.messagesByPubkey;
 export const dmReactions = (state: RootState) => state.dms.reactions;
 
+export const sortedDmsByPubkey = createSelector(
+  allDms,
+  (dms) => mapValues(dms, (dmMap) => Object.values(dmMap).sort(byTimestamp))
+);
+
 export const searchFilteredConversations = (favorites: string[] = []) => createSelector(
   conversations,
-  channelsSearch,
+  dmsSearch,
   (convos, search) => {
     const sorted = sortBy(convos, (c) => (c.nickname ?? '').concat(c.codename.toLocaleLowerCase()), ['asc']);
     const filtered = sorted.filter((c) =>
@@ -56,7 +62,7 @@ export const currentConversationContributors: Selector<RootState, Contributor[]>
   ] as Contributor[] : [],
 );
 
-export const isBlocked = (pubkey: string) => (state: RootState) => state.dms.blocked.includes(pubkey);
-
+export const blockedUsers = (state: RootState) => state.dms.blocked;
+export const isBlocked = (pubkey: string) => (state: RootState) => blockedUsers(state).includes(pubkey);
 export const notificationLevel = (pubkey?: string | null) => (state: RootState): DMNotificationLevel | undefined => pubkey ? state.dms.notificationLevels[pubkey] : undefined;
 export const allNotificationLevels = (state: RootState) => state.dms.notificationLevels;

@@ -50,7 +50,6 @@ export enum ChannelStatus {
 export type ChannelUpdateEvent = {
   channelId: string;
   status: ChannelStatus;
-  tokenEnabled: boolean;
 };
 
 export type AllowList = Partial<Record<MessageType, Record<string, unknown>>>;
@@ -96,6 +95,11 @@ export type DMNotificationsUpdateEvent = {
 export type DMBlockedUserEvent = {
   pubkey: string;
   blocked: boolean;
+}
+
+export type ChannelDMTokenUpdate = {
+  channelId: string;
+  sendToken: boolean,
 }
 
 export enum DMNotificationLevel {

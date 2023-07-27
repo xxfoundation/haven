@@ -1,4 +1,4 @@
-import type { CMix, CMixParams, DummyTraffic, RemoteStore } from 'src/types';
+import type { CMix, CMixParams, DatabaseCipher, DummyTraffic, RemoteStore } from 'src/types';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import assert from 'assert';
@@ -12,11 +12,6 @@ import { useAuthentication } from '@contexts/authentication-context';
 import { AppEvents, appBus as bus, useAppEventListener } from 'src/events';
 import { RemoteKVWrapper } from '@contexts/remote-kv-context';
 import useAccountSync, { AccountSyncStatus } from './useAccountSync';
-
-type DatabaseCipher = {
-  id: number;
-  decrypt: (encrypted: string) => string;
-};
 
 export enum NetworkStatus {
   UNINITIALIZED = 'uninitialized',

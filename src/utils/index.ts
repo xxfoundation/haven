@@ -5,10 +5,7 @@ import { TypedEventEmitter } from '@types';
 import { useEffect, useState } from 'react';
 import delay from 'delay';
 
-// Encodes Uint8Array to a string.
 export const encoder = new TextEncoder();
-
-// Decodes a string to a Uint8Array.
 export const decoder = new TextDecoder();
 
 export const isClientSide = () => {
@@ -52,7 +49,7 @@ export const inflate = (content: string) => {
   try {
     inflated = inflateSync(Buffer.from(content, 'base64')).toString();
   } catch (e) {
-    console.error('Couldn\'t decode message. Falling back to plaintext.', e);
+    console.error(`Couldn\'t decode message "${content}". Falling back to plaintext.`, e);
     inflated = content;
   }
 
@@ -122,3 +119,7 @@ export const makeEventAwaiter = <T extends Record<string|number, AnyFunc>>(bus: 
       bus.removeListener(evt, listener as any);
     });
   }
+
+  export const HTMLToPlaintext = (html: string) => new DOMParser()
+    .parseFromString(html, 'text/html')
+    .documentElement.textContent;

@@ -3,10 +3,10 @@ import { FC, useCallback, useEffect, useMemo } from 'react';
 import { faDropbox } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useTranslation } from 'react-i18next';
+import cn from 'classnames';
 
-import { PrimaryButton } from '@components/common';
+import Button, { Props as ButtonProps } from '@components/common/Button';
 import { AppEvents, appBus } from 'src/events'
-import { Props as ButtonProps } from './PrimaryButton/PrimaryButton';
 
 type Props = Partial<ButtonProps> & {
   onStartLoading?: () => void;
@@ -44,14 +44,15 @@ const DropboxButton: FC<Props> = ({
   }, [auth]);
 
   return (
-    <PrimaryButton
+    <Button
       {...props}
+      className={cn('flex justify-center items-center space-x-1')}
       onClick={onClick}
     >
-      <FontAwesomeIcon icon={faDropbox} />
+      <FontAwesomeIcon className='w-5 h-5' icon={faDropbox} />
       &nbsp;
       {t('Dropbox')}
-    </PrimaryButton>
+    </Button>
   )
 }
 

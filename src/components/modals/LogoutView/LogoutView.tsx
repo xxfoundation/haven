@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 import s from './LogoutView.module.scss';
 import cn from 'classnames';
-import { PrimaryButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import useInput from 'src/hooks/useInput';
@@ -70,12 +70,12 @@ const LogoutView: FC = ({}) => {
           {error}
         </div>
       )}
-      <PrimaryButton
+      <Button
         className={cn('mt-6 mb-10')}
         onClick={handleSubmit}
       >
         {t('Confirm')}
-      </PrimaryButton>
+      </Button>
     </div>
   );
 };
