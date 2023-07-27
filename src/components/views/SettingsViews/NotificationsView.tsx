@@ -20,7 +20,7 @@ const NotificationsView = () => {
       <hr className='w-full my-10 border-charcoal-3' />
       <div className='flex justify-between'>
         <h3 className='headline--sm'>
-          {t('Enable Notifications')}
+          {t('Enable Browser Notifications')}
         </h3>
         <CheckboxToggle checked={isPermissionGranted} onChange={onNotificationsChange} />
       </div>
