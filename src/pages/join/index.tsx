@@ -1,4 +1,5 @@
-import type { ChannelJSON } from '@types';
+import { type ChannelJSON, PrivacyLevel } from '@types';
+
 import { NextPage } from 'next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
@@ -6,7 +7,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+import { useUtils } from 'src/contexts/utils-context';
 import { WarningComponent } from 'src/pages/_app';
 import JoinChannelView from 'src/components/views/JoinChannel';
 import { Button } from 'src/components/common';
