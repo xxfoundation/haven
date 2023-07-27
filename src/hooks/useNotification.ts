@@ -147,7 +147,7 @@ const useNotification = () => {
   }, [allChannels, isUserPingableOnThisChannel, messagePinned]);
 
   return {
-    isPermissionGranted,
+    isPermissionGranted: !!isPermissionGranted,
     permissionIgnored,
     setPermissionIgnored,
     setIsPermissionGranted,
