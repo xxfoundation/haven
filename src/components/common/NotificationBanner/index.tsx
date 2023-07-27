@@ -12,7 +12,7 @@ const NotificationBanner = () => {
   const showBanner = !isPermissionGranted && !permissionIgnored;
 
   return showBanner ? (
-    <div className={cn(s.root, 'drop-shadow-xl absolute bg-charcoal-4 flex justify-between')}>
+    <div className={cn(s.root, 'drop-shadow-xl absolute bg-near-black flex justify-between z-10')}>
       <span>
         {t('Speakeasy uses desktop notifications.')}
         &nbsp;
