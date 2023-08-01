@@ -11,6 +11,7 @@ import { ChannelEventHandler, DMEventHandler } from 'src/events';
 import { WebAssemblyRunner } from '@components/common';
 import { useTranslation } from 'react-i18next';
 import { PrivacyLevel } from '@types';
+import { CMIX_INITIALIZATION_KEY } from 'src/constants';
 
 export type ChannelManagerCallbacks = {
   EventUpdate: ChannelEventHandler;
@@ -141,6 +142,11 @@ export type IdentityJSON = {
   Color: string;
   Extension: string;
   CodesetVersion: number;
+}
+
+// Clear the storage in case a half assed registration was made
+if (typeof window !== 'undefined' && localStorage.getItem(CMIX_INITIALIZATION_KEY) === 'false') {
+  localStorage.clear();
 }
 
 export const UtilsProvider: FC<WithChildren> = ({ children }) => {

@@ -62,7 +62,7 @@ export const EmojiPortal: FC<WithChildren> = ({ children }) => {
   )
 }
 
-export const EmojiPicker: FC<{ onSelect: (emoji: string) => void }> = ({ onSelect }) => {
+export const EmojiPicker: FC<{ className?: string, onSelect: (emoji: string) => void }> = ({ className, onSelect }) => {
   const { isOpen, openEmojiPicker } = useContext(EmojiContext);
   const [clicked, setClicked] = useState(false);
   const iconRef = useRef<SVGSVGElement>(null);
@@ -95,7 +95,7 @@ export const EmojiPicker: FC<{ onSelect: (emoji: string) => void }> = ({ onSelec
   }, [openEmojiPicker]);
 
   return (
-    <EmojisPickerIcon ref={iconRef} onClick={onClick} />
+    <EmojisPickerIcon className={className} ref={iconRef} onClick={onClick} />
   )
 }
 

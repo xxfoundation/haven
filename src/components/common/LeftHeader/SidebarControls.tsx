@@ -26,6 +26,7 @@ const SidebarControls: FC= () => {
         />
       </button>
       <button
+        className='disabled:cursor-not-allowed'
         title={dmsDisabled ? t('Join or create a channel first.') : t('Direct Messages')}
         disabled={dmsDisabled}
         style={{ opacity: dmsDisabled ? 0.25 : 1 }}

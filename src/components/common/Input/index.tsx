@@ -16,7 +16,7 @@ const sizeMap: Record<Size, string> = {
 }
 
 const Input: FC<Props> = ({ size = 'md', ...props }) => (
-  <input {...props} className={cn(sizeMap[size], s.root, props.className)} />
+  <input {...props} className={cn(sizeMap[size], s.root, props.className, 'focus:border-primary')} />
 );
 
 export default Input;

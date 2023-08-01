@@ -87,7 +87,7 @@ const useNotification = () => {
     const level = channelNotificationLevels[channelId] ?? ChannelNotificationLevel.NotifyPing;
     const status = notificationStatuses[channelId] ?? NotificationStatus.WhenOpen;
     return level >= ChannelNotificationLevel.NotifyPing && status >= NotificationStatus.Mute;
-  }, [channelNotificationLevels, notificationStatuses])
+  }, [channelNotificationLevels, notificationStatuses]);
 
   const notifyMentions = useCallback((message: Message) => {
     const canNotify = isUserPingableOnThisChannel(message.channelId);

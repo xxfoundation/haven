@@ -156,12 +156,12 @@
 }
 
 .ql-snow .ql-editor code, .ql-snow .ql-editor pre {
-  background-color: var(--dark-7) !important;
-  color: var(--light-orange);
+  background-color: var(--our-black) !important;
+  color: var(--primary);
 }
 
 .ql-snow .ql-editor pre.ql-syntax:not(.ql-container) {
-  color: var(--light-orange);
+  color: var(--primary);
 }
 
 .ql-editor {
@@ -171,6 +171,18 @@
   .emoji {
     display: inline-block;
     vertical-align: text-top;
+  }
+
+  em {
+    font-style: italic !important;
+  }
+
+  a {
+    color: var(--primary);
+    border-radius: 2px;
+    background-color: var(--primary-15);
+    padding: 0 2px;
+
   }
   
   ul li::before {
@@ -225,7 +237,7 @@
       content: ' ';
       width: 0.25rem;
       height: 1ch;
-      background-color: var(--grey);
+      background-color: var(--charcoal-2);
       position: absolute;
       left: 0;
       height: 100%;
@@ -237,7 +249,7 @@
 .mention {
   color: var(--primary);
   background-color: var(--primary-15);
-  padding: 0.2rem;
+  padding: 0 3px;
   border-radius: 3px;
   cursor: pointer;
 }
