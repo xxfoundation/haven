@@ -39,6 +39,7 @@ export type XXDKUtils = {
   NewSynchronizedCmix: (
     ndf: string,
     storageDir: string,
+    remoteStoragePrefixPath: string,
     password: Uint8Array,
     remoteStore: RemoteStore,
   ) => Promise<void>;

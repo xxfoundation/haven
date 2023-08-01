@@ -79,6 +79,7 @@ const useCmix = () => {
       await utils.NewSynchronizedCmix(
         ndf,
         STATE_PATH,
+        '',
         password,
         store,
       ).catch((e) => {
