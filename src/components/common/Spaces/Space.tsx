@@ -40,7 +40,7 @@ const Space: FC<Props> = ({ active, date, favorite, message, missedMessagesCount
       </div>
       {message && (
         <div className='flex justify-between w-full'>
-          <p className={s['message-preview']}>
+          <p className={cn('whitespace-nowrap', s['message-preview'])}>
             {message}
           </p>
           {missedMessagesCount > 0 && (<span className={cn(s.badge, 'ml-1')}>

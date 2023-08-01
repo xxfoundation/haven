@@ -22,6 +22,7 @@ const CreateChannelView: FC = () => {
   const [channelDesc, onChannelDescChange, { set: setChannelDesc, touched: descTouched }] = useInput();
   const [privacyLevel, setPrivacyLevel] = useState<0 | 2>(2); //0 = public, 1 = private, and 2 = secret
   const [dmsEnabled, setDmsEnabled] = useState<boolean>(true);
+  const [nameError, setNameError] = useState('');
 
   const changePrivacyLevel = useCallback(
     (level: PrivacyLevel) => {
@@ -30,11 +31,12 @@ const CreateChannelView: FC = () => {
     []
   );
 
-  const nameError = useMemo(() => {
+  const validateName = useCallback(() => {
     if (!regex.test(channelName) && nameTouched) {
-      return t('The name must be between 3 and 24 characters inclusive. It can only include upper and lowercase Unicode letters, digits 0 through 9, and underscores (_).');
+      setNameError(t('The name must be between 3 and 24 characters inclusive. It can only include upper and lowercase Unicode letters, digits 0 through 9, and underscores (_).'));
+    } else {
+      setNameError('');
     }
-    return null;
   }, [channelName, nameTouched, t]);
 
   const descError = useMemo(() => {
@@ -89,6 +91,7 @@ const CreateChannelView: FC = () => {
           data-testid='channel-name-input'
           type='text'
           placeholder={t('Name')}
+          onBlur={validateName}
           onKeyDown={(evt) => {
             if (evt.key === 'Enter') {
               onCreate();
@@ -100,6 +103,7 @@ const CreateChannelView: FC = () => {
         <textarea
           className={cn(
             `
+            focus:border-primary
             focus-visible:outline-none resize-none h-10 active:outline-0 w-full
             rounded-2xl bg-charcoal-4 border border-charcoal-1 px-4 py-2
             placeholder-charcoal-1 placeholder:text-sm focus:h-24

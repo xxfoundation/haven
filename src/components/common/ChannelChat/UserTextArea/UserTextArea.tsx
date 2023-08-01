@@ -1,7 +1,7 @@
 import { default as ReactQuill, ReactQuillProps } from 'react-quill';
-import type { Quill, RangeStatic, StringMap } from 'quill';
+import { Quill, RangeStatic, StringMap } from 'quill';
 import type { QuillAutoDetectUrlOptions } from 'quill-auto-detect-url'
-import React, { FC, useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import React, { FC, useEffect, useState, useCallback, useMemo, useRef, HTMLAttributes } from 'react';
 import cn from 'classnames';
 import dynamic from 'next/dynamic';
 import EventEmitter from 'events';
@@ -24,6 +24,21 @@ import X from '@components/icons/X';
 import Identity from '@components/common/Identity';
 import { replyingToMessage } from 'src/store/selectors';
 import { EmojiPicker } from '@components/common/EmojiPortal';
+import AtSign from '@components/icons/AtSign';
+import RTF from '@components/icons/RTF';
+import { useOnClickOutside, useToggle } from 'usehooks-ts';
+import Bold from '@components/icons/Bold';
+import Italics from '@components/icons/Italics';
+import Strikethrough from '@components/icons/Strikethrough';
+import LinkIcon from '@components/icons/Link';
+import OrderedList from '@components/icons/OrderedList';
+import BulletList from '@components/icons/BulletList';
+import Blockquote from '@components/icons/Blockquote';
+import Code from '@components/icons/Code';
+import CodeBlock from '@components/icons/CodeBlock';
+import Input from '@components/common/Input';
+import Button from '@components/common/Button';
+import useInput from 'src/hooks/useInput';
 
 export const bus = new EventEmitter();
 
@@ -39,6 +54,20 @@ const extractTagsFromMessage = (message: string) => {
 
   return Array.from(ids);
 }
+
+const ToolbarButton: FC<Omit<HTMLAttributes<HTMLButtonElement>, 'active'> & { active?: boolean }> = (props) => (
+  <button
+    {...props}
+    className={cn(
+      props.className,
+      {
+        'bg-charcoal-3-20 text-primary': props.active
+      },
+      'text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 hover:text-primary leading-none'
+    )}>
+    {props.children}
+  </button>
+)
 
 
 const Editor = dynamic(
@@ -57,103 +86,278 @@ type Props = {
 const MESSAGE_MAX_SIZE = 700;
 
 type CustomToolbarProps = {
-  onEmojiSelected: (emoji: string) => void;
+  quill: Quill;
   className?: string;
 }
 
-const CustomToolbar: FC<CustomToolbarProps> = ({ className, onEmojiSelected }) => {
-  const { t } = useTranslation();
+const useCurrentFormats = (quill: Quill) => {
+  const [selection, setSelection] = useState(quill.getSelection());
+  const formats = useMemo(() => selection && quill.getFormat(selection), [quill, selection]);
 
+  useEffect(() => {
+    const onSelectionChange = () => {
+      setSelection(quill.getSelection());
+    }
+
+    quill.on('editor-change', onSelectionChange);
+
+    return () => {
+      quill.off('editor-change', onSelectionChange);
+    }
+  }, [quill]);
+
+
+  const toggle = useCallback((format: string, value?: string) => {
+    if (format === 'list' && value === 'ordered') {
+      if (formats?.list) {
+        quill.format(format, false);
+      } else {
+        quill.formatLine(selection?.index ?? 0, selection?.length ?? 0, 'list', 'ordered');
+      }
+    } else {
+      quill.format(format, value !== undefined ? value : !formats?.[format]);
+    }
+    setSelection(quill.getSelection());
+  }, [formats, quill, selection?.index, selection?.length])
+
+  return {
+    selection,
+    formats,
+    toggle
+  }
+}
+
+const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
+  const { t } = useTranslation();
+  const { formats, selection, toggle } = useCurrentFormats(quill);
+  const [linkMenuOpened, setLinkMenuOpened] = useState(false);
+  const [linkInput, onLinkInputChanged, linkInputControls] = useInput();
+  const [savedSelection, setSavedSelection] = useState<RangeStatic | null>(null);
+  const linkMenuRef = useRef<HTMLDivElement>(null);
+
+  useOnClickOutside(linkMenuRef, () => {
+    setLinkMenuOpened(false);
+    linkInputControls.set('');
+  });
+
+  const saveSelection = useCallback(() => {
+    const range = quill.getSelection();
+    if (!range) { return }
+    const [leaf, offset] = quill.getLeaf(range.index + 1);
+    if (leaf) {
+      setSavedSelection({
+        index: range.index + 1 - offset,
+        length: leaf.length()
+      });
+    } else {
+      setSavedSelection(range);
+    }
+  }, [quill]);
+
+  const onLinkClicked = useCallback(() => {
+    if (!formats?.link) {
+      const text = quill.getText(selection?.index ?? 0, selection?.length ?? 0);
+      quill.format('link', text);
+      saveSelection();
+      linkInputControls.set(text);
+      setLinkMenuOpened(true);
+    } else {
+      quill.format('link', false);
+    }
+  }, [formats?.link, linkInputControls, quill, saveSelection, selection?.index, selection?.length]);
+
+  const handleApplyLink = useCallback(() => {
+    if (savedSelection) {
+      if (savedSelection.length === 0) {
+        quill.insertText(savedSelection.index, linkInput);
+      }
+      quill.formatText(savedSelection.index, savedSelection.length || linkInput.length, 'link', linkInput);
+      setLinkMenuOpened(false);
+      setSavedSelection(null);
+    }
+  }, [linkInput, quill, savedSelection]);
+
+  useEffect(() => {
+    if (!formats?.link && !savedSelection) {
+      setLinkMenuOpened(false);
+    }
+  }, [formats?.link, savedSelection])
+
+  useEffect(() => {
+    const handleMouseUp = () => {
+      const selected = quill.getSelection();
+      if (!selected) {
+        setLinkMenuOpened(false);
+        return;
+      }
+      const currentFormats = quill.getFormat(selected);
+      const link = currentFormats?.link;
+      if (link) {
+        setLinkMenuOpened(true);
+        linkInputControls.set(link);
+      } else {
+        setLinkMenuOpened(false);
+      }
+    };
+
+    quill.root.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      quill.root.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [linkInputControls, quill, quill.root]);
+  
   return (
-    <div className={className} id='custom-toolbar'>
-      <span className='ql-formats'>
-        <Tooltip className='text-center' anchorId='bold-button'>
-          <strong>
-            {t('Bold')}
-          </strong>
-          <br />
-          CTRL/CMD + B
-        </Tooltip>
-        <button id='bold-button' className='ql-bold' />
-        <Tooltip className='text-center' anchorId='italic-button'>
-          <i>
-            {t('Italic')}
-          </i>
-          <br />
-          CTRL/CMD + I
-        </Tooltip>
-        <button id='italic-button' className='ql-italic' />
-        <Tooltip className='text-center' anchorId='strike-button'>
-          <s>
-            {t('Strikethrough')}
-          </s>
-          <br />
-          CTRL/CMD + SHIFT + X
-        </Tooltip>
-        <button id='strike-button' className='ql-strike' />
-      </span>
-      <span className='ql-formats'>
-        <Tooltip className='text-center' anchorId='link-button'>
-          <a>
-            {t('Link')}
-          </a>
-          <br />
-          CTRL/CMD + U
-        </Tooltip>
-        <button id='link-button' className='ql-link' />
-      </span>
-      <span className='ql-formats'>
-        <Tooltip className='text-center' anchorId='ordered-list-button'>
-          <ol>
-            <li>
-              {t('Ordered list')}
-            </li>
-          </ol>
-          CTRL/CMD + SHIFT + 7
-        </Tooltip>
-        <button id='ordered-list-button' className='ql-list' value='ordered' />
-        <Tooltip className='text-center' anchorId='unordered-list-button'>
-          <ul>
-            <li>
-             {t('Bulleted list')}
-            </li>
-          </ul>
-          CTRL/CMD + SHIFT + 8
-        </Tooltip>
-        <button id='unordered-list-button' className='ql-list' value='bullet' />
-      </span>
-      <span className='ql-formats'>
-        <Tooltip className='text-center' anchorId='blockquote-button'>
-          <blockquote style={{ display: 'inline-block', marginBottom: '0.25rem' }}>
-            {t('Blockquote')}
-          </blockquote>
-          <br />
-          CTRL/CMD + SHIFT + 9
-        </Tooltip>
-        <button id='blockquote-button' className='ql-blockquote' />
-      </span>
-      <span className='ql-formats'>
-        <Tooltip className='text-center' anchorId='code-button'>
-          <code>
-            {t('Code')}
-          </code>
-          <br />
-          CTRL/CMD + SHIFT + C
-        </Tooltip>
-        <button id='code-button' className='ql-code' />
-        <Tooltip className='text-center' anchorId='code-block-button'>
-          <pre style={{ margin: 0 }}>
-            {t('Code block')}
-          </pre>
-          CTRL/CMD + SHIFT + ALT + C
-        </Tooltip>
-        <button id='code-block-button' className='ql-code-block' />
-      </span>
-      <span className='ql-formats'>
-        <button>
-          <EmojiPicker onSelect={onEmojiSelected} />
-        </button>
-      </span>
+    <div className={cn(className, 'px-2 pt-2 space-x-2')}>
+      <ToolbarButton
+        active={formats?.bold}
+        onClick={() => { toggle('bold') }}
+        id='bold-button'>
+        <Bold />
+      </ToolbarButton>
+      <Tooltip className='text-center' anchorId='bold-button'>
+        <strong>
+          {t('Bold')}
+        </strong>
+        <br />
+        CTRL/CMD + B
+      </Tooltip>
+      <Tooltip
+        className='text-center' anchorId='italic-button'>
+        <i>
+          {t('Italic')}
+        </i>
+        <br />
+        CTRL/CMD + I
+      </Tooltip>
+      <ToolbarButton
+        active={formats?.italic}
+        onClick={() => { toggle('italic') }}
+        id='italic-button'>
+        <Italics />
+      </ToolbarButton>
+      <Tooltip className='text-center' anchorId='strike-button'>
+        <s>
+          {t('Strikethrough')}
+        </s>
+        <br />
+        CTRL/CMD + SHIFT + X
+      </Tooltip>
+      <ToolbarButton
+        active={formats?.strike}
+        onClick={() => { toggle('strike') }}
+      id='strike-button'>
+        <Strikethrough />
+      </ToolbarButton>
+      <Tooltip className='text-center' anchorId='link-button'>
+        <a>
+          {t('Link')}
+        </a>
+        <br />
+        CTRL/CMD + U
+      </Tooltip>
+      <ToolbarButton
+        active={formats?.link}
+        onClick={onLinkClicked}
+        id='link-button'>
+        <LinkIcon />
+      </ToolbarButton>
+      <div
+        ref={linkMenuRef}
+        onMouseDown={saveSelection}
+        className={cn(
+          { 'hidden': !linkMenuOpened },
+          'flex w-[25rem] items-center space-x-2 absolute bottom-[100%] bg-charcoal-4-80 backdrop-blur-lg rounded-xl p-4'
+        )}>
+        <span>{t('Link:')}</span>
+        <div className='relative flex-grow'>
+          <Input
+            onKeyDown={(evt) => {
+              if (evt.key === 'Enter') {
+                handleApplyLink();
+              }
+            }}
+            value={linkInput}
+            onChange={onLinkInputChanged}
+            className='placeholder:italic'
+            placeholder={t('Enter your link here...')}
+            size='sm' />
+          <button
+            onClick={() => { linkInputControls.set('') }}
+            className='absolute right-1.5 bottom-[0.425rem] bg-charcoal-3 rounded-full p-0.5 hover:bg-charcoal-2 transition-all'>
+            <X className='w-4 h-4' />
+          </button>
+        </div>
+        <Button onClick={handleApplyLink} size='sm'>
+          {t('Save')}
+        </Button>
+      </div>
+      <Tooltip className='text-center' anchorId='ordered-list-button'>
+        <ol>
+          <li>
+            {t('Ordered list')}
+          </li>
+        </ol>
+        CTRL/CMD + SHIFT + 7
+      </Tooltip>
+      <ToolbarButton
+        active={formats?.list === 'ordered'}
+        onClick={() => toggle('list', 'ordered')}
+        id='ordered-list-button'>
+        <OrderedList />
+      </ToolbarButton>
+      <Tooltip className='text-center' anchorId='unordered-list-button'>
+        <ul>
+          <li>
+            {t('Bulleted list')}
+          </li>
+        </ul>
+        CTRL/CMD + SHIFT + 8
+      </Tooltip>
+      <ToolbarButton
+        active={formats?.list === 'bullet'}
+        onClick={() => toggle('list')}
+        id='unordered-list-button' className='ql-list'>
+        <BulletList />
+      </ToolbarButton>
+      <Tooltip className='text-center' anchorId='blockquote-button'>
+        <blockquote style={{ display: 'inline-block', marginBottom: '0.25rem' }}>
+          {t('Blockquote')}
+        </blockquote>
+        <br />
+        CTRL/CMD + SHIFT + 9
+      </Tooltip>
+      <ToolbarButton
+        active={formats?.blockquote}
+        onClick={() => toggle('blockquote')}
+        id='blockquote-button'>
+        <Blockquote />
+      </ToolbarButton>
+      <Tooltip className='text-center' anchorId='code-button'>
+        <code>
+          {t('Code')}
+        </code>
+        <br />
+        CTRL/CMD + SHIFT + C
+      </Tooltip>
+      <ToolbarButton
+        active={formats?.code}
+        onClick={() => toggle('code')}
+        id='code-button'>
+        <Code />
+      </ToolbarButton>
+      <Tooltip className='text-center' anchorId='code-block-button'>
+        <pre style={{ margin: 0 }}>
+          {t('Code block')}
+        </pre>
+        CTRL/CMD + SHIFT + ALT + C
+      </Tooltip>
+      <ToolbarButton
+        active={formats?.['code-block']}
+        onClick={() => toggle('code-block')}
+        id='code-block-button'>
+        <CodeBlock />
+      </ToolbarButton>
     </div>
   );
 };
@@ -194,23 +398,32 @@ const UserTextArea: FC<Props> = ({ className }) => {
     return isMac ? ({ metaKey: true }) : ({ ctrlKey: true });
   }, []);
   const editorRef = useRef<ReactQuill>(null);
+  const [toolbarEnabled, toggleToolbar] = useToggle();
 
   const insertEmoji = useCallback((emoji: string) => {
     const quill = editorRef.current?.editor;
     if (!quill) { return }
-    const { index } = quill.getSelection(true);
-    
+    const { index, length } = quill.getSelection(true);
+    quill.deleteText(index, length);
     quill.insertEmbed(index, 'emoji', emoji, 'user');
     setTimeout(() => quill.setSelection(index + emoji.length, 0), 0);
   }, []);
 
+  const insertMention = useCallback(() => {
+    const quill = editorRef.current?.editor;
+    if (!quill) { return }
+    const mention = quill.getModule('mention');
+
+    mention.openMenu('@');
+  }, [])
+
   const loadQuillModules = useCallback(async () => {
     await import('quill-mention');
-    const Quill = (await import('react-quill')).default.Quill;
+    const QuillInstance = (await import('react-quill')).default.Quill;
     const DetectUrl = (await import('quill-auto-detect-url')).default;
     const ShortNameEmoji = (await import('src/quill/ShortNameEmoji')).default;
-    const Link = Quill.import('formats/link')
-    const icons = Quill.import('ui/icons');
+    const Link = QuillInstance.import('formats/link')
+    const icons = QuillInstance.import('ui/icons');
     const EmojiBlot = (await import('src/quill/EmojiBlot')).default;
 
     icons['code-block'] = '<svg data-tml=\'true\' aria-hidden=\'true\' viewBox=\'0 0 20 20\'><path fill=\'currentColor\' fillRule=\'evenodd\' d=\'M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z\' clipRule=\'evenodd\'></path></svg>';
@@ -221,9 +434,9 @@ const UserTextArea: FC<Props> = ({ className }) => {
         const sanitizedUrl = super.sanitize(url)
     
         if (!sanitizedUrl || sanitizedUrl === 'about:blank') return sanitizedUrl
-    
+        
         const hasWhitelistedProtocol = this.PROTOCOL_WHITELIST
-          .some((protocol: string)  => sanitizedUrl.startsWith(protocol))
+          .some((protocol: string)  => sanitizedUrl?.startsWith(protocol))
     
         if (hasWhitelistedProtocol) return sanitizedUrl
     
@@ -231,10 +444,10 @@ const UserTextArea: FC<Props> = ({ className }) => {
       }
     }
 
-    Quill.register('formats/emoji', EmojiBlot);
-    Quill.register('modules/shortNameEmoji', ShortNameEmoji);
-    Quill.register(CustomLinkSanitizer, true)
-    Quill.register('modules/autoDetectUrl', DetectUrl);
+    QuillInstance.register('formats/emoji', EmojiBlot);
+    QuillInstance.register('modules/shortNameEmoji', ShortNameEmoji);
+    QuillInstance.register(CustomLinkSanitizer, true)
+    QuillInstance.register('modules/autoDetectUrl', DetectUrl);
     
     setEditorLoaded(true);
   }, []);
@@ -305,9 +518,7 @@ const UserTextArea: FC<Props> = ({ className }) => {
   }, [sendCurrentMessage]);
 
   const modules  = useMemo<StringMap>(() => ({
-    toolbar: {
-      container: '#custom-toolbar'
-    },
+    toolbar: false,
     shortNameEmoji: true,
     autoDetectUrl: {
       urlRegularExpression: /(https?:\/\/|www\.)[\w-.]+\.[\w-.]+[\S]+/i,
@@ -390,7 +601,7 @@ const UserTextArea: FC<Props> = ({ className }) => {
         link: {
           ...ctrlOrCmd,
           key: 'U',
-          shiftKey: true,
+          shiftKey: false,
           handler: function(this: { quill: Quill }, range: RangeStatic) {
             const format = this.quill.getFormat(range);
             this.quill.format('link', !format.link);
@@ -410,7 +621,7 @@ const UserTextArea: FC<Props> = ({ className }) => {
   ], []);
 
   return (
-    <div className={cn('relative bg-charcoal-4-80 p-2 pl-3', s.textArea, className)}>
+    <div className={cn('relative bg-charcoal-4-80 p-2', s.textArea, className)}>
       {replyToMessage && replyMessageMarkup && (
         <div className='flex justify-between mb-3 items-center'>
           <div className={s.replyHeader}>
@@ -427,21 +638,43 @@ const UserTextArea: FC<Props> = ({ className }) => {
         </div>
       )}
       <div className='flex items-end'>
+        <button
+          onClick={toggleToolbar}
+          className='p-1 text-charcoal-1 -ml-1 mr-0.5 rounded-full hover:bg-charcoal-3-20 leading-none hover:text-primary'
+        >
+          <RTF className='w-6 h-6' />
+        </button>
         <div className='rounded-2xl bg-near-black flex-grow'>
-          <CustomToolbar onEmojiSelected={insertEmoji} />
-          {editorLoaded && (
-            <Editor
-              className={cn('flex-grow', { 'text-red': isMuted })}
-              forwardedRef={editorRef}
-              id='editor'
-              preserveWhitespace
-              value={message}
-              theme='snow'
-              formats={formats}
-              modules={modules}
-              onChange={updateMessage}
-              placeholder={placeholder} />
+          {(editorLoaded && editorRef.current?.editor) && (
+            <CustomToolbar quill={editorRef.current.editor} className={cn({
+              hidden: !toolbarEnabled,
+            })} />
           )}
+          <div className='flex'>
+            {editorLoaded && (
+              <Editor
+                className={cn('flex-grow', { 'text-red': isMuted })}
+                forwardedRef={editorRef}
+                id='editor'
+                preserveWhitespace
+                value={message}
+                theme='snow'
+                formats={formats}
+                modules={modules}
+                onChange={updateMessage}
+                placeholder={placeholder} />
+            )}
+            <div className='px-1 flex items-center'>
+              <ToolbarButton
+                onClick={insertMention}
+                className='text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 leading-none hover:text-primary'>
+                <AtSign className='w-6 h-6' />
+              </ToolbarButton>
+              <ToolbarButton>
+                <EmojiPicker className='w-6 h-6' onSelect={insertEmoji} />
+              </ToolbarButton>
+            </div>
+          </div>
         </div>
         {tooManyTags && (
           <div className={s.error}>

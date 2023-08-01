@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import { AppEvents, appBus as bus } from 'src/events';
+import { CMIX_INITIALIZATION_KEY } from 'src/constants';
 
 type AuthenticationContextType = {
   setSyncLoginService: (service: AccountSyncService) => void;
@@ -41,7 +42,7 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
   const [
     cmixPreviouslyInitialized,
     setCmixWasPreviouslyInitialized
-  ] = useLocalStorage('cmixPreviouslyInitialized', false);
+  ] = useLocalStorage(CMIX_INITIALIZATION_KEY, false);
 
   const setSyncLoginService = useCallback((service: AccountSyncService) => {
     setAccountSyncService(service);

@@ -144,7 +144,8 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                   </Button>
                 </div>
                 <div className='pt-3'>
-                  {t('Already have an account?')} <Trans t={t}>
+                  {t('Already have an account?')}
+                  <Trans t={t}>
                     <span
                       style={{
                         textDecoration: 'underline',
@@ -174,7 +175,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                       }}
                     >
                       {t('login')}
-                    </span> from a cloud provider
+                    </span> from a cloud provider.
                   </Trans>
                 </div>
               </>
