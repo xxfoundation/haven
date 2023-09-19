@@ -33,6 +33,7 @@ export type MessagesState = {
   byChannelId: Record<Message['channelId'], Record<MessageUuid, Message>>;
   sortedMessagesByChannelId: Record<Message['channelId'], Array<Message>>;
   commonChannelsByPubkey: Record<Message['pubkey'], ChannelId[]>;
+  dmTokens: Record<Message['pubkey'], Message['dmToken']>;
 };
 
 declare module 'src/store/types' {

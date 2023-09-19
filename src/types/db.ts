@@ -59,7 +59,7 @@ export type DBDirectMessage = {
 export type DBConversation = {
   pub_key: string;
   nickname?: string;
-  token: number;
+  // token: number; Removing this because it's bugged. Sometimes gets assigned to your own dm token.
   codeset_version: number;
   blocked: boolean;
 }

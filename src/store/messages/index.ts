@@ -9,7 +9,8 @@ const initialState: MessagesState = {
   contributorsByChannelId: {},
   byChannelId: {},
   sortedMessagesByChannelId: {},
-  commonChannelsByPubkey: {}
+  commonChannelsByPubkey: {},
+  dmTokens: {},
 };
 
 const contributorMapper = (message: Message): Contributor => pick(
@@ -46,7 +47,7 @@ const commonChannelsReducer = (state: MessagesState['commonChannelsByPubkey'], m
   }
 }
 
-const upsert = (state: MessagesState, message: Message) => {
+const messageReducer = (state: MessagesState, message: Message) => {
   const channelState = {
     ...state.byChannelId[message.channelId],
     [message.uuid]: {
@@ -60,6 +61,10 @@ const upsert = (state: MessagesState, message: Message) => {
     commonChannels: commonChannelsReducer(state.commonChannelsByPubkey, message),
     contributorsByChannelId: contributorsReducer(state.contributorsByChannelId, message),
     reactions: reactionsReducer(state.reactions, message),
+    dmTokens: {
+      ...state.dmTokens,
+      [message.pubkey]: state.dmTokens[message.pubkey] || message.dmToken,
+    },
     ...(message.type !== MessageType.Reaction && !message.hidden && {
         sortedMessagesByChannelId: {
           ...state.sortedMessagesByChannelId,
@@ -77,9 +82,9 @@ export const slice = createSlice({
   initialState,
   name: 'messages',
   reducers: {
-    upsert: (state: MessagesState, { payload }: PayloadAction<Message>) => upsert(state, payload),
+    upsert: (state: MessagesState, { payload }: PayloadAction<Message>) => messageReducer(state, payload),
     upsertMany: (state: MessagesState, { payload: messages }: PayloadAction<Message[]>) =>
-      messages.reduce(upsert, state),
+      messages.reduce(messageReducer, state),
     delete: (state: MessagesState, { payload: messageId }: PayloadAction<MessageId>): MessagesState => {
       let found: Message | undefined;
       Object.values(state.byChannelId)

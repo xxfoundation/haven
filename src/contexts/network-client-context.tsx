@@ -3,7 +3,6 @@ import { MessageType, PrivacyLevel, type Message, type WithChildren } from 'src/
 
 import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
 
-import _ from 'lodash';
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
@@ -21,7 +20,7 @@ import * as channels from 'src/store/channels'
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import * as dms from 'src/store/dms';
-import { ChannelId, Channel } from 'src/store/channels/types';
+import { Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
@@ -156,7 +155,7 @@ export type NetworkContext = {
   pinMessage: (message: MessageId, unpin?: boolean) => Promise<void>;
   logout: (password: string) => boolean;
   channelManager?: ChannelManager;
-  fetchChannels: () => Promise<Channel[]>;
+  fetchChannels: () => Promise<void>;
 };
 
 export const NetworkClientContext = React.createContext<NetworkContext>({
@@ -377,23 +376,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [cipher, getCodeNameAndColor]);
 
-  const fetchRepliedToMessages = useCallback(async (messagesWhoseRepliesToFetch: Message[]) => {
-    if (db) {
-      const messagesParentIds = messagesWhoseRepliesToFetch
-        .map(e => e.repliedTo)
-        .filter((repliedTo): repliedTo is string => typeof repliedTo === 'string');
-
-      const relatedMessages =
-        (await db.table<DBMessage>('messages')
-          .where('message_id')
-          .anyOf(messagesParentIds)
-          .filter(m => !m.hidden)
-          .toArray()) || [];
-
-      dispatch(messages.actions.upsertMany(relatedMessages.map(dbMessageMapper)));
-    }
-  }, [db, dbMessageMapper, dispatch]);
-
   const handleMessageEvent = useCallback(async ({ uuid }: MessageReceivedEvent) => {
     if (db && cipher?.decrypt) {
       const receivedMessage = await db.table<DBMessage>('messages').get(uuid);
@@ -437,8 +419,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }));
 
     channelList.forEach((channel) => dispatch(channels.actions.upsert(channel)))
-
-    return channelList;
   }, [
     channelManager,
     db,
@@ -447,62 +427,18 @@ export const NetworkProvider: FC<WithChildren> = props => {
     utils
   ]);
 
-  const fetchMessages = useCallback(async (channelIds: ChannelId[]) => {
-    const groupedMessages = await Promise.all(
-      channelIds.map(async chId => {
-        if (!db) {
-          throw new Error('Dexie initialization error');
-        }
-
-        return db.table<DBMessage>('messages')
-          .orderBy('timestamp')
-          .reverse()
-          .filter(m =>  !m.hidden && m.channel_id === chId && m.type === 1)
-          .limit(BATCH_COUNT)
-          .toArray();
-      })
-    );
-
-    let msgs: DBMessage[] = [];
-
-    groupedMessages.forEach(g => {
-      msgs = [...msgs, ..._.reverse(g)];
-    });
+  const fetchMessages = useCallback(async () => {
+    assert(db, 'DB required to fetch messages');
+    const msgs: DBMessage[] = await db.table<DBMessage>('messages')
+      .orderBy('timestamp')
+      .reverse()
+      .filter(m =>  !m.hidden)
+      .toArray();
 
     const mappedMessages = msgs.map(dbMessageMapper);
 
     dispatch(messages.actions.upsertMany(mappedMessages));
-
-    return mappedMessages;
   }, [db, dbMessageMapper, dispatch]);
-
-  const fetchReactions = useCallback(async () => {
-    if (currentChannel?.id !== undefined) {
-      const channelReactions = await db?.table<DBMessage>('messages')
-        .where('channel_id')
-        .equals(currentChannel?.id)
-        .filter((e) =>  !e.hidden && e.type === MessageType.Reaction)
-        .toArray() ?? [];
-        
-      const reactions = channelReactions?.filter((r) => r.parent_message_id !== null)
-        .map(dbMessageMapper);
-
-      dispatch(messages.actions.upsertMany(reactions));
-    }
-  }, [currentChannel?.id, db, dbMessageMapper, dispatch]);
-
-  const fetchPinnedMessages = useCallback(async (): Promise<void> => {
-    if (db && currentChannel) {
-      const fetchedPinnedMessages = (await db.table<DBMessage>('messages')
-        .where('channel_id')
-        .equals(currentChannel.id)
-        .filter((m) => m.pinned && !m.hidden)
-        .toArray())
-        .map(dbMessageMapper);
-      
-      dispatch(messages.actions.upsertMany(fetchedPinnedMessages));
-    }
-  }, [currentChannel, db, dbMessageMapper, dispatch]);
 
   const fetchInitialData = useCallback(async () => {
     try {
@@ -513,18 +449,15 @@ export const NetworkProvider: FC<WithChildren> = props => {
       return;
     }
     fetchIdentity();
-    const fetchedChannels = await fetchChannels();
-    const channelMessages = await fetchMessages(fetchedChannels.map((ch) => ch.id));
-    fetchRepliedToMessages(channelMessages);
-
+    await fetchChannels();
+    await fetchMessages();
+    appBus.emit(AppEvents.MESSAGES_FETCHED, true);
   }, [
     channelManager,
-    cmix,
-    db,
+    cmix, db,
     fetchChannels,
     fetchIdentity,
-    fetchMessages,
-    fetchRepliedToMessages
+    fetchMessages
   ]);
 
   useEffect(() => {
@@ -538,13 +471,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
       fetchInitialData();
     }
   }, [db, cmix, channelManager, fetchInitialData]);
-
-  useEffect(() => {
-    if (currentChannel?.id !== undefined) {
-      fetchPinnedMessages();
-      fetchReactions();
-    }
-  }, [currentChannel?.id, fetchPinnedMessages, fetchReactions]);
 
   const loadChannelManager = useCallback(async (tag: string) => {
     if (

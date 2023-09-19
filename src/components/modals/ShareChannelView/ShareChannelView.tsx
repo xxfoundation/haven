@@ -110,7 +110,7 @@ const ShareChannelView: FC = () => {
             <CopyButton
               copied={passwordCopied}
               onClick={() => {
-                copyPassword(credentials.url);
+                copyPassword(credentials.password);
               }} />
           </div>
         </div>
