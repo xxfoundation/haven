@@ -5,6 +5,9 @@ import assert from 'assert';
 
 import { useRemoteKV } from 'src/contexts/remote-kv-context';
 import { JsonDecoder } from 'ts.data.json';
+import { EventEmitter } from 'events';
+
+const bus = new EventEmitter();
 
 const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultValue?: T) => {
   const [value, setValue] = useState<T | undefined>(defaultValue);
@@ -34,9 +37,25 @@ const useRemotelySynchedValue = <T,>(key: string, decoder: Decoder<T>, defaultVa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, kv]);
 
+  // Adding this workaround because of the bug where setting the first time
+  // is bugged and doesnt trigger onChange
+  useEffect(() => {
+    const listener = (k: string, v: T) => {
+      if (k === key) {
+        setValue(v);
+      }
+    };
+    bus.addListener('set', listener);
+
+    return () => {
+      bus.removeListener('set', listener);
+    }
+  }, [key])
+
   const set = useCallback(async (v: T) => {
     assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);
     await kv.set(key, JSON.stringify(v));
+    bus.emit('set', key, v);
   }, [key, kv])
 
   return {

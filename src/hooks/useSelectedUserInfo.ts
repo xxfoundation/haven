@@ -6,6 +6,7 @@ import { useDb } from '@contexts/db-context';
 import { useAppSelector } from 'src/store/hooks';
 import { byTimestamp } from 'src/store/utils';
 import { useUtils } from '@contexts/utils-context';
+import { dmTokens as dmTokensSelector } from 'src/store/messages/selectors';
 
 type UserInfo = {
   codeset: number,
@@ -30,6 +31,7 @@ const useSelectedUserInfo = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [commonChannels, setCommonChannels] = useState<CommonChannel[]>();
   const { selectedUserPubkey } = useAppSelector((state) => state.app);
+  const dmTokens = useAppSelector(dmTokensSelector);
 
   useEffect(() => {
     setUserInfo(null);
@@ -97,7 +99,7 @@ const useSelectedUserInfo = () => {
           codeset: conversation?.codeset_version,
           codename,
           color,
-          dmToken: conversation.token,
+          dmToken: dmTokens[conversation.pub_key],
           pubkey: conversation.pub_key,
           nickname: conversation.nickname
         });
@@ -107,7 +109,8 @@ const useSelectedUserInfo = () => {
     db,
     dmDb,
     getCodeNameAndColor,
-    selectedUserPubkey
+    selectedUserPubkey,
+    dmTokens
   ]);
 
 

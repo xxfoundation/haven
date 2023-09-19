@@ -10,6 +10,7 @@ import { decoder, HTMLToPlaintext, inflate } from '@utils/index';
 import { AppEvents, DMEvents, useAppEventValue, useDmListener } from 'src/events';
 import { useDb } from '@contexts/db-context';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import * as messages from 'src/store/messages';
 import * as dms from 'src/store/dms';
 import * as app from 'src/store/app';
 import * as identity from 'src/store/identity';
@@ -19,17 +20,28 @@ import { onDmEvent, appBus as bus } from 'src/events';
 const DMClientContext = createContext<{ cipher?: DatabaseCipher, client?: DMClient }>({});
 
 const makeConversationMapper = (
-  codenameConverter?: XXDKContext['getCodeNameAndColor']
-) => (conversation: DBConversation): Conversation => ({
-  codename: '',
-  color: 'var(--text-primary)',
-  ...(codenameConverter && codenameConverter(conversation.pub_key, conversation.codeset_version || 0)),
-  pubkey: conversation.pub_key,
-  token: conversation.token,
-  blocked: conversation.blocked,
-  codeset: conversation.codeset_version,
-  nickname: conversation.nickname,
+  dmTokens: Record<string, number | undefined>,
+  codenameConverter?: XXDKContext['getCodeNameAndColor'],
+) => (conversation: DBConversation): Conversation => {
+  // We get the dm tokens from messages because the dmToken on
+  // conversations cannot be trusted.
+  const token = dmTokens[conversation.pub_key];
+
+  if (token === undefined) {
+    throw new Error('DM Token not found. Must load messages first.');
+  }
+
+  return ({
+    codename: '',
+    color: 'var(--text-primary)',
+    ...(codenameConverter && codenameConverter(conversation.pub_key, conversation.codeset_version || 0)),
+    pubkey: conversation.pub_key,
+    token,
+    blocked: conversation.blocked,
+    codeset: conversation.codeset_version,
+    nickname: conversation.nickname,
 });
+}
 
 const makeMessageMapper = (
   codenameConverter: XXDKContext['getCodeNameAndColor'],
@@ -38,7 +50,7 @@ const makeMessageMapper = (
   nickname?: string
 ) => (message: DBDirectMessage, conversation: Conversation): Message => {
   const inflated = message.type === MessageType.Reaction
-    ? message.text
+    ? cipher.decrypt(message.text)
     : inflate(cipher.decrypt(message.text));
   const plaintext = HTMLToPlaintext(inflated);
 
@@ -74,8 +86,9 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
   const [databaseCipher, setDatabaseCipher] = useState<DatabaseCipher>();
   const { getCodeNameAndColor, utils } = useUtils();
   const { NewDMClientWithIndexedDb } = utils;
+  const dmTokens = useAppSelector(messages.selectors.dmTokens);
   const [dmsDatabaseName, setDmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
-  const conversationMapper = useMemo(() => makeConversationMapper(getCodeNameAndColor), [getCodeNameAndColor])
+  const conversationMapper = useMemo(() => makeConversationMapper(dmTokens, getCodeNameAndColor), [dmTokens, getCodeNameAndColor])
   const userIdentity = useAppSelector(identity.selectors.identity);
   const messageMapper = useMemo(
     () => databaseCipher
@@ -156,11 +169,20 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
       const cipher = createDatabaseCipher(cmix, decryptedPassword);
       createDMClient(cmix, cipher, privateIdentity);
     }
-  }, [channelManager, cmix, createDMClient, createDatabaseCipher, decryptedPassword, rawPassword, utils])
+  }, [
+    channelManager,
+    cmix,
+    createDMClient,
+    createDatabaseCipher,
+    decryptedPassword,
+    rawPassword,
+    utils
+  ])
 
 
+  const messagesFetched = useAppEventValue(AppEvents.MESSAGES_FETCHED);
   useEffect(() => {
-    if (dmsDb && conversationMapper) {
+    if (dmsDb && conversationMapper && messagesFetched) {
       dmsDb.table<DBConversation>('conversations')
         .toArray()
         .then((convos) => {
@@ -169,14 +191,14 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
           )
         })
     }
-  }, [conversationMapper, dispatch, dmsDb, currentConversationId]);
+  }, [messagesFetched, conversationMapper, dispatch, dmsDb, currentConversationId]);
 
   useEffect(() => {
     if (dmsDb && messageMapper && conversations) {
         dmsDb.table<DBDirectMessage>('messages')
         .toArray()
-        .then((messages) => {
-          const mapped = messages.reduce((acc, msg) => {
+        .then((directMessages) => {
+          const mapped = directMessages.reduce((acc, msg) => {
             const convo = conversations.find((c) => c.pubkey === msg.conversation_pub_key);
             if (convo) {
               acc.push(messageMapper(msg, convo));
