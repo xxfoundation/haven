@@ -25,10 +25,11 @@ const makeConversationMapper = (
 ) => (conversation: DBConversation): Conversation => {
   // We get the dm tokens from messages because the dmToken on
   // conversations cannot be trusted.
-  const token = dmTokens[conversation.pub_key];
+  let token = dmTokens[conversation.pub_key];
 
   if (token === undefined) {
-    throw new Error('DM Token not found. Must load messages first.');
+    token = conversation.token;
+        // throw new Error('DM Token not found for ' + conversation.pub_key + '. Must load messages first.');
   }
 
   return ({
