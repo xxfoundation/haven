@@ -8036,7 +8036,7 @@ react-devtools-core@^4.27.7:
     shell-quote "^1.6.1"
     ws "^7"
 
-"react-dom@^16 || ^17 || ^18", "react-dom@^16.8 || ^17.0 || ^18.0", "react-dom@^16.8.0  || ^17.0.0 || ^18.0.0", "react-dom@^16.8.0  || >=17.0.0 || >=18.0.0", "react-dom@^16.8.0 || ^17.0.0 || ^18.0.0", "react-dom@^17.0.2 || ^18.0.0-0", react-dom@^18.2.0, react-dom@>=16, react-dom@>=16.0.0, react-dom@>=16.13, react-dom@>=16.14.0, react-dom@>=16.8.0, react-dom@18.2.0:
+"react-dom@^16 || ^17 || ^18", "react-dom@^16.8 || ^17.0 || ^18.0", "react-dom@^16.8.0  || ^17.0.0 || ^18.0.0", "react-dom@^16.8.0  || >=17.0.0 || >=18.0.0", "react-dom@^16.8.0 || ^17.0.0 || ^18.0.0", "react-dom@^17.0.2 || ^18.0.0-0", react-dom@^18.2.0, react-dom@>=16, react-dom@>=16.0.0, react-dom@>=16.13, react-dom@>=16.14.0, react-dom@>=16.8.0, react-dom@>=18.0, react-dom@18.2.0:
   version "18.2.0"
   resolved "https://registry.npmjs.org/react-dom/-/react-dom-18.2.0.tgz"
   integrity sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==
@@ -8044,7 +8044,7 @@ react-devtools-core@^4.27.7:
     loose-envify "^1.1.0"
     scheduler "^0.23.0"
 
-react-dom@>=18.0, react-dom@16.8.x:
+react-dom@16.8.x:
   version "16.8.6"
   resolved "https://registry.npmjs.org/react-dom/-/react-dom-16.8.6.tgz"
   integrity sha512-1nL7PIq9LTL3fthPqwkvr2zY7phIPjYrT0jp4HjyEQrEROnw4dG41VVwi/wfoCneoleqrNX7iAD+pXebJZwrwA==
@@ -8114,7 +8114,7 @@ react-multiline-clamp@^2.0.0:
   resolved "https://registry.npmjs.org/react-multiline-clamp/-/react-multiline-clamp-2.0.0.tgz"
   integrity sha512-iPm3HxFD6LO63lE5ZnThiqs+6A3c+LW3WbsEM0oa0iNTa0qN4SKx/LK/6ZToSmXundEcQXBFVNzKDvgmExawTw==
 
-react-native@*, react-native@>=0.58, react-native@>=0.64:
+react-native@*, react-native@>=0.58:
   version "0.73.4"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.73.4.tgz"
   integrity sha512-VtS+Yr6OOTIuJGDECIYWzNU8QpJjASQYvMtfa/Hvm/2/h5GdB6W9H9TOmh13x07Lj4AOhNMx3XSsz6TdrO4jIg==
@@ -8253,14 +8253,14 @@ react-zdog@>=1.0:
     react-dom "^18.2.0"
     resize-observer-polyfill "^1.5.1"
 
-"react@^16 || ^17 || ^18", "react@^16.0 || ^17.0.0 || ^18.0.0", "react@^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.8 || ^17 || ^18", "react@^16.8 || ^17.0 || ^18.0", "react@^16.8.0  || ^17.0.0 || ^18.0.0", "react@^16.8.0  || >=17.0.0 || >=18.0.0", "react@^16.8.0 || ^17.0.0 || ^18.0.0", "react@^16.9.0 || ^17.0.0 || ^18", "react@^17.0.2 || ^18.0.0-0", react@^18.2.0, "react@>= 16.8.0", "react@>= 16.8.0 || 17.x.x || ^18.0.0-0", react@>=16, react@>=16.0.0, react@>=16.13, react@>=16.13.1, react@>=16.14.0, react@>=16.3, react@>=16.8, react@>=16.8.0, react@18.2.0:
+"react@^16 || ^17 || ^18", "react@^16.0 || ^17.0.0 || ^18.0.0", "react@^16.0.0 || ^17.0.0 || ^18.0.0", "react@^16.11.0  || >=17.0.0 || >=18.0.0", "react@^16.8 || ^17 || ^18", "react@^16.8 || ^17.0 || ^18.0", "react@^16.8.0  || ^17.0.0 || ^18.0.0", "react@^16.8.0  || >=17.0.0 || >=18.0.0", "react@^16.8.0 || ^17.0.0 || ^18.0.0", "react@^16.9.0 || ^17.0.0 || ^18", "react@^17.0.2 || ^18.0.0-0", react@^18.0.0, react@^18.2.0, "react@>= 16.8.0", "react@>= 16.8.0 || 17.x.x || ^18.0.0-0", react@>=16, react@>=16.0.0, react@>=16.13, react@>=16.13.1, react@>=16.14.0, react@>=16.3, react@>=16.8, react@>=16.8.0, react@>=17.0, react@>=18.0, react@18.2.0:
   version "18.2.0"
   resolved "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
   dependencies:
     loose-envify "^1.1.0"
 
-react@^16.0.0, "react@^16.11.0  || >=17.0.0 || >=18.0.0", react@^18.0.0, react@>=17.0, react@>=18.0, react@16.8.x:
+react@^16.0.0, react@16.8.x:
   version "16.8.6"
   resolved "https://registry.npmjs.org/react/-/react-16.8.6.tgz"
   integrity sha512-pC0uMkhLaHm11ZSJULfOBqV4tIZkx87ZLvbbQYunNixAAvjnC+snJCg0XQXn9VIsttVsbZP/H/ewzgsd5fxKXw==
@@ -9898,10 +9898,10 @@ xtend@^4.0.0, xtend@^4.0.1, xtend@^4.0.2, xtend@~4.0.1:
   resolved "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
 
-xxdk-wasm@^0.3.16:
-  version "0.3.16"
-  resolved "https://registry.npmjs.org/xxdk-wasm/-/xxdk-wasm-0.3.16.tgz"
-  integrity sha512-sKc1kmu3ddI5sSa2vhTRzJlQ8YhFVcCJCqWsoUJS53vkYqqeAgh9G9z37oZoN9HumZCwB/XzchYOxjckFM1+/A==
+xxdk-wasm@^0.3.18:
+  version "0.3.18"
+  resolved "https://registry.npmjs.org/xxdk-wasm/-/xxdk-wasm-0.3.18.tgz"
+  integrity sha512-rG4vWQpxENncvw74Xu4vcZGM+Mqa2hbMFri7l2ZysM8LJ0YKfrPH31nYko3gxTJQ4g4kFWuvlKRZQRXucMBjZw==
   dependencies:
     ts.data.json "^2.2.0"
 
