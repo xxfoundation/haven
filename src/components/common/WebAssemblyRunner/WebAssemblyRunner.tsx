@@ -34,7 +34,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       // the wasm resources, but you can host them locally by symlinking your public directory:
       //   cd public && ln -s ../node_modules/xxdk-wasm xxdk-wasm && cd ..
       // Then override with this function here:
-      setXXDKBasePath(window!.location.href + 'xxdk-wasm');
+      //setXXDKBasePath(window!.location.href + 'xxdk-wasm');
       // NOTE: This will not work in chrome but will in firefox
       //setXXDKBasePath("https://elixxir-bins.s3-us-west-1.amazonaws.com/wasm/xxdk-wasm-0.3.16");
       InitXXDK().then(async(result) => {
