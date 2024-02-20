@@ -1,6 +1,6 @@
 import type { Channel } from 'src/store/channels/types';
 
-import React, { FC, HTMLAttributes, useCallback, useMemo, useState } from 'react';
+import React, { FC, HTMLAttributes, SVGProps, useCallback, useMemo, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,7 +8,6 @@ import { faStar } from '@fortawesome/free-solid-svg-icons';
 import assert from 'assert';
 
 import Ellipsis from '@components/icons/Ellipsis';
-// import Edit from '@components/icons/Edit';
 import { useUI } from '@contexts/ui-context';
 import { useAppSelector } from 'src/store/hooks';
 
@@ -37,6 +36,7 @@ import Keys from '@components/icons/Keys';
 import LockOpen from '@components/icons/LockOpen';
 import { useNetworkClient } from '@contexts/network-client-context';
 import { useUtils } from '@contexts/utils-context';
+import classNames from 'classnames';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
@@ -81,7 +81,8 @@ const ChannelHeader: FC<Props> = ({
   const { openModal, setModalView, setRightSidebarView } = useUI();
   const pinnedMessages = useAppSelector(messages.selectors.currentPinnedMessages);
   const channelNotificationLevel = useAppSelector(channels.selectors.notificationLevel(currentChannel?.id));
-  
+  const channelNotificationsEnabled = channelNotificationLevel === ChannelNotificationLevel.NotifyPing;
+
   const openShareModal = useCallback(() => {
     if (currentChannel) {
       setModalView('SHARE_CHANNEL');
@@ -130,7 +131,7 @@ const ChannelHeader: FC<Props> = ({
         <HeaderButton
           active={!!isChannelFavorited}
           onClick={() => channelId && toggleFavorite(channelId)}>
-          <FontAwesomeIcon className='' icon={faStar} />
+          <FontAwesomeIcon title='Favorite the channel' className='w-5' icon={faStar} />
         </HeaderButton>
         {currentChannel && (
           <>
@@ -162,17 +163,19 @@ const ChannelHeader: FC<Props> = ({
           {currentChannel && (
           <>
             <DropdownItem
-              onClick={toggleChannelNotifications} icon={NotificationsIcon}>
-              {channelNotificationLevel === ChannelNotificationLevel.NotifyPing ? t('Disable Notifications') : t('Enable Notifications')}
+              onClick={toggleChannelNotifications}
+              icon={
+                (props: SVGProps<SVGSVGElement>) =>
+                  <NotificationsIcon {...props} className={classNames(props.className, {
+                    'text-primary': channelNotificationsEnabled,
+                    'text-charcoal-1': !channelNotificationsEnabled
+                  })} />
+              }>
+              {channelNotificationsEnabled ? t('Disable Notifications') : t('Enable Notifications')}
             </DropdownItem>
             <DropdownItem onClick={() => { setRightSidebarView('space-details'); }}icon={Notice}>
               {t('Space Details')}
             </DropdownItem>
-            {/* {currentChannel.isAdmin && (
-              <DropdownItem icon={Edit}>
-                {t('Edit Space')}
-              </DropdownItem>
-            )} */}
             <DropdownItem
               onClick={openShareModal}
               icon={Share}>
