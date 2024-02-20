@@ -143,11 +143,11 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
       return dbCipher;
   }, [utils]);
 
-  const createDMClient = useCallback((cmix: CMix, cipher: DatabaseCipher, privateIdentity: Uint8Array) => {
+  const createDMClient = useCallback(async (cmix: CMix, cipher: DatabaseCipher, privateIdentity: Uint8Array) => {
     assert(privateIdentity, 'Private identity required for dmClient');
     
     try {
-      const workerPath = dmIndexedDbWorkerPath();
+      const workerPath = (await dmIndexedDbWorkerPath()).toString();
       console.log("DMWORKERPATH: " + workerPath);
       const notifications = utils.LoadNotificationsDummy(cmix.GetID());
       NewDMClientWithIndexedDb(
