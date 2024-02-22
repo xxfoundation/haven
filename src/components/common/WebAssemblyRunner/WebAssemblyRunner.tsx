@@ -30,13 +30,13 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (!utilsLoaded) {
-      // By default the library uses an s3 bucket endpoint to download
-      // the wasm resources, but you can host them locally by symlinking your public directory:
+      // By default the library uses an s3 bucket endpoint to download at
+      // https://elixxir-bins.s3-us-west-1.amazonaws.com/wasm/xxdk-wasm-[semver]
+      // the wasm resources, but you can host them locally by
+      // symlinking your public directory:
       //   cd public && ln -s ../node_modules/xxdk-wasm xxdk-wasm && cd ..
       // Then override with this function here:
       //setXXDKBasePath(window!.location.href + 'xxdk-wasm');
-      // NOTE: This will not work in chrome but will in firefox
-      //setXXDKBasePath("https://elixxir-bins.s3-us-west-1.amazonaws.com/wasm/xxdk-wasm-0.3.16");
       InitXXDK().then(async(result) => {
         setUtils(result);
         setUtilsLoaded(true);
