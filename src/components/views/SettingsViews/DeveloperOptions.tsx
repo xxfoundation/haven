@@ -19,7 +19,7 @@ const DeveloperOptionsView = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const printCurrentFiles = useCallback(
-    async (folder = 'speakeasyapp') => {
+    async (folder = 'havenapp') => {
       setDeleteLoading(true);
       try {
         await remoteStore?.ReadDir(folder)

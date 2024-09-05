@@ -14,7 +14,7 @@ const NotificationBanner = () => {
   return showBanner ? (
     <div className={cn(s.root, 'drop-shadow-xl absolute bg-near-black flex justify-between z-10')}>
       <span>
-        {t('Speakeasy uses desktop notifications.')}
+        {t('Haven uses desktop notifications.')}
         &nbsp;
         <button 
           aria-label={t('Enable desktop notifications')}

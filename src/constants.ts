@@ -1,4 +1,4 @@
-export const STATE_PATH = 'speakeasyapp';
+export const STATE_PATH = 'havenapp';
 export const CHANNELS_STORAGE_TAG = 'ELIXXIR_USERS_TAGS';
 export const DMS_DATABASE_NAME = 'DMS_DATABASE_NAME';
 export const ACCOUNT_SYNC = 'ACCOUNT_SYNC';

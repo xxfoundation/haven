@@ -50,7 +50,7 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [managerLoaded, setManagerLoaded] = useState(false);
 
   const initDb = useCallback((tag: string) => {
-    const instance = new Dexie(`${tag}_speakeasy`);
+    const instance = new Dexie(`${tag}_haven`);
     return instance.open().then(setDb);
   }, []);
 

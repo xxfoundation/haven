@@ -5,7 +5,7 @@ import cn from 'classnames';
 import { Button, Spinner } from 'src/components/common';
 
 import {
-  NormalSpeakeasy,
+  NormalHaven,
   OpenSource,
   NormalHash,
   RoadMap,
@@ -50,7 +50,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
     <div className={cn('', s.root)}>
       <div className={cn('w-full flex flex-col', s.wrapper)}>
         <div className={cn(s.header)}>
-          <NormalSpeakeasy data-testid='speakeasy-logo' />
+          <NormalHaven data-testid='speakeasy-logo' />
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
@@ -69,7 +69,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               <span className={cn(s.normal)}>
                 Surveillance free. Censorship proof.
                 <span className={cn(s.highlighted)}>
-                  Your speakeasy is yours.
+                  Your Haven chats are yours.
                 </span>
               </span>
             </Trans>
@@ -84,7 +84,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                   className='mb-8 text'
                   style={{ color: '#5B5D62', lineHeight: '17px' }}
                 >
-                  {t('Enter a password to secure your sovereign speakeasy identity')}
+                  {t('Enter a password to secure your sovereign Haven identity')}
                 </p>
                 <Input
                   data-testid='registration-password-input'
@@ -209,7 +209,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.footer)}>
           <a
-            href='https://www.speakeasy.tech/open-source/'
+            href='https://git.xx.network/elixxir/speakeasy-web'
             target='_blank'
             rel='noreferrer'
             className={cn('flex flex-col col-span-4', s.perkCard)}
@@ -223,7 +223,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             </span>
           </a>
           <a
-            href='https://www.speakeasy.tech/how-it-works/'
+            href='https://learn.xx.network/'
             target='_blank'
             rel='noreferrer'
             className={cn('flex flex-col col-span-4', s.perkCard)}
@@ -236,7 +236,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               {t('Powered by the first decentralized mixnet-blockchain')}
             </span>
           </a>
-          <a
+{/*           <a
             href='https://www.speakeasy.tech/roadmap/'
             target='_blank'
             rel='noreferrer'
@@ -250,14 +250,14 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               {t('Building to the future')}
             </span>
           </a>
-        </div>
+ */}        </div>
       </div>
       <div className={cn(s.links)}>
         <a href='https://xx.network/' target='_blank' rel='noreferrer'>
           {t('xx network')}
         </a>
         <a
-          href='https://www.speakeasy.tech/privacy-policy/'
+          href='https://xx.network/privacy-policy/'
           target='_blank'
           rel='noreferrer'
         >
@@ -265,7 +265,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
         </a>
 
         <a
-          href='https://www.speakeasy.tech/terms-of-use/'
+          href='https://xx.network/terms-of-use/'
           target='_blank'
           rel='noreferrer'
         >
@@ -275,15 +275,12 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
         <a href='https://xxfoundation.org/' target='_blank' rel='noreferrer'>
           {t('xx foundation')}
         </a>
-        <a href='https://elixxir.io/' target='_blank' rel='noreferrer'>
-          {t('xx messenger')}
-        </a>
         <a
-          href='https://twitter.com/speakeasy_tech'
+          href='https://x.com/xx_network'
           target='_blank'
           rel='noreferrer'
         >
-          Twitter
+          X
         </a>
       </div>
     </div>

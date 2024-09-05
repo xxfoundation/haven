@@ -22,7 +22,7 @@ export const envIsDev = () => {
 }
 
 export const exportDataToFile = (data: Uint8Array) => {
-  const filename = 'speakeasyIdentity.json';
+  const filename = 'HavenIdentity.json';
 
   const file = new Blob([data], { type: 'text/plain' });
   const a = document.createElement('a');
