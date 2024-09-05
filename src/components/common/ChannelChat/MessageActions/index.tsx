@@ -6,8 +6,7 @@ import { Delete, Reply } from 'src/components/icons';
 import { Mute, Pin } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 
-import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import * as app from 'src/store/app';
+import {  useAppSelector } from 'src/store/hooks';
 import Envelope from '@components/icons/Envelope';
 import { userIsMuted as userIsMutedSelector } from 'src/store/selectors';
 import * as dms from 'src/store/dms';
@@ -24,6 +23,7 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   isPinned: boolean;
   dmsEnabled: boolean;
   pubkey: string;
+  onDmClicked: () => void;
   onReplyClicked: () => void;
   onReactToMessage: (emoji: string) => void;
   onDeleteMessage: () => void;
@@ -46,6 +46,7 @@ const MessageActions: FC<Props> = ({
   isOwn,
   isPinned,
   onDeleteMessage,
+  onDmClicked,
   onMuteUser,
   onPinMessage,
   onReactToMessage,
@@ -54,10 +55,9 @@ const MessageActions: FC<Props> = ({
   ...props
 }) => {
   const { toggleBlocked } = useDmClient();
-  const dispatch = useAppDispatch();
   const isDms = !!useAppSelector(dms.selectors.currentConversation);
   const userIsMuted = useAppSelector(userIsMutedSelector);
-  const { closeModal, openModal, setLeftSidebarView: setSidebarView, setModalView } = useUI();
+  const { closeModal, openModal, setModalView } = useUI();
   const isBlocked = useAppSelector(dms.selectors.isBlocked(pubkey));
 
   const [loading, setLoading] = useState(false);
@@ -71,11 +71,6 @@ const MessageActions: FC<Props> = ({
     }
     setLoading(false)
   }, [onPinMessage]);
-
-  const dmUser = useCallback(() => {
-    setSidebarView('dms');
-    dispatch(app.actions.selectUser(pubkey));
-  }, [dispatch, pubkey, setSidebarView])
 
   useEffect(() => {
     if (loading) {
@@ -92,7 +87,7 @@ const MessageActions: FC<Props> = ({
     <div {...props} className={cn(props.className, 'bg-near-black-80 p-3 backdrop-blur-md space-x-4 rounded-lg z-10')}>
       <>
         {dmsEnabled && (
-          <MessageAction onClick={dmUser}>
+          <MessageAction onClick={onDmClicked}>
             <Envelope />
           </MessageAction>
         )}

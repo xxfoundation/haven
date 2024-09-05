@@ -10,7 +10,7 @@ import { AppEvents, ChannelEvents, appBus, awaitChannelEvent, onChannelEvent, us
 import { HTMLToPlaintext, decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { useUtils } from 'src/contexts/utils-context';
-import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, CHANNELS_WORKER_JS_PATH, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
+import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
 
 import { useDb } from './db-context';
 import useCmix, { NetworkStatus } from 'src/hooks/useCmix';
@@ -25,6 +25,8 @@ import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
 import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
 import useChannelsStorageTag from 'src/hooks/useChannelsStorageTag';
+
+import { channelsIndexedDbWorkerPath } from 'xxdk-wasm';
 
 const BATCH_COUNT = 1000;
 
@@ -482,7 +484,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       const loadedChannelsManager = await utils
         .LoadChannelsManagerWithIndexedDb(
           cmixId,
-          '/integrations/assets/channelsIndexedDbWorker.js',
+          (await channelsIndexedDbWorkerPath()).toString(),
           tag,
           new Uint8Array(),
           notifications.GetID(),
@@ -546,10 +548,12 @@ export const NetworkProvider: FC<WithChildren> = props => {
       utils &&
       utils.NewChannelsManagerWithIndexedDb
     ) {
+      const workerPath = (await channelsIndexedDbWorkerPath()).toString();
+      console.log("WORKERPATHCHANNELS: " + workerPath)
       const notifications = utils.LoadNotificationsDummy(cmixId);
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
         cmixId,
-        CHANNELS_WORKER_JS_PATH,
+        workerPath,
         privIdentity,
         new Uint8Array(),
         notifications.GetID(),

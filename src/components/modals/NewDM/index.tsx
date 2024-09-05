@@ -55,6 +55,7 @@ const NewDM = () => {
         }
         {filteredContributors.filter((c) => c.pubkey !== user?.pubkey).map((contributor) => (
           <Button
+            key={contributor.pubkey}
             onClick={() => createConversation({
               ...contributor,
               token: contributor.dmToken ?? -1,

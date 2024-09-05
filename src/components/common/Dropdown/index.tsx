@@ -5,7 +5,6 @@ import cn from 'classnames';
 
 import s from './Dropdown.module.scss';
 
-
 type CTX = { isOpen: boolean, close: () => void };
 const DropdownContext = createContext<CTX>({} as CTX);
 

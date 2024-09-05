@@ -20,6 +20,9 @@ import { AppEvents, awaitAppEvent } from 'src/events';
 
 import classes from './MessageContainer.module.scss';
 import useAsync from 'src/hooks/useAsync';
+import { useUI } from '@contexts/ui-context';
+import useDmClient from 'src/hooks/useDmClient';
+import assert from 'assert';
 
 type Props = {
   className?: string;
@@ -32,6 +35,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   const { t } = useTranslation();
 
   const dispatch = useAppDispatch();
+  const { createConversation } = useDmClient();
   const [isNewMessage, setIsNewMessage] = useState(false);
   const missedMessages = useAppSelector(app.selectors.missedMessages);
   const mutedUsers = useAppSelector(channels.selectors.mutedUsers);
@@ -44,6 +48,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
     pinMessage,
     sendReaction,
   } = useNetworkClient();
+  const { setLeftSidebarView } = useUI();
 
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
   const [deleteMessageModalOpened, {
@@ -117,6 +122,20 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   }, [message.pubkey, muteUser, muteUserModalToggle]);
 
   const asyncMuter = useAsync(handleMute);
+
+
+  const dmUser = useCallback(() => {
+    assert(message.dmToken, 'dmToken is required to dm a user');
+    setLeftSidebarView('dms');
+    dispatch(app.actions.selectUser(message.pubkey));
+    createConversation({
+      pubkey: message.pubkey,
+      token: message.dmToken,
+      color: message.color ?? '#fefefe',
+      codename: message.codename,
+      codeset: message.codeset,
+    });
+  }, [createConversation, dispatch, message.codename, message.codeset, message.color, message.dmToken, message.pubkey, setLeftSidebarView])
   
   return (
     <>
@@ -154,6 +173,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
               className={cn(classes.actions, {
                 [classes.show]: showActionsWrapper
               })}
+              onDmClicked={dmUser}
               dmsEnabled={message.dmToken !== undefined}
               isPinned={message.pinned}
               isMuted={mutedUsers[message.channelId]?.includes(message.pubkey)}
