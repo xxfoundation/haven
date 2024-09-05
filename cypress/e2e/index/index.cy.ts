@@ -8,7 +8,7 @@ describe('Registration page', () => {
     expect(window.crypto).to.have.property('subtle');
     cy.findByTestId('updates-modal').should('exist').and('be.visible');
     cy.findByTestId('updates-modal-confirm').scrollIntoView().should('exist').and('be.visible').click();
-    cy.findByTestId('speakeasy-logo').should('exist').and('be.visible');
+    cy.findByTestId('haven-logo').should('exist').and('be.visible');
     cy.findByTestId('close-notification-banner-button').should('exist').and('be.visible').click();
     
     cy.findByTestId('registration-password-input')
