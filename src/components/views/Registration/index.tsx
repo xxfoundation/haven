@@ -8,15 +8,10 @@ import {
   NormalHaven,
   OpenSource,
   NormalHash,
-  RoadMap,
 } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 
 import s from './Registration.module.scss';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDropbox, faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
-import { AccountSyncService } from 'src/hooks/useAccountSync';
-import { useAuthentication } from '@contexts/authentication-context';
 import Input from '@components/common/Input';
 
 type Props = {
@@ -26,12 +21,11 @@ type Props = {
 const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
   const { t } = useTranslation();
   const { openModal, setModalView } = useUI();
-  const { setSyncLoginService } = useAuthentication();
   const [password, setPassword] = useState<string>('');
   const [passwordConfirm, setPasswordConfirm] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showSelectServiceMenu, setShowSelectServiceMenu] = useState(false);
+  const [showSelectServiceMenu] = useState(false);
 
   const onContinue = useCallback(() => {
     if (passwordConfirm !== password) {

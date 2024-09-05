@@ -37,7 +37,8 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       //   cd public && ln -s ../node_modules/xxdk-wasm xxdk-wasm && cd ..
       // Then override with this function here:
       setXXDKBasePath(window!.location.href + 'xxdk-wasm');
-      InitXXDK().then(async(result) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      InitXXDK().then(async(result: any) => {
         setUtils(result);
         setUtilsLoaded(true);
       });
