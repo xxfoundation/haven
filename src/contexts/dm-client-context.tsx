@@ -17,7 +17,7 @@ import * as identity from 'src/store/identity';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import { onDmEvent, appBus as bus } from 'src/events';
 
-import { dmIndexedDbWorkerPath, setXXDKBasePath } from 'xxdk-wasm';
+import { dmIndexedDbWorkerPath } from 'xxdk-wasm';
 
 const DMClientContext = createContext<{ cipher?: DatabaseCipher, client?: DMClient }>({});
 
@@ -148,7 +148,7 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
     
     try {
       const workerPath = (await dmIndexedDbWorkerPath()).toString();
-      console.log("DMWORKERPATH: " + workerPath);
+      //console.log('DMWORKERPATH: ' + workerPath);
       const notifications = utils.LoadNotificationsDummy(cmix.GetID());
       NewDMClientWithIndexedDb(
         cmix.GetID(),
