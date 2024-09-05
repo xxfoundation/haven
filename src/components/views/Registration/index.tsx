@@ -161,7 +161,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                       }}
                     >
                       {t('Import')}
-                    </span> an existing account or <span
+                    </span> an existing account {/* or <span
                       style={{
                         textDecoration: 'underline',
                         fontSize: '16px',
@@ -175,12 +175,12 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                       }}
                     >
                       {t('login')}
-                    </span> from a cloud provider.
+                    </span> from a cloud provider. */}
                   </Trans>
                 </div>
               </>
             )}
-            {showSelectServiceMenu && (
+{/*             {showSelectServiceMenu && (
               <>
                 <p
                   className='mb-8 text'
@@ -205,7 +205,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 </div>
               </>
             )}
-          </div>
+ */}          </div>
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.footer)}>
           <a

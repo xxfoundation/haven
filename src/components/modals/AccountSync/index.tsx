@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Spinner } from '@components/common';
@@ -28,6 +28,9 @@ const AccountSyncView: FC = () => {
     });
     closeModal();
   }
+  useEffect(() => {
+    ignoreSync();
+  }, [])
 
   return (
     <>

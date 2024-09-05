@@ -9,8 +9,7 @@ import s from './Login.module.scss';
 import {
   NormalHaven,
   OpenSource,
-  NormalHash,
-  RoadMap
+  NormalHash
 } from 'src/components/icons';
 import { useAuthentication } from '@contexts/authentication-context';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
@@ -96,7 +95,7 @@ const LoginView: FC = () => {
     <div className={cn('', s.root)}>
       <div className={cn('w-full flex flex-col', s.wrapper)}>
         <div className={cn(s.header)}>
-          <NormalHaven data-testid='speakeasy-logo' />
+          <NormalHaven data-testid='haven-logo' />
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
@@ -220,7 +219,6 @@ const LoginView: FC = () => {
             )}
           </div>
         </div>
-
         <div className={cn('grid grid-cols-12 gap-0', s.footer)}>
           <a
             href='https://git.xx.network/elixxir/speakeasy-web'
@@ -250,22 +248,8 @@ const LoginView: FC = () => {
               {t('Powered by the first decentralized mixnet-blockchain')}
             </span>
           </a>
-{/*           <a
-            href='https://www.speakeasy.tech/roadmap/'
-            target='_blank'
-            rel='noreferrer'
-            className={cn('flex flex-col col-span-4', s.perkCard)}
-          >
-            <RoadMap />
-            <span className={cn(s.perkCard__title)}>
-              {t('Roadmap')}
-            </span>
-            <span className={cn(s.perkCard__description)}>
-              {t('Building to the future')}
-            </span>
-          </a>
         </div>
- */}      </div>
+      </div>
       <div className={cn(s.links)}>
         <a href='https://xx.network/' target='_blank' rel='noreferrer'>
           {t('xx network')}
