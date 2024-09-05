@@ -120,7 +120,7 @@ const ShareChannelView: FC = () => {
         className={cn('text-orange text--xs tracking-wide')}
       >
         {t(`Warning: With these credentials anyone can read and send to this
-        speakeasy, make sure to keep it safe! Consider only sharing it under
+        Haven, make sure to keep it safe! Consider only sharing it under
         end-to-end connection.`)}
       </p>
       <Button
