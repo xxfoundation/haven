@@ -36,7 +36,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       // symlinking your public directory:
       //   cd public && ln -s ../node_modules/xxdk-wasm xxdk-wasm && cd ..
       // Then override with this function here:
-      //setXXDKBasePath(window!.location.href + 'xxdk-wasm');
+      setXXDKBasePath(window!.location.href + 'xxdk-wasm');
       InitXXDK().then(async(result) => {
         setUtils(result);
         setUtilsLoaded(true);

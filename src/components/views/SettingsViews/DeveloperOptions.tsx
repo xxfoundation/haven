@@ -18,8 +18,9 @@ const DeveloperOptionsView = () => {
   const [currentFiles, setCurrentFiles] = useState<string>();
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // TODO: Remove speakeasyapp, this should be done via the npm package.
   const printCurrentFiles = useCallback(
-    async (folder = 'speakeasyapp') => {
+    async (folder = 'speakeasyapp') => { 
       setDeleteLoading(true);
       try {
         await remoteStore?.ReadDir(folder)

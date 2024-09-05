@@ -7,10 +7,9 @@ import { Button, Spinner } from 'src/components/common';
 import s from './Login.module.scss';
 
 import {
-  NormalSpeakeasy,
+  NormalHaven,
   OpenSource,
-  NormalHash,
-  RoadMap
+  NormalHash
 } from 'src/components/icons';
 import { useAuthentication } from '@contexts/authentication-context';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
@@ -96,7 +95,7 @@ const LoginView: FC = () => {
     <div className={cn('', s.root)}>
       <div className={cn('w-full flex flex-col', s.wrapper)}>
         <div className={cn(s.header)}>
-          <NormalSpeakeasy data-testid='speakeasy-logo' />
+          <NormalHaven data-testid='haven-logo' />
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
@@ -115,7 +114,7 @@ const LoginView: FC = () => {
               <span className={cn(s.normal)}>
                 Surveillance free. Censorship proof.
                 <span className={cn(s.highlighted)}>
-                  Your speakeasy is yours.
+                  Your Haven chats are yours.
                 </span>
               </span>
             </Trans>
@@ -128,7 +127,7 @@ const LoginView: FC = () => {
               className='mb-8 text'
               style={{ color: '#5B5D62', lineHeight: '17px' }}
             >
-              {t('Use your password to unlock your speakeasy identity')}
+              {t('Use your password to unlock your Haven identity')}
             </p>
             <Input
               data-testid='password-input'
@@ -220,10 +219,9 @@ const LoginView: FC = () => {
             )}
           </div>
         </div>
-
         <div className={cn('grid grid-cols-12 gap-0', s.footer)}>
           <a
-            href='https://www.speakeasy.tech/open-source/'
+            href='https://git.xx.network/elixxir/speakeasy-web'
             target='_blank'
             rel='noreferrer'
             className={cn('flex flex-col col-span-4', s.perkCard)}
@@ -237,7 +235,7 @@ const LoginView: FC = () => {
             </span>
           </a>
           <a
-            href='https://www.speakeasy.tech/how-it-works/'
+            href='https://learn.xx.network/'
             target='_blank'
             rel='noreferrer'
             className={cn('flex flex-col col-span-4', s.perkCard)}
@@ -250,20 +248,6 @@ const LoginView: FC = () => {
               {t('Powered by the first decentralized mixnet-blockchain')}
             </span>
           </a>
-          <a
-            href='https://www.speakeasy.tech/roadmap/'
-            target='_blank'
-            rel='noreferrer'
-            className={cn('flex flex-col col-span-4', s.perkCard)}
-          >
-            <RoadMap />
-            <span className={cn(s.perkCard__title)}>
-              {t('Roadmap')}
-            </span>
-            <span className={cn(s.perkCard__description)}>
-              {t('Building to the future')}
-            </span>
-          </a>
         </div>
       </div>
       <div className={cn(s.links)}>
@@ -271,7 +255,7 @@ const LoginView: FC = () => {
           {t('xx network')}
         </a>
         <a
-          href='https://www.speakeasy.tech/privacy-policy/'
+          href='https://xx.network/privacy-policy/'
           target='_blank'
           rel='noreferrer'
         >
@@ -279,7 +263,7 @@ const LoginView: FC = () => {
         </a>
 
         <a
-          href='https://www.speakeasy.tech/terms-of-use/'
+          href='https://xx.network/terms-of-use/'
           target='_blank'
           rel='noreferrer'
         >
@@ -289,11 +273,8 @@ const LoginView: FC = () => {
         <a href='https://xxfoundation.org/' target='_blank' rel='noreferrer'>
           {t('xx foundation')}
         </a>
-        <a href='https://elixxir.io/' target='_blank' rel='noreferrer'>
-          {t('xx messenger')}
-        </a>
         <a
-          href='https://twitter.com/speakeasy_tech'
+          href='https://x.com/xx_network'
           target='_blank'
           rel='noreferrer'
         >
