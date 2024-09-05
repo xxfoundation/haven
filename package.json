@@ -71,7 +71,8 @@
     "ts.data.json": "^2.2.0",
     "use-sound": "^4.0.1",
     "usehooks-ts": "^2.9.1",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "xxdk-wasm": "^0.3.18"
   },
   "devDependencies": {
     "@cypress/browserify-preprocessor": "^3.0.2",

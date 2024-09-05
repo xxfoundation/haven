@@ -5,7 +5,7 @@ import { FC, createContext, useCallback, useContext, useEffect, useMemo, useStat
 import assert from 'assert';
 
 import { useUtils, XXDKContext } from '@contexts/utils-context';
-import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_WORKER_JS_PATH, DMS_DATABASE_NAME as DMS_DATABASE_NAME } from 'src/constants';
+import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_DATABASE_NAME as DMS_DATABASE_NAME } from 'src/constants';
 import { decoder, HTMLToPlaintext, inflate } from '@utils/index';
 import { AppEvents, DMEvents, useAppEventValue, useDmListener } from 'src/events';
 import { useDb } from '@contexts/db-context';
@@ -16,6 +16,8 @@ import * as app from 'src/store/app';
 import * as identity from 'src/store/identity';
 import useLocalStorage from 'src/hooks/useLocalStorage';
 import { onDmEvent, appBus as bus } from 'src/events';
+
+import { dmIndexedDbWorkerPath, setXXDKBasePath } from 'xxdk-wasm';
 
 const DMClientContext = createContext<{ cipher?: DatabaseCipher, client?: DMClient }>({});
 
@@ -141,16 +143,18 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
       return dbCipher;
   }, [utils]);
 
-  const createDMClient = useCallback((cmix: CMix, cipher: DatabaseCipher, privateIdentity: Uint8Array) => {
+  const createDMClient = useCallback(async (cmix: CMix, cipher: DatabaseCipher, privateIdentity: Uint8Array) => {
     assert(privateIdentity, 'Private identity required for dmClient');
     
     try {
+      const workerPath = (await dmIndexedDbWorkerPath()).toString();
+      console.log("DMWORKERPATH: " + workerPath);
       const notifications = utils.LoadNotificationsDummy(cmix.GetID());
       NewDMClientWithIndexedDb(
         cmix.GetID(),
         notifications.GetID(),
         cipher.id,
-        DMS_WORKER_JS_PATH,
+        workerPath.toString(),
         privateIdentity,
         { EventUpdate: onDmEvent }
       ).then(setClient);
