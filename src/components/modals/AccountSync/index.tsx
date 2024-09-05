@@ -30,7 +30,7 @@ const AccountSyncView: FC = () => {
   }
   useEffect(() => {
     ignoreSync();
-  }, [])
+  }, [ignoreSync])
 
   return (
     <>
