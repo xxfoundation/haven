@@ -138,7 +138,7 @@ const Join: NextPage = () => {
       <WarningComponent>
         {t('This invite link is invalid.')}
         <br />
-        {t('Return to your Speakeasy home tab to continue.')}
+        {t('Return to your Haven home tab to continue.')}
       </WarningComponent>
     );
   }
@@ -146,9 +146,9 @@ const Join: NextPage = () => {
   if (!withLink) {
     return (
       <WarningComponent>
-        {t('Speakeasy can only run with one tab/window at a time.')}
+        {t('Haven can only run with one tab/window at a time.')}
         <br />
-        {t('Return to your Speakeasy home tab to continue.')}
+        {t('Return to your Haven home tab to continue.')}
       </WarningComponent>
     )
   }
@@ -156,7 +156,7 @@ const Join: NextPage = () => {
   if (isUserAuthenticated === false) {
     return (
       <WarningComponent>
-        {t('Cannot join a speakeasy, when the user is not logged in.')}
+        {t('Cannot join a chat when the user is not logged in.')}
         <br />
         {t('Return to the signup page to create an identity or log in.')}
       </WarningComponent>
@@ -177,7 +177,7 @@ const Join: NextPage = () => {
       {!channelInfoJson && window?.location?.href && channelType === 2 && (
         <div className={s.passwordWrapper}>
           <h2 className='mt-9 mb-6'>
-            {('This Speakeasy requires a passphrase to join')}
+            {('This Haven Chat requires a passphrase to join')}
           </h2>
           <input
             className='mt-3 mb-4'

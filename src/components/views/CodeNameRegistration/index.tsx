@@ -97,7 +97,7 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
         <span>
           {t(`
             Your Codename is your personally owned anonymous identity shared
-            across every Speakeasy you join. It is private and it can never be
+            across every Haven Chat you join. It is private and it can never be
             traced back to you.
           `)}
         </span>

@@ -18,7 +18,7 @@ const ImportCodeNameLoading: FC<Props> = ({ readyProgress }) => {
       <ProgressBar completed={readyProgress}></ProgressBar>
       <div className='text-center'>
         <div className='headline--md'>
-          {t('Securely setting up your codename. This could take up to a minute.')}
+          {t('Securely setting up your codename. This could take a few minutes.')}
         </div>
         <div className='headline--sm'>
           {t('Please do not close this page - your codename may be lost')}

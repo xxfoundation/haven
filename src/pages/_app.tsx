@@ -39,7 +39,7 @@ export const WarningComponent: FC<WithChildren> = ({ children }) => {
   return (
     <>
       <Head>
-        <title>{t('Internet speakeasy')}</title>
+        <title>{t('Internet Haven')}</title>
         <link rel='icon' href='/favicon.svg' />
       </Head>
       <div className='h-screen w-full flex justify-center items-center px-20'>
@@ -71,14 +71,14 @@ const SEO = () => {
       openGraph={{
         type: 'website',
         url: url,
-        title: 'Speakeasy',
+        title: 'Haven',
         description: '',
         images: [
           {
             url: `${origin}/preview.jpeg`,
             width: 1280,
             height: 720,
-            alt: 'Speakeasy'
+            alt: 'Haven'
           }
         ]
       }}
@@ -110,7 +110,7 @@ const Providers: FC<WithChildren> = ({ children }) => (
   </RemoteKVProvider>
 );
 
-const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
+const HavenApp = ({ Component, pageProps }: AppProps) => {
   const { t } = useTranslation();
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -121,7 +121,7 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
 
   useEffect(() => {
     if (!isDesktop()) {
-      router.push('https://www.speakeasy.tech/mobile/');
+      router.push('https://haven.xx.network/mobile/');
     }
   }, [router]);
 
@@ -138,17 +138,17 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
     return (
       <ErrorBoundary>
         <Head>
-          <title>{t('internet speakeasy')}</title>
+          <title>{t('internet haven')}</title>
           <link rel='icon' href='/favicon.svg' />
         </Head>
         <SEO />
         <AllProviders>
           {!skipDuplicateTabCheck &&
-          isDuplicatedWindow(15000, 10000, 'SpeakeasyApp') ? (
+          isDuplicatedWindow(15000, 10000, 'HavenApp') ? (
             <WarningComponent>
-              {t('Speakeasy can only run with one tab/window at a time.')}
+              {t('Haven can only run with one tab/window at a time.')}
               <br />
-              {t('Return to your Speakeasy home tab to continue.')}
+              {t('Return to your Haven home tab to continue.')}
             </WarningComponent>
           ) : (
             <Layout pageProps={{ ...pageProps }}>
@@ -163,4 +163,4 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
   }
 }
 
-export default SpeakeasyApp;
+export default HavenApp;

@@ -162,8 +162,8 @@ const CreateChannelView: FC = () => {
       </div>
       <p className='text-charcoal-1'>
         {privacyLevel === PrivacyLevel.Public
-          ? t('Public Speakeasies are accessible by anyone with just the link. No passphrase is needed to join. You can assume everyone knows when your codename is in a public speakeasy.')
-          : t('Secret speakeasies hide everything: Speakeasy name, description, members, messages, and more. No one knows anything about the Speakeasy unless they are invited.')
+          ? t('Public Chats are accessible by anyone with just the link. No passphrase is needed to join. You can assume everyone knows when your codename is in a public chat.')
+          : t('Secret Chats hide everything: The name, description, members, messages, and more. No one knows anything about the Haven Chat unless they are invited.')
         }
       </p>
       <Button

@@ -1,8 +1,8 @@
 import { SVGProps } from 'react';
 
-import s from './SpeakEasy.module.scss';
+import s from './Haven.module.scss';
 
-const SpeakEasy = (props: SVGProps<SVGSVGElement>) => (
+const Haven = (props: SVGProps<SVGSVGElement>) => (
   <svg
     className={s.root}
     width='151'
@@ -25,4 +25,4 @@ const SpeakEasy = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export default SpeakEasy;
+export default Haven;

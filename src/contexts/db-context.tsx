@@ -49,6 +49,7 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [dmsDatabaseName] = useLocalStorage<string | null>(DMS_DATABASE_NAME, null);
   const [managerLoaded, setManagerLoaded] = useState(false);
 
+  // TODO: We shouldn't need this here and should be relying on the xxdk-wasm npm package instead
   const initDb = useCallback((tag: string) => {
     const instance = new Dexie(`${tag}_speakeasy`);
     return instance.open().then(setDb);
