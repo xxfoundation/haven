@@ -549,7 +549,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
       utils.NewChannelsManagerWithIndexedDb
     ) {
       const workerPath = (await channelsIndexedDbWorkerPath()).toString();
-      console.log("WORKERPATHCHANNELS: " + workerPath)
+      //console.log('WORKERPATHCHANNELS: ' + workerPath)
       const notifications = utils.LoadNotificationsDummy(cmixId);
       const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
         cmixId,
