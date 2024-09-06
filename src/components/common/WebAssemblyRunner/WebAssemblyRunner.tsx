@@ -33,6 +33,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
   const getLink = (origin: string, path: string) => `${origin}${router.basePath}${path}`;
   const { setUtils, setUtilsLoaded, utilsLoaded } = useUtils();
 
+  const basePath = getLink(window.location.origin, '/xxdk-wasm');
   useEffect(() => {
     if (!utilsLoaded) {
       // By default the library uses an s3 bucket endpoint to download at
@@ -44,14 +45,14 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       //setXXDKBasePath(window!.location.href + 'xxdk-wasm');
 
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
-      setXXDKBasePath(getLink(window.location.origin, '/xxdk-wasm'));
+      setXXDKBasePath(basePath);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       InitXXDK().then(async(result: any) => {
         setUtils(result);
         setUtilsLoaded(true);
       });
     }
-  }, [setUtils, setUtilsLoaded, utilsLoaded]);
+  }, [basePath, setUtils, setUtilsLoaded, utilsLoaded]);
   return <>{children}</>;
 };
 

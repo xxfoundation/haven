@@ -8,7 +8,6 @@ import ExportCodename from '@components/icons/ExportCodename';
 import LogOut from '@components/icons/Logout';
 import useIsDev from 'src/hooks/useIsDev';
 import Dev from '@components/icons/Dev';
-import Sync from '@components/icons/Sync';
 
 type SettingsOptionProps = HTMLAttributes<HTMLButtonElement> & {
   icon: (props: SVGProps<SVGSVGElement>) => JSX.Element,
