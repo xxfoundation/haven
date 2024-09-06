@@ -6,12 +6,13 @@ import assert from 'assert';
 import { useUtils } from '@contexts/utils-context';
 import { encoder, decoder } from '@utils/index';
 import { DUMMY_TRAFFIC_ARGS, FOLLOWER_TIMEOUT_PERIOD, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
-import { ndf } from 'src/sdk-utils/ndf';
 import useTrackNetworkPeriod from './useNetworkTrackPeriod';
 import { useAuthentication } from '@contexts/authentication-context';
 import { AppEvents, appBus as bus, useAppEventListener } from 'src/events';
 import { RemoteKVWrapper } from '@contexts/remote-kv-context';
 import useAccountSync, { AccountSyncStatus } from './useAccountSync';
+
+import { GetDefaultNDF } from 'xxdk-wasm';
 
 export enum NetworkStatus {
   UNINITIALIZED = 'uninitialized',
@@ -20,6 +21,8 @@ export enum NetworkStatus {
   CONNECTING = 'connecting',
   FAILED = 'failed'
 }
+
+const ndf = GetDefaultNDF();
 
 const useCmix = () => {
   const { cmixPreviouslyInitialized, rawPassword } = useAuthentication();
