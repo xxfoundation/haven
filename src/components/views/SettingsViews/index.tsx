@@ -8,13 +8,11 @@ import ExportCodenameView from './ExportCodename';
 import NotificationsView from './NotificationsView';
 import DeveloperOptionsView from './DeveloperOptions';
 import LogOutView from './LogOut';
-import AccountSync from './AccountSync';
 
 
 const NOOP = () => null;
 
 const views: Partial<Record<SettingsView, FC>> = {
-  'account-sync': AccountSync,
   notifications: NotificationsView,
   logout: LogOutView,
   'export-codename': ExportCodenameView,
