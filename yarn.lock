@@ -8506,7 +8506,12 @@ regenerate@^1.4.2:
   resolved "https://registry.npmjs.org/regenerate/-/regenerate-1.4.2.tgz"
   integrity sha512-zrceR/XhGYU/d/opr2EKO7aRHUeiBI8qjtfHqADTwZd6Szfy16la6kqD0MIUs5z5hx6AaKa+PixpPrR289+I0A==
 
-regenerator-runtime@^0.13.2, regenerator-runtime@^0.13.4:
+regenerator-runtime@^0.13.2:
+  version "0.13.11"
+  resolved "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz"
+  integrity sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==
+
+regenerator-runtime@^0.13.4:
   version "0.13.11"
   resolved "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz"
   integrity sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==
@@ -10030,10 +10035,10 @@ xtend@^4.0.0, xtend@^4.0.1, xtend@^4.0.2, xtend@~4.0.1:
   resolved "https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
 
-xxdk-wasm@^0.3.18:
-  version "0.3.18"
-  resolved "https://registry.npmjs.org/xxdk-wasm/-/xxdk-wasm-0.3.18.tgz"
-  integrity sha512-rG4vWQpxENncvw74Xu4vcZGM+Mqa2hbMFri7l2ZysM8LJ0YKfrPH31nYko3gxTJQ4g4kFWuvlKRZQRXucMBjZw==
+xxdk-wasm@^0.3.21:
+  version "0.3.21"
+  resolved "https://registry.npmjs.org/xxdk-wasm/-/xxdk-wasm-0.3.21.tgz"
+  integrity sha512-vXrVneKxkReiKKgEzgtejngzPgwj+nKKZl/M0HWYXc/nt2FI8YOiw9nnqk9RkrOEa/pgLunoMvX7W3QSItR7HQ==
   dependencies:
     ts.data.json "^2.2.0"
 
