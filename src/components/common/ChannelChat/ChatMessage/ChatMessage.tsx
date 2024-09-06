@@ -132,7 +132,8 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
       <Tooltip clickable style={tooltipStyles} isOpen={hoveredMention !== null}>
         {hoveredMention && <HoveredMention codename={hoveredMention} />}
       </Tooltip>
-      <div className={cn('w-full')}>
+      <div className='w-full'>
+      <div className='shrink truncate overflow-hidden break-word hyphens-auto'>
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
             <>
@@ -204,6 +205,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
           </Clamp>
         </div>
         <ChatReactions message={message} />
+      </div>
       </div>
     </div>
   );
