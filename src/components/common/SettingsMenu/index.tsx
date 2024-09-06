@@ -34,14 +34,14 @@ const SettingsMenu = () => {
 
   return (
     <div className='pt-4 px-4 space-y-1'>
-      <SettingsOption
+{/*       <SettingsOption
         active={settingsView === 'account-sync'}
         icon={Sync}
         onClick={() => setSettingsView('account-sync')}
       >
         {t('Account Sync')}
       </SettingsOption>
-      <SettingsOption
+ */}      <SettingsOption
         active={settingsView === 'notifications'}
         icon={NotificationsIcon}
         onClick={() => setSettingsView('notifications')}
