@@ -21,6 +21,7 @@
   -ms-overflow-style: none;
   position: relative;
   display: flex;
+  max-width: calc(100vw - 300px);
   flex-flow: column nowrap;
 }
 
