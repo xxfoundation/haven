@@ -115,8 +115,8 @@ const Spaces = () => {
           <p className='text-primary text-xl leading-relaxed font-thin'>
             <Trans>
               This is the beginning of
-              your <strong className='text-white font-semibold'>quantum-secure</strong> and
-              completely private messaging experience.
+              your <strong className='text-white font-semibold'>completely private</strong> 
+              messaging experience.
             </Trans>
           </p>
           <div className='space-y-4'>
