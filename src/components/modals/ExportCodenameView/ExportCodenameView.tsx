@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import s from './ExportCodenameView.module.scss';
-import { ModalCtaButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 
@@ -14,10 +14,10 @@ const ExportCodenameView: FC = () => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState('');
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     setError('');
     if (password.length) {
-      const result = exportPrivateIdentity(password);
+      const result = await exportPrivateIdentity(password);
       if (result) {
         closeModal();
       } else {
@@ -56,11 +56,12 @@ const ExportCodenameView: FC = () => {
           {error}
         </div>
       )}
-      <ModalCtaButton
-        buttonCopy={t('Export')}
-        cssClass={cn('mt-5', s.button)}
+      <Button
+        className={cn('mt-5', s.button)}
         onClick={handleSubmit}
-      />
+      >
+        {t('Export')}
+      </Button>
     </div>
   );
 };

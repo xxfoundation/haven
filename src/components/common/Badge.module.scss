@@ -1,0 +1,27 @@
+.badge {
+  font-size: 0.5rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.05rem;
+  text-transform: uppercase; 
+  padding: 0.1875rem 0.25rem 0.125rem 0.25rem;
+  border-radius: 3px;
+
+  border: 1px solid var(--charcoal-2, #41444A);
+
+  &.blue {
+    color:  var(--blue);
+    border-color: var(--blue);
+  }
+
+  &.gold {
+    color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  &.grey {
+    border-color: var(--charcoal-2);
+    color: var(--charcoal-2);
+  }
+}

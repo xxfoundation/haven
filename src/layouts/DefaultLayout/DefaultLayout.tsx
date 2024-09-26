@@ -1,116 +1,64 @@
 import type { WithChildren } from 'src/types';
 
-import cn from 'classnames';
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { FC, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
-import { LeftSideBar, RightSideBar } from 'src/components/common';
-import Modal from 'src/components/modals/Modal';
-import { ModalViews, useUI } from 'src/contexts/ui-context';
+import { useUI } from 'src/contexts/ui-context';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useAuthentication } from 'src/contexts/authentication-context';
-import { PrivacyLevel, useUtils } from 'src/contexts/utils-context';
+
 import AuthenticationUI from './AuthenticationUI';
 import NotificationBanner from 'src/components/common/NotificationBanner';
+import LeftHeader from 'src/components/common/LeftHeader';
 
-import {
-  CreateChannelView,
-  ClaimAdminKeys,
-  LoadingView,
-  JoinChannelView,
-  ShareChannelView,
-  LeaveChannelConfirmationView,
-  NickNameSetView,
-  ChannelSettingsView,
-  SettingsView,
-  ExportCodenameView,
-  NetworkNotReadyView,
-  JoinChannelSuccessView,
-  LogoutView,
-  UserWasMuted,
-  ViewPinnedMessages,
-  ExportAdminKeys
-} from 'src/components/modals';
-
-import s from './DefaultLayout.module.scss';
-import ViewMutedUsers from '@components/modals/ViewMutedUsers';
-import UpdatesModal from './UpdatesModal';
-import SecretModal from './SecretModal';
-import useToggle from 'src/hooks/useToggle';
+import UpdatesModal from '../../components/modals/UpdatesModal';
 import ConnectingDimmer from './ConnectingDimmer';
-import UserInfoDrawer from '@components/common/UserInfoDrawer';
+import useAccountSync, { AccountSyncStatus } from 'src/hooks/useAccountSync';
+import { NetworkStatus } from 'src/hooks/useCmix';
+import useEvents from 'src/hooks/useEvents';
+import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
+import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
+import LeftSideBar  from '@components/common/LeftSideBar';
+import MainHeader from '@components/common/MainHeader';
+import SettingsView from '@components/views/SettingsViews';
 
-type ModalMap = Omit<Record<ModalViews, React.ReactNode>, 'IMPORT_CODENAME'>;
+import Notices from 'src/components/common/Notices';
+import AppModals from 'src/components/modals/AppModals';
+import { RightSideBar } from '@components/common';
+import PinnedMessage from '@components/common/ChannelChat/PinnedMessage';
 
-const AuthenticatedUserModals: FC = () => {
-  const { closeModal, displayModal, modalView = '' } = useUI();
-  const modalClass = modalView?.toLowerCase().replace(/_/g, '-');
-
-  const modals = useMemo<ModalMap>(() => ({
-    CLAIM_ADMIN_KEYS: <ClaimAdminKeys />,
-    EXPORT_CODENAME:  <ExportCodenameView />,
-    EXPORT_ADMIN_KEYS: <ExportAdminKeys />,
-    SHARE_CHANNEL: <ShareChannelView />,
-    CREATE_CHANNEL: <CreateChannelView />,
-    JOIN_CHANNEL: <JoinChannelView />,
-    LOGOUT: <LogoutView />,
-    LOADING: <LoadingView />,
-    LEAVE_CHANNEL_CONFIRMATION: <LeaveChannelConfirmationView />,
-    SET_NICK_NAME: <NickNameSetView />,
-    CHANNEL_SETTINGS: <ChannelSettingsView />,
-    SETTINGS: <SettingsView />,
-    NETWORK_NOT_READY: <NetworkNotReadyView />,
-    JOIN_CHANNEL_SUCCESS: <JoinChannelSuccessView />,
-    USER_WAS_MUTED: <UserWasMuted />,
-    VIEW_MUTED_USERS: <ViewMutedUsers />,
-    VIEW_PINNED_MESSAGES: <ViewPinnedMessages />
-  }), []);
-
-  return displayModal && modalView && modalView !== 'IMPORT_CODENAME' ? (
-    <Modal className={s[modalClass]} onClose={closeModal}>
-      {modals[modalView]}
-    </Modal>
-  ) : null;
-};
-
-const DefaultLayout: FC<WithChildren> = ({
-  children,
-}) => {
+const DefaultLayout: FC<WithChildren> = ({ children }) => {
+  useGoogleRemoteStore();
+  useDropboxRemoteStore();
+  useEvents();
+  const accountSync = useAccountSync();
   const router = useRouter();
-  const { isAuthenticated, storageTag } = useAuthentication();
-  const { utilsLoaded } = useUtils();
+  const { isAuthenticated } = useAuthentication();
   const {
     cmix,
     getShareUrlType,
-    isNetworkHealthy
+    networkStatus
   } = useNetworkClient();
-  const { openModal, setChannelInviteLink, setModalView } = useUI();
-  const [rightSideCollapsed, { set: setRightSideCollapsed, toggle }] = useToggle(false);
+  const { leftSidebarView: sidebarView, openModal, setChannelInviteLink, setModalView } = useUI();
 
   useEffect(() => {
     const privacyLevel = getShareUrlType(window.location.href);
+
     if (
       privacyLevel !== null &&
       cmix &&
-      isNetworkHealthy &&
+      networkStatus === NetworkStatus.CONNECTED &&
       isAuthenticated &&
-      storageTag &&
-      window.location.search &&
-      [
-        PrivacyLevel.Private,
-        PrivacyLevel.Secret
-      ].includes(privacyLevel)
+      window.location.search
     ) {
       setChannelInviteLink(window.location.href);
       setModalView('JOIN_CHANNEL');
       openModal();
-      router.replace(window.location.pathname);
     }
   }, [
     cmix,
     isAuthenticated,
-    isNetworkHealthy,
-    storageTag,
+    networkStatus,
     getShareUrlType,
     setChannelInviteLink,
     setModalView,
@@ -119,43 +67,50 @@ const DefaultLayout: FC<WithChildren> = ({
   ]);
 
   useEffect(() => {
-    const adjustActiveState = () => {
-      if (window?.innerWidth <= 760) {
-        setRightSideCollapsed(false);
-      }
-    };
-
-    adjustActiveState();
-    window?.addEventListener('resize', adjustActiveState);
-    return () => window?.removeEventListener('resize', adjustActiveState);
-  }, [setRightSideCollapsed]);
+    if (networkStatus === NetworkStatus.CONNECTED && isAuthenticated && accountSync.status === AccountSyncStatus.NotSynced) {
+      setModalView('ACCOUNT_SYNC', false);
+      openModal()
+    }
+  }, [accountSync.status, isAuthenticated, networkStatus, openModal, setModalView]);
 
   return (
     <>
       <NotificationBanner />
       <UpdatesModal />
-      <SecretModal />
-      <div className={cn(s.root, { [s.collapsed]: rightSideCollapsed } )}>
-        {utilsLoaded ? (
-          isAuthenticated ? (
-            <>
-              <ConnectingDimmer />
-              <UserInfoDrawer />
-              <LeftSideBar cssClasses={s.leftSideBar} />
-              <main>{children}</main>
-              <RightSideBar
-                collapsed={rightSideCollapsed}
-                onToggle={toggle}
-                cssClasses={s.rightSideBar} />
-              <AuthenticatedUserModals />
-            </>
-          ) : (
-            <AuthenticationUI />
-          )
-        ) : (
-          null
-        )}
-      </div>
+      {isAuthenticated ? (
+        <>
+          <ConnectingDimmer />
+          <AppModals />
+          <div
+            className='grid lg:grid-cols-[21.75rem_1fr] grid-cols-[18rem_1fr] grid-rows-[3.75rem_1fr] h-screen'
+          >
+            <LeftHeader />
+            <MainHeader />
+            <LeftSideBar className='overflow-y-auto'  />
+            <div className='overflow-hidden flex flex-col items-stretch'>
+              <div className='flex h-full'>
+                <div className='flex flex-col flex-grow'>
+                  <Notices />
+                  {sidebarView === 'spaces' && (
+                    <PinnedMessage />
+                  )}
+                  {sidebarView === 'settings' && (
+                    <SettingsView />
+                  )}
+                  {(sidebarView === 'spaces' || sidebarView === 'dms') && (
+                    <>
+                      {children}
+                    </>
+                  )}
+                </div>
+                <RightSideBar />
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <AuthenticationUI />
+      )}
     </>
     
   );

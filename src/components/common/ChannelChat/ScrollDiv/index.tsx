@@ -195,7 +195,7 @@ const ScrollDiv: FC<Props> = ({ autoScrollBottom, canSetAutoScroll, children, cl
         className={cn(s.scrollhost)}
         {...rest}
       >
-        <div ref={itemsRef}>
+        <div className='mt-auto' ref={itemsRef}>
           {children}
         </div>
       </div>

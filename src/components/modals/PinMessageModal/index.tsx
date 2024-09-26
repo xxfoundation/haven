@@ -1,13 +1,11 @@
 import { FC } from 'react';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ModalCtaButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import Modal from 'src/components/modals';
 
-import s from './PinMessage.module.scss';
 import { useCallback, useState } from 'react';
-import Loading from '../LoadingView';
+import ModalTitle from '../ModalTitle';
 
 type Props = {
   onConfirm: () => Promise<void>;
@@ -26,33 +24,29 @@ const PinMessageModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
   }, [onConfirm]);
 
   return (
-    <Modal onClose={onCancel}>
-      <div
-        className={cn('w-full flex flex-col justify-center items-center')}
-      >
-        {loading ? (<Loading />) : (
-          <>
-            <h2 className={cn('mt-9 mb-4')}>
-              {t('Confirmation')}
-            </h2>
-            <p className='mb-4'>
-              {t(`Pinned messages will remain for around 3 weeks, then it will
-              get unpinned again`)}
-            </p>
-            <div className={cn('mb-6', s.buttonGroup)}>
-              <ModalCtaButton
-                buttonCopy={t('Confirm and Pin')}
-                onClick={handleConfirmation}
-              />
-              <ModalCtaButton
-                style={{ backgroundColor: 'transparent', color: 'var(--orange)', borderColor: 'var(--orange)' }}
-                buttonCopy={t('Cancel')}
-                onClick={onCancel}
-              />
-            </div>
-          </>
-        )}
-      </div>
+    <Modal loading={loading} onClose={onCancel}>
+      <>
+        <ModalTitle>
+          {t('Confirmation')}
+        </ModalTitle>
+        <p>
+          {t(`Pinned messages will remain for around 3 weeks, then it will
+          get unpinned again`)}
+        </p>
+        <div className='w-full flex justify-between items-center'>
+          <Button
+            variant='outlined'
+            onClick={onCancel}
+          >
+            {t('Cancel')}
+          </Button>
+          <Button
+            onClick={handleConfirmation}
+          >
+            {t('Confirm and Pin')}
+          </Button>
+        </div>
+      </>
     </Modal>
   );
 };

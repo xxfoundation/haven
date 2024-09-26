@@ -2,16 +2,13 @@ import type { WithChildren } from '@types';
 
 import { FC, useEffect } from 'react';
 
+import { InitXXDK, setXXDKBasePath } from 'xxdk-wasm';
+
 import { useUtils } from 'src/contexts/utils-context';
+import { useRouter } from 'next/router';
+
 
 type Logger = {
-  LogToFile: (level: number, maxLogFileSizeBytes: number) => void,
-  LogToFileWorker: (
-    level: number,
-    maxLogFileSizeBytes: number,
-    wasmJsPath: string,
-    workerName: string
-  ) => Promise<void>,
   StopLogging: () => void,
   GetFile: () => Promise<string>,
   Threshold: () => number,
@@ -22,6 +19,7 @@ type Logger = {
 
 declare global {
   interface Window {
+    onWasmInitialized: () => void;
     Crash: () => void;
     GetLogger: () => Logger;
     logger?: Logger;
@@ -30,109 +28,31 @@ declare global {
 }
 
 const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
+  const router = useRouter();
+
+  const getLink = (origin: string, path: string) => `${origin}${router.basePath}${path}`;
   const { setUtils, setUtilsLoaded, utilsLoaded } = useUtils();
 
+  const basePath = getLink(window.location.origin, '/xxdk-wasm');
   useEffect(() => {
     if (!utilsLoaded) {
+      // By default the library uses an s3 bucket endpoint to download at
+      // https://elixxir-bins.s3-us-west-1.amazonaws.com/wasm/xxdk-wasm-[semver]
+      // the wasm resources, but you can host them locally by
+      // symlinking your public directory:
+      //   cd public && ln -s ../node_modules/xxdk-wasm xxdk-wasm && cd ..
+      // Then override with this function here:
+      //setXXDKBasePath(window!.location.href + 'xxdk-wasm');
+
+      // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
+      setXXDKBasePath(basePath);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const go = new (window as any).Go();
-      const binPath = '/integrations/assets/xxdk.wasm';
-      WebAssembly?.instantiateStreaming(fetch(binPath), go.importObject).then(
-        async (result) => {
-          go?.run(result?.instance);
-          const {
-            Base64ToUint8Array,
-            ConstructIdentity,
-            DecodePrivateURL,
-            DecodePublicURL,
-            GenerateChannelIdentity,
-            GetChannelInfo,
-            GetChannelJSON,
-            GetClientVersion,
-            GetDefaultCMixParams,
-            GetOrInitPassword,
-            GetPublicChannelIdentityFromPrivate,
-            GetShareUrlType,
-            GetVersion,
-            GetWasmSemanticVersion,
-            ImportPrivateIdentity,
-            IsNicknameValid,
-            LoadChannelsManagerWithIndexedDb,
-            LoadCmix,
-            LogLevel,
-            NewChannelsDatabaseCipher,
-            NewChannelsManagerWithIndexedDb,
-            NewCmix,
-            NewDMClientWithIndexedDb,
-            NewDMsDatabaseCipher,
-            NewDummyTrafficManager,
-            Purge,
-            ValidForever,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } = (window as any) || {};
-
-          const { GetLogger } = window;
-
-          setUtils({
-            NewCmix,
-            LoadCmix,
-            GetChannelInfo,
-            GenerateChannelIdentity,
-            GetDefaultCMixParams,
-            NewChannelsManagerWithIndexedDb,
-            Base64ToUint8Array,
-            LoadChannelsManagerWithIndexedDb,
-            GetPublicChannelIdentityFromPrivate,
-            IsNicknameValid,
-            GetShareUrlType,
-            GetVersion,
-            GetClientVersion,
-            GetOrInitPassword,
-            GetWasmSemanticVersion,
-            ImportPrivateIdentity,
-            ConstructIdentity,
-            DecodePrivateURL,
-            DecodePublicURL,
-            GetChannelJSON,
-            NewDMClientWithIndexedDb,
-            NewDMsDatabaseCipher,
-            NewDummyTrafficManager,
-            NewChannelsDatabaseCipher,
-            Purge,
-            ValidForever
-          });
-
-          if (LogLevel) {
-            LogLevel(1);
-          }
-
-          const logger = GetLogger()
-
-          const wasmJsPath = 'integrations/assets/logFileWorker.js';
-          await logger.LogToFileWorker(
-            0, 5000000, wasmJsPath, 'xxdkLogFileWorker').catch((err) => {
-            throw new Error(err)
-          })
-
-          // Get the actual Worker object from the log file object
-          const w = logger.Worker()
-
-          window.getCrashedLogFile = () => {
-            return new Promise((resolve) => {
-              w.addEventListener('message', ev => {
-                resolve(atob(JSON.parse(ev.data).data))
-              })
-              w.postMessage(JSON.stringify({ tag: 'GetFileExt' }))
-            });
-          };
-
-          window.logger = logger
-
-          setUtilsLoaded(true);
-        }
-      );
+      InitXXDK().then(async(result: any) => {
+        setUtils(result);
+        setUtilsLoaded(true);
+      });
     }
-  }, [setUtils, setUtilsLoaded, utilsLoaded]);
+  }, [basePath, setUtils, setUtilsLoaded, utilsLoaded]);
   return <>{children}</>;
 };
 

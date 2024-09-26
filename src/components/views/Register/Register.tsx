@@ -1,25 +1,18 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useCallback, useState } from 'react';
 
 import Registration from '../Registration';
 import CodeNameRegistration from '../CodeNameRegistration';
-import { useNetworkClient } from 'src/contexts/network-client-context';
 
-const Register: FC = ({}) => {
-  const { initialize } = useNetworkClient();
+const Register: FC = () => {
+  const [password, setPassword] = useState<string>();
 
-  const [password, setPassword] = useState('');
+  const onPasswordConfirmation = useCallback((pass: string) => {
+    setPassword(pass);
+  }, []);
 
-  useEffect(() => {
-    if (password.length) {
-      initialize(password);
-    }
-  }, [initialize, password]);
-
-  return password.length === 0 ? (
-    <Registration onPasswordConfirmation={setPassword}></Registration>
-  ) : (
-    <CodeNameRegistration />
-  );
+  return password
+    ? <CodeNameRegistration password={password} />
+    : <Registration onPasswordConfirmation={onPasswordConfirmation}></Registration>
 };
 
 export default Register;

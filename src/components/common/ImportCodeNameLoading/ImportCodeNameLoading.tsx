@@ -2,7 +2,7 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Loading } from 'src/components/common';
+import { Spinner } from 'src/components/common';
 import { ProgressBar } from 'src/components/common';
 
 type Props = {
@@ -13,17 +13,18 @@ type Props = {
 const ImportCodeNameLoading: FC<Props> = ({ readyProgress }) => {
   const { t } = useTranslation();
   return (
-    <Loading>
+    <div className='flex flex-col justify-center items-center h-screen w-screen'>
+      <Spinner size='lg' />
       <ProgressBar completed={readyProgress}></ProgressBar>
       <div className='text-center'>
         <div className='headline--md'>
-          {t('Securely setting up your codename. This could take up to a minute.')}
+          {t('Securely setting up your codename. This could take a few minutes.')}
         </div>
         <div className='headline--sm'>
           {t('Please do not close this page - your codename may be lost')}
         </div>
       </div>
-    </Loading>
+    </div>
   )
 }
 

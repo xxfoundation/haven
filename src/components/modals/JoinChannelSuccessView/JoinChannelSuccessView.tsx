@@ -11,7 +11,7 @@ const JoinChannelSuccessView: FC = () => {
       className={cn('w-full flex flex-col justify-center items-center', s.root)}
     >
       <span className='text font-bold mt-9 mb-4'>
-        {t('Awesome! You joined a new speakeasy successfully.')}
+        {t('Awesome! You joined a new Haven Chat successfully.')}
       </span>
     </div>
   );

@@ -1,18 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { deflateSync, inflateSync } from 'zlib';
 import DOMPurify from 'dompurify';
+import { TypedEventEmitter } from '@types';
+import { useEffect, useState } from 'react';
+import delay from 'delay';
 
-// Encodes Uint8Array to a string.
 export const encoder = new TextEncoder();
-
-// Decodes a string to a Uint8Array.
 export const decoder = new TextDecoder();
 
 export const isClientSide = () => {
   return typeof window !== 'undefined';
 };
 
+export const envIsDev = () => {
+  let isDev = false;
+  if (isClientSide()) {
+    isDev = window.location.href.indexOf('localhost') !== -1;
+    isDev ||= window.location.href.indexOf('dev') !== -1;
+  }
+  return isDev;
+}
+
 export const exportDataToFile = (data: Uint8Array) => {
-  const filename = 'speakeasyIdentity.json';
+  const filename = 'HavenIdentity.json';
 
   const file = new Blob([data], { type: 'text/plain' });
   const a = document.createElement('a');
@@ -39,7 +49,7 @@ export const inflate = (content: string) => {
   try {
     inflated = inflateSync(Buffer.from(content, 'base64')).toString();
   } catch (e) {
-    // Probably a message from before rich text format was implemented 
+    console.error(`Couldn\'t decode message "${content}". Falling back to plaintext.`, e);
     inflated = content;
   }
 
@@ -47,3 +57,69 @@ export const inflate = (content: string) => {
 }
 
 export const deflate = (content: string) => deflateSync(content).toString('base64');
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const makeListenerHook = <T extends Record<string|number, any>>(bus: TypedEventEmitter<T>) => <K extends keyof T>(key: K, listener: T[K]) => {
+  useEffect(() => {
+    bus.addListener(key, listener);
+
+    return () => {
+      bus.removeListener(key, listener);
+    }
+  }, [key, listener]);
+}
+
+export const makeEventHook = <T extends Record<string|number, any>>(bus: TypedEventEmitter<T>) => <K extends keyof T>(key: K) => {
+  const [value, setValue] = useState<Parameters<T[K]>[0]>();
+
+  useEffect(() => {
+    const listener = (...args: Parameters<T[K]>) => {
+      setValue(args[0]);
+    }
+
+    bus.addListener(key, listener as any);
+
+    return () => {
+      bus.removeListener(key, listener as any);
+    }
+  }, [key, value]);
+
+  return value;
+}
+
+type AnyFunc = (...args: any) => any;
+export const makeEventAwaiter = <T extends Record<string|number, AnyFunc>>(bus: TypedEventEmitter<T>) =>
+  <K extends keyof T>(
+    evt: K,
+    predicate: (...params: Parameters<T[K]>) => boolean = () => true,
+    timeout = 10000
+  ): Promise<Parameters<T[K]> | undefined> => {
+    let listener: AnyFunc;
+    let resolved = false;
+    const promise = new Promise<Parameters<T[K]>>((resolve) => {
+      listener = (...args) => {
+        const result = predicate(...args);
+        if (result) {
+          resolved = true;
+          resolve(args);
+        }
+      };
+      bus.addListener(evt, listener as any);
+    });
+  
+    return Promise.race([
+      promise,
+      delay(timeout).then(() => {
+        if (!resolved) {
+          throw new Error(`Awaiting event ${String(evt)} timed out.`)
+        }
+        return undefined;
+      })
+    ]).finally(() => {
+      bus.removeListener(evt, listener as any);
+    });
+  }
+
+  export const HTMLToPlaintext = (html: string) => new DOMParser()
+    .parseFromString(html, 'text/html')
+    .documentElement.textContent;

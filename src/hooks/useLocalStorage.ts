@@ -18,17 +18,18 @@ const useLocalStorage = <T = unknown>(keyName: string, defaultValue?: T): [value
   });
 
   const onStorage = useCallback(() => {
-      const value = window.localStorage.getItem(keyName);
-      if (value !== null) {
-        try {
-          const parsed = JSON.parse(value);
-          setStoredValue(parsed as T);
-        } catch (e) {
-          // probably a string
-          setStoredValue(value as unknown as T);
-        }
+    const value = window.localStorage.getItem(keyName);
+    
+    if (value !== null) {
+      try {
+        const parsed = JSON.parse(value);
+        setStoredValue(parsed as T);
+      } catch (e) {
+        // probably a string
+        setStoredValue(value as unknown as T);
       }
-    }, [keyName]);
+    }
+  }, [keyName]);
 
   useEffect(() => {
     window.addEventListener('storage', onStorage);

@@ -1,7 +1,25 @@
-import { FC } from 'react';
-import { FontAwesomeIcon, FontAwesomeIconProps } from '@fortawesome/react-fontawesome';
-import { faLockOpen } from '@fortawesome/free-solid-svg-icons';
+import { SVGProps } from 'react';
+import cn from 'classnames';
 
-const LockOpen: FC<Omit<FontAwesomeIconProps, 'icon'>> = (props) => <FontAwesomeIcon  {...props} icon={faLockOpen} />;
+const LockOpen = (props: SVGProps<SVGSVGElement>) => {
+  return (
+    <svg
+      version='1.1'
+      id='Layer_1' xmlns='http://www.w3.org/2000/svg' x='0px' y='0px'
+      viewBox='0 0 512 512'
+      {...props}
+      className={cn('p-1', props.className)}
+    >
+      <g>
+        <path d='M285.8,329.2c0,11.2-6.5,20.5-14.9,25.2v64.3h-29.8v-64.3c-8.4-5.6-14.9-14-14.9-25.2
+          c0-16.8,13.1-29.8,29.8-29.8C272.8,299.4,285.8,313.4,285.8,329.2z M450.9,254.6v212.6c0,25.2-20.5,44.8-44.8,44.8H105.9
+          c-25.2,0-44.8-20.5-44.8-44.8V254.6c0-25.2,20.5-44.8,44.8-44.8h270.5v-59.7c0-66.2-54.1-120.3-120.3-120.3S135.7,83.9,135.7,150.1
+          h-29.8C105.9,67.1,173,0,256,0s150.1,67.1,150.1,150.1v58.8C431.3,208.9,450.9,229.4,450.9,254.6z M421.1,254.6
+          c0-8.4-6.5-14.9-14.9-14.9H105.9c-8.4,0-14.9,6.5-14.9,14.9v212.6c0,8.4,6.5,14.9,14.9,14.9h300.3c8.4,0,14.9-6.5,14.9-14.9V254.6z' fill='currentColor' />
+      </g>
+    </svg>
+  );
+};
 
 export default LockOpen;
+

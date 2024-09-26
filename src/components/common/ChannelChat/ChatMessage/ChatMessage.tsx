@@ -1,9 +1,7 @@
 import { Message, MessageStatus } from 'src/types';
 
-import React, { CSSProperties, FC, HTMLAttributes, useEffect, useMemo, useState } from 'react';
+import React, { CSSProperties, FC, HTMLAttributes, useEffect, useMemo, useRef, useState } from 'react';
 import cn from 'classnames';
-import 'moment-timezone';
-import moment from 'moment';
 import Clamp from 'react-multiline-clamp';
 import { useTranslation } from 'react-i18next';
 
@@ -11,15 +9,21 @@ import Identity from 'src/components/common/Identity';
 import s from './ChatMessage.module.scss';
 import ChatReactions from '../ChatReactions';
 import Spinner from '@components/common/Spinner';
-import { useAppSelector } from 'src/store/hooks';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as messages from 'src/store/messages';
-import { inflate } from '@utils/index';
+import * as app from 'src/store/app';
 import { Tooltip } from 'react-tooltip';
 import { selectors } from 'src/store/messages';
+import dayjs from 'dayjs';
+import Badge from '@components/common/Badge';
+import ConnectingLine from '@components/icons/ConnectingLine';
+import { useOnClickOutside } from 'usehooks-ts';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   clamped: boolean;
   message: Message;
+  className?: string;
+  noReply?: boolean;
 }
 
 const HoveredMention = ({ codename }: { codename: string }) => {
@@ -33,21 +37,19 @@ const HoveredMention = ({ codename }: { codename: string }) => {
   ) : null;
 }
 
-const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
+const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const repliedToMessage = useAppSelector(messages.selectors.repliedTo(message));
-  const markup = useMemo(
-    () => inflate(message.body),
-    [message.body]
-  );
-  
-  const replyMarkup = useMemo(
-    () => repliedToMessage && inflate(repliedToMessage.body),
-    [repliedToMessage]
-  );
+  const userReplyId = useAppSelector(app.selectors.replyingToId);
+  const highlighted = useAppSelector(app.selectors.highlighted(message.id));
   
   const [hoveredMention, setHoveredMention] = useState<string | null>(null);
   const [tooltipStyles, setTooltipStyles] = useState<CSSProperties>({});
+  const replyRef = useRef<HTMLDivElement>(null);
+  useOnClickOutside(replyRef, () => {
+    dispatch(app.actions.highlightMessage(undefined));
+  });
 
   useEffect(() => {
     const mentions = document.getElementById(message.id)?.getElementsByClassName('mention')
@@ -71,15 +73,22 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
         };
       }
     }
-  }, [markup, message.id])
+  }, [message.body, message.id]);
   
   return (
+
     <div
+      data-testid='message-container'
       id={message.id}
       {...htmlProps}
       className={cn(
         htmlProps.className,
-        'flex items-center',
+        'transition-all',
+        {
+          'bg-charcoal-4-40 border-l-2 border-charcoal-2': highlighted,
+          'bg-near-black hover:bg-charcoal-4-40': (!message.id || message.id !== userReplyId) && !htmlProps.className?.includes('bg-'),
+          'bg-green-10 border-l-2 border-green': userReplyId && message.id === userReplyId && !noReply,
+        },
         s.root,
         {
           [s.root__withReply]: message.repliedTo !== null
@@ -87,10 +96,44 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
         htmlProps.className
       )}
     >
+      
+      {(repliedToMessage && !noReply) && (
+        <div
+          ref={replyRef}
+          className='cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative hover:bg-charcoal-4'
+          onClick={() => {
+            const originalMessage = document.getElementById(
+              repliedToMessage.id || ''
+            );
+            if (originalMessage) {
+              originalMessage.scrollIntoView();
+              dispatch(app.actions.highlightMessage(repliedToMessage.id))
+            }
+          }}
+        >
+          <ConnectingLine className='absolute -left-6 text-charcoal-3 bottom-0' />
+          {repliedToMessage ? (
+            <>
+              <Identity clickable {...repliedToMessage} />
+              <Clamp lines={3}>
+                <div
+                  className='message'
+                  dangerouslySetInnerHTML={{
+                    __html: repliedToMessage.body
+                  }}
+                />
+              </Clamp>
+            </>
+          ) : (
+            <>{t('This message is unknown/deleted')}</>
+          )}
+        </div>
+      )}
       <Tooltip clickable style={tooltipStyles} isOpen={hoveredMention !== null}>
         {hoveredMention && <HoveredMention codename={hoveredMention} />}
       </Tooltip>
-      <div className={cn('w-full')}>
+      <div className='w-full'>
+      <div className='shrink truncate overflow-hidden break-word hyphens-auto'>
         <div className={cn(s.header)}>
           {message.repliedTo !== null ? (
             <>
@@ -113,7 +156,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
           )}
 
           <span className={cn(s.messageTimestamp)}>
-            {moment(message.timestamp).format('hh:mm A')}
+            {dayjs(message.timestamp).format('hh:mm A')}
           </span>
           {message.status === MessageStatus.Unsent || message.status === MessageStatus.Sent && (
             <Spinner size='xs' />
@@ -124,15 +167,8 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
               target='_blank'
               rel='noreferrer'
               className='text text--xs ml-2'
-              style={{
-                whiteSpace: 'nowrap',
-                fontSize: '9px',
-                color: 'var(--text-secondary)',
-                textDecoration: 'underline',
-                marginBottom: '1px'
-              }}
             >
-              {t('Show mix')}
+              <Badge className='rounded-lg hover:text-primary hover:border-primary' color='grey'>{t('Mix')}</Badge>
             </a>
           )}
           &nbsp;
@@ -144,41 +180,6 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
         </div>
 
         <div className={cn('message-body', s.body)}>
-          {message.repliedTo !== null && (
-            <p
-              className={cn(s.replyToMessageBody)}
-              onClick={() => {
-                if (repliedToMessage) {
-                  const originalMessage = document.getElementById(
-                    repliedToMessage.id || ''
-                  );
-                  if (originalMessage) {
-                    originalMessage.scrollIntoView();
-                    originalMessage.classList.add(s.root__highlighted);
-                    setTimeout(() => {
-                      originalMessage.classList.remove(s.root__highlighted);
-                    }, 3000);
-                  }
-                }
-              }}
-            >
-              {repliedToMessage && replyMarkup ? (
-                <>
-                  <Identity clickable {...repliedToMessage} />
-                  <Clamp lines={3}>
-                    <p
-                      className='message'
-                      dangerouslySetInnerHTML={{
-                        __html: replyMarkup
-                      }}
-                    />
-                  </Clamp>
-                </>
-              ) : (
-                <>{t('This message is unknown/deleted')}</>
-              )}
-            </p>
-          )}
           <Clamp
             showMoreElement={({ toggle }: { toggle: () => void }) => (
               <button style={{ color: 'var(--cyan)'}} type='button' onClick={toggle}>
@@ -193,17 +194,18 @@ const ChatMessage: FC<Props> = ({ clamped, message, ...htmlProps }) => {
             maxLines={Number.MAX_SAFE_INTEGER}
             withToggle={clamped}
             lines={clamped ? 3 : Number.MAX_SAFE_INTEGER}>
-            {markup ? <div
+            {message.body ? <div
               className={cn('message', s.messageBody, {
                 [s.messageBody__failed]: message.status === MessageStatus.Failed
               })}
               dangerouslySetInnerHTML={{
-                __html: markup
+                __html: message.body
               }}
             /> : <p></p>}
           </Clamp>
         </div>
         <ChatReactions message={message} />
+      </div>
       </div>
     </div>
   );

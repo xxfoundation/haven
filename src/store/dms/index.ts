@@ -4,13 +4,15 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Message } from '../messages/types';
 
 import { reactionsReducer } from '../utils';
-import { MessageType } from '@types';
+import { DMNotificationLevel, MessageType } from '@types';
+import { uniq } from 'lodash';
 
 const initialState: DMState = {
   conversationsByPubkey: {},
   messagesByPubkey: {},
-  missedMessagesByPubkey: {},
-  reactions: {}
+  reactions: {},
+  blocked: [],
+  notificationLevels: {}
 };
 
 const upsertConversation = (state: DMState, conversation: Conversation) => ({
@@ -21,6 +23,10 @@ const upsertConversation = (state: DMState, conversation: Conversation) => ({
       ...state.conversationsByPubkey[conversation.pubkey],
       ...conversation,
     }
+  },
+  notificationLevels: {
+    ...state.notificationLevels,
+    [conversation.pubkey]: state.notificationLevels[conversation.pubkey] || DMNotificationLevel.NotifyAll
   }
 });
 
@@ -53,20 +59,6 @@ export const slice = createSlice({
       state: DMState,
       { payload: conversations }: PayloadAction<Conversation[]>
     ) => conversations.reduce(upsertConversation,state),
-    notifyNewMessage: (state: DMState, { payload: pubkey }: PayloadAction<Conversation['pubkey']>) => ({
-      ...state,
-      missedMessagesByPubkey: {
-        ...state.missedMessagesByPubkey,
-        [pubkey]: true,
-      }
-    }),
-    dismissNewMessages: (state: DMState, { payload: pubkey }: PayloadAction<Conversation['pubkey']>) => ({
-      ...state,
-      missedMessagesByPubkey: {
-        ...state.missedMessagesByPubkey,
-        [pubkey]: false,
-      }
-    }),
     upsertDirectMessage: (state: DMState, { payload: message }: PayloadAction<Message>) => 
       upsertMessage(state, message),
     upsertManyDirectMessages: (
@@ -76,6 +68,21 @@ export const slice = createSlice({
     setUserNickname: (state: DMState, { payload: nickname }: PayloadAction<string>) => ({
       ...state,
       nickname
+    }),
+    blockUser: (state: DMState, { payload: pubkey }: PayloadAction<string>) => ({
+      ...state,
+      blocked: uniq(state.blocked.concat(pubkey))
+    }),
+    unblockUser: (state: DMState, { payload: pubkey }: PayloadAction<string>) => ({
+      ...state,
+      blocked: state.blocked.filter((b) => b !== pubkey)
+    }),
+    upsertNotificationLevel: (state: DMState, { payload: { level, pubkey } }: PayloadAction<{ pubkey: string, level?: DMNotificationLevel }>) => ({
+      ...state,
+      notificationLevels: {
+        ...state.notificationLevels,
+        [pubkey]: level
+      }
     })
   }
 });

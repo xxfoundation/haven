@@ -1,46 +1,7 @@
 
 .textArea {
   height: 100%;
-  margin: 15px 9px;
-  border-radius: 5px;
   position: relative;
-
-  .replyContainer {
-    z-index: 2;
-    position: absolute;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-    bottom: calc(100% + 0.25rem);
-    background-color: var(--dark-3);
-    border-bottom: 1px solid var(--dark-8);
-    text-overflow: ellipsis;
-
-    border-radius: 5px;
-    padding: 10px 8px;
-
-    .replyHeader {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--orange);
-    }
-    .closeButton {
-      cursor: pointer;
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-    }
-
-    p {
-
-      text-overflow: ellipsis;
-      font-size: 14px;
-    }
-
-    svg path {
-      fill: var(--orange);
-    }
-  }
 
   ::placeholder {
     color: #73767c;
@@ -54,15 +15,20 @@
     position: absolute;
     right: 0.5rem;
     bottom: 0.3rem;
-    z-index: 2;
   }
+}
+
+.error {
+  position: absolute;
+  left: 0.7rem;
+  bottom: 0.3rem;
+  color: var(--red);
 }
 
 .editorWrapper {
   height: 100%;
-  background-color: var(--dark-3);
   border-radius: 5px;
   padding: 0.2rem;
   position: relative;
-  z-index: 2;
+  padding-bottom: 2rem;
 }
