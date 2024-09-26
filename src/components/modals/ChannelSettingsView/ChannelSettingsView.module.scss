@@ -12,10 +12,16 @@
       margin-bottom: 36px;
       svg {
         cursor: pointer;
-        color: var(--orange);
+        color: var(--primary);
         width: 1.5rem;
         height: 1.5rem;
       }
     }
   }
+}
+
+.select {
+  background-color: var(--dark-2);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
 }

@@ -1,20 +1,20 @@
-import type { BaseEmoji } from 'emoji-mart';
+import React, { FC, useCallback, useEffect,  useState, HTMLAttributes } from 'react';
 
-import React, { FC, useCallback, useEffect, useRef, useState, HTMLAttributes, CSSProperties } from 'react';
-import data from 'public/integrations/assets/emojiSet.json';
-import Picker from '@emoji-mart/react';
 import cn from 'classnames';
 
-import { Delete, EmojisPicker as EmojisPickerIcon, Reply } from 'src/components/icons';
-import { Mute, Pin, Unpin } from 'src/components/icons';
+import { Delete, Reply } from 'src/components/icons';
+import { Mute, Pin } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 
-import classes from './MessageActions.module.scss';
-import { createPortal } from 'react-dom';
-import { useNetworkClient } from '@contexts/network-client-context';
-import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import * as app from 'src/store/app';
+import {  useAppSelector } from 'src/store/hooks';
 import Envelope from '@components/icons/Envelope';
+import { userIsMuted as userIsMutedSelector } from 'src/store/selectors';
+import * as dms from 'src/store/dms';
+import { AppEvents, awaitAppEvent as awaitEvent } from 'src/events';
+import { WithChildren } from '@types';
+import useDmClient from 'src/hooks/useDmClient';
+import { EmojiPicker } from '@components/common/EmojiPortal';
+import Block from '@components/icons/Block';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
@@ -23,11 +23,20 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   isPinned: boolean;
   dmsEnabled: boolean;
   pubkey: string;
+  onDmClicked: () => void;
   onReplyClicked: () => void;
   onReactToMessage: (emoji: string) => void;
   onDeleteMessage: () => void;
-  onMuteUser: () => void;
+  onMuteUser: (unmute: boolean) => void;
   onPinMessage: (unpin?: boolean) => Promise<void>;
+}
+
+const MessageAction: FC<WithChildren & HTMLAttributes<HTMLButtonElement>> = ({ children, ...props }) => {
+  return (
+    <button {...props} className={cn('text-charcoal-1 hover:text-primary w-5', props.className)}>
+      {children}
+    </button>
+  );
 }
 
 const MessageActions: FC<Props> = ({
@@ -37,6 +46,7 @@ const MessageActions: FC<Props> = ({
   isOwn,
   isPinned,
   onDeleteMessage,
+  onDmClicked,
   onMuteUser,
   onPinMessage,
   onReactToMessage,
@@ -44,40 +54,11 @@ const MessageActions: FC<Props> = ({
   pubkey,
   ...props
 }) => {
-  const dispatch = useAppDispatch();
-  const isDms = !!useAppSelector(app.selectors.currentConversationId);
-  const { isMuted: userIsMuted } = useNetworkClient();
+  const { toggleBlocked } = useDmClient();
+  const isDms = !!useAppSelector(dms.selectors.currentConversation);
+  const userIsMuted = useAppSelector(userIsMutedSelector);
   const { closeModal, openModal, setModalView } = useUI();
-  const pickerRef = useRef<HTMLDivElement>(null);
-  const pickerIconRef = useRef<HTMLDivElement>(null);
-  const [pickerVisible, setPickerVisible] = useState(false);
-  const [style, setStyle] = useState<CSSProperties>({});
-
-  const listener = useCallback<(event: MouseEvent | TouchEvent) => void>((event) => {
-    if (
-      event.target instanceof Node && (
-        pickerIconRef.current?.contains(event.target) ||
-        pickerRef.current?.contains(event.target)
-      )
-    ) {
-      return;
-    }
-    setPickerVisible(false);
-  }, []);
-
-  useEffect(() => {
-    document.addEventListener('mousedown', listener);
-    document.addEventListener('touchstart', listener);
-
-    return () => {
-      document.removeEventListener('mousedown', listener);
-      document.removeEventListener('touchstart', listener);
-    };
-  }, [listener]);
-
-  const onEmojiSelect = useCallback((e: BaseEmoji) => {
-    onReactToMessage(e.native);
-  }, [onReactToMessage]);
+  const isBlocked = useAppSelector(dms.selectors.isBlocked(pubkey));
 
   const [loading, setLoading] = useState(false);
   const onUnpin = useCallback(async () => {
@@ -91,90 +72,65 @@ const MessageActions: FC<Props> = ({
     setLoading(false)
   }, [onPinMessage]);
 
-  const adjustPickerPosition = useCallback(() => {
-    const iconRect = pickerIconRef.current?.getBoundingClientRect();
-
-    return iconRect && setStyle({
-      position: 'absolute',
-      zIndex: 3,
-      top: Math.min(iconRect?.bottom + 5, window.innerHeight - 440),
-      left: iconRect.left - 350
-    })
-  }, []);
-
-  const dmUser = useCallback(() => {
-    dispatch(app.actions.selectUser(pubkey));
-  }, [dispatch, pubkey])
-
   useEffect(() => {
     if (loading) {
       setModalView('LOADING');
       openModal();
-      setTimeout(() => {
-        closeModal();
-      }, 5000)
+      awaitEvent(AppEvents.MESSAGE_UNPINNED).then(() => { closeModal(); });
     }
 
     return () => {  };
-  }, [closeModal, loading, openModal, setModalView])
+  }, [closeModal, loading, openModal, setModalView]);
 
-  const onOpenEmojiMart = useCallback(() => {
-    adjustPickerPosition();
-    setPickerVisible((visibile) => !visibile);
-  }, [adjustPickerPosition]);
-
-  const emojiPortalElement = document.getElementById('emoji-portal');
 
   return (
-    <div  {...props} className={cn(props.className, classes.root)}>
+    <div {...props} className={cn(props.className, 'bg-near-black-80 p-3 backdrop-blur-md space-x-4 rounded-lg z-10')}>
       <>
         {dmsEnabled && (
-          <Envelope style={{ cursor: 'pointer' }} width='20px' color='var(--cyan)' onClick={dmUser} />
+          <MessageAction onClick={onDmClicked}>
+            <Envelope />
+          </MessageAction>
         )}
-        {isAdmin && !isOwn && !isMuted && (
-          <Mute
-            onClick={onMuteUser}
-          />
+        {(isAdmin && !isOwn) && (
+          <MessageAction onClick={() => onMuteUser(isMuted)}>
+            <Mute className={cn({ 'text-primary': isMuted })} />
+          </MessageAction>
+        )}
+        {isBlocked && !isOwn && (
+          <MessageAction 
+            onClick={() => toggleBlocked(pubkey)}>
+            <Block className='text-primary' />
+          </MessageAction>
+          
+        )}
+        {!isBlocked && !isOwn && (
+          <MessageAction 
+            onClick={() => toggleBlocked(pubkey)}>
+            <Block />
+          </MessageAction>
         )}
         {(isAdmin && !isPinned && !isDms) && (
-          <Pin
-            onClick={() => onPinMessage()}
-          />
+          <MessageAction onClick={() => onPinMessage()}>
+            <Pin />
+          </MessageAction>
         )}
         {(isAdmin && isPinned) && (
-          <Unpin onClick={onUnpin}/>
+          <MessageAction onClick={onUnpin}>
+            <Pin className='text-primary' />
+          </MessageAction>
         )}
-        {(isOwn || isAdmin) && !isPinned && !userIsMuted && !isDms && (
-          <Delete
-            onClick={onDeleteMessage}
-          />
+        {(isOwn || isAdmin) && !isPinned && !userIsMuted && (
+          <MessageAction 
+            onClick={onDeleteMessage}>
+            <Delete />
+          </MessageAction>
         )}
-        <div ref={pickerIconRef}>
-          <EmojisPickerIcon
-            onClick={onOpenEmojiMart}
-          />
-        </div>
-        {pickerVisible && emojiPortalElement &&
-          createPortal(
-            <div
-              ref={pickerRef}
-              style={style}
-              className={cn(classes.emojisPickerWrapper)}
-            >
-              <Picker
-                data={data}
-                previewPosition='none'
-                onEmojiSelect={onEmojiSelect}
-              />
-            </div>,
-            emojiPortalElement
-          )
-        }
-        <Reply
-          onClick={() => {
-            onReplyClicked();
-          }}
-        />
+        <MessageAction>
+          <EmojiPicker onSelect={onReactToMessage} />
+        </MessageAction>
+        <MessageAction onClick={onReplyClicked}>
+          <Reply />
+        </MessageAction>
       </>
     </div>
   );

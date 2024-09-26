@@ -1,18 +1,14 @@
 import { ButtonHTMLAttributes, FC } from 'react';
 import s from './SendButton.module.scss';
-import { Elixxir } from 'src/components/icons';
 import cn from 'classnames';
-import { useTranslation } from 'react-i18next';
-
+import Send from '@components/icons/Send';
 
 const SendButton: FC<ButtonHTMLAttributes<HTMLButtonElement>> = (props) => {
-  const { t } = useTranslation();
   return (
-    <button disabled  {...props} className={cn(props.className, s.root)}>
+    <button data-testid='textarea-send-button'  {...props} className={cn(props.className, s.root, 'disabled:cursor-not-allowed')}>
       <span className='mr-1'>
-        {t('Send')}
+        <Send />
       </span>
-      <Elixxir />
     </button>
   );
 };

@@ -1,10 +1,18 @@
 import type { ChannelId } from '../channels/types';
+import { ConversationId } from '../dms/types';
+import { MessageId } from '../messages/types';
 
 export type AppState = {
-  selectedChannelId: string | null;
-  selectedConversationId: string | null;
+  selectedChannelIdOrConversationId: string | null;
   selectedUserPubkey: string | null;
   messageDraftsByChannelId: Record<ChannelId, string>;
+  channelsSearch: string;
+  dmsSearch?: string;
+  contributorsSearch: string;
+  channelFavorites: string[];
+  missedMessages?: Record<ChannelId | ConversationId, MessageId[] | undefined>;
+  replyingToMessageId?: string;
+  highlightedMessageId?: string;
 }
 
 declare module 'src/store/types' {

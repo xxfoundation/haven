@@ -2,15 +2,22 @@ import { FC, useState, useEffect, useCallback } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ImportCodeNameLoading, ModalCtaButton } from 'src/components/common';
+import { Button, ImportCodeNameLoading } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Spinner } from 'src/components/common';
 
 import s from './CodeNameRegistration.module.scss';
 import Identity from 'src/components/common/Identity';
+import { AMOUNT_OF_IDENTITIES_TO_GENERATE } from 'src/constants';
+import { useAuthentication } from '@contexts/authentication-context';
 
-const CodenameRegistration: FC = () => {
+type Props = {
+  password: string;
+}
+
+const CodenameRegistration: FC<Props> = ({ password }) => {
   const { t } = useTranslation();
+  const { getOrInitPassword } = useAuthentication();
   const {
     checkRegistrationReadiness,
     cmix,
@@ -23,6 +30,10 @@ const CodenameRegistration: FC = () => {
   const [firstTimeGenerated, setFirstTimeGenerated] = useState(false);
 
   const [readyProgress, setReadyProgress] = useState<number>(0);
+
+  useEffect(() => {
+    getOrInitPassword(password);
+  }, [getOrInitPassword, password])
 
   useEffect(() => {
     if (!firstTimeGenerated && cmix) {
@@ -62,7 +73,7 @@ const CodenameRegistration: FC = () => {
         s.root
       )}
     >
-      <h2 className='mt-9 mb-4'>
+      <h2 data-testid='codename-registration-title' className='mt-9 mb-4'>
         {t('Find your Codename')}
       </h2>
       <p
@@ -86,7 +97,7 @@ const CodenameRegistration: FC = () => {
         <span>
           {t(`
             Your Codename is your personally owned anonymous identity shared
-            across every Speakeasy you join. It is private and it can never be
+            across every Haven Chat you join. It is private and it can never be
             traced back to you.
           `)}
         </span>
@@ -94,15 +105,16 @@ const CodenameRegistration: FC = () => {
 
       {identities.length ? (
         <div
+          data-testid='codename-registration-options'
           className={cn(
-            'grid grid-cols-4 gap-x-4 gap-y-6 overflow-auto',
+            'grid sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-x-4 gap-y-6 overflow-auto',
             s.codeContainers
           )}
         >
           {identities.map((i) => (
             <div
               key={i.codename}
-              className={cn(s.codename, {
+              className={cn('rounded-xl bg-charcoal-4', s.codename, {
                 [s.selected]: i.codename === selectedCodeName
               })}
               onClick={() => {
@@ -125,26 +137,25 @@ const CodenameRegistration: FC = () => {
       )}
 
       <div className='flex mb-5 mt-12'>
-        <ModalCtaButton
-          buttonCopy={t('Discover More')}
-          cssClass={s.generateButton}
-          style={{
-            backgroundColor: 'var(--black-1)',
-            color: 'var(--orange)',
-            borderColor: 'var(--orange)'
-          }}
+        <Button
+          variant='outlined'
+          data-testid='discover-more-button'
+          className={s.generateButton}
           onClick={() => {
             setSelectedCodeName('');
-            setIdentites(generateIdentities(20));
+            setIdentites(generateIdentities(AMOUNT_OF_IDENTITIES_TO_GENERATE));
           }}
           disabled={!cmix}
-        />
-        <ModalCtaButton
-          buttonCopy={t('Claim')}
-          cssClass={s.registerButton}
+        >
+          {t('Discover More')}
+        </Button>
+        <Button
+          data-testid='claim-codename-button'
           onClick={register}
           disabled={!cmix || selectedCodeName.length === 0}
-        />
+        >
+          {t('Claim')}
+        </Button>
       </div>
     </div>
   );

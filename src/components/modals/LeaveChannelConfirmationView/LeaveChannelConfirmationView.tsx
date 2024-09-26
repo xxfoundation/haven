@@ -1,52 +1,49 @@
 import { FC, useCallback } from 'react';
-import s from './LeaveChannelConfirmationView.module.scss';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import { ModalCtaButton } from 'src/components/common';
+import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
+import ModalTitle from '../ModalTitle';
+import Leave from '@components/icons/Leave';
 
 const LeaveChannelConfirmationView: FC = () => {
   const { t } = useTranslation();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const {  leaveCurrentChannel } = useNetworkClient();
-  const { closeModal } = useUI();
+  const { alert, closeModal } = useUI();
 
   const onLeave = useCallback(() => {
     leaveCurrentChannel();
-    closeModal();
-  }, [closeModal, leaveCurrentChannel]);
+    closeModal(); 
+    alert({
+      type: 'success',
+      icon: Leave,
+      content: t('You have left'),
+      description: currentChannel?.name
+    })
+  }, [alert, closeModal, currentChannel?.name, leaveCurrentChannel, t]);
 
   return (
-    <div
-      className={cn('w-full flex flex-col justify-center items-center', s.root)}
-    >
-      <span className='text font-bold mt-9 mb-4'>
-        {t(
-          'Are you sure you want to leave {{channelName}} Speakeasy?',
-          { channelName: currentChannel?.name }
-        )}
-      </span>
-
-      <div className='flex'>
-        <ModalCtaButton
-          buttonCopy={t('Cancel')}
-          cssClass='mt-5 mb-10 mr-5'
-          style={{
-            borderColor: 'var(--red)'
-          }}
-          onClick={closeModal}
-        />
-        <ModalCtaButton
-          buttonCopy={t('Leave')}
-          cssClass='mt-5 mb-10'
-          onClick={onLeave}
-        />
-      </div>
-    </div>
+    <>
+      <ModalTitle className='mb-0'>
+        {t('Leave Space')}
+      </ModalTitle>
+      <h2>
+        {currentChannel?.name}
+      </h2>
+      <p className='text-charcoal-1'>
+        {t('Are you sure you would like to leave this space?')}
+      </p>
+      <Button
+        className='w-full'
+        onClick={onLeave}
+      >
+        {t('Yes, leave this space')}
+      </Button>
+    </>
   );
 };
 

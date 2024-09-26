@@ -1,5 +1,5 @@
 import { EmojiReactions } from 'src/store/types';
-import { Message, MessageStatus, MessageType } from 'src/types';
+import { DMNotificationLevel, Message, MessageStatus, MessageType } from 'src/types';
 
 type PubKey = string;
 
@@ -37,8 +37,9 @@ export type DMState = {
   nickname?: string;
   conversationsByPubkey: Record<PubKey, Conversation>;
   messagesByPubkey: Record<PubKey, Record<Message['uuid'], Message>>;
-  missedMessagesByPubkey: Record<PubKey, boolean>;
   reactions: EmojiReactions;
+  blocked: PubKey[];
+  notificationLevels: Record<PubKey, DMNotificationLevel | undefined>;
 };
 
 declare module 'src/store/types' {

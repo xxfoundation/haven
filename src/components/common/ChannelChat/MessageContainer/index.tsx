@@ -1,8 +1,9 @@
 import { Message, MessageStatus } from 'src/types';
-import type{ FC } from 'react';
+import{ FC, useEffect } from 'react';
 
 import { useCallback, useState } from 'react';
 import cn from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import MessageActions from '../MessageActions';
 import ChatMessage from '../ChatMessage/ChatMessage';
@@ -12,22 +13,32 @@ import PinMessageModal from 'src/components/modals/PinMessageModal';
 import MuteUserModal, { MuteUserAction } from 'src/components/modals/MuteUser';
 import DeleteMessageModal from 'src/components/modals/DeleteMessage';
 import * as channels from 'src/store/channels';
-import { useAppSelector } from 'src/store/hooks';
+import * as app from 'src/store/app';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import * as identity from 'src/store/identity';
+import { AppEvents, awaitAppEvent } from 'src/events';
 
 import classes from './MessageContainer.module.scss';
-import * as identity from 'src/store/identity';
-import { awaitEvent, Event } from 'src/events';
-
+import useAsync from 'src/hooks/useAsync';
+import { useUI } from '@contexts/ui-context';
+import useDmClient from 'src/hooks/useDmClient';
+import assert from 'assert';
 
 type Props = {
   className?: string;
   clamped?: boolean;
   readonly?: boolean;
   message: Message;
-  handleReplyToMessage: (message: Message) => void;
 }
 
-const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyToMessage, message, readonly }) => {
+const MessageContainer: FC<Props> = ({ clamped = false, className, message, readonly }) => {
+  const { t } = useTranslation();
+
+  const dispatch = useAppDispatch();
+  const { createConversation } = useDmClient();
+  const [isNewMessage, setIsNewMessage] = useState(false);
+  const missedMessages = useAppSelector(app.selectors.missedMessages);
+  const mutedUsers = useAppSelector(channels.selectors.mutedUsers);
   const { pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
@@ -36,8 +47,8 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
     muteUser,
     pinMessage,
     sendReaction,
-    userIsMuted
   } = useNetworkClient();
+  const { setLeftSidebarView } = useUI();
 
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
   const [deleteMessageModalOpened, {
@@ -50,8 +61,8 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   }] = useToggle();
 
   const onReplyMessage = useCallback(() => {
-    handleReplyToMessage(message);
-  }, [handleReplyToMessage, message]);
+    dispatch(app.actions.replyTo(message.id));
+  }, [dispatch, message.id]);
 
   const handleDeleteMessage = useCallback(async () => {
     await deleteMessage(message);
@@ -67,8 +78,6 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
 
     promises.push(muteUser(message.pubkey, false));
 
-    promises.push(awaitEvent(Event.USER_MUTED));  // delay to let the nodes propagate
-
     await Promise.all(promises);
 
     muteUserModalToggle.toggleOff();
@@ -77,18 +86,18 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   const handlePinMessage = useCallback(async (unpin?: boolean) => {
     if (unpin === true) {
       await Promise.all([
-        pinMessage(message, unpin),
-        awaitEvent(Event.MESSAGE_UNPINNED) // delay to let the nodes propagate
+        pinMessage(message.id, unpin),
+        awaitAppEvent(AppEvents.MESSAGE_UNPINNED) // delay to let the nodes propagate
       ]);
     } else {
       showPinModal();
     }
-  }, [message, pinMessage, showPinModal])
+  }, [message, pinMessage, showPinModal]);
 
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
-      pinMessage(message),
-      awaitEvent(Event.MESSAGE_PINNED) // delay to let the nodes propagate
+      pinMessage(message.id),
+      awaitAppEvent(AppEvents.MESSAGE_PINNED) // delay to let the nodes propagate
     ]);
     hidePinModal();
   }, [hidePinModal, message, pinMessage]);
@@ -96,9 +105,49 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
   const handleEmojiReaction = useCallback((emoji: string) => {
     sendReaction(emoji, message.id);
   }, [message.id, sendReaction]);
+
+  useEffect(() => {
+    if (missedMessages?.[message.channelId]?.[0] === message.id) {
+      setIsNewMessage(true);
+      dispatch(app.actions.dismissNewMessages(message.channelId));
+    }
+  }, [dispatch, message.channelId, message.id, missedMessages]);
+
+  const handleMute = useCallback(async (unmute: boolean) => {
+    if (!unmute) {
+      muteUserModalToggle.toggleOn();
+    } else {
+      await muteUser(message.pubkey, unmute);
+    }
+  }, [message.pubkey, muteUser, muteUserModalToggle]);
+
+  const asyncMuter = useAsync(handleMute);
+
+
+  const dmUser = useCallback(() => {
+    assert(message.dmToken, 'dmToken is required to dm a user');
+    setLeftSidebarView('dms');
+    dispatch(app.actions.selectUser(message.pubkey));
+    createConversation({
+      pubkey: message.pubkey,
+      token: message.dmToken,
+      color: message.color ?? '#fefefe',
+      codename: message.codename,
+      codeset: message.codeset,
+    });
+  }, [createConversation, dispatch, message.codename, message.codeset, message.color, message.dmToken, message.pubkey, setLeftSidebarView])
   
   return (
-    <>{!readonly && (
+    <>
+      {isNewMessage && (
+        <div className='relative flex items-center px-4'>
+          <div className='flex-grow border-t' style={{ borderColor: 'var(--primary)'}}></div>
+          <span className='flex-shrink mx-4' style={{ color: 'var(--primary)'}}>
+            {t('New!')}
+          </span>
+        </div>
+      )}
+      {!readonly && (
       <>
         {muteUserModalOpen && (
           <MuteUserModal
@@ -124,10 +173,11 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, handleReplyTo
               className={cn(classes.actions, {
                 [classes.show]: showActionsWrapper
               })}
+              onDmClicked={dmUser}
               dmsEnabled={message.dmToken !== undefined}
               isPinned={message.pinned}
-              isMuted={userIsMuted(message.pubkey)}
-              onMuteUser={muteUserModalToggle.toggleOn}
+              isMuted={mutedUsers[message.channelId]?.includes(message.pubkey)}
+              onMuteUser={asyncMuter.execute}
               onPinMessage={handlePinMessage}
               onReactToMessage={handleEmojiReaction}
               onReplyClicked={onReplyMessage}

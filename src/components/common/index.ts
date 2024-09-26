@@ -1,6 +1,5 @@
 export { default as WebAssemblyRunner } from './WebAssemblyRunner';
 export { default as Button } from './Button';
-export { default as ModalCtaButton } from './ModalCtaButton';
 export { default as RightSideBar } from './RightSideBar';
 export { default as LeftSideBar } from './LeftSideBar';
 export { default as Collapse } from './Collapse';

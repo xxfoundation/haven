@@ -6,10 +6,12 @@ import { useTranslation } from 'react-i18next';
 
 import { Elixxir } from 'src/components/icons';
 import classes from './Identity.module.scss';
-import { useNetworkClient } from '@contexts/network-client-context';
-import { useAppDispatch } from 'src/store/hooks';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
 import { useUtils } from '@contexts/utils-context';
+import { currentMutedUsers } from 'src/store/selectors';
+import * as dms from 'src/store/dms';
+import { useUI } from '@contexts/ui-context';
 
 type Props = {
   disableMuteStyles?: boolean;
@@ -24,20 +26,22 @@ type Props = {
 const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMuteStyles, nickname, pubkey }) => {
   const { t } = useTranslation();
   const { getCodeNameAndColor } = useUtils();
-  const { userIsMuted } = useNetworkClient();
   const dispatch = useAppDispatch();
+  const { setRightSidebarView } = useUI();
+  const mutedUsers = useAppSelector(currentMutedUsers);
   const isMuted = useMemo(
-    () => !disableMuteStyles && userIsMuted(pubkey),
-    [disableMuteStyles, pubkey, userIsMuted]
+    () => !disableMuteStyles && mutedUsers?.includes(pubkey),
+    [disableMuteStyles, pubkey, mutedUsers]
   );
+  const isBlocked = useAppSelector(dms.selectors.isBlocked(pubkey));
   
   const { codename, color } = useMemo(
     () => getCodeNameAndColor(pubkey, codeset),
     [codeset, getCodeNameAndColor, pubkey]
   )
-  const colorHex = isMuted ? 'var(--dark-2)' : color.replace('0x', '#');
-  const codenameColor = isMuted
-    ? 'var(--dark-2)'
+  const colorHex = (isMuted || isBlocked) ? 'var(--text-muted)' : color.replace('0x', '#');
+  const codenameColor = (isMuted || isBlocked)
+    ? 'var(--text-muted)'
     : (nickname
       ? '#73767C'
       : colorHex);
@@ -45,9 +49,9 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
   const onClick = useCallback(() => {
     if (clickable) {
       dispatch(app.actions.selectUser(pubkey));
+      setRightSidebarView('user-details');
     }
-  }, [clickable, dispatch, pubkey])
-  
+  }, [clickable, dispatch, pubkey, setRightSidebarView])
 
   return (
     <span
@@ -71,7 +75,13 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
       {isMuted && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>({t('muted')})</span>
+          <span style={{ color: 'var(--red)'}}>[{t('muted')}]</span>
+        </>
+      )}
+      {isBlocked && (
+        <>
+          &nbsp;
+          <span style={{ color: 'var(--red)'}}>[{t('blocked')}]</span>
         </>
       )}
     </span>

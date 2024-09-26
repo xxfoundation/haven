@@ -1,11 +1,19 @@
 .root {
+  display: flex;
   align-items: center;
   border-radius: 4px;
   padding: 0.25rem 0.25rem;
-  background-color: var(--dark-5);
 
   & > div, & > svg {
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    height: 1.5rem;
+    max-width: 1.25rem;
     margin: 0 4px;
+    color: var(--primary);
+    cursor: pointer;
   }
 }
 

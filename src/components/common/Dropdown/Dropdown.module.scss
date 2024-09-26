@@ -1,0 +1,27 @@
+.root {
+  border-radius: 0.75rem;
+  box-shadow: 0px 8px 25px 0px rgba(0, 0, 0, 0.50);
+  border-radius: 0.75rem;
+  border-radius: var(--border-radius);
+  position: absolute;
+  padding: 1rem 0rem;
+  right: 0;
+  top: 100%;
+}
+
+.item {
+  display: flex;
+  padding: 0.5rem 2rem 0.5rem 1rem;
+  align-items: center;
+  align-self: stretch; 
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: 0.00875rem; 
+
+  &:hover {
+    cursor: pointer;
+    background-color: var(--charcoal-3);
+  }
+}

@@ -1,12 +1,10 @@
 .container {
   position: relative;
-  z-index: 2;
 }
 
 .actions {
   display: none;
   position: absolute;
-  z-index: 2;
   right: 1rem;
   top: -1.25rem;
   box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.25);

@@ -1,6 +1,7 @@
 import type { WithChildren } from 'src/types';
 import React, { FC, useEffect, useState } from 'react';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { NextSeo } from 'next-seo';
 import { AppProps } from 'next/app';
 import Head from 'next/head';
@@ -11,10 +12,9 @@ import { useTranslation } from 'react-i18next';
 import store from 'src/store';
 import { ManagedUIContext } from 'src/contexts/ui-context';
 import { ManagedNetworkContext } from 'src/contexts/network-client-context';
-import { ManagedAuthenticationContext } from 'src/contexts/authentication-context';
+import { AuthenticationProvider } from 'src/contexts/authentication-context';
 import { UtilsProvider } from 'src/contexts/utils-context';
 import { isDuplicatedWindow } from 'src/utils/oneTabEnforcer';
-import { WebAssemblyRunner } from 'src/components/common';
 
 import 'src/assets/scss/main.scss';
 import 'src/assets/scss/quill-overrides.scss';
@@ -22,6 +22,9 @@ import 'react-tooltip/dist/react-tooltip.css'
 import ErrorBoundary from 'src/components/common/ErrorBoundary';
 import { DBProvider } from '@contexts/db-context';
 import '../i18n';
+import 'src/utils/extend-dayjs';
+import { RemoteKVProvider } from '@contexts/remote-kv-context';
+import { DMContextProvider } from '@contexts/dm-client-context';
 
 const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
 const isDesktop = () => {
@@ -36,7 +39,7 @@ export const WarningComponent: FC<WithChildren> = ({ children }) => {
   return (
     <>
       <Head>
-        <title>{t('Internet speakeasy')}</title>
+        <title>{t('Internet Haven')}</title>
         <link rel='icon' href='/favicon.svg' />
       </Head>
       <div className='h-screen w-full flex justify-center items-center px-20'>
@@ -68,14 +71,14 @@ const SEO = () => {
       openGraph={{
         type: 'website',
         url: url,
-        title: 'Speakeasy',
+        title: 'Haven',
         description: '',
         images: [
           {
             url: `${origin}/preview.jpeg`,
             width: 1280,
             height: 720,
-            alt: 'Speakeasy'
+            alt: 'Haven'
           }
         ]
       }}
@@ -83,7 +86,31 @@ const SEO = () => {
   );
 };
 
-const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
+const Providers: FC<WithChildren> = ({ children }) => (
+  <RemoteKVProvider>
+    <DBProvider>
+      <Provider store={store}>
+        <UtilsProvider>
+          <AuthenticationProvider>
+            <DMContextProvider>
+              <ManagedNetworkContext>
+                <ManagedUIContext>
+                  <GoogleOAuthProvider
+                    clientId={process.env.NEXT_PUBLIC_APP_GOOGLE_DRIVE_CLIENT_ID ?? ''}
+                  >
+                    {children}
+                  </GoogleOAuthProvider>
+                </ManagedUIContext>
+              </ManagedNetworkContext>
+            </DMContextProvider>
+          </AuthenticationProvider>
+        </UtilsProvider>
+      </Provider>
+    </DBProvider>
+  </RemoteKVProvider>
+);
+
+const HavenApp = ({ Component, pageProps }: AppProps) => {
   const { t } = useTranslation();
   const [shouldRender, setShouldRender] = useState(false);
 
@@ -94,7 +121,7 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
 
   useEffect(() => {
     if (!isDesktop()) {
-      router.push('https://www.speakeasy.tech/mobile/');
+      router.push('https://haven.xx.network/mobile/');
     }
   }, [router]);
 
@@ -104,40 +131,31 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const skipDuplicateTabCheck = (Component as any).skipDuplicateTabCheck;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const AllProviders = (Component as any).skipProviders ? React.Fragment : Providers;
+
   if (shouldRender) {
     return (
       <ErrorBoundary>
         <Head>
-          <title>{t('internet speakeasy')}</title>
+          <title>{t('internet haven')}</title>
           <link rel='icon' href='/favicon.svg' />
         </Head>
         <SEO />
-        <DBProvider>
-          <Provider store={store}>
-            <UtilsProvider>
-              <ManagedAuthenticationContext>
-                <ManagedNetworkContext>
-                  <ManagedUIContext>
-                    <WebAssemblyRunner>
-                      {!skipDuplicateTabCheck &&
-                      isDuplicatedWindow(15000, 10000, 'MyApp') ? (
-                        <WarningComponent>
-                          {t('Speakeasy can only run with one tab/window at a time.')}
-                          <br />
-                          {t('Return to your Speakeasy home tab to continue.')}
-                        </WarningComponent>
-                      ) : (
-                        <Layout pageProps={{ ...pageProps }}>
-                          <Component {...pageProps} />
-                        </Layout>
-                      )}
-                    </WebAssemblyRunner>
-                  </ManagedUIContext>
-                </ManagedNetworkContext>
-              </ManagedAuthenticationContext>
-            </UtilsProvider>
-          </Provider>
-        </DBProvider>
+        <AllProviders>
+          {!skipDuplicateTabCheck &&
+          isDuplicatedWindow(15000, 10000, 'HavenApp') ? (
+            <WarningComponent>
+              {t('Haven can only run with one tab/window at a time.')}
+              <br />
+              {t('Return to your Haven home tab to continue.')}
+            </WarningComponent>
+          ) : (
+            <Layout pageProps={{ ...pageProps }}>
+              <Component {...pageProps} />
+            </Layout>
+          )}
+        </AllProviders>
       </ErrorBoundary>
     );
   } else {
@@ -145,4 +163,4 @@ const SpeakeasyApp = ({ Component, pageProps }: AppProps) => {
   }
 }
 
-export default SpeakeasyApp;
+export default HavenApp;
