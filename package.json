@@ -1,6 +1,6 @@
 {
   "name": "haven-web",
-  "version": "0.3.6",
+  "version": "0.3.22",
   "private": true,
   "scripts": {
     "dev": "next dev",
