@@ -5,23 +5,7 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 
 import s from './UpdatesModal.module.scss';
 
-const UpdatesModal = () => {
-  const [showModal, setShowModal] = useLocalStorage(`update-notice_${process.env.NEXT_PUBLIC_APP_VERSION}`, true);
-  
-  return showModal ? (
-    <Modal data-testid='updates-modal' className={cn(s.root, 'w-[42rem]')} onClose={() => setShowModal(false)}>
-      <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>
-      <ul style={{ marginLeft: '-1rem'}}>
-        <li className='text-center'>
-          ⭐ Favoriting channels or dms
-        </li>
-        <li className='text-center'>
-          🔍 You can now search through your channels, dms, or contributors.
-        </li>
-        <li className='text-center'>
-          👨‍🦳 App state now persists, meaning it remembers your message drafts
-          and which channel you were on when you reload.
-        </li>
+/*
         <li className='text-center'>
           📣 New messages now separated by a divider so you know exactly which
           of them are new to you.
@@ -46,6 +30,24 @@ const UpdatesModal = () => {
         <li className='text-center'>
           🧐 Dm channels now display your common channels where the description
           would be.
+        </li>
+*/
+
+const UpdatesModal = () => {
+  const [showModal, setShowModal] = useLocalStorage(`update-notice_${process.env.NEXT_PUBLIC_APP_VERSION}`, true);
+  
+  return showModal ? (
+    <Modal data-testid='updates-modal' className={cn(s.root, 'w-[42rem]')} onClose={() => setShowModal(false)}>
+      <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>
+      <ul style={{ marginLeft: '-1rem'}}>
+        <li className='text-center'>
+          ⭐ Automatically join xxGeneralChat
+        </li>
+        <li className='text-center'>
+          🔍 Haven links now have previews when you send them via social media
+        </li>
+        <li className='text-center'>
+          👨‍🦳 Update to xxdk-wasm v0.3.22, which should improve time to initialize a new user codename
         </li>
       </ul>
       <div className='text-center'>
