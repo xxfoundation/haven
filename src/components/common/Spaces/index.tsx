@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useMemo } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
@@ -19,6 +19,10 @@ import havenLogo from 'src/assets/images/haven-logo.svg';
 import Button from '../Button';
 import { Join, Plus } from '@components/icons';
 
+import { XX_GENERAL_CHAT } from 'src/constants';
+import { NetworkStatus, useNetworkClient } from 'src/contexts/network-client-context';
+import { channel } from 'diagnostics_channel';
+
 const Spaces = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -31,6 +35,7 @@ const Spaces = () => {
   const msgs = useAppSelector(messages.selectors.sortedMessagesByChannelId);
   const missedMessages = useAppSelector(app.selectors.missedMessages);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const { joinChannel, channelManager  } = useNetworkClient();
 
   const selectChannel = useCallback((chId: string) => {
     dispatch(app.actions.selectChannelOrConversation(chId));
@@ -50,6 +55,21 @@ const Spaces = () => {
 
   useEffect(() => {
   }, [filteredChannels])
+
+  // Auto join xxGeneralChat on first load
+  useEffect(() => {
+    if (channelManager && window.localStorage.getItem("spacesFirstLoad") !== "true") {
+      setTimeout(() => {
+        try {
+          joinChannel(XX_GENERAL_CHAT, true, true);
+        } catch (e) {
+          console.error((e as Error).message);
+          throw(e);
+        } 
+        window.localStorage.setItem("spacesFirstLoad", "true");
+      }, 3000);
+    }
+  }, [channelManager])
 
   return (
     <div className={s.root}>
