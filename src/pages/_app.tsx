@@ -72,12 +72,12 @@ const SEO = () => {
         type: 'website',
         url: url,
         title: 'Haven',
-        description: '',
+        description: 'The internet Haven. True Freedom to express yourself, your thoughts, your beliefs. Speak easily to a group of friends or a global community. Talk about what you want. Surveillance free. Censorship proof. Your Haven chats are yours.',
         images: [
           {
-            url: `${origin}/preview.jpeg`,
-            width: 1280,
-            height: 720,
+            url: `${origin}/haven-icon.png`,
+            width: 200,
+            height: 43,
             alt: 'Haven'
           }
         ]
@@ -159,7 +159,15 @@ const HavenApp = ({ Component, pageProps }: AppProps) => {
       </ErrorBoundary>
     );
   } else {
-    return null;
+    return (
+      <ErrorBoundary>
+        <Head>
+          <title>{t('internet haven')}</title>
+          <link rel='icon' href='/favicon.svg' />
+        </Head>
+        <SEO />
+      </ErrorBoundary>
+    );
   }
 }
 
