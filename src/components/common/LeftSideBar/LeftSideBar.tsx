@@ -9,10 +9,10 @@ import SettingsMenu from '../SettingsMenu';
 import { useUI } from '@contexts/ui-context';
 
 const views: Record<LeftSidebarView, FC> = {
-  'dms': DMs,
-  'spaces': Spaces,
-  'settings': SettingsMenu,
-}
+  dms: DMs,
+  spaces: Spaces,
+  settings: SettingsMenu
+};
 
 const LeftSideBar: FC<WithChildren & { className?: string }> = ({ className }) => {
   const { leftSidebarView } = useUI();

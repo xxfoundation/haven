@@ -2,12 +2,7 @@ import { useUI } from '@contexts/ui-context';
 import { envIsDev } from '@utils/index';
 import { useEffect, useState, useCallback } from 'react';
 
-const DEV_CODE = [
-  'ArrowUp',
-  'ArrowUp',
-  'ArrowDown',
-  'ArrowDown',
-];
+const DEV_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown'];
 
 function useIsDev() {
   const [input, setInput] = useState<string[]>([]);
@@ -27,7 +22,7 @@ function useIsDev() {
         setInputted(true);
       }
     },
-    [alert, input, inputted],
+    [alert, input, inputted]
   );
 
   useEffect(() => {

@@ -13,16 +13,12 @@ import { useAuthentication } from '@contexts/authentication-context';
 
 type Props = {
   password: string;
-}
+};
 
 const CodenameRegistration: FC<Props> = ({ password }) => {
   const { t } = useTranslation();
   const { getOrInitPassword } = useAuthentication();
-  const {
-    checkRegistrationReadiness,
-    cmix,
-    generateIdentities
-  } = useNetworkClient();
+  const { checkRegistrationReadiness, cmix, generateIdentities } = useNetworkClient();
   const [loading, setLoading] = useState(false);
   const [identities, setIdentites] = useState<ReturnType<typeof generateIdentities>>([]);
   const [selectedCodeName, setSelectedCodeName] = useState('');
@@ -33,7 +29,7 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
 
   useEffect(() => {
     getOrInitPassword(password);
-  }, [getOrInitPassword, password])
+  }, [getOrInitPassword, password]);
 
   useEffect(() => {
     if (!firstTimeGenerated && cmix) {
@@ -46,33 +42,24 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
     setLoading(true);
     setTimeout(async () => {
       if (selectedPrivateIdentity) {
-        checkRegistrationReadiness(
-          selectedPrivateIdentity,
-          (isReadyInfo) => {
-            if (isReadyInfo.isReady) {
-              setTimeout(() => {
-                setLoading(false);
-                // Dont mess with this, it needs exactly 3 seconds
-                // for the database to initialize
-              }, 3000)
-            }
-            setReadyProgress(
-              Math.ceil((isReadyInfo?.howClose || 0) * 100)
-            );
+        checkRegistrationReadiness(selectedPrivateIdentity, (isReadyInfo) => {
+          if (isReadyInfo.isReady) {
+            setTimeout(() => {
+              setLoading(false);
+              // Dont mess with this, it needs exactly 3 seconds
+              // for the database to initialize
+            }, 3000);
           }
-        );
+          setReadyProgress(Math.ceil((isReadyInfo?.howClose || 0) * 100));
+        });
       }
-      
     }, 500);
   }, [checkRegistrationReadiness, selectedPrivateIdentity]);
 
-  return loading ? <ImportCodeNameLoading fullscreen readyProgress={readyProgress} /> : (
-    <div
-      className={cn(
-        'w-full flex flex-col justify-center items-center px-6',
-        s.root
-      )}
-    >
+  return loading ? (
+    <ImportCodeNameLoading fullscreen readyProgress={readyProgress} />
+  ) : (
+    <div className={cn('w-full flex flex-col justify-center items-center px-6', s.root)}>
       <h2 data-testid='codename-registration-title' className='mt-9 mb-4'>
         {t('Find your Codename')}
       </h2>

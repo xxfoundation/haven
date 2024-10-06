@@ -1,29 +1,59 @@
-import { CMix, DBMessage, DBChannel, ChannelJSON, ShareURLJSON, IsReadyInfoJSON, MessageReceivedEvent, ChannelNotificationLevel, NotificationStatus, MessageStatus, MessageId } from 'src/types';
+import {
+  CMix,
+  DBMessage,
+  DBChannel,
+  ChannelJSON,
+  ShareURLJSON,
+  IsReadyInfoJSON,
+  MessageReceivedEvent,
+  ChannelNotificationLevel,
+  NotificationStatus,
+  MessageStatus,
+  MessageId
+} from 'src/types';
 import { MessageType, PrivacyLevel, type Message, type WithChildren } from 'src/types';
 
-import React, { FC, useState, useEffect,  useCallback, useMemo } from 'react';
+import React, { FC, useState, useEffect, useCallback, useMemo } from 'react';
 
 import Cookies from 'js-cookie';
 import assert from 'assert';
 
-import { AppEvents, ChannelEvents, appBus, awaitChannelEvent, onChannelEvent, useChannelsListener } from 'src/events';
+import {
+  AppEvents,
+  ChannelEvents,
+  appBus,
+  awaitChannelEvent,
+  onChannelEvent,
+  useChannelsListener
+} from 'src/events';
 import { HTMLToPlaintext, decoder, encoder, exportDataToFile, inflate } from 'src/utils';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { useUtils } from 'src/contexts/utils-context';
-import { MESSAGE_LEASE, PIN_MESSAGE_LENGTH_MILLISECONDS, CMIX_NETWORK_READINESS_THRESHOLD } from '../constants';
+import {
+  MESSAGE_LEASE,
+  PIN_MESSAGE_LENGTH_MILLISECONDS,
+  CMIX_NETWORK_READINESS_THRESHOLD
+} from '../constants';
 
 import { useDb } from './db-context';
 import useCmix, { NetworkStatus } from 'src/hooks/useCmix';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
-import * as channels from 'src/store/channels'
+import * as channels from 'src/store/channels';
 import * as identity from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import * as dms from 'src/store/dms';
 import { Channel } from 'src/store/channels/types';
 import usePagination from 'src/hooks/usePagination';
 import useDmClient from 'src/hooks/useDmClient';
-import { channelDecoder, identityDecoder, isReadyInfoDecoder, pubkeyArrayDecoder, shareUrlDecoder, versionDecoder } from '@utils/decoders';
+import {
+  channelDecoder,
+  identityDecoder,
+  isReadyInfoDecoder,
+  pubkeyArrayDecoder,
+  shareUrlDecoder,
+  versionDecoder
+} from '@utils/decoders';
 import useChannelsStorageTag from 'src/hooks/useChannelsStorageTag';
 
 import { channelsIndexedDbWorkerPath } from 'xxdk-wasm';
@@ -35,7 +65,7 @@ export type User = {
   codeset: number;
   color: string;
   pubkey: string;
-}
+};
 
 export type ChannelManager = {
   GetID: () => number;
@@ -65,7 +95,7 @@ export type ChannelManager = {
     messageId: Uint8Array,
     unpin: boolean,
     pinDurationInMilliseconds: number,
-    cmixParams: Uint8Array,
+    cmixParams: Uint8Array
   ) => Promise<Uint8Array>;
   DeleteMessage: (
     channelId: Uint8Array,
@@ -90,8 +120,16 @@ export type ChannelManager = {
   IsChannelAdmin: (channelId: Uint8Array) => boolean;
   GetNotificationLevel: (channelId: Uint8Array) => ChannelNotificationLevel;
   GetNotificationStatus: (channelId: Uint8Array) => NotificationStatus;
-  SetMobileNotificationsLevel: (channelId: Uint8Array, notificationLevel: ChannelNotificationLevel, notificationStatus: NotificationStatus) => void;
-  GenerateChannel: (channelname: string, description: string, privacyLevel: PrivacyLevel) => Promise<string>;
+  SetMobileNotificationsLevel: (
+    channelId: Uint8Array,
+    notificationLevel: ChannelNotificationLevel,
+    notificationStatus: NotificationStatus
+  ) => void;
+  GenerateChannel: (
+    channelname: string,
+    description: string,
+    privacyLevel: PrivacyLevel
+  ) => Promise<string>;
   GetStorageTag: () => string | undefined;
   SetNickname: (newNickname: string, channel: Uint8Array) => void;
   GetNickname: (channelId: Uint8Array) => string;
@@ -100,8 +138,12 @@ export type ChannelManager = {
   JoinChannelFromURL: (url: string, password: string) => Uint8Array;
   ExportPrivateIdentity: (password: string) => Uint8Array;
   ExportChannelAdminKey: (channelId: Uint8Array, encryptionPassword: string) => Uint8Array;
-  ImportChannelAdminKey: (channelId: Uint8Array, encryptionPassword: string, privateKey: Uint8Array) => void;
-}
+  ImportChannelAdminKey: (
+    channelId: Uint8Array,
+    encryptionPassword: string,
+    privateKey: Uint8Array
+  ) => void;
+};
 
 export type NetworkContext = {
   // state
@@ -127,10 +169,10 @@ export type NetworkContext = {
   deleteMessage: (message: Pick<Message, 'id' | 'channelId'>) => Promise<void>;
   exportChannelAdminKeys: (encryptionPassword: string) => string;
   generateIdentities: (amountOfIdentites: number) => {
-    codename: string,
-    privateIdentity: Uint8Array,
-    codeset: number
-    pubkey: string,
+    codename: string;
+    privateIdentity: Uint8Array;
+    codeset: number;
+    pubkey: string;
   }[];
   joinChannel: (prettyPrint: string, appendToCurrent?: boolean, enabledms?: boolean) => void;
   importChannelAdminKeys: (encryptionPassword: string, privateKeys: string) => void;
@@ -166,7 +208,7 @@ export const NetworkClientContext = React.createContext<NetworkContext>({
   currentChannel: undefined,
   channels: [],
   messages: [],
-  isNetworkHealthy: undefined,
+  isNetworkHealthy: undefined
 } as unknown as NetworkContext);
 
 NetworkClientContext.displayName = 'NetworkClientContext';
@@ -184,7 +226,7 @@ const savePrettyPrint = (channelId: string, prettyPrint: string) => {
   localStorage.setItem('prettyprints', JSON.stringify(prev));
 };
 
-export const NetworkProvider: FC<WithChildren> = props => {
+export const NetworkProvider: FC<WithChildren> = (props) => {
   const pagination = usePagination();
   const dispatch = useAppDispatch();
   const db = useDb();
@@ -192,13 +234,7 @@ export const NetworkProvider: FC<WithChildren> = props => {
   const { set: setStorageTag, value: storageTag } = useChannelsStorageTag();
   const { getCodeNameAndColor, utils } = useUtils();
   const [mutedUsers, setMutedUsers] = useState<User[]>();
-  const {
-    cipher,
-    cmix,
-    disconnect,
-    id: cmixId,
-    status: cmixStatus
-  } = useCmix();
+  const { cipher, cmix, disconnect, id: cmixId, status: cmixStatus } = useCmix();
   const [channelManager, setChannelManager] = useState<ChannelManager | undefined>();
   const bc = useMemo(() => new BroadcastChannel('join_channel'), []);
   const currentChannelPages = useAppSelector(channels.selectors.channelPages);
@@ -221,117 +257,121 @@ export const NetworkProvider: FC<WithChildren> = props => {
     if (currentChannel?.id) {
       dispatch(channels.actions.updateAdmin({ channelId: currentChannel.id }));
     }
-  }, [dispatch, currentChannel])
+  }, [dispatch, currentChannel]);
 
-  const fetchIdentity = useCallback((mngr?: ChannelManager) => {
-    const manager = channelManager || mngr;
-    try {
-      const json = decoder.decode(manager?.GetIdentity());
-
-      const parsed = identityDecoder(JSON.parse(json));
-
-      dispatch(identity.actions.set({
-        codename: parsed.codename,
-        pubkey: parsed.pubkey,
-        codeset: parsed.codeset,
-        color: parsed.color.replace('0x', '#'),
-        extension: parsed.extension
-      }));
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  }, [channelManager, dispatch]);
-
-  const getShareURL = useCallback((
-    channelId: string,
-  ) => {
-    if (
-      cmix &&
-      channelManager &&
-      utils &&
-      utils.Base64ToUint8Array &&
-      channelId
-    ) {
+  const fetchIdentity = useCallback(
+    (mngr?: ChannelManager) => {
+      const manager = channelManager || mngr;
       try {
-        const currentHostName = window.location.host;
-        const res = channelManager.GetShareURL(
-          cmix?.GetID(),
-          `http://${currentHostName}/join`,
-          0,
-          utils.Base64ToUint8Array(channelId)
+        const json = decoder.decode(manager?.GetIdentity());
+
+        const parsed = identityDecoder(JSON.parse(json));
+
+        dispatch(
+          identity.actions.set({
+            codename: parsed.codename,
+            pubkey: parsed.pubkey,
+            codeset: parsed.codeset,
+            color: parsed.color.replace('0x', '#'),
+            extension: parsed.extension
+          })
         );
-        
-        return shareUrlDecoder(JSON.parse(decoder.decode(res)));
       } catch (error) {
+        console.error(error);
         return null;
       }
-    } else {
-      return null;
-    }
-  }, [channelManager, cmix, utils]);
+    },
+    [channelManager, dispatch]
+  );
 
-  const getShareUrlType = useCallback((url?: string) => {
-    if (url && utils && utils.GetShareUrlType) {
-      try {
-        const res = utils.GetShareUrlType(url);
-        return res;
-      } catch (error) {
+  const getShareURL = useCallback(
+    (channelId: string) => {
+      if (cmix && channelManager && utils && utils.Base64ToUint8Array && channelId) {
+        try {
+          const currentHostName = window.location.host;
+          const res = channelManager.GetShareURL(
+            cmix?.GetID(),
+            `http://${currentHostName}/join`,
+            0,
+            utils.Base64ToUint8Array(channelId)
+          );
+
+          return shareUrlDecoder(JSON.parse(decoder.decode(res)));
+        } catch (error) {
+          return null;
+        }
+      } else {
         return null;
       }
-    } else {
-      return null;
-    }
-  }, [utils]);
+    },
+    [channelManager, cmix, utils]
+  );
+
+  const getShareUrlType = useCallback(
+    (url?: string) => {
+      if (url && utils && utils.GetShareUrlType) {
+        try {
+          const res = utils.GetShareUrlType(url);
+          return res;
+        } catch (error) {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    },
+    [utils]
+  );
 
   const getPrivacyLevel = useCallback(
     (channelId: string) => getShareUrlType(getShareURL(channelId)?.url),
     [getShareURL, getShareUrlType]
   );
-  
-  const joinChannel = useCallback(async (
-    prettyPrint: string,
-    appendToCurrent = true,
-    enableDms = true,
-  ) => {
-    if (prettyPrint && channelManager && channelManager.JoinChannel) {
-      let chanInfo = channelDecoder(JSON.parse(decoder.decode(utils.GetChannelJSON(prettyPrint))));
 
-      if (currentChannels.find((c) => c.id === chanInfo.receptionId)) {
-        return;
+  const joinChannel = useCallback(
+    async (prettyPrint: string, appendToCurrent = true, enableDms = true) => {
+      if (prettyPrint && channelManager && channelManager.JoinChannel) {
+        let chanInfo = channelDecoder(
+          JSON.parse(decoder.decode(utils.GetChannelJSON(prettyPrint)))
+        );
+
+        if (currentChannels.find((c) => c.id === chanInfo.receptionId)) {
+          return;
+        }
+
+        chanInfo = channelDecoder(
+          JSON.parse(decoder.decode(await channelManager.JoinChannel(prettyPrint)))
+        );
+
+        if (chanInfo.channelId === undefined) {
+          throw new Error('ChannelID was not found');
+        }
+
+        const channel: Channel = {
+          id: chanInfo.receptionId || chanInfo.channelId,
+          name: chanInfo.name,
+          privacyLevel: getPrivacyLevel(chanInfo.receptionId || chanInfo.channelId),
+          description: chanInfo.description,
+          isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
+        };
+
+        if (appendToCurrent) {
+          dispatch(channels.actions.upsert(channel));
+          dispatch(app.actions.selectChannelOrConversation(channel.id));
+        }
+
+        if (enableDms) {
+          channelManager.EnableDirectMessages(utils.Base64ToUint8Array(channel.id));
+        } else {
+          channelManager.DisableDirectMessages(utils.Base64ToUint8Array(channel.id));
+        }
       }
-
-      chanInfo = channelDecoder(JSON.parse(
-        decoder.decode(await channelManager.JoinChannel(prettyPrint))
-      ));
-
-      if (chanInfo.channelId === undefined) {
-        throw new Error('ChannelID was not found');
-      }
-
-      const channel: Channel = {
-        id: chanInfo.receptionId || chanInfo.channelId,
-        name: chanInfo.name,
-        privacyLevel: getPrivacyLevel(chanInfo.receptionId ||chanInfo.channelId),
-        description: chanInfo.description,
-        isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId)),
-      };
-
-      if (appendToCurrent) {
-        dispatch(channels.actions.upsert(channel));
-        dispatch(app.actions.selectChannelOrConversation(channel.id));
-      }
-
-      if (enableDms) {
-        channelManager.EnableDirectMessages(utils.Base64ToUint8Array(channel.id));
-      } else {
-        channelManager.DisableDirectMessages(utils.Base64ToUint8Array(channel.id));
-      }
-    }
-  }, [channelManager, currentChannels, dispatch, getPrivacyLevel, utils]);
+    },
+    [channelManager, currentChannels, dispatch, getPrivacyLevel, utils]
+  );
 
   useEffect(() => {
-    bc.onmessage = async event => {
+    bc.onmessage = async (event) => {
       if (event.data) {
         try {
           await joinChannel(event.data.prettyPrint, true, event.data.dmsEnabled);
@@ -340,101 +380,96 @@ export const NetworkProvider: FC<WithChildren> = props => {
     };
   }, [bc, channelManager, joinChannel]);
 
-
   useEffect(() => {
     if (currentChannel && channelManager) {
-      dispatch(channels.actions.updateDmsEnabled({
-        channelId: currentChannel.id,
-        enabled: channelManager.AreDMsEnabled(utils.Base64ToUint8Array(currentChannel.id))
-      }))
+      dispatch(
+        channels.actions.updateDmsEnabled({
+          channelId: currentChannel.id,
+          enabled: channelManager.AreDMsEnabled(utils.Base64ToUint8Array(currentChannel.id))
+        })
+      );
     }
-    }, [channelManager, currentChannel, dispatch, utils]);
+  }, [channelManager, currentChannel, dispatch, utils]);
 
-  const dbMessageMapper = useCallback((dbMsg: DBMessage): Message => {
-    assert(cipher, 'Cipher required');
+  const dbMessageMapper = useCallback(
+    (dbMsg: DBMessage): Message => {
+      assert(cipher, 'Cipher required');
 
-    const decrypted = cipher.decrypt(dbMsg.text);
-    const inflated = dbMsg.type !== MessageType.Reaction ? inflate(decrypted) : decrypted;
-    const plaintext = HTMLToPlaintext(inflated);
+      const decrypted = cipher.decrypt(dbMsg.text);
+      const inflated = dbMsg.type !== MessageType.Reaction ? inflate(decrypted) : decrypted;
+      const plaintext = HTMLToPlaintext(inflated);
 
-    return {
-      ...getCodeNameAndColor(dbMsg.pubkey, dbMsg.codeset_version),
-      id: dbMsg.message_id,
-      body: inflated ?? undefined,
-      repliedTo: dbMsg.parent_message_id,
-      plaintext,
-      type: dbMsg.type,
-      timestamp: dbMsg.timestamp,
-      nickname: dbMsg.nickname || '',
-      channelId: dbMsg.channel_id,
-      status: dbMsg.status,
-      uuid: dbMsg.id,
-      round: dbMsg.round,
-      pubkey: dbMsg.pubkey,
-      pinned: dbMsg.pinned,
-      hidden: dbMsg.hidden,
-      codeset: dbMsg.codeset_version,
-      dmToken: dbMsg.dm_token === 0 ? undefined : dbMsg.dm_token
-    }
-  }, [cipher, getCodeNameAndColor]);
+      return {
+        ...getCodeNameAndColor(dbMsg.pubkey, dbMsg.codeset_version),
+        id: dbMsg.message_id,
+        body: inflated ?? undefined,
+        repliedTo: dbMsg.parent_message_id,
+        plaintext,
+        type: dbMsg.type,
+        timestamp: dbMsg.timestamp,
+        nickname: dbMsg.nickname || '',
+        channelId: dbMsg.channel_id,
+        status: dbMsg.status,
+        uuid: dbMsg.id,
+        round: dbMsg.round,
+        pubkey: dbMsg.pubkey,
+        pinned: dbMsg.pinned,
+        hidden: dbMsg.hidden,
+        codeset: dbMsg.codeset_version,
+        dmToken: dbMsg.dm_token === 0 ? undefined : dbMsg.dm_token
+      };
+    },
+    [cipher, getCodeNameAndColor]
+  );
 
-  const handleMessageEvent = useCallback(async ({ uuid }: MessageReceivedEvent) => {
-    if (db && cipher?.decrypt) {
-      const receivedMessage = await db.table<DBMessage>('messages').get(uuid);
+  const handleMessageEvent = useCallback(
+    async ({ uuid }: MessageReceivedEvent) => {
+      if (db && cipher?.decrypt) {
+        const receivedMessage = await db.table<DBMessage>('messages').get(uuid);
 
-      if (receivedMessage) {
-        const mappedMessage = dbMessageMapper(receivedMessage);
-        const oldMessage = allMessagesByChannelId[mappedMessage.channelId]?.[mappedMessage.uuid];
+        if (receivedMessage) {
+          const mappedMessage = dbMessageMapper(receivedMessage);
+          const oldMessage = allMessagesByChannelId[mappedMessage.channelId]?.[mappedMessage.uuid];
 
-        dispatch(messages.actions.upsert(mappedMessage));
-      
-        if (mappedMessage.status === MessageStatus.Delivered) {
-          appBus.emit(AppEvents.MESSAGE_PROCESSED, mappedMessage, oldMessage);
-        }
+          dispatch(messages.actions.upsert(mappedMessage));
 
-        if (receivedMessage.channel_id !== currentChannel?.id) {
-          dispatch(app.actions.notifyNewMessage(mappedMessage))
+          if (mappedMessage.status === MessageStatus.Delivered) {
+            appBus.emit(AppEvents.MESSAGE_PROCESSED, mappedMessage, oldMessage);
+          }
+
+          if (receivedMessage.channel_id !== currentChannel?.id) {
+            dispatch(app.actions.notifyNewMessage(mappedMessage));
+          }
         }
       }
-    }
-  }, [
-    allMessagesByChannelId,
-    cipher?.decrypt,
-    currentChannel?.id,
-    db,
-    dbMessageMapper,
-    dispatch
-  ]);
+    },
+    [allMessagesByChannelId, cipher?.decrypt, currentChannel?.id, db, dbMessageMapper, dispatch]
+  );
 
   useChannelsListener(ChannelEvents.MESSAGE_RECEIVED, handleMessageEvent);
 
   const fetchChannels = useCallback(async () => {
     assert(db);
     assert(channelManager);
-    
+
     const fetchedChannels = await db.table<DBChannel>('channels').toArray();
 
     const channelList = fetchedChannels.map((ch: DBChannel) => ({
       ...ch,
       privacyLevel: getPrivacyLevel(ch.id),
-      isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(ch.id)),
+      isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(ch.id))
     }));
 
-    channelList.forEach((channel) => dispatch(channels.actions.upsert(channel)))
-  }, [
-    channelManager,
-    db,
-    dispatch,
-    getPrivacyLevel,
-    utils
-  ]);
+    channelList.forEach((channel) => dispatch(channels.actions.upsert(channel)));
+  }, [channelManager, db, dispatch, getPrivacyLevel, utils]);
 
   const fetchMessages = useCallback(async () => {
     assert(db, 'DB required to fetch messages');
-    const msgs: DBMessage[] = await db.table<DBMessage>('messages')
+    const msgs: DBMessage[] = await db
+      .table<DBMessage>('messages')
       .orderBy('timestamp')
       .reverse()
-      .filter(m =>  !m.hidden)
+      .filter((m) => !m.hidden)
       .toArray();
 
     const mappedMessages = msgs.map(dbMessageMapper);
@@ -454,19 +489,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
     await fetchChannels();
     await fetchMessages();
     appBus.emit(AppEvents.MESSAGES_FETCHED, true);
-  }, [
-    channelManager,
-    cmix, db,
-    fetchChannels,
-    fetchIdentity,
-    fetchMessages
-  ]);
+  }, [channelManager, cmix, db, fetchChannels, fetchIdentity, fetchMessages]);
 
   useEffect(() => {
     if (!currentChannel && currentChannels.length > 0 && currentConversationId === null) {
       dispatch(app.actions.selectChannelOrConversation(currentChannels[0]?.id));
     }
-  }, [currentChannel, currentChannels, currentConversationId, dispatch])
+  }, [currentChannel, currentChannels, currentConversationId, dispatch]);
 
   useEffect(() => {
     if (db && channelManager && cmix) {
@@ -474,15 +503,11 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [db, cmix, channelManager, fetchInitialData]);
 
-  const loadChannelManager = useCallback(async (tag: string) => {
-    if (
-      cmixId !== undefined &&
-      cipher &&
-      utils
-    ) {
-      const notifications = utils.LoadNotificationsDummy(cmixId);
-      const loadedChannelsManager = await utils
-        .LoadChannelsManagerWithIndexedDb(
+  const loadChannelManager = useCallback(
+    async (tag: string) => {
+      if (cmixId !== undefined && cipher && utils) {
+        const notifications = utils.LoadNotificationsDummy(cmixId);
+        const loadedChannelsManager = await utils.LoadChannelsManagerWithIndexedDb(
           cmixId,
           (await channelsIndexedDbWorkerPath()).toString(),
           tag,
@@ -493,11 +518,13 @@ export const NetworkProvider: FC<WithChildren> = props => {
           },
           cipher?.id
         );
-        
-      setChannelManager(loadedChannelsManager);
-      appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, loadedChannelsManager);
-    }
-  }, [cipher, cmixId, utils]);
+
+        setChannelManager(loadedChannelsManager);
+        appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, loadedChannelsManager);
+      }
+    },
+    [cipher, cmixId, utils]
+  );
 
   useEffect(() => {
     if (cmix && cipher && utils && storageTag) {
@@ -509,194 +536,216 @@ export const NetworkProvider: FC<WithChildren> = props => {
     let users: User[] = [];
 
     if (currentChannel && channelManager && db) {
-      const mutedUserIds = pubkeyArrayDecoder(JSON.parse(decoder.decode(channelManager?.GetMutedUsers(
-        utils.Base64ToUint8Array(currentChannel.id)
-      ))));
+      const mutedUserIds = pubkeyArrayDecoder(
+        JSON.parse(
+          decoder.decode(channelManager?.GetMutedUsers(utils.Base64ToUint8Array(currentChannel.id)))
+        )
+      );
 
-      dispatch(channels.actions.setMutedUsers({
-        channelId: currentChannel.id,
-        mutedUsers: mutedUserIds
-      }));
+      dispatch(
+        channels.actions.setMutedUsers({
+          channelId: currentChannel.id,
+          mutedUsers: mutedUserIds
+        })
+      );
 
-      const usersMap = (await db.table<DBMessage>('messages')
-        .filter((obj) => obj.channel_id === currentChannel.id && mutedUserIds.includes(obj.pubkey))
-        .toArray() || []).reduce((acc, cur) => {
+      const usersMap = (
+        (await db
+          .table<DBMessage>('messages')
+          .filter(
+            (obj) => obj.channel_id === currentChannel.id && mutedUserIds.includes(obj.pubkey)
+          )
+          .toArray()) || []
+      )
+        .reduce((acc, cur) => {
           if (mutedUserIds.includes(cur.pubkey) && !acc.get(cur.pubkey)) {
-            const { codename: codename, color } = getCodeNameAndColor(cur.pubkey, cur.codeset_version);
-            acc.set(
-              cur.pubkey, {
-                codename,
-                color,
-                pubkey: cur.pubkey,
-                codeset: cur.codeset_version
-              }
+            const { codename: codename, color } = getCodeNameAndColor(
+              cur.pubkey,
+              cur.codeset_version
             );
+            acc.set(cur.pubkey, {
+              codename,
+              color,
+              pubkey: cur.pubkey,
+              codeset: cur.codeset_version
+            });
           }
           return acc;
-        }, new Map<string, User>()).values();
-      
+        }, new Map<string, User>())
+        .values();
+
       users = Array.from(usersMap);
     }
 
     return users;
   }, [channelManager, currentChannel, db, dispatch, getCodeNameAndColor, utils]);
 
-  const createChannelManager = useCallback(async (privIdentity: Uint8Array) => {
-    if (
-      cmixId !== undefined &&
-      cipher &&
-      utils &&
-      utils.NewChannelsManagerWithIndexedDb
-    ) {
-      const workerPath = (await channelsIndexedDbWorkerPath()).toString();
-      //console.log('WORKERPATHCHANNELS: ' + workerPath)
-      const notifications = utils.LoadNotificationsDummy(cmixId);
-      const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
-        cmixId,
-        workerPath,
-        privIdentity,
-        new Uint8Array(),
-        notifications.GetID(),
-        { EventUpdate: onChannelEvent },
-        cipher.id
-      );
-      
-      setChannelManager(createdChannelManager);
+  const createChannelManager = useCallback(
+    async (privIdentity: Uint8Array) => {
+      if (cmixId !== undefined && cipher && utils && utils.NewChannelsManagerWithIndexedDb) {
+        const workerPath = (await channelsIndexedDbWorkerPath()).toString();
+        //console.log('WORKERPATHCHANNELS: ' + workerPath)
+        const notifications = utils.LoadNotificationsDummy(cmixId);
+        const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
+          cmixId,
+          workerPath,
+          privIdentity,
+          new Uint8Array(),
+          notifications.GetID(),
+          { EventUpdate: onChannelEvent },
+          cipher.id
+        );
 
-      appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, createdChannelManager);
+        setChannelManager(createdChannelManager);
 
-      const tag = createdChannelManager.GetStorageTag();
-      if (tag) {
-        setStorageTag(tag);
+        appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, createdChannelManager);
+
+        const tag = createdChannelManager.GetStorageTag();
+        if (tag) {
+          setStorageTag(tag);
+        }
       }
-    }
-  }, [cmixId, cipher, utils, setStorageTag]);
+    },
+    [cmixId, cipher, utils, setStorageTag]
+  );
 
   const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => { setHasMore(true); }, [currentChannel?.id])
+  useEffect(() => {
+    setHasMore(true);
+  }, [currentChannel?.id]);
 
-  const loadMoreChannelData = useCallback(async (chId: string) => {
-    if (db) {
-      const foundChannel = currentChannels.find(ch => ch.id === chId);
-      if (foundChannel) {
-        const offset = (currentChannelPages[foundChannel.id] + 1) * BATCH_COUNT;
+  const loadMoreChannelData = useCallback(
+    async (chId: string) => {
+      if (db) {
+        const foundChannel = currentChannels.find((ch) => ch.id === chId);
+        if (foundChannel) {
+          const offset = (currentChannelPages[foundChannel.id] + 1) * BATCH_COUNT;
 
-        const newMessages = await db
-          .table<DBMessage>('messages')
-          .orderBy('timestamp')
-          .reverse()
-          .filter(m => {
-            return !m.hidden && m.channel_id === chId && m.type === 1;
-          })
-          .offset(offset)
-          .limit(BATCH_COUNT)
-          .toArray();
-        
-        if (newMessages.length > 0) {
-          dispatch(channels.actions.incrementPage(chId));
-          dispatch(messages.actions.upsertMany(newMessages.map(dbMessageMapper)));
-        } else {
-          setHasMore(false);
+          const newMessages = await db
+            .table<DBMessage>('messages')
+            .orderBy('timestamp')
+            .reverse()
+            .filter((m) => {
+              return !m.hidden && m.channel_id === chId && m.type === 1;
+            })
+            .offset(offset)
+            .limit(BATCH_COUNT)
+            .toArray();
+
+          if (newMessages.length > 0) {
+            dispatch(channels.actions.incrementPage(chId));
+            dispatch(messages.actions.upsertMany(newMessages.map(dbMessageMapper)));
+          } else {
+            setHasMore(false);
+          }
         }
       }
-    }
-  }, [db, currentChannels, currentChannelPages, dispatch, dbMessageMapper]);
+    },
+    [db, currentChannels, currentChannelPages, dispatch, dbMessageMapper]
+  );
 
   useEffect(() => {
-    if (currentChannel?.id !== undefined && pagination.end >= (currentMessages?.length ?? 0) && hasMore) {
+    if (
+      currentChannel?.id !== undefined &&
+      pagination.end >= (currentMessages?.length ?? 0) &&
+      hasMore
+    ) {
       loadMoreChannelData(currentChannel?.id);
     }
-  }, [
-    currentChannel?.id,
-    currentMessages?.length,
-    hasMore,
-    loadMoreChannelData,
-    pagination.end
-  ])
+  }, [currentChannel?.id, currentMessages?.length, hasMore, loadMoreChannelData, pagination.end]);
 
-  const joinChannelFromURL = useCallback((url: string, password = '') => {
-    if (channelManager && channelManager.JoinChannelFromURL) {
-      try {
-        const chanInfo = channelDecoder(JSON.parse(
-          decoder.decode(channelManager.JoinChannelFromURL(url, password))
-        ));
+  const joinChannelFromURL = useCallback(
+    (url: string, password = '') => {
+      if (channelManager && channelManager.JoinChannelFromURL) {
+        try {
+          const chanInfo = channelDecoder(
+            JSON.parse(decoder.decode(channelManager.JoinChannelFromURL(url, password)))
+          );
 
-        if (chanInfo && chanInfo?.channelId) {
-          dispatch(channels.actions.upsert({
-            id: chanInfo?.channelId,
-            name: chanInfo?.name,
-            description: chanInfo?.description,
-            privacyLevel: getPrivacyLevel(chanInfo?.channelId),
-            isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
-          }));
-          dispatch(app.actions.selectChannelOrConversation(chanInfo.channelId));
+          if (chanInfo && chanInfo?.channelId) {
+            dispatch(
+              channels.actions.upsert({
+                id: chanInfo?.channelId,
+                name: chanInfo?.name,
+                description: chanInfo?.description,
+                privacyLevel: getPrivacyLevel(chanInfo?.channelId),
+                isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
+              })
+            );
+            dispatch(app.actions.selectChannelOrConversation(chanInfo.channelId));
+          }
+        } catch (error) {
+          console.error('Error joining channel');
         }
-      } catch (error) {
-        console.error('Error joining channel')
+      } else {
+        return null;
       }
-    } else {
-      return null;
-    }
-  }, [channelManager, dispatch, getPrivacyLevel, utils]);
+    },
+    [channelManager, dispatch, getPrivacyLevel, utils]
+  );
 
-  const getChannelInfo = useCallback((prettyPrint: string) => {
-    if (utils && utils.GetChannelInfo && prettyPrint.length) {
-      return channelDecoder(JSON.parse(decoder.decode(utils.GetChannelInfo(prettyPrint))));
-    }
-    return {};
-  }, [utils]);
+  const getChannelInfo = useCallback(
+    (prettyPrint: string) => {
+      if (utils && utils.GetChannelInfo && prettyPrint.length) {
+        return channelDecoder(JSON.parse(decoder.decode(utils.GetChannelInfo(prettyPrint))));
+      }
+      return {};
+    },
+    [utils]
+  );
 
-  const createChannel = useCallback(async (
-    channelName: string,
-    channelDescription: string,
-    privacyLevel: PrivacyLevel.Public | PrivacyLevel.Secret,
-    enableDms = true
-  ) => {
+  const createChannel = useCallback(
+    async (
+      channelName: string,
+      channelDescription: string,
+      privacyLevel: PrivacyLevel.Public | PrivacyLevel.Secret,
+      enableDms = true
+    ) => {
       if (cmix && channelName && channelManager) {
         const channelPrettyPrint = await channelManager?.GenerateChannel(
           channelName,
           channelDescription || '',
-          privacyLevel,
+          privacyLevel
         );
-   
+
         const channelInfo = getChannelInfo(channelPrettyPrint || '') as ChannelJSON;
 
         if (channelInfo.channelId === undefined) {
           throw new Error('ChannelID was not found');
         }
-  
+
         const channel: Channel = {
           id: channelInfo?.channelId,
           name: channelInfo?.name,
           isAdmin: true,
           privacyLevel,
           description: channelInfo?.description,
-          prettyPrint: channelPrettyPrint,
+          prettyPrint: channelPrettyPrint
         };
 
         await joinChannel(channelPrettyPrint, false);
         savePrettyPrint(channel.id, channelPrettyPrint);
         dispatch(channels.actions.upsert(channel));
         dispatch(app.actions.selectChannelOrConversation(channel.id));
-        
+
         if (enableDms) {
           channelManager.EnableDirectMessages(utils.Base64ToUint8Array(channel.id));
         } else {
           channelManager.DisableDirectMessages(utils.Base64ToUint8Array(channel.id));
         }
       }
-  }, [cmix, channelManager, getChannelInfo, joinChannel, dispatch, utils]);
+    },
+    [cmix, channelManager, getChannelInfo, joinChannel, dispatch, utils]
+  );
 
   const shareChannel = () => {};
 
   const leaveCurrentChannel = useCallback(async () => {
     if (currentChannel && channelManager && channelManager.LeaveChannel && utils) {
       try {
-        await channelManager.LeaveChannel(
-          utils.Base64ToUint8Array(currentChannel.id)
-        );
-        
+        await channelManager.LeaveChannel(utils.Base64ToUint8Array(currentChannel.id));
+
         dispatch(channels.actions.leaveChannel(currentChannel.id));
       } catch (error) {
         console.error('Failed to leave Channel:', error);
@@ -704,145 +753,127 @@ export const NetworkProvider: FC<WithChildren> = props => {
     }
   }, [channelManager, currentChannel, dispatch, utils]);
 
-  const sendMessage = useCallback(async (message: string, tags: string[] = []) => {
-    if (
-      message.length &&
-      channelManager &&
-      utils &&
-      utils.Base64ToUint8Array &&
-      currentChannel
-    ) {
-      try {
-        await channelManager.SendMessage(
-          utils.Base64ToUint8Array(currentChannel.id),
-          message,
-          MESSAGE_LEASE,
-          new Uint8Array(),
-          encoder.encode(JSON.stringify(tags)),
-        );
-      } catch (e) {
-        console.error('Error sending message', e);
+  const sendMessage = useCallback(
+    async (message: string, tags: string[] = []) => {
+      if (message.length && channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
+        try {
+          await channelManager.SendMessage(
+            utils.Base64ToUint8Array(currentChannel.id),
+            message,
+            MESSAGE_LEASE,
+            new Uint8Array(),
+            encoder.encode(JSON.stringify(tags))
+          );
+        } catch (e) {
+          console.error('Error sending message', e);
+        }
+      } else if (currentConversation) {
+        sendDirectMessage(message);
       }
-    } else if (currentConversation) {
-      sendDirectMessage(message);
-    }
-  }, [channelManager, currentChannel, sendDirectMessage, currentConversation, utils]);
+    },
+    [channelManager, currentChannel, sendDirectMessage, currentConversation, utils]
+  );
 
-  const sendReply = useCallback(async (reply: string, replyToMessageId: string, tags: string[] = []) => {
-    if (
-      reply.length &&
-      channelManager &&
-      utils &&
-      utils.Base64ToUint8Array &&
-      currentChannel
-    ) {
-      try {
-        await channelManager.SendReply(
-          utils.Base64ToUint8Array(currentChannel.id),
-          reply,
-          utils.Base64ToUint8Array(replyToMessageId),
-          30000,
-          new Uint8Array(),
-          encoder.encode(JSON.stringify(tags))
-        );
-      } catch (error) {
-        console.error(`Test failed to reply to messageId ${replyToMessageId}`);
+  const sendReply = useCallback(
+    async (reply: string, replyToMessageId: string, tags: string[] = []) => {
+      if (reply.length && channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
+        try {
+          await channelManager.SendReply(
+            utils.Base64ToUint8Array(currentChannel.id),
+            reply,
+            utils.Base64ToUint8Array(replyToMessageId),
+            30000,
+            new Uint8Array(),
+            encoder.encode(JSON.stringify(tags))
+          );
+        } catch (error) {
+          console.error(`Test failed to reply to messageId ${replyToMessageId}`);
+        }
+      } else if (reply.length && currentConversation) {
+        sendDMReply(reply, replyToMessageId);
       }
-    } else if (reply.length && currentConversation) {
-      sendDMReply(reply, replyToMessageId);
-    }
-  }, [channelManager, currentChannel, currentConversation, utils, sendDMReply]);
+    },
+    [channelManager, currentChannel, currentConversation, utils, sendDMReply]
+  );
 
-  const deleteMessage = useCallback(async ({ channelId, id }: Pick<Message, 'channelId' | 'id'>) => {
-    if (currentChannel) {
-      await channelManager?.DeleteMessage(
-        utils.Base64ToUint8Array(channelId),
-        utils.Base64ToUint8Array(id),
-        utils.GetDefaultCMixParams()
-      );
-  
-      dispatch(messages.actions.delete(id));
-    } else if (currentConversation) {
-      deleteDirectMessage(id);
-    }
-  }, [
-    channelManager,
-    currentChannel,
-    currentConversation,
-    deleteDirectMessage,
-    dispatch,
-    utils
-  ]);
+  const deleteMessage = useCallback(
+    async ({ channelId, id }: Pick<Message, 'channelId' | 'id'>) => {
+      if (currentChannel) {
+        await channelManager?.DeleteMessage(
+          utils.Base64ToUint8Array(channelId),
+          utils.Base64ToUint8Array(id),
+          utils.GetDefaultCMixParams()
+        );
 
-  const sendReaction = useCallback(async (reaction: string, reactToMessageId: string) => {
-    if (channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
-      try {
-        await channelManager.SendReaction(
-          utils.Base64ToUint8Array(currentChannel.id),
-          reaction,
-          utils.Base64ToUint8Array(reactToMessageId),
-          utils.ValidForever(),
-          new Uint8Array()
-        );
-      } catch (error) {
-        console.error(
-          `Test failed to react to messageId ${reactToMessageId}`,
-          error
-        );
+        dispatch(messages.actions.delete(id));
+      } else if (currentConversation) {
+        deleteDirectMessage(id);
       }
-    }
+    },
+    [channelManager, currentChannel, currentConversation, deleteDirectMessage, dispatch, utils]
+  );
 
-    if (currentConversationId !== null && currentConversation?.token !== undefined) {
-      sendDMReaction(reaction, reactToMessageId)
-    }
-  }, [
-    currentConversationId,
-    currentConversation?.token,
-    channelManager,
-    currentChannel,
-    sendDMReaction,
-    utils
-  ]);
-
-  const setNickname = useCallback((nickName: string) => {
-    if (channelManager && currentChannel?.id) {
-      try {
-        channelManager.SetNickname(
-          nickName,
-          utils.Base64ToUint8Array(currentChannel?.id)
-        );
-        return true;
-      } catch (error) {
-        console.error(error);
-        return false;
+  const sendReaction = useCallback(
+    async (reaction: string, reactToMessageId: string) => {
+      if (channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
+        try {
+          await channelManager.SendReaction(
+            utils.Base64ToUint8Array(currentChannel.id),
+            reaction,
+            utils.Base64ToUint8Array(reactToMessageId),
+            utils.ValidForever(),
+            new Uint8Array()
+          );
+        } catch (error) {
+          console.error(`Test failed to react to messageId ${reactToMessageId}`, error);
+        }
       }
-    }
 
-    if (currentConversation) {
-      return setDmNickname(nickName);
-    }
-    return false;
-  }, [
-    setDmNickname,
-    channelManager,
-    currentChannel?.id,
-    currentConversation,
-    utils
-  ]);
+      if (currentConversationId !== null && currentConversation?.token !== undefined) {
+        sendDMReaction(reaction, reactToMessageId);
+      }
+    },
+    [
+      currentConversationId,
+      currentConversation?.token,
+      channelManager,
+      currentChannel,
+      sendDMReaction,
+      utils
+    ]
+  );
+
+  const setNickname = useCallback(
+    (nickName: string) => {
+      if (channelManager && currentChannel?.id) {
+        try {
+          channelManager.SetNickname(nickName, utils.Base64ToUint8Array(currentChannel?.id));
+          return true;
+        } catch (error) {
+          console.error(error);
+          return false;
+        }
+      }
+
+      if (currentConversation) {
+        return setDmNickname(nickName);
+      }
+      return false;
+    },
+    [setDmNickname, channelManager, currentChannel?.id, currentConversation, utils]
+  );
 
   const getNickName = useCallback(() => {
     let nickName = '';
     if (channelManager?.GetNickname && currentChannel) {
       try {
-        nickName = channelManager?.GetNickname(
-          utils.Base64ToUint8Array(currentChannel?.id)
-        );
+        nickName = channelManager?.GetNickname(utils.Base64ToUint8Array(currentChannel?.id));
       } catch (error) {
         nickName = '';
       }
     }
 
-    if (currentConversation ) {
+    if (currentConversation) {
       nickName = getDmNickname();
     }
     return nickName;
@@ -850,35 +881,38 @@ export const NetworkProvider: FC<WithChildren> = props => {
 
   useEffect(() => {
     if (currentChannel) {
-      dispatch(channels.actions.updateNickname({
-        channelId: currentChannel.id,
-        nickname: getNickName()
-      }))
+      dispatch(
+        channels.actions.updateNickname({
+          channelId: currentChannel.id,
+          nickname: getNickName()
+        })
+      );
     } else if (currentConversation) {
       dispatch(dms.actions.setUserNickname(getNickName()));
     }
   }, [currentChannel, currentConversation, dispatch, getNickName]);
 
-  const generateIdentities = useCallback((amountOfIdentities: number) => {
-    const identitiesObjects: ReturnType<NetworkContext['generateIdentities']> = [];
-    if (utils && utils.GenerateChannelIdentity && cmix) {
-      for (let i = 0; i < amountOfIdentities; i++) {
-        const createdPrivateIdentity = utils.GenerateChannelIdentity(cmix?.GetID());
-        const publicIdentity = utils.GetPublicChannelIdentityFromPrivate(
-          createdPrivateIdentity
-        );
-        const identityJson = identityDecoder(JSON.parse(decoder.decode(publicIdentity)));
-        const codename = identityJson.codename;
-        identitiesObjects.push({
-          privateIdentity: createdPrivateIdentity,
-          codename,
-          codeset: identityJson.codeset,
-          pubkey: identityJson.pubkey
-        });
+  const generateIdentities = useCallback(
+    (amountOfIdentities: number) => {
+      const identitiesObjects: ReturnType<NetworkContext['generateIdentities']> = [];
+      if (utils && utils.GenerateChannelIdentity && cmix) {
+        for (let i = 0; i < amountOfIdentities; i++) {
+          const createdPrivateIdentity = utils.GenerateChannelIdentity(cmix?.GetID());
+          const publicIdentity = utils.GetPublicChannelIdentityFromPrivate(createdPrivateIdentity);
+          const identityJson = identityDecoder(JSON.parse(decoder.decode(publicIdentity)));
+          const codename = identityJson.codename;
+          identitiesObjects.push({
+            privateIdentity: createdPrivateIdentity,
+            codename,
+            codeset: identityJson.codeset,
+            pubkey: identityJson.pubkey
+          });
+        }
       }
-    }
-    return identitiesObjects;
-  }, [cmix, utils])
+      return identitiesObjects;
+    },
+    [cmix, utils]
+  );
 
   const getVersion = useCallback(() => {
     if (utils && utils.GetVersion) {
@@ -892,126 +926,137 @@ export const NetworkProvider: FC<WithChildren> = props => {
     } else return null;
   }, [utils]);
 
-  const exportPrivateIdentity = useCallback(async (password: string) => {
-    if (utils && utils.GetOrInitPassword) {
-      try {
-        const statePassEncoded = await utils.GetOrInitPassword(password);
+  const exportPrivateIdentity = useCallback(
+    async (password: string) => {
+      if (utils && utils.GetOrInitPassword) {
+        try {
+          const statePassEncoded = await utils.GetOrInitPassword(password);
 
-        if (
-          statePassEncoded &&
-          channelManager &&
-          channelManager.ExportPrivateIdentity
-        ) {
-          const data = channelManager.ExportPrivateIdentity(password);
-          exportDataToFile(data);
-          return statePassEncoded;
+          if (statePassEncoded && channelManager && channelManager.ExportPrivateIdentity) {
+            const data = channelManager.ExportPrivateIdentity(password);
+            exportDataToFile(data);
+            return statePassEncoded;
+          }
+        } catch (error) {
+          return false;
         }
-      } catch (error) {
+      }
+      return false;
+    },
+    [channelManager, utils]
+  );
+
+  const checkRegistrationReadiness = useCallback(
+    (
+      selectedPrivateIdentity: Uint8Array,
+      onIsReadyInfoChange: (readinessInfo: IsReadyInfoJSON) => void
+    ) => {
+      return new Promise<void>((resolve) => {
+        const intervalId = setInterval(() => {
+          if (cmix) {
+            const isReadyInfo = isReadyInfoDecoder(
+              JSON.parse(decoder.decode(cmix?.IsReady(CMIX_NETWORK_READINESS_THRESHOLD)))
+            );
+
+            onIsReadyInfoChange(isReadyInfo);
+            if (isReadyInfo.isReady) {
+              clearInterval(intervalId);
+              setTimeout(() => {
+                createChannelManager(selectedPrivateIdentity);
+                setIsAuthenticated(true);
+                resolve();
+              }, 3000);
+            }
+          }
+        }, 1000);
+      });
+    },
+    [cmix, createChannelManager, setIsAuthenticated]
+  );
+
+  const logout = useCallback(
+    (password: string) => {
+      if (utils && utils.Purge) {
+        disconnect();
+        utils.Purge(password);
+        window.localStorage.clear();
+        Cookies.remove('userAuthenticated', { path: '/' });
+        setIsAuthenticated(false);
+        setChannelManager(undefined);
+        window.location.reload();
+        return true;
+      } else {
         return false;
       }
-    }
-    return false;
-  }, [channelManager, utils]);
+    },
+    [disconnect, setIsAuthenticated, utils]
+  );
 
-  const checkRegistrationReadiness = useCallback((
-    selectedPrivateIdentity: Uint8Array,
-    onIsReadyInfoChange: (readinessInfo: IsReadyInfoJSON) => void
-  ) => {
-    return new Promise<void>((resolve) => {
-      const intervalId = setInterval(() => {
-        if (cmix) {
-          const isReadyInfo = isReadyInfoDecoder(
-            JSON.parse(
-              decoder.decode(
-                cmix?.IsReady(
-                  CMIX_NETWORK_READINESS_THRESHOLD
-                )
-              )
-            )
-          );
+  const muteUser = useCallback(
+    async (pubkey: string, muted: boolean) => {
+      if (currentChannel) {
+        await channelManager?.MuteUser(
+          utils.Base64ToUint8Array(currentChannel?.id),
+          utils.Base64ToUint8Array(pubkey),
+          muted,
+          utils.ValidForever(),
+          utils.GetDefaultCMixParams()
+        );
 
-          onIsReadyInfoChange(isReadyInfo);
-          if (isReadyInfo.isReady) {
-            clearInterval(intervalId);
-            setTimeout(() => {
-              createChannelManager(selectedPrivateIdentity);
-              setIsAuthenticated(true);
-              resolve();
-            }, 3000);
-          }
-        }
-      }, 1000);
-    });
-  }, [cmix, createChannelManager, setIsAuthenticated]);
-
-  const logout = useCallback((password: string) => {
-    if (utils && utils.Purge) {
-      disconnect();
-      utils.Purge(password);
-      window.localStorage.clear();
-      Cookies.remove('userAuthenticated', { path: '/' });
-      setIsAuthenticated(false);
-      setChannelManager(undefined);
-      window.location.reload();
-      return true;
-    } else {
-      return false;
-    }
-  }, [disconnect, setIsAuthenticated, utils]);
-
-  const muteUser = useCallback(async (pubkey: string, muted: boolean) => {
-    if (currentChannel) {
-      await channelManager?.MuteUser(
-        utils.Base64ToUint8Array(currentChannel?.id),
-        utils.Base64ToUint8Array(pubkey),
-        muted,
-        utils.ValidForever(),
-        utils.GetDefaultCMixParams()
-      )
-
-      await awaitChannelEvent(ChannelEvents.USER_MUTED, (e) => e.pubkey === pubkey);
-    }
-  }, [channelManager, currentChannel, utils]);
+        await awaitChannelEvent(ChannelEvents.USER_MUTED, (e) => e.pubkey === pubkey);
+      }
+    },
+    [channelManager, currentChannel, utils]
+  );
 
   useEffect(() => {
     getMutedUsers();
   }, [currentChannel, getMutedUsers]);
 
-  const pinMessage = useCallback(async (id: MessageId, unpin = false) => {
-    if (currentChannel && channelManager) {
-      await channelManager.PinMessage(
-        utils.Base64ToUint8Array(currentChannel?.id),
-        utils.Base64ToUint8Array(id),
-        unpin,
-        PIN_MESSAGE_LENGTH_MILLISECONDS,
-        utils.GetDefaultCMixParams()
-      )
-    }
-  }, [channelManager, currentChannel, utils]);
+  const pinMessage = useCallback(
+    async (id: MessageId, unpin = false) => {
+      if (currentChannel && channelManager) {
+        await channelManager.PinMessage(
+          utils.Base64ToUint8Array(currentChannel?.id),
+          utils.Base64ToUint8Array(id),
+          unpin,
+          PIN_MESSAGE_LENGTH_MILLISECONDS,
+          utils.GetDefaultCMixParams()
+        );
+      }
+    },
+    [channelManager, currentChannel, utils]
+  );
 
-
-  const exportChannelAdminKeys = useCallback((encryptionPassword: string) => {
-    if (channelManager && currentChannel) {
-      return decoder.decode(channelManager.ExportChannelAdminKey(
-        utils.Base64ToUint8Array(currentChannel.id),
-        encryptionPassword
-      ));
-    }
-    throw Error('Channel manager and current channel required.');
-  }, [channelManager, currentChannel, utils]);
-
-
-  const importChannelAdminKeys = useCallback((encryptionPassword: string, privateKey: string) => {
-    if (channelManager && currentChannel) {
-      channelManager.ImportChannelAdminKey(
-        utils.Base64ToUint8Array(currentChannel.id),
-        encryptionPassword,
-        encoder.encode(privateKey)
-      );
-    } else {
+  const exportChannelAdminKeys = useCallback(
+    (encryptionPassword: string) => {
+      if (channelManager && currentChannel) {
+        return decoder.decode(
+          channelManager.ExportChannelAdminKey(
+            utils.Base64ToUint8Array(currentChannel.id),
+            encryptionPassword
+          )
+        );
+      }
       throw Error('Channel manager and current channel required.');
-    }
-  }, [channelManager, currentChannel, utils]);
+    },
+    [channelManager, currentChannel, utils]
+  );
+
+  const importChannelAdminKeys = useCallback(
+    (encryptionPassword: string, privateKey: string) => {
+      if (channelManager && currentChannel) {
+        channelManager.ImportChannelAdminKey(
+          utils.Base64ToUint8Array(currentChannel.id),
+          encryptionPassword,
+          encoder.encode(privateKey)
+        );
+      } else {
+        throw Error('Channel manager and current channel required.');
+      }
+    },
+    [channelManager, currentChannel, utils]
+  );
 
   useEffect(() => {
     if (utils && utils.GetWasmSemanticVersion) {
@@ -1027,7 +1072,6 @@ export const NetworkProvider: FC<WithChildren> = props => {
         window.location.reload();
       }
     }
-          
   }, [utils]);
 
   const ctx: NetworkContext = {
@@ -1069,15 +1113,10 @@ export const NetworkProvider: FC<WithChildren> = props => {
     pinMessage,
     logout,
     upgradeAdmin,
-    fetchChannels,
-  }
+    fetchChannels
+  };
 
-  return (
-    <NetworkClientContext.Provider
-      value={ctx}
-      {...props}
-    />
-  );
+  return <NetworkClientContext.Provider value={ctx} {...props} />;
 };
 
 export const useNetworkClient = () => {
@@ -1089,9 +1128,7 @@ export const useNetworkClient = () => {
 };
 
 export const ManagedNetworkContext: FC<WithChildren> = ({ children }) => (
-  <NetworkProvider>
-    {children}
-  </NetworkProvider>
+  <NetworkProvider>{children}</NetworkProvider>
 );
 
 export { NetworkStatus };

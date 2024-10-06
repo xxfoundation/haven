@@ -11,10 +11,9 @@ import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 import { currentMessages as currentMessagesSelector } from 'src/store/selectors';
 
-
 const removeAuthCookie = () => {
   Cookies.remove('userAuthenticated', { path: '/' });
-}
+};
 
 const Home: NextPage = () => {
   const { closeModal } = useUI();
@@ -32,7 +31,7 @@ const Home: NextPage = () => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const previousChannelId = usePrevious(currentChannel?.id);
   const currentMessages = useAppSelector(currentMessagesSelector);
-  
+
   useEffect(() => {
     if (previousChannelId !== currentChannel?.id) {
       closeModal();

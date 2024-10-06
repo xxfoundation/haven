@@ -1,4 +1,4 @@
-import { useUI } from '@contexts/ui-context'
+import { useUI } from '@contexts/ui-context';
 import { FC, useEffect } from 'react';
 import { RightSidebarView } from 'src/types/ui';
 import UserDetails from './UserDetails';
@@ -14,9 +14,9 @@ const views: Record<RightSidebarView, FC> = {
   'user-details': UserDetails,
   'pinned-messages': PinnedMessages,
   'muted-users': MutedUsers,
-  'contributors': ContributorsView,
+  contributors: ContributorsView,
   'channel-notifications': ChannelNotifications
-}
+};
 
 const RightSideBar = () => {
   const { rightSidebarView, setRightSidebarView } = useUI();
@@ -28,12 +28,14 @@ const RightSideBar = () => {
     if (selectedUserId) {
       setRightSidebarView('user-details');
     }
-  }, [selectedUserId, setRightSidebarView])
+  }, [selectedUserId, setRightSidebarView]);
 
-  return rightSidebarView && (
-    <div className='border-l border-charcoal-4 bg-charcoal-4-40 basis-80 min-w-[21.75rem] overflow-y-auto'>
-      <Component />
-    </div>
+  return (
+    rightSidebarView && (
+      <div className='border-l border-charcoal-4 bg-charcoal-4-40 basis-80 min-w-[21.75rem] overflow-y-auto'>
+        <Component />
+      </div>
+    )
   );
 };
 

@@ -16,9 +16,17 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   message: string;
   date?: string;
   missedMessagesCount: number;
-}
+};
 
-const Space: FC<Props> = ({ active, date, favorite, message, missedMessagesCount = 0, name, ...props }) => {
+const Space: FC<Props> = ({
+  active,
+  date,
+  favorite,
+  message,
+  missedMessagesCount = 0,
+  name,
+  ...props
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -31,25 +39,23 @@ const Space: FC<Props> = ({ active, date, favorite, message, missedMessagesCount
           )}
         </h5>
         <div className='flex space-x-1'>
-          {date ? (<span className={s.date}>
-            {dayjs(date).format('YYYY/MM/DD')}
-          </span>) : (
+          {date ? (
+            <span className={s.date}>{dayjs(date).format('YYYY/MM/DD')}</span>
+          ) : (
             <span className='text-primary text-xs'>{t('New!')}</span>
           )}
         </div>
       </div>
       {message && (
         <div className='flex justify-between w-full'>
-          <p className={cn('whitespace-nowrap', s['message-preview'])}>
-            {message}
-          </p>
-          {missedMessagesCount > 0 && (<span className={cn(s.badge, 'ml-1')}>
-            {missedMessagesCount}
-          </span>)}
+          <p className={cn('whitespace-nowrap', s['message-preview'])}>{message}</p>
+          {missedMessagesCount > 0 && (
+            <span className={cn(s.badge, 'ml-1')}>{missedMessagesCount}</span>
+          )}
         </div>
       )}
     </div>
   );
-}
+};
 
 export default Space;

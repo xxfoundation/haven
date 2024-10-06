@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect, useMemo } from 'react';
+import React, { ChangeEvent, useCallback, useEffect } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
@@ -20,8 +20,7 @@ import Button from '../Button';
 import { Join, Plus } from '@components/icons';
 
 import { XX_GENERAL_CHAT } from 'src/constants';
-import { NetworkStatus, useNetworkClient } from 'src/contexts/network-client-context';
-import { channel } from 'diagnostics_channel';
+import { useNetworkClient } from 'src/contexts/network-client-context';
 
 const Spaces = () => {
   const { t } = useTranslation();
@@ -35,41 +34,46 @@ const Spaces = () => {
   const msgs = useAppSelector(messages.selectors.sortedMessagesByChannelId);
   const missedMessages = useAppSelector(app.selectors.missedMessages);
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
-  const { joinChannel, channelManager  } = useNetworkClient();
+  const { joinChannel, channelManager } = useNetworkClient();
 
-  const selectChannel = useCallback((chId: string) => {
-    dispatch(app.actions.selectChannelOrConversation(chId));
-  }, [dispatch]);
+  const selectChannel = useCallback(
+    (chId: string) => {
+      dispatch(app.actions.selectChannelOrConversation(chId));
+    },
+    [dispatch]
+  );
 
-  const updateChannelsSearch = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    dispatch(app.actions.updateChannelsSearch(e.target.value));
-  }, [dispatch]);
+  const updateChannelsSearch = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      dispatch(app.actions.updateChannelsSearch(e.target.value));
+    },
+    [dispatch]
+  );
 
   const [dropdownToggled, { set }] = useToggle();
 
   useEffect(() => {
     if (!currentChannel && filteredChannels.length > 0 && !favsLoading) {
-      dispatch(app.actions.selectChannelOrConversation(filteredChannels[0]?.id))
+      dispatch(app.actions.selectChannelOrConversation(filteredChannels[0]?.id));
     }
   }, [filteredChannels, currentChannel, dispatch, favorites, favsLoading]);
 
-  useEffect(() => {
-  }, [filteredChannels])
+  useEffect(() => {}, [filteredChannels]);
 
   // Auto join xxGeneralChat on first load
   useEffect(() => {
-    if (channelManager && window.localStorage.getItem("spacesFirstLoad") !== "true") {
+    if (channelManager && window.localStorage.getItem('spacesFirstLoad') !== 'true') {
       setTimeout(() => {
         try {
           joinChannel(XX_GENERAL_CHAT, true, true);
         } catch (e) {
           console.error((e as Error).message);
-          throw(e);
-        } 
-        window.localStorage.setItem("spacesFirstLoad", "true");
+          throw e;
+        }
+        window.localStorage.setItem('spacesFirstLoad', 'true');
       }, 3000);
     }
-  }, [channelManager])
+  }, [channelManager, joinChannel]);
 
   return (
     <div className={s.root}>
@@ -79,13 +83,14 @@ const Spaces = () => {
             size='sm'
             className='mb-0 flex-grow'
             onChange={updateChannelsSearch}
-            value={channelsSearch} />
+            value={channelsSearch}
+          />
           <button onClick={() => set(true)}>
             <Add className='text-primary' />
           </button>
           <Dropdown isOpen={dropdownToggled} onChange={set}>
             <DropdownItem
-            icon={Plus}
+              icon={Plus}
               onClick={() => {
                 setModalView('CREATE_CHANNEL');
                 openModal();
@@ -98,7 +103,8 @@ const Spaces = () => {
               onClick={() => {
                 setModalView('JOIN_CHANNEL');
                 openModal();
-              }}>
+              }}
+            >
               {t('Join Space')}
             </DropdownItem>
           </Dropdown>
@@ -106,13 +112,15 @@ const Spaces = () => {
       )}
       <div className='space-y-1'>
         {allChannels.length > 0 && filteredChannels.length === 0 && (
-          <p className='p-3  text-sm text-orange'>{t('No channels found with your search criteria')}</p>
+          <p className='p-3  text-sm text-orange'>
+            {t('No channels found with your search criteria')}
+          </p>
         )}
         {filteredChannels.map((channel, i) => {
           const latestMsg = msgs[channel.id]?.[msgs[channel.id]?.length - 1];
           const active = selectedChannelId === channel.id;
           const nextActive = filteredChannels[i + 1]?.id === selectedChannelId;
-          
+
           return (
             <React.Fragment key={channel.id}>
               <Space
@@ -122,9 +130,13 @@ const Spaces = () => {
                 date={latestMsg?.timestamp}
                 name={channel.name}
                 active={active}
-                onClick={() => { selectChannel(channel.id); } }
+                onClick={() => {
+                  selectChannel(channel.id);
+                }}
               />
-              <hr className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })} />
+              <hr
+                className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })}
+              />
             </React.Fragment>
           );
         })}
@@ -134,13 +146,13 @@ const Spaces = () => {
           <img src={havenLogo.src} />
           <p className='text-primary text-xl leading-relaxed font-thin'>
             <Trans>
-              This is the beginning of
-              your <strong className='text-white font-semibold'>completely private</strong> 
-              messaging experience.
+              This is the beginning of your{' '}
+              <strong className='text-white font-semibold'>completely private</strong> messaging
+              experience.
             </Trans>
           </p>
           <div className='space-y-4'>
-            <Button 
+            <Button
               onClick={() => {
                 setModalView('CREATE_CHANNEL');
                 openModal();
@@ -155,14 +167,15 @@ const Spaces = () => {
                 openModal();
               }}
               variant='outlined'
-              className='w-full'>
+              className='w-full'
+            >
               {t('Join space')}
             </Button>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 };
 
 export default Spaces;

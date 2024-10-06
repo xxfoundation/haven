@@ -17,12 +17,9 @@ const useToggle = (defaultValue = false, onToggle?: (isActive: boolean) => void)
     setActive((active) => !active);
   }, []);
 
-  const set = useCallback(
-    (active: boolean): void => {
-      setActive(active);
-    },
-    []
-  );
+  const set = useCallback((active: boolean): void => {
+    setActive(active);
+  }, []);
 
   const toggleOn = useCallback(() => set(true), [set]);
 
@@ -42,6 +39,6 @@ const useToggle = (defaultValue = false, onToggle?: (isActive: boolean) => void)
     ],
     [isActive, set, toggle, toggleOn, toggleOff]
   );
-}
+};
 
 export default useToggle;

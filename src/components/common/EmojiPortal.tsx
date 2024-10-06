@@ -1,19 +1,27 @@
-import { FC, CSSProperties, createContext, useCallback, useRef, useState, useContext, useEffect } from 'react';
+import {
+  FC,
+  CSSProperties,
+  createContext,
+  useCallback,
+  useRef,
+  useState,
+  useContext,
+  useEffect
+} from 'react';
 import { createPortal } from 'react-dom';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
 import { useOnClickOutside } from 'usehooks-ts';
 import { WithChildren } from '@types';
-import { BaseEmoji } from 'emoji-mart';
 import { AppEvents, appBus } from 'src/events';
 import EmojisPickerIcon from 'src/components/icons/EmojisPicker';
 
 type EmojiContextType = {
   openEmojiPicker: (rect: DOMRect) => void;
   isOpen: boolean;
-}
+};
 
-const EmojiContext = createContext<EmojiContextType>({ openEmojiPicker: () => {}, isOpen: false })
+const EmojiContext = createContext<EmojiContextType>({ openEmojiPicker: () => {}, isOpen: false });
 
 export const EmojiPortal: FC<WithChildren> = ({ children }) => {
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -28,41 +36,36 @@ export const EmojiPortal: FC<WithChildren> = ({ children }) => {
       zIndex: 3,
       top: Math.min(rect?.bottom + 5, window.innerHeight - 440),
       left: rect.left - 350
-    })
+    });
 
     setPickerVisible(true);
   }, []);
 
-  const onEmojiSelect = useCallback((e: BaseEmoji) => {
+  const onEmojiSelect = useCallback((e: { native: string }) => {
     appBus.emit(AppEvents.EMOJI_SELECTED, e.native);
-  }, [])
+  }, []);
 
   const emojiPortalElement = document.getElementById('emoji-portal');
 
   return (
     <EmojiContext.Provider value={{ openEmojiPicker, isOpen: pickerVisible }}>
-      {(pickerVisible && emojiPortalElement)
+      {pickerVisible && emojiPortalElement
         ? createPortal(
-            <div
-              ref={pickerRef}
-              style={pickerStyle}
-              className='absolute z-10'
-            >
-              <Picker
-                data={data}
-                previewPosition='none'
-                onEmojiSelect={onEmojiSelect}
-              />
+            <div ref={pickerRef} style={pickerStyle} className='absolute z-10'>
+              <Picker data={data} previewPosition='none' onEmojiSelect={onEmojiSelect} />
             </div>,
             emojiPortalElement
           )
         : null}
       {children}
     </EmojiContext.Provider>
-  )
-}
+  );
+};
 
-export const EmojiPicker: FC<{ className?: string, onSelect: (emoji: string) => void }> = ({ className, onSelect }) => {
+export const EmojiPicker: FC<{ className?: string; onSelect: (emoji: string) => void }> = ({
+  className,
+  onSelect
+}) => {
   const { isOpen, openEmojiPicker } = useContext(EmojiContext);
   const [clicked, setClicked] = useState(false);
   const iconRef = useRef<SVGSVGElement>(null);
@@ -71,18 +74,20 @@ export const EmojiPicker: FC<{ className?: string, onSelect: (emoji: string) => 
     if (!isOpen) {
       setClicked(false);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   useEffect(() => {
     const emojiListener = (emoji: string) => {
       if (clicked) {
         onSelect(emoji);
       }
-    }
+    };
 
     appBus.addListener(AppEvents.EMOJI_SELECTED, emojiListener);
 
-    return () => { appBus.removeListener(AppEvents.EMOJI_SELECTED, emojiListener); }
+    return () => {
+      appBus.removeListener(AppEvents.EMOJI_SELECTED, emojiListener);
+    };
   }, [clicked, onSelect]);
 
   const onClick = useCallback(() => {
@@ -94,8 +99,5 @@ export const EmojiPicker: FC<{ className?: string, onSelect: (emoji: string) => 
     }
   }, [openEmojiPicker]);
 
-  return (
-    <EmojisPickerIcon className={className} ref={iconRef} onClick={onClick} />
-  )
-}
-
+  return <EmojisPickerIcon className={className} ref={iconRef} onClick={onClick} />;
+};

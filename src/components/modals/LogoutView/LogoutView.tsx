@@ -28,21 +28,11 @@ const LogoutView: FC = ({}) => {
         setError(t('Something wrong occured! Please check your details.'));
       }
     }
-  }, [
-    t,
-    closeModal,
-    logout,
-    password,
-    router
-  ]);
+  }, [t, closeModal, logout, password, router]);
 
   return (
-    <div
-      className={cn('w-full flex flex-col justify-center items-center', s.root)}
-    >
-      <h2 className='mt-9 mb-4'>
-        {t('Logout')}
-      </h2>
+    <div className={cn('w-full flex flex-col justify-center items-center', s.root)}>
+      <h2 className='mt-9 mb-4'>{t('Logout')}</h2>
       <p className='mb-8'>
         {t(`Warning: By logging out, all of you current data will be deleted from
         your browser. Please make sure you have a backup first. This can't be
@@ -63,17 +53,11 @@ const LogoutView: FC = ({}) => {
       />
 
       {error && (
-        <div
-          className={cn('text text--xs mt-2', s.error)}
-          style={{ color: 'var(--red)' }}
-        >
+        <div className={cn('text text--xs mt-2', s.error)} style={{ color: 'var(--red)' }}>
           {error}
         </div>
       )}
-      <Button
-        className={cn('mt-6 mb-10')}
-        onClick={handleSubmit}
-      >
+      <Button className={cn('mt-6 mb-10')} onClick={handleSubmit}>
         {t('Confirm')}
       </Button>
     </div>

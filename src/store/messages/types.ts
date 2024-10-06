@@ -25,7 +25,10 @@ export interface Message {
 export type MessageUuid = Message['uuid'];
 export type MessageId = Message['id'];
 
-export type Contributor = Pick<Message, 'pubkey' | 'codeset' | 'codename' | 'nickname' | 'timestamp' | 'color' | 'dmToken'>;
+export type Contributor = Pick<
+  Message,
+  'pubkey' | 'codeset' | 'codename' | 'nickname' | 'timestamp' | 'color' | 'dmToken'
+>;
 
 export type MessagesState = {
   reactions: EmojiReactions;

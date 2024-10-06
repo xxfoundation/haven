@@ -1,4 +1,3 @@
-
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,7 +7,7 @@ import { ProgressBar } from 'src/components/common';
 type Props = {
   readyProgress: number;
   fullscreen?: boolean;
-}
+};
 
 const ImportCodeNameLoading: FC<Props> = ({ readyProgress }) => {
   const { t } = useTranslation();
@@ -25,7 +24,7 @@ const ImportCodeNameLoading: FC<Props> = ({ readyProgress }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default ImportCodeNameLoading;

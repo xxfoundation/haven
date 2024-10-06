@@ -1,5 +1,5 @@
 import { Message, MessageStatus } from 'src/types';
-import{ FC, useEffect } from 'react';
+import { FC, useEffect } from 'react';
 
 import { useCallback, useState } from 'react';
 import cn from 'classnames';
@@ -29,7 +29,7 @@ type Props = {
   clamped?: boolean;
   readonly?: boolean;
   message: Message;
-}
+};
 
 const MessageContainer: FC<Props> = ({ clamped = false, className, message, readonly }) => {
   const { t } = useTranslation();
@@ -42,23 +42,15 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   const { pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const [showActionsWrapper, setShowActionsWrapper] = useState(false);
-  const {
-    deleteMessage,
-    muteUser,
-    pinMessage,
-    sendReaction,
-  } = useNetworkClient();
+  const { deleteMessage, muteUser, pinMessage, sendReaction } = useNetworkClient();
   const { setLeftSidebarView } = useUI();
 
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
-  const [deleteMessageModalOpened, {
-    toggleOff: hideDeleteMessageModal,
-    toggleOn: showDeleteMessageModal
-  } ] = useToggle();
-  const [pinMessageModalOpen, {
-    toggleOff: hidePinModal,
-    toggleOn: showPinModal
-  }] = useToggle();
+  const [
+    deleteMessageModalOpened,
+    { toggleOff: hideDeleteMessageModal, toggleOn: showDeleteMessageModal }
+  ] = useToggle();
+  const [pinMessageModalOpen, { toggleOff: hidePinModal, toggleOn: showPinModal }] = useToggle();
 
   const onReplyMessage = useCallback(() => {
     dispatch(app.actions.replyTo(message.id));
@@ -67,32 +59,38 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   const handleDeleteMessage = useCallback(async () => {
     await deleteMessage(message);
     hideDeleteMessageModal();
-  }, [deleteMessage, hideDeleteMessageModal, message])
+  }, [deleteMessage, hideDeleteMessageModal, message]);
 
-  const handleMuteUser = useCallback(async (action: MuteUserAction) => {
-    const promises: Promise<unknown>[] = [];
+  const handleMuteUser = useCallback(
+    async (action: MuteUserAction) => {
+      const promises: Promise<unknown>[] = [];
 
-    if (action === 'mute+delete') {
-      promises.push(handleDeleteMessage());
-    }
+      if (action === 'mute+delete') {
+        promises.push(handleDeleteMessage());
+      }
 
-    promises.push(muteUser(message.pubkey, false));
+      promises.push(muteUser(message.pubkey, false));
 
-    await Promise.all(promises);
+      await Promise.all(promises);
 
-    muteUserModalToggle.toggleOff();
-  }, [handleDeleteMessage, message.pubkey, muteUser, muteUserModalToggle]);
+      muteUserModalToggle.toggleOff();
+    },
+    [handleDeleteMessage, message.pubkey, muteUser, muteUserModalToggle]
+  );
 
-  const handlePinMessage = useCallback(async (unpin?: boolean) => {
-    if (unpin === true) {
-      await Promise.all([
-        pinMessage(message.id, unpin),
-        awaitAppEvent(AppEvents.MESSAGE_UNPINNED) // delay to let the nodes propagate
-      ]);
-    } else {
-      showPinModal();
-    }
-  }, [message, pinMessage, showPinModal]);
+  const handlePinMessage = useCallback(
+    async (unpin?: boolean) => {
+      if (unpin === true) {
+        await Promise.all([
+          pinMessage(message.id, unpin),
+          awaitAppEvent(AppEvents.MESSAGE_UNPINNED) // delay to let the nodes propagate
+        ]);
+      } else {
+        showPinModal();
+      }
+    },
+    [message, pinMessage, showPinModal]
+  );
 
   const pinSelectedMessage = useCallback(async () => {
     await Promise.all([
@@ -102,9 +100,12 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
     hidePinModal();
   }, [hidePinModal, message, pinMessage]);
 
-  const handleEmojiReaction = useCallback((emoji: string) => {
-    sendReaction(emoji, message.id);
-  }, [message.id, sendReaction]);
+  const handleEmojiReaction = useCallback(
+    (emoji: string) => {
+      sendReaction(emoji, message.id);
+    },
+    [message.id, sendReaction]
+  );
 
   useEffect(() => {
     if (missedMessages?.[message.channelId]?.[0] === message.id) {
@@ -113,16 +114,18 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
     }
   }, [dispatch, message.channelId, message.id, missedMessages]);
 
-  const handleMute = useCallback(async (unmute: boolean) => {
-    if (!unmute) {
-      muteUserModalToggle.toggleOn();
-    } else {
-      await muteUser(message.pubkey, unmute);
-    }
-  }, [message.pubkey, muteUser, muteUserModalToggle]);
+  const handleMute = useCallback(
+    async (unmute: boolean) => {
+      if (!unmute) {
+        muteUserModalToggle.toggleOn();
+      } else {
+        await muteUser(message.pubkey, unmute);
+      }
+    },
+    [message.pubkey, muteUser, muteUserModalToggle]
+  );
 
   const asyncMuter = useAsync(handleMute);
-
 
   const dmUser = useCallback(() => {
     assert(message.dmToken, 'dmToken is required to dm a user');
@@ -133,71 +136,75 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
       token: message.dmToken,
       color: message.color ?? '#fefefe',
       codename: message.codename,
-      codeset: message.codeset,
+      codeset: message.codeset
     });
-  }, [createConversation, dispatch, message.codename, message.codeset, message.color, message.dmToken, message.pubkey, setLeftSidebarView])
-  
+  }, [
+    createConversation,
+    dispatch,
+    message.codename,
+    message.codeset,
+    message.color,
+    message.dmToken,
+    message.pubkey,
+    setLeftSidebarView
+  ]);
+
   return (
     <>
       {isNewMessage && (
         <div className='relative flex items-center px-4'>
-          <div className='flex-grow border-t' style={{ borderColor: 'var(--primary)'}}></div>
-          <span className='flex-shrink mx-4' style={{ color: 'var(--primary)'}}>
+          <div className='flex-grow border-t' style={{ borderColor: 'var(--primary)' }}></div>
+          <span className='flex-shrink mx-4' style={{ color: 'var(--primary)' }}>
             {t('New!')}
           </span>
         </div>
       )}
       {!readonly && (
-      <>
-        {muteUserModalOpen && (
-          <MuteUserModal
-            onConfirm={handleMuteUser}
-            onCancel={muteUserModalToggle.toggleOff} />
-        )}
-        {deleteMessageModalOpened && (
-          <DeleteMessageModal
-            onConfirm={handleDeleteMessage}
-            onCancel={hideDeleteMessageModal} />
-        )}
-        {pinMessageModalOpen && (
-          <PinMessageModal
-            onConfirm={pinSelectedMessage}
-            onCancel={hidePinModal} />
-        )}
-        {message.status === MessageStatus.Delivered && (
-          <div className={classes.container}>
-            <MessageActions
-              pubkey={message.pubkey}
-              onMouseEnter={() => setShowActionsWrapper(true)}
-              onMouseLeave={() => setShowActionsWrapper(false)}
-              className={cn(classes.actions, {
-                [classes.show]: showActionsWrapper
-              })}
-              onDmClicked={dmUser}
-              dmsEnabled={message.dmToken !== undefined}
-              isPinned={message.pinned}
-              isMuted={mutedUsers[message.channelId]?.includes(message.pubkey)}
-              onMuteUser={asyncMuter.execute}
-              onPinMessage={handlePinMessage}
-              onReactToMessage={handleEmojiReaction}
-              onReplyClicked={onReplyMessage}
-              isAdmin={currentChannel?.isAdmin ?? false}
-              isOwn={pubkey === message.pubkey}
-              onDeleteMessage={showDeleteMessageModal}
-            />
-          </div>
-        )}
-      </>
-    )}
-    <ChatMessage
-      className={className}
-      clamped={clamped}
-      onMouseEnter={() => setShowActionsWrapper(true)}
-      onMouseLeave={() => setShowActionsWrapper(false)}
-      onTouchEnd={() => setShowActionsWrapper(true)}
-      message={message} />
+        <>
+          {muteUserModalOpen && (
+            <MuteUserModal onConfirm={handleMuteUser} onCancel={muteUserModalToggle.toggleOff} />
+          )}
+          {deleteMessageModalOpened && (
+            <DeleteMessageModal onConfirm={handleDeleteMessage} onCancel={hideDeleteMessageModal} />
+          )}
+          {pinMessageModalOpen && (
+            <PinMessageModal onConfirm={pinSelectedMessage} onCancel={hidePinModal} />
+          )}
+          {message.status === MessageStatus.Delivered && (
+            <div className={classes.container}>
+              <MessageActions
+                pubkey={message.pubkey}
+                onMouseEnter={() => setShowActionsWrapper(true)}
+                onMouseLeave={() => setShowActionsWrapper(false)}
+                className={cn(classes.actions, {
+                  [classes.show]: showActionsWrapper
+                })}
+                onDmClicked={dmUser}
+                dmsEnabled={message.dmToken !== undefined}
+                isPinned={message.pinned}
+                isMuted={mutedUsers[message.channelId]?.includes(message.pubkey)}
+                onMuteUser={asyncMuter.execute}
+                onPinMessage={handlePinMessage}
+                onReactToMessage={handleEmojiReaction}
+                onReplyClicked={onReplyMessage}
+                isAdmin={currentChannel?.isAdmin ?? false}
+                isOwn={pubkey === message.pubkey}
+                onDeleteMessage={showDeleteMessageModal}
+              />
+            </div>
+          )}
+        </>
+      )}
+      <ChatMessage
+        className={className}
+        clamped={clamped}
+        onMouseEnter={() => setShowActionsWrapper(true)}
+        onMouseLeave={() => setShowActionsWrapper(false)}
+        onTouchEnd={() => setShowActionsWrapper(true)}
+        message={message}
+      />
     </>
   );
-}
+};
 
 export default MessageContainer;

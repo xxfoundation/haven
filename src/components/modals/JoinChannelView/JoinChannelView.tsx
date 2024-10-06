@@ -36,7 +36,7 @@ const JoinChannelView: FC = () => {
 
   useEffect(() => {
     setError('');
-  }, [password, dmsEnabled, url])
+  }, [password, dmsEnabled, url]);
 
   const handleSubmit = useCallback(async () => {
     if (url.length === 0) {
@@ -82,9 +82,7 @@ const JoinChannelView: FC = () => {
 
   return (
     <>
-      <ModalTitle>
-        {t('Join a Space')}
-      </ModalTitle>
+      <ModalTitle>{t('Join a Space')}</ModalTitle>
       <Input
         name=''
         placeholder={t('Enter invite link')}
@@ -94,7 +92,7 @@ const JoinChannelView: FC = () => {
             handleSubmit();
           }
         }}
-        onChange={e => {
+        onChange={(e) => {
           setUrl(e.target.value);
         }}
       />
@@ -109,24 +107,17 @@ const JoinChannelView: FC = () => {
               handleSubmit();
             }
           }}
-          onChange={e => {
+          onChange={(e) => {
             setPassword(e.target.value);
           }}
         />
       )}
-      {error && (
-        <FormError>{error}</FormError>
-      )}
+      {error && <FormError>{error}</FormError>}
       <div className='flex justify-between mt-8 w-full px-3'>
-        <h3 className='headline--sm'>
-          {t('Enable direct messages')}
-        </h3>
+        <h3 className='headline--sm'>{t('Enable direct messages')}</h3>
         <CheckboxToggle checked={dmsEnabled} onChange={() => setDmsEnabled((e) => !e)} />
       </div>
-      <Button
-        className='w-full'
-        onClick={handleSubmit}
-      >
+      <Button className='w-full' onClick={handleSubmit}>
         {t('Continue')}
       </Button>
     </>

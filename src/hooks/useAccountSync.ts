@@ -21,7 +21,7 @@ const useAccountSync = () => {
   const [service, setService] = useLocalStorage(ACCOUNT_SYNC_SERVICE, AccountSyncService.None);
 
   const isSynced = useMemo(
-    () =>  status !== null && !NOT_SYNCED_STATUSES.includes(status),
+    () => status !== null && !NOT_SYNCED_STATUSES.includes(status),
     [status]
   );
 
@@ -31,7 +31,7 @@ const useAccountSync = () => {
     service,
     setService,
     isSynced
-  }
-}
+  };
+};
 
 export default useAccountSync;

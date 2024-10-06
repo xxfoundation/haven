@@ -5,14 +5,14 @@ import { AccountSyncService } from 'src/hooks/useAccountSync';
 export enum OperationType {
   Created = 0,
   Updated = 1,
-  Deleted = 2 
+  Deleted = 2
 }
 
 export type KVEntry = {
   version: number;
   timestamp: string;
   data: string;
-}
+};
 
 type KeyChangedByRemoteCallback = {
   Callback: (
@@ -21,7 +21,7 @@ type KeyChangedByRemoteCallback = {
     newEntry: Uint8Array,
     operationType: OperationType
   ) => void;
-}
+};
 
 export const KV_VERSION = 0;
 
@@ -31,7 +31,7 @@ export type RemoteKV = {
   Set: (key: string, encodedKVMapEntry: Uint8Array) => Promise<void>;
   ListenOnRemoteKey: (key: string, version: number, onChange: KeyChangedByRemoteCallback) => number;
   DeleteRemoteKeyListener: (key: string, id: number) => void;
-}
+};
 
 export interface RemoteStoreServiceWrapper {
   service: AccountSyncService;
@@ -39,7 +39,7 @@ export interface RemoteStoreServiceWrapper {
   Write: (path: string, data: Uint8Array) => Promise<void>;
   GetLastModified: (path: string) => Promise<string | null>;
   ReadDir: (path: string) => Promise<string[]>;
-  DeleteAll: () => Promise<void>; 
+  DeleteAll: () => Promise<void>;
 }
 
 export class RemoteStore {

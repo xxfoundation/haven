@@ -2,7 +2,7 @@ import { DMNotificationLevel } from 'src/types';
 import { useCallback } from 'react';
 import assert from 'assert';
 
-import {  useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as dms from 'src/store/dms';
 import * as app from 'src/store/app';
 import { useDmContext } from '@contexts/dm-client-context';
@@ -18,107 +18,130 @@ const useDmClient = () => {
   const currentConversation = useAppSelector(dms.selectors.currentConversation);
   const notificationLevels = useAppSelector(dms.selectors.allNotificationLevels);
 
-  const createConversation = useCallback((c: Omit<Conversation, 'blocked'>) => {
-    const conversation = conversations.find((convo) => convo.pubkey === c.pubkey);
-    if (!conversation && c.token !== undefined) {
-      dispatch(dms.actions.upsertConversation({
-        pubkey: c.pubkey,
-        token: c.token,
-        codeset: c.codeset,
-        codename: c.codename,
-        color: c.color ?? '#fefefe',
-        blocked: false,
-      }));
-    }
-    dispatch(app.actions.selectChannelOrConversation(c.pubkey));
-  }, [conversations, dispatch]);
+  const createConversation = useCallback(
+    (c: Omit<Conversation, 'blocked'>) => {
+      const conversation = conversations.find((convo) => convo.pubkey === c.pubkey);
+      if (!conversation && c.token !== undefined) {
+        dispatch(
+          dms.actions.upsertConversation({
+            pubkey: c.pubkey,
+            token: c.token,
+            codeset: c.codeset,
+            codename: c.codename,
+            color: c.color ?? '#fefefe',
+            blocked: false
+          })
+        );
+      }
+      dispatch(app.actions.selectChannelOrConversation(c.pubkey));
+    },
+    [conversations, dispatch]
+  );
 
-  const sendDirectMessage = useCallback(async (message: string) => {
-    if (client && message.length && currentConversation) {
+  const sendDirectMessage = useCallback(
+    async (message: string) => {
+      if (client && message.length && currentConversation) {
+        try {
+          await client.SendText(
+            utils.Base64ToUint8Array(currentConversation.pubkey),
+            currentConversation.token,
+            message,
+            MESSAGE_LEASE,
+            new Uint8Array()
+          );
+        } catch (e) {
+          console.error('Error sending dm', e);
+        }
+      }
+    },
+    [client, currentConversation, utils]
+  );
+
+  const sendDMReply = useCallback(
+    async (reply: string, replyToMessageId: string) => {
+      if (!client || !currentConversation) {
+        return;
+      }
       try {
-        await client.SendText(
+        await client?.SendReply(
           utils.Base64ToUint8Array(currentConversation.pubkey),
           currentConversation.token,
-          message,
-          MESSAGE_LEASE,
+          reply,
+          utils.Base64ToUint8Array(replyToMessageId),
+          30000,
           new Uint8Array()
-        )
-      } catch (e) {
-        console.error('Error sending dm', e);
+        );
+      } catch (error) {
+        console.error(`Failed to reply to messageId ${replyToMessageId}`);
       }
-    }
-  }, [client, currentConversation, utils]);
+    },
+    [client, currentConversation, utils]
+  );
 
-  const sendDMReply = useCallback(async (reply: string, replyToMessageId: string) => {
-    if (!client || !currentConversation) {
-      return;
-    }
-    try {
-      await client?.SendReply(
-        utils.Base64ToUint8Array(currentConversation.pubkey),
-        currentConversation.token,
-        reply,
-        utils.Base64ToUint8Array(replyToMessageId),
-        30000,
-        new Uint8Array()
-      );
-    } catch (error) {
-      console.error(`Failed to reply to messageId ${replyToMessageId}`);
-    }
-  }, [client, currentConversation, utils]);
+  const sendDMReaction = useCallback(
+    async (reaction: string, reactToMessageId: string) => {
+      if (!client || !currentConversation) {
+        return;
+      }
+      try {
+        await client.SendReaction(
+          utils.Base64ToUint8Array(currentConversation?.pubkey),
+          currentConversation.token,
+          reaction,
+          utils.Base64ToUint8Array(reactToMessageId),
+          new Uint8Array()
+        );
+      } catch (error) {
+        console.error(`Failed to react to messageId ${reactToMessageId}`, error);
+      }
+    },
+    [client, currentConversation, utils]
+  );
 
-  const sendDMReaction = useCallback(async (reaction: string, reactToMessageId: string) => {
-    if (!client || !currentConversation) {
-      return;
-    }
-    try {
-      await client.SendReaction(
-        utils.Base64ToUint8Array(currentConversation?.pubkey),
-        currentConversation.token,
-        reaction,
-        utils.Base64ToUint8Array(reactToMessageId),
-        new Uint8Array()
-      );
-    } catch (error) {
-      console.error(
-        `Failed to react to messageId ${reactToMessageId}`,
-        error
-      );
-    }
-  }, [client, currentConversation, utils])
+  const blockUser = useCallback(
+    async (pubkey: string) => {
+      const encodedKey = utils.Base64ToUint8Array(pubkey);
+      await client?.BlockPartner(encodedKey);
+    },
+    [client, utils]
+  );
 
-  const blockUser = useCallback(async (pubkey: string) => {
-    const encodedKey = utils.Base64ToUint8Array(pubkey);
-    await client?.BlockPartner(encodedKey);
-  }, [client, utils]);
-
-  const unblockUser = useCallback(async (pubkey: string) => {
-    const encodedKey = utils.Base64ToUint8Array(pubkey);
-    await client?.UnblockPartner(encodedKey);
-  }, [client, utils]);
+  const unblockUser = useCallback(
+    async (pubkey: string) => {
+      const encodedKey = utils.Base64ToUint8Array(pubkey);
+      await client?.UnblockPartner(encodedKey);
+    },
+    [client, utils]
+  );
 
   const blockedUsers = useAppSelector(dms.selectors.blockedUsers);
 
-  const toggleBlocked = useCallback((pubkey: string) => {
-    const isBlocked = blockedUsers.includes(pubkey);
+  const toggleBlocked = useCallback(
+    (pubkey: string) => {
+      const isBlocked = blockedUsers.includes(pubkey);
 
-    return isBlocked ? unblockUser(pubkey) : blockUser(pubkey);
-  }, [blockUser, blockedUsers, unblockUser]);
+      return isBlocked ? unblockUser(pubkey) : blockUser(pubkey);
+    },
+    [blockUser, blockedUsers, unblockUser]
+  );
 
-  const setDmNickname = useCallback((nickname: string) => {
-    if (!client) {
-      return false;
-    }
+  const setDmNickname = useCallback(
+    (nickname: string) => {
+      if (!client) {
+        return false;
+      }
 
-    try {
-      client.SetNickname(nickname);
-      dispatch(dms.actions.setUserNickname(nickname));
-      return true;
-    } catch (e) {
-      console.error('Error setting DM nickname', e);
-      return false;
-    }
-  }, [client, dispatch]);
+      try {
+        client.SetNickname(nickname);
+        dispatch(dms.actions.setUserNickname(nickname));
+        return true;
+      } catch (e) {
+        console.error('Error setting DM nickname', e);
+        return false;
+      }
+    },
+    [client, dispatch]
+  );
 
   const getDmNickname = useCallback(() => {
     let nickname: string;
@@ -130,26 +153,32 @@ const useDmClient = () => {
     return nickname;
   }, [client]);
 
-  const toggleDmNotificationLevel = useCallback((conversationId: string) => {
-    const level = notificationLevels[conversationId];
-    client?.SetMobileNotificationsLevel(
-      utils.Base64ToUint8Array(conversationId),
-      level === DMNotificationLevel.NotifyNone
-        ? DMNotificationLevel.NotifyAll
-        : DMNotificationLevel.NotifyNone
-    )
-  }, [client, notificationLevels, utils]);
+  const toggleDmNotificationLevel = useCallback(
+    (conversationId: string) => {
+      const level = notificationLevels[conversationId];
+      client?.SetMobileNotificationsLevel(
+        utils.Base64ToUint8Array(conversationId),
+        level === DMNotificationLevel.NotifyNone
+          ? DMNotificationLevel.NotifyAll
+          : DMNotificationLevel.NotifyNone
+      );
+    },
+    [client, notificationLevels, utils]
+  );
 
-  const deleteDirectMessage = useCallback((messageId: string) => {
-    assert(currentConversation, 'Current conversation is undefined');
-    client?.DeleteMessage(
-      utils.Base64ToUint8Array(currentConversation.pubkey),
-      currentConversation.token,
-      utils.Base64ToUint8Array(messageId),
-      undefined,
-      new Uint8Array()
-    )
-  }, [client, currentConversation, utils]);
+  const deleteDirectMessage = useCallback(
+    (messageId: string) => {
+      assert(currentConversation, 'Current conversation is undefined');
+      client?.DeleteMessage(
+        utils.Base64ToUint8Array(currentConversation.pubkey),
+        currentConversation.token,
+        utils.Base64ToUint8Array(messageId),
+        undefined,
+        new Uint8Array()
+      );
+    },
+    [client, currentConversation, utils]
+  );
 
   return {
     deleteDirectMessage,
@@ -162,6 +191,6 @@ const useDmClient = () => {
     getDmNickname,
     toggleDmNotificationLevel
   };
-}
+};
 
 export default useDmClient;

@@ -3,13 +3,15 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState: IdentityState = {
   identity: undefined
-}
+};
 
 const slice = createSlice({
   name: 'identity',
   initialState,
   reducers: {
-    set: (state: IdentityState, action: PayloadAction<Identity>) => ({ identity: action.payload || state.identity }),
+    set: (state: IdentityState, action: PayloadAction<Identity>) => ({
+      identity: action.payload || state.identity
+    })
   }
 });
 

@@ -4,11 +4,7 @@ import cn from 'classnames';
 
 import { Button, Spinner } from 'src/components/common';
 
-import {
-  NormalHaven,
-  OpenSource,
-  NormalHash,
-} from 'src/components/icons';
+import { NormalHaven, OpenSource, NormalHash } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
 
 import s from './Registration.module.scss';
@@ -29,7 +25,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
 
   const onContinue = useCallback(() => {
     if (passwordConfirm !== password) {
-      setError(t('Password doesn\'t match confirmation.'));
+      setError(t("Password doesn't match confirmation."));
     } else {
       if (password.length) {
         onPasswordConfirmation(password);
@@ -37,8 +33,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
       }
       setError('');
     }
-  }, [passwordConfirm, password, t, onPasswordConfirmation])
-  
+  }, [passwordConfirm, password, t, onPasswordConfirmation]);
 
   return (
     <div className={cn('', s.root)}>
@@ -54,30 +49,21 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               <span className={cn(s.golden)}>your thoughts, your beliefs.</span>
               <span className={cn(s.normal)}>
                 Speak easily to a group of friends or a global community.{' '}
-                <span className={cn(s.highlighted)}>
-                  Talk about what you want.
-                </span>
+                <span className={cn(s.highlighted)}>Talk about what you want.</span>
               </span>
             </Trans>
             <Trans>
               <span className={cn(s.normal)}>
                 Surveillance free. Censorship proof.
-                <span className={cn(s.highlighted)}>
-                  Your Haven chats are yours.
-                </span>
+                <span className={cn(s.highlighted)}>Your Haven chats are yours.</span>
               </span>
             </Trans>
           </div>
           <div className='col-span-3 pl-3'>
-            <h2 className='mb-2'>
-              {t('Join the alpha')}
-            </h2>
+            <h2 className='mb-2'>{t('Join the alpha')}</h2>
             {!showSelectServiceMenu && (
               <>
-                <p
-                  className='mb-8 text'
-                  style={{ color: '#5B5D62', lineHeight: '17px' }}
-                >
+                <p className='mb-8 text' style={{ color: '#5B5D62', lineHeight: '17px' }}>
                   {t('Enter a password to secure your sovereign Haven identity')}
                 </p>
                 <Input
@@ -91,7 +77,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                       onContinue();
                     }
                   }}
-                  onChange={e => {
+                  onChange={(e) => {
                     setPassword(e.target.value);
                   }}
                 />
@@ -107,7 +93,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                     }
                   }}
                   value={passwordConfirm}
-                  onChange={e => {
+                  onChange={(e) => {
                     setPasswordConfirm(e.target.value);
                   }}
                 />
@@ -155,7 +141,9 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                       }}
                     >
                       {t('Import')}
-                    </span> an existing account {/* or <span
+                    </span>{' '}
+                    an existing account{' '}
+                    {/* or <span
                       style={{
                         textDecoration: 'underline',
                         fontSize: '16px',
@@ -174,7 +162,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 </div>
               </>
             )}
-{/*             {showSelectServiceMenu && (
+            {/*             {showSelectServiceMenu && (
               <>
                 <p
                   className='mb-8 text'
@@ -199,7 +187,8 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                 </div>
               </>
             )}
- */}          </div>
+ */}{' '}
+          </div>
         </div>
         <div className={cn('grid grid-cols-12 gap-0', s.footer)}>
           <a
@@ -209,9 +198,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             className={cn('flex flex-col col-span-4', s.perkCard)}
           >
             <OpenSource />
-            <span className={cn(s.perkCard__title)}>
-              {t('Open Source')}
-            </span>
+            <span className={cn(s.perkCard__title)}>{t('Open Source')}</span>
             <span className={cn(s.perkCard__description)}>
               {t('Every line — open source. Forever.')}
             </span>
@@ -223,14 +210,12 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             className={cn('flex flex-col col-span-4', s.perkCard)}
           >
             <NormalHash />
-            <span className={cn(s.perkCard__title)}>
-              {t('Fundamentally Different')}
-            </span>
+            <span className={cn(s.perkCard__title)}>{t('Fundamentally Different')}</span>
             <span className={cn(s.perkCard__description)}>
               {t('Powered by the first decentralized mixnet-blockchain')}
             </span>
           </a>
-{/*           <a
+          {/*           <a
             href='https://www.speakeasy.tech/roadmap/'
             target='_blank'
             rel='noreferrer'
@@ -244,36 +229,25 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               {t('Building to the future')}
             </span>
           </a>
- */}        </div>
+ */}{' '}
+        </div>
       </div>
       <div className={cn(s.links)}>
         <a href='https://xx.network/' target='_blank' rel='noreferrer'>
           {t('xx network')}
         </a>
-        <a
-          href='https://xx.network/privacy-policy/'
-          target='_blank'
-          rel='noreferrer'
-        >
+        <a href='https://xx.network/privacy-policy/' target='_blank' rel='noreferrer'>
           {t('Privacy Policy')}
         </a>
 
-        <a
-          href='https://xx.network/terms-of-use/'
-          target='_blank'
-          rel='noreferrer'
-        >
+        <a href='https://xx.network/terms-of-use/' target='_blank' rel='noreferrer'>
           {t('Terms of Use')}
         </a>
 
         <a href='https://xxfoundation.org/' target='_blank' rel='noreferrer'>
           {t('xx foundation')}
         </a>
-        <a
-          href='https://x.com/xx_network'
-          target='_blank'
-          rel='noreferrer'
-        >
+        <a href='https://x.com/xx_network' target='_blank' rel='noreferrer'>
           X
         </a>
       </div>

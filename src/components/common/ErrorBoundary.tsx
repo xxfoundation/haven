@@ -10,7 +10,7 @@ import Button from './Button';
 
 type ErrorProps = {
   resetErrorBoundary: () => void;
-}
+};
 
 const ErrorComponent: FC<ErrorProps> = ({ resetErrorBoundary }) => {
   const { t } = useTranslation();
@@ -34,21 +34,17 @@ const ErrorComponent: FC<ErrorProps> = ({ resetErrorBoundary }) => {
       window.URL.revokeObjectURL(url);
     }, 0);
   }, []);
-  
+
   return (
     <div className='flex w-full h-screen content-center justify-center flex-col'>
       <div className='text-center space-y-2'>
-        <h2 className='mb-6'>
-          {t('Oops, something went wrong!')}</h2>
+        <h2 className='mb-6'>{t('Oops, something went wrong!')}</h2>
         <p className='space-x-4'>
           <Button onClick={exportLogs}>
             {t('Logs for the nerds')}
             <Download height='1rem' className='inline ml-1' />
           </Button>
-          <Button
-            type='button'
-            onClick={resetErrorBoundary}
-          >
+          <Button type='button' onClick={resetErrorBoundary}>
             {t('Try again?')}
           </Button>
         </p>
@@ -58,11 +54,7 @@ const ErrorComponent: FC<ErrorProps> = ({ resetErrorBoundary }) => {
 };
 
 const ErrorBoundary: FC<WithChildren> = ({ children }) => {
-  return (
-    <LibBoundary FallbackComponent={ErrorComponent}>
-      {children}
-    </LibBoundary>
-  );
-}
+  return <LibBoundary FallbackComponent={ErrorComponent}>{children}</LibBoundary>;
+};
 
 export default ErrorBoundary;

@@ -12,7 +12,7 @@ export type Channel = {
   isAdmin: boolean;
   privacyLevel: PrivacyLevel | null;
   prettyPrint?: string;
-}
+};
 
 export type ChannelId = Channel['id'];
 

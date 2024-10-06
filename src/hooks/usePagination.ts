@@ -9,7 +9,7 @@ export type PaginationOptions = {
 type PaginationResult = {
   end: number;
   page: number;
-  paginate: <T,>(items: Array<T>) => Array<T>;
+  paginate: <T>(items: Array<T>) => Array<T>;
   reset: () => void;
   setCount: (number: number) => void;
   rowsPerPage: number;
@@ -28,15 +28,18 @@ function usePagination(options?: PaginationOptions): PaginationResult {
   const [count, setCount] = useState(0);
   const [rowsPerPage] = useState(options?.rowsPerPage ?? DEFAULT_ROWS_PER_PAGE);
   const [page, setPage] = useState(1);
-  const shownPages = useMemo(() => options?.shownPages ?? DEFAULT_SHOWN_PAGES, [options?.shownPages]);
-  const offset =  (page - 1) * rowsPerPage;
+  const shownPages = useMemo(
+    () => options?.shownPages ?? DEFAULT_SHOWN_PAGES,
+    [options?.shownPages]
+  );
+  const offset = (page - 1) * rowsPerPage;
   const end = (page - 1 + shownPages) * rowsPerPage;
-  const start = (page - 1) * rowsPerPage
+  const start = (page - 1) * rowsPerPage;
 
   const reset = useCallback(() => {
     setPage(1);
   }, []);
-  
+
   const hasLess = page > 1;
   const hasMore = count > end;
 
@@ -51,28 +54,44 @@ function usePagination(options?: PaginationOptions): PaginationResult {
       setPage((p) => p - 1);
     }
   }, [hasLess]);
-  
+
   const paginate = useCallback<PaginationResult['paginate']>(
     (items) => items.slice().reverse().slice(start, end).reverse(),
     [end, start]
   );
-  
-  return useMemo(() => ({
-    count,
-    end,
-    hasLess,
-    hasMore,
-    rowsPerPage,
-    setCount,
-    page,
-    paginate,
-    previous,
-    start,
-    reset,
-    next,
-    limit: rowsPerPage,
-    offset
-  }), [count, end, hasLess, hasMore, next, offset, page, paginate, previous, reset, rowsPerPage, start]);
+
+  return useMemo(
+    () => ({
+      count,
+      end,
+      hasLess,
+      hasMore,
+      rowsPerPage,
+      setCount,
+      page,
+      paginate,
+      previous,
+      start,
+      reset,
+      next,
+      limit: rowsPerPage,
+      offset
+    }),
+    [
+      count,
+      end,
+      hasLess,
+      hasMore,
+      next,
+      offset,
+      page,
+      paginate,
+      previous,
+      reset,
+      rowsPerPage,
+      start
+    ]
+  );
 }
 
 export default usePagination;

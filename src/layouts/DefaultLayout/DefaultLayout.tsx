@@ -18,7 +18,7 @@ import { NetworkStatus } from 'src/hooks/useCmix';
 import useEvents from 'src/hooks/useEvents';
 import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
 import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
-import LeftSideBar  from '@components/common/LeftSideBar';
+import LeftSideBar from '@components/common/LeftSideBar';
 import MainHeader from '@components/common/MainHeader';
 import SettingsView from '@components/views/SettingsViews';
 
@@ -34,11 +34,7 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
   const accountSync = useAccountSync();
   const router = useRouter();
   const { isAuthenticated } = useAuthentication();
-  const {
-    cmix,
-    getShareUrlType,
-    networkStatus
-  } = useNetworkClient();
+  const { cmix, getShareUrlType, networkStatus } = useNetworkClient();
   const { leftSidebarView: sidebarView, openModal, setChannelInviteLink, setModalView } = useUI();
 
   useEffect(() => {
@@ -67,9 +63,13 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
   ]);
 
   useEffect(() => {
-    if (networkStatus === NetworkStatus.CONNECTED && isAuthenticated && accountSync.status === AccountSyncStatus.NotSynced) {
+    if (
+      networkStatus === NetworkStatus.CONNECTED &&
+      isAuthenticated &&
+      accountSync.status === AccountSyncStatus.NotSynced
+    ) {
       setModalView('ACCOUNT_SYNC', false);
-      openModal()
+      openModal();
     }
   }, [accountSync.status, isAuthenticated, networkStatus, openModal, setModalView]);
 
@@ -81,27 +81,17 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
         <>
           <ConnectingDimmer />
           <AppModals />
-          <div
-            className='grid lg:grid-cols-[21.75rem_1fr] grid-cols-[18rem_1fr] grid-rows-[3.75rem_1fr] h-screen'
-          >
+          <div className='grid lg:grid-cols-[21.75rem_1fr] grid-cols-[18rem_1fr] grid-rows-[3.75rem_1fr] h-screen'>
             <LeftHeader />
             <MainHeader />
-            <LeftSideBar className='overflow-y-auto'  />
+            <LeftSideBar className='overflow-y-auto' />
             <div className='overflow-hidden flex flex-col items-stretch'>
               <div className='flex h-full'>
                 <div className='flex flex-col flex-grow'>
                   <Notices />
-                  {sidebarView === 'spaces' && (
-                    <PinnedMessage />
-                  )}
-                  {sidebarView === 'settings' && (
-                    <SettingsView />
-                  )}
-                  {(sidebarView === 'spaces' || sidebarView === 'dms') && (
-                    <>
-                      {children}
-                    </>
-                  )}
+                  {sidebarView === 'spaces' && <PinnedMessage />}
+                  {sidebarView === 'settings' && <SettingsView />}
+                  {(sidebarView === 'spaces' || sidebarView === 'dms') && <>{children}</>}
                 </div>
                 <RightSideBar />
               </div>
@@ -112,7 +102,6 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
         <AuthenticationUI />
       )}
     </>
-    
   );
 };
 

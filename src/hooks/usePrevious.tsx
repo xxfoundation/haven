@@ -8,6 +8,6 @@ const usePrevious = <T,>(value: T) => {
   }, [value]);
 
   return ref.current;
-}
+};
 
 export default usePrevious;

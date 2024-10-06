@@ -8,7 +8,7 @@ import ImportAccountForm from './ImportAccountForm';
 
 type Props = {
   onSubmit: (identityVariables: IdentityVariables) => Promise<void>;
-}
+};
 
 const ImportAccountModal: FC<Props> = ({ onSubmit }) => {
   const { closeModal } = useUI();

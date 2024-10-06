@@ -6,11 +6,7 @@ import { Button, Spinner } from 'src/components/common';
 
 import s from './Login.module.scss';
 
-import {
-  NormalHaven,
-  OpenSource,
-  NormalHash
-} from 'src/components/icons';
+import { NormalHaven, OpenSource, NormalHash } from 'src/components/icons';
 import { useAuthentication } from '@contexts/authentication-context';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
 import GoogleButton from '@components/common/GoogleButton';
@@ -22,12 +18,8 @@ const LoginView: FC = () => {
   const { t } = useTranslation();
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const {
-    attemptingSyncedLogin,
-    cancelSyncLogin,
-    getOrInitPassword,
-    setIsAuthenticated,
-  } = useAuthentication();
+  const { attemptingSyncedLogin, cancelSyncLogin, getOrInitPassword, setIsAuthenticated } =
+    useAuthentication();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingInfo, setLoadingInfo] = useState('');
 
@@ -38,13 +30,15 @@ const LoginView: FC = () => {
       setError(t('Something went wrong, please check your credentials.'));
       setIsLoading(false);
       setLoadingInfo('');
-    }
+    };
 
     bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
 
-    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener); }
+    return () => {
+      bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
+    };
   }, [t]);
-  
+
   const handleSubmit = useCallback(async () => {
     setError('');
     setIsLoading(true);
@@ -76,14 +70,16 @@ const LoginView: FC = () => {
       }
       setLoadingInfo(t('Retrieving account...'));
       await awaitEvent(AppEvents.CMIX_SYNCED, undefined, 20000)
-        .then(() => { setIsAuthenticated(true); })
+        .then(() => {
+          setIsAuthenticated(true);
+        })
         .catch(() => {
-          console.error('Cmix Sync timed out.')
+          console.error('Cmix Sync timed out.');
           setError(t('Something went wrong, please check your credentials.'));
         })
         .finally(() => {
           setIsLoading(false);
-          setLoadingInfo('')
+          setLoadingInfo('');
         });
     } catch (e) {
       setError((e as Error).message);
@@ -105,28 +101,19 @@ const LoginView: FC = () => {
               <span className={cn(s.golden)}>your thoughts, your beliefs.</span>
               <span className={cn(s.normal)}>
                 Speak easily to a group of friends or a global community.{' '}
-                <span className={cn(s.highlighted)}>
-                  Talk about what you want.
-                </span>
+                <span className={cn(s.highlighted)}>Talk about what you want.</span>
               </span>
             </Trans>
             <Trans>
               <span className={cn(s.normal)}>
                 Surveillance free. Censorship proof.
-                <span className={cn(s.highlighted)}>
-                  Your Haven chats are yours.
-                </span>
+                <span className={cn(s.highlighted)}>Your Haven chats are yours.</span>
               </span>
             </Trans>
           </div>
           <div className='col-span-3 pl-3'>
-            <h2 className='mb-2'>
-              {t('Login')}
-            </h2>
-            <p
-              className='mb-8 text'
-              style={{ color: '#5B5D62', lineHeight: '17px' }}
-            >
+            <h2 className='mb-2'>{t('Login')}</h2>
+            <p className='mb-8 text' style={{ color: '#5B5D62', lineHeight: '17px' }}>
               {t('Use your password to unlock your Haven identity')}
             </p>
             <Input
@@ -134,22 +121,28 @@ const LoginView: FC = () => {
               type='password'
               placeholder={t('Enter your password')}
               value={password}
-              onChange={e => {
+              onChange={(e) => {
                 setPassword(e.target.value);
               }}
-              onKeyDown={e => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   if (accountSyncStatus !== AccountSyncStatus.Synced) {
                     e.preventDefault();
                     handleSubmit();
                   }
 
-                  if (accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Dropbox) {
+                  if (
+                    accountSyncStatus === AccountSyncStatus.Synced &&
+                    accountSyncService === AccountSyncService.Dropbox
+                  ) {
                     const dropboxButton = document.getElementById('dropbox-button');
                     dropboxButton?.click();
                   }
 
-                  if (accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Google) {
+                  if (
+                    accountSyncStatus === AccountSyncStatus.Synced &&
+                    accountSyncService === AccountSyncService.Google
+                  ) {
                     const googleButton = document.getElementById('google-auth-button');
                     googleButton?.click();
                   }
@@ -157,29 +150,27 @@ const LoginView: FC = () => {
               }}
             />
             <div className='flex flex-col mt-4 space-y-3'>
-              {accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Google && (
-                <GoogleButton
-                  onError={() => setError(t('Something went wrong.'))}
-                  onStartLoading={onSyncLoad}
-                  disabled={isLoading}
-                  password={password}
-                />
-              )}
-              {accountSyncStatus === AccountSyncStatus.Synced && accountSyncService === AccountSyncService.Dropbox && (
-                <DropboxButton
-                  id='dropbox-button'
-                  onError={() => setError(t('Something went wrong.'))}
-                  onStartLoading={onSyncLoad}
-                  disabled={isLoading}
-                  password={password}
-                />
-              )}
+              {accountSyncStatus === AccountSyncStatus.Synced &&
+                accountSyncService === AccountSyncService.Google && (
+                  <GoogleButton
+                    onError={() => setError(t('Something went wrong.'))}
+                    onStartLoading={onSyncLoad}
+                    disabled={isLoading}
+                    password={password}
+                  />
+                )}
+              {accountSyncStatus === AccountSyncStatus.Synced &&
+                accountSyncService === AccountSyncService.Dropbox && (
+                  <DropboxButton
+                    id='dropbox-button'
+                    onError={() => setError(t('Something went wrong.'))}
+                    onStartLoading={onSyncLoad}
+                    disabled={isLoading}
+                    password={password}
+                  />
+                )}
               {accountSyncStatus !== AccountSyncStatus.Synced && (
-                <Button
-                  data-testid='login-button'
-                  disabled={isLoading}
-                  onClick={handleSubmit}
-                >
+                <Button data-testid='login-button' disabled={isLoading} onClick={handleSubmit}>
                   {t('Login')}
                 </Button>
               )}
@@ -191,11 +182,7 @@ const LoginView: FC = () => {
             </div>
             {isLoading && (
               <div className={s.loading}>
-                {loadingInfo && (
-                  <p className='mt-4'>
-                    {loadingInfo}
-                  </p>
-                )}
+                {loadingInfo && <p className='mt-4'>{loadingInfo}</p>}
                 <Spinner />
               </div>
             )}
@@ -227,9 +214,7 @@ const LoginView: FC = () => {
             className={cn('flex flex-col col-span-4', s.perkCard)}
           >
             <OpenSource />
-            <span className={cn(s.perkCard__title)}>
-              {t('Open Source')}
-            </span>
+            <span className={cn(s.perkCard__title)}>{t('Open Source')}</span>
             <span className={cn(s.perkCard__description)}>
               {t('Every line — open source. Forever.')}
             </span>
@@ -241,9 +226,7 @@ const LoginView: FC = () => {
             className={cn('flex flex-col col-span-4', s.perkCard)}
           >
             <NormalHash />
-            <span className={cn(s.perkCard__title)}>
-              {t('Fundamentally Different')}
-            </span>
+            <span className={cn(s.perkCard__title)}>{t('Fundamentally Different')}</span>
             <span className={cn(s.perkCard__description)}>
               {t('Powered by the first decentralized mixnet-blockchain')}
             </span>
@@ -254,30 +237,18 @@ const LoginView: FC = () => {
         <a href='https://xx.network/' target='_blank' rel='noreferrer'>
           {t('xx network')}
         </a>
-        <a
-          href='https://xx.network/privacy-policy/'
-          target='_blank'
-          rel='noreferrer'
-        >
+        <a href='https://xx.network/privacy-policy/' target='_blank' rel='noreferrer'>
           {t('Privacy Policy')}
         </a>
 
-        <a
-          href='https://xx.network/terms-of-use/'
-          target='_blank'
-          rel='noreferrer'
-        >
+        <a href='https://xx.network/terms-of-use/' target='_blank' rel='noreferrer'>
           {t('Terms of Use')}
         </a>
 
         <a href='https://xxfoundation.org/' target='_blank' rel='noreferrer'>
           {t('xx foundation')}
         </a>
-        <a
-          href='https://x.com/xx_network'
-          target='_blank'
-          rel='noreferrer'
-        >
+        <a href='https://x.com/xx_network' target='_blank' rel='noreferrer'>
           Twitter
         </a>
       </div>

@@ -24,109 +24,137 @@ const ChannelSettingsView: FC = () => {
   const { utils } = useUtils();
   const { channelManager } = useNetworkClient();
   const dmsEnabled = useAppSelector(channels.selectors.dmsEnabled(currentChannel?.id));
-  const notificationLevel = useAppSelector(channels.selectors.notificationLevel(currentChannel?.id));
-  const notificationStatus = useAppSelector(channels.selectors.notificationStatus(currentChannel?.id));
+  const notificationLevel = useAppSelector(
+    channels.selectors.notificationLevel(currentChannel?.id)
+  );
+  const notificationStatus = useAppSelector(
+    channels.selectors.notificationStatus(currentChannel?.id)
+  );
 
   const toggleDms = useCallback(() => {
     if (!currentChannel || !channelManager) {
       return;
     }
 
-    const fn = dmsEnabled ? 'DisableDirectMessages' : 'EnableDirectMessages'
+    const fn = dmsEnabled ? 'DisableDirectMessages' : 'EnableDirectMessages';
     channelManager?.[fn](Buffer.from(currentChannel.id, 'base64'));
   }, [channelManager, currentChannel, dmsEnabled]);
 
-  const correctInvalidNotificationStates = useCallback((level = ChannelNotificationLevel.NotifyPing, status = NotificationStatus.WhenOpen) => {
-    const previousStatus = notificationStatus;
-    const previousLevel = notificationLevel;
+  const correctInvalidNotificationStates = useCallback(
+    (level = ChannelNotificationLevel.NotifyPing, status = NotificationStatus.WhenOpen) => {
+      const previousStatus = notificationStatus;
+      const previousLevel = notificationLevel;
 
-    const notificationStatusMuted = status === NotificationStatus.Mute && previousStatus !== NotificationStatus.Mute;
-    const notificationStatusUnmuted = status !== NotificationStatus.Mute && previousStatus === NotificationStatus.Mute;
-    const notificationLevelMuted = level === ChannelNotificationLevel.NotifyNone && previousLevel !== ChannelNotificationLevel.NotifyNone;
-    const notificationLevelUnmuted = level !== ChannelNotificationLevel.NotifyNone && previousLevel === ChannelNotificationLevel.NotifyNone;
+      const notificationStatusMuted =
+        status === NotificationStatus.Mute && previousStatus !== NotificationStatus.Mute;
+      const notificationStatusUnmuted =
+        status !== NotificationStatus.Mute && previousStatus === NotificationStatus.Mute;
+      const notificationLevelMuted =
+        level === ChannelNotificationLevel.NotifyNone &&
+        previousLevel !== ChannelNotificationLevel.NotifyNone;
+      const notificationLevelUnmuted =
+        level !== ChannelNotificationLevel.NotifyNone &&
+        previousLevel === ChannelNotificationLevel.NotifyNone;
 
-    let stat = status;
-    let lev = level;
+      let stat = status;
+      let lev = level;
 
-    if (notificationStatusMuted) {
-      lev = ChannelNotificationLevel.NotifyNone;
-    }
+      if (notificationStatusMuted) {
+        lev = ChannelNotificationLevel.NotifyNone;
+      }
 
-    if (notificationStatusUnmuted && lev === ChannelNotificationLevel.NotifyNone) {
-      lev = ChannelNotificationLevel.NotifyPing;
-    }
+      if (notificationStatusUnmuted && lev === ChannelNotificationLevel.NotifyNone) {
+        lev = ChannelNotificationLevel.NotifyPing;
+      }
 
-    if (notificationLevelMuted) {
-      stat = NotificationStatus.Mute;
-    }
+      if (notificationLevelMuted) {
+        stat = NotificationStatus.Mute;
+      }
 
-    if (notificationLevelUnmuted && stat === NotificationStatus.Mute) {
-      stat = NotificationStatus.WhenOpen;
-    }
+      if (notificationLevelUnmuted && stat === NotificationStatus.Mute) {
+        stat = NotificationStatus.WhenOpen;
+      }
 
-    return [lev, stat] as [ChannelNotificationLevel, NotificationStatus];
-  }, [notificationLevel, notificationStatus]);
+      return [lev, stat] as [ChannelNotificationLevel, NotificationStatus];
+    },
+    [notificationLevel, notificationStatus]
+  );
 
-  const changeNotificationLevel = useCallback((level: ChannelNotificationLevel) => {
-    if (currentChannel?.id) {
-      channelManager?.SetMobileNotificationsLevel(
-        utils.Base64ToUint8Array(currentChannel?.id),
-        ...correctInvalidNotificationStates(level, notificationStatus)
-      )
-    }
-  }, [channelManager, correctInvalidNotificationStates, currentChannel?.id, notificationStatus, utils]);
+  const changeNotificationLevel = useCallback(
+    (level: ChannelNotificationLevel) => {
+      if (currentChannel?.id) {
+        channelManager?.SetMobileNotificationsLevel(
+          utils.Base64ToUint8Array(currentChannel?.id),
+          ...correctInvalidNotificationStates(level, notificationStatus)
+        );
+      }
+    },
+    [
+      channelManager,
+      correctInvalidNotificationStates,
+      currentChannel?.id,
+      notificationStatus,
+      utils
+    ]
+  );
 
-  const onNotificationLevelChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
-    const level = notificationLevelDecoder.decode(parseInt(evt.target.value, 10));
-    if (level.isOk()) {
-      changeNotificationLevel(level.value);
-    } else {
-      throw new Error(`Unknown notification level ${level.error}`)
-    }
-  }, [changeNotificationLevel]);
+  const onNotificationLevelChange = useCallback<ChangeEventHandler<HTMLSelectElement>>(
+    (evt) => {
+      const level = notificationLevelDecoder.decode(parseInt(evt.target.value, 10));
+      if (level.isOk()) {
+        changeNotificationLevel(level.value);
+      } else {
+        throw new Error(`Unknown notification level ${level.error}`);
+      }
+    },
+    [changeNotificationLevel]
+  );
 
-  const changeNotificationStatus = useCallback((status: NotificationStatus) => {
-    if (currentChannel?.id) {
-      const level = status === NotificationStatus.Mute ? ChannelNotificationLevel.NotifyNone : (notificationLevel || ChannelNotificationLevel.NotifyPing);
-      
-      channelManager?.SetMobileNotificationsLevel(
-        utils.Base64ToUint8Array(currentChannel?.id),
-        ...correctInvalidNotificationStates(level, status)
-      )
-    }
-  }, [currentChannel?.id, notificationLevel, channelManager, utils, correctInvalidNotificationStates]);
+  const changeNotificationStatus = useCallback(
+    (status: NotificationStatus) => {
+      if (currentChannel?.id) {
+        const level =
+          status === NotificationStatus.Mute
+            ? ChannelNotificationLevel.NotifyNone
+            : notificationLevel || ChannelNotificationLevel.NotifyPing;
 
-  const onNotificationStatusChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
-    const status = notificationStatusDecoder.decode(parseInt(evt.target.value, 10));
-    if (status.isOk()) {
-      changeNotificationStatus(status.value);
-    } else {
-      throw new Error(`Unknown notification status: ${status.error}`);
-    }
-  }, [changeNotificationStatus]);
+        channelManager?.SetMobileNotificationsLevel(
+          utils.Base64ToUint8Array(currentChannel?.id),
+          ...correctInvalidNotificationStates(level, status)
+        );
+      }
+    },
+    [currentChannel?.id, notificationLevel, channelManager, utils, correctInvalidNotificationStates]
+  );
+
+  const onNotificationStatusChange = useCallback<ChangeEventHandler<HTMLSelectElement>>(
+    (evt) => {
+      const status = notificationStatusDecoder.decode(parseInt(evt.target.value, 10));
+      if (status.isOk()) {
+        changeNotificationStatus(status.value);
+      } else {
+        throw new Error(`Unknown notification status: ${status.error}`);
+      }
+    },
+    [changeNotificationStatus]
+  );
 
   return (
     <>
-      <div
-        className={cn(s.root, 'w-full flex flex-col justify-center items-center')}
-      >
-        <h2 className='mt-9 mb-8'>
-          {t('Channel Settings')}
-        </h2>
+      <div className={cn(s.root, 'w-full flex flex-col justify-center items-center')}>
+        <h2 className='mt-9 mb-8'>{t('Channel Settings')}</h2>
         <div className={s.wrapper}>
           <div>
-            <h3 className='headline--sm'>
-              {t('Enable Direct Messages')}
-            </h3>
-            {dmsEnabled === null ? <Spinner className='m-0 mr-1' /> : (
+            <h3 className='headline--sm'>{t('Enable Direct Messages')}</h3>
+            {dmsEnabled === null ? (
+              <Spinner className='m-0 mr-1' />
+            ) : (
               <CheckboxToggle checked={dmsEnabled} onChange={toggleDms} />
             )}
           </div>
           {currentChannel?.isAdmin ? (
             <div>
-              <h3 className='headline--sm'>
-                {t('Export Admin Keys')}
-              </h3>
+              <h3 className='headline--sm'>{t('Export Admin Keys')}</h3>
               <Keys
                 onClick={() => {
                   setModalView('EXPORT_ADMIN_KEYS');
@@ -136,44 +164,41 @@ const ChannelSettingsView: FC = () => {
             </div>
           ) : (
             <div>
-              <h3 className='headline--sm'>
-                {t('Claim Admin Keys')}</h3>
-              <LockOpen onClick={() => {
-                setModalView('CLAIM_ADMIN_KEYS');
-                openModal();
-              }} />
+              <h3 className='headline--sm'>{t('Claim Admin Keys')}</h3>
+              <LockOpen
+                onClick={() => {
+                  setModalView('CLAIM_ADMIN_KEYS');
+                  openModal();
+                }}
+              />
             </div>
           )}
           <div>
-            <h3 className='headline--sm'>
-              {t('Notifications')}
-            </h3>
+            <h3 className='headline--sm'>{t('Notifications')}</h3>
             <select
               onChange={onNotificationStatusChange}
               value={notificationStatus}
-              id='notification-levels'>
+              id='notification-levels'
+            >
               <option value={NotificationStatus.WhenOpen}>When Open</option>
               <option value={NotificationStatus.Push}>Push</option>
               <option value={NotificationStatus.Mute}>Mute</option>
             </select>
           </div>
           <div>
-            <h3 className='headline--sm'>
-              {t('Notification Level')}
-            </h3>
+            <h3 className='headline--sm'>{t('Notification Level')}</h3>
             <select
               onChange={onNotificationLevelChange}
               value={notificationLevel}
-              id='notification-levels'>
+              id='notification-levels'
+            >
               <option value={ChannelNotificationLevel.NotifyAll}>All</option>
               <option value={ChannelNotificationLevel.NotifyPing}>Tags, replies, and pins</option>
               <option value={ChannelNotificationLevel.NotifyNone}>None</option>
             </select>
           </div>
           <div>
-            <h3 className='headline--sm'>
-              {t('Leave Channel')}
-            </h3>
+            <h3 className='headline--sm'>{t('Leave Channel')}</h3>
             <RightFromBracket
               onClick={() => {
                 if (currentChannel) {

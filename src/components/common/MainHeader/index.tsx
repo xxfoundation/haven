@@ -12,7 +12,7 @@ import { useUI } from '@contexts/ui-context';
 
 type Props = {
   className?: string;
-}
+};
 
 const MainHeader: FC<Props> = ({ className }) => {
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
@@ -21,18 +21,17 @@ const MainHeader: FC<Props> = ({ className }) => {
 
   return (
     <div className={cn(className, s.root)}>
-      {currentChannel && sidebarView === 'spaces' && (
-        <ChannelHeader {...currentChannel} />
-      )}
+      {currentChannel && sidebarView === 'spaces' && <ChannelHeader {...currentChannel} />}
       {currentConversation && sidebarView === 'dms' && (
         <ChannelHeader
           id={currentConversation.pubkey}
           isAdmin={false}
           name={<Identity {...currentConversation} />}
-          privacyLevel={null} />
+          privacyLevel={null}
+        />
       )}
     </div>
-  )
+  );
 };
 
 export default MainHeader;

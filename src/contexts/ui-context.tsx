@@ -1,5 +1,5 @@
 import { WithChildren } from '@types';
-import React, {FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { SettingsView, LeftSidebarView, RightSidebarView } from 'src/types/ui';
 import toast, { Toaster } from 'react-hot-toast';
 import Alert, { AlertType } from '@components/common/Alert';
@@ -26,13 +26,12 @@ export type ModalViews =
   | 'ACCOUNT_SYNC'
   | 'NEW_DM';
 
-
 export enum EasterEggs {
   Spaceman,
   CarWarranty,
   Masochist
 }
-  
+
 export interface State {
   alert: (alert: AlertType) => void;
   dismissAlert: (id: string) => void;
@@ -62,7 +61,7 @@ const initialState = {
   displayModal: false,
   activeModals: [],
   channelInviteLink: '',
-  showPinned: false,
+  showPinned: false
 } as unknown as State;
 
 type Action =
@@ -118,29 +117,21 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
   const [state, dispatch] = React.useReducer(uiReducer, initialState);
   const [closeableOverride, setCloseableOverride] = useState<boolean>();
   const [leftSidebarView, setLeftSidebarView] = useState<LeftSidebarView>('spaces');
-  const [rightSidebarView, setRightSidebarView] =  useState<RightSidebarView | null>(null);
+  const [rightSidebarView, setRightSidebarView] = useState<RightSidebarView | null>(null);
   const [settingsView, setSettingsView] = useState<SettingsView>('notifications');
   const [easterEggs, setEasterEggs] = useState<EasterEggs[]>([]);
 
-  const openModal = useCallback(() => dispatch({ type: 'OPEN_MODAL' }), [
-    dispatch
-  ]);
-  
-  const closeModal = useCallback(
-    () => {
-      setCloseableOverride(undefined);
-      dispatch({ type: 'CLOSE_MODAL' })
-    },
-    []
-  );
+  const openModal = useCallback(() => dispatch({ type: 'OPEN_MODAL' }), [dispatch]);
 
-  const setModalView = useCallback(
-    (view: ModalViews, closeable?: boolean) => {
-      setCloseableOverride(closeable);
-      dispatch({ type: 'SET_MODAL_VIEW', view })
-    },
-    []
-  );
+  const closeModal = useCallback(() => {
+    setCloseableOverride(undefined);
+    dispatch({ type: 'CLOSE_MODAL' });
+  }, []);
+
+  const setModalView = useCallback((view: ModalViews, closeable?: boolean) => {
+    setCloseableOverride(closeable);
+    dispatch({ type: 'SET_MODAL_VIEW', view });
+  }, []);
 
   const setChannelInviteLink = useCallback(
     (link: string) => dispatch({ type: 'SET_CHANNEL_INVITE_LINK', link }),
@@ -155,19 +146,22 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
     toast.custom(<Alert {...al} />);
   }, []);
 
-  const triggerEasterEgg = useCallback((egg: EasterEggs) => {
-    setEasterEggs((eggs) => {
-      const found = !eggs.includes(egg);
-      if (found) {
-        alert({ type: 'success', content: `Easter egg #${egg + 1} of 3 found.` });
-      }
-      return found ? eggs.concat(egg) : eggs;
-    });
-  }, [alert]);
+  const triggerEasterEgg = useCallback(
+    (egg: EasterEggs) => {
+      setEasterEggs((eggs) => {
+        const found = !eggs.includes(egg);
+        if (found) {
+          alert({ type: 'success', content: `Easter egg #${egg + 1} of 3 found.` });
+        }
+        return found ? eggs.concat(egg) : eggs;
+      });
+    },
+    [alert]
+  );
 
   useEffect(() => {
     setRightSidebarView(null);
-  }, [leftSidebarView])
+  }, [leftSidebarView]);
 
   const value = useMemo(
     () => ({
@@ -186,7 +180,7 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
       setChannelInviteLink,
       triggerEasterEgg,
       rightSidebarView,
-      setRightSidebarView,
+      setRightSidebarView
     }),
     [
       alert,
@@ -210,11 +204,9 @@ export const UIProvider: FC<WithChildren> = ({ children }) => {
 
   return (
     <UIContext.Provider value={value}>
-      <EmojiPortal>
-        {children}
-      </EmojiPortal>
+      <EmojiPortal>{children}</EmojiPortal>
     </UIContext.Provider>
-    );
+  );
 };
 
 export const useUI = () => {

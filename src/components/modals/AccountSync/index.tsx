@@ -27,42 +27,37 @@ const AccountSyncView: FC = () => {
       setLoading(false);
     });
     closeModal();
-  }
+  };
   useEffect(() => {
     ignoreSync();
-  }, [ignoreSync])
+  }, [ignoreSync]);
 
   return (
     <>
-      <ModalTitle>
-        {t('Account Sync')}
-      </ModalTitle>
+      <ModalTitle>{t('Account Sync')}</ModalTitle>
       <p>
-        Sync your account with multiple devices using the cloud with account sync.
-        The file is encrypted so there are no privacy concerns with using these
-        third party services.
+        Sync your account with multiple devices using the cloud with account sync. The file is
+        encrypted so there are no privacy concerns with using these third party services.
       </p>
-      <p style={{ color: 'var(--orange)'}}>
-        <strong>Warning!</strong> Once you choose a cloud provider you will
-        not be able to change to another service or revert to local-only.
+      <p style={{ color: 'var(--orange)' }}>
+        <strong>Warning!</strong> Once you choose a cloud provider you will not be able to change to
+        another service or revert to local-only.
       </p>
-      {loading ? <Spinner size='md' /> : (
+      {loading ? (
+        <Spinner size='md' />
+      ) : (
         <div data-testid='account-sync-buttons' className='grid grid-cols-2 gap-4 pt-4'>
           <GoogleButton className='whitespace-nowrap' onStartLoading={waitForRemoteSyncThenClose} />
           <DropboxButton onStartLoading={waitForRemoteSyncThenClose} />
           <div className='col-span-2 text-center'>
-            <Button
-              className=''
-              data-testid='account-sync-local-only-button'
-              onClick={ignoreSync}
-            >
+            <Button className='' data-testid='account-sync-local-only-button' onClick={ignoreSync}>
               {t('Local-only')}
             </Button>
           </div>
         </div>
       )}
     </>
-  )
-}
+  );
+};
 
 export default AccountSyncView;

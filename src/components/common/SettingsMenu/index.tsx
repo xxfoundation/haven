@@ -10,21 +10,27 @@ import useIsDev from 'src/hooks/useIsDev';
 import Dev from '@components/icons/Dev';
 
 type SettingsOptionProps = HTMLAttributes<HTMLButtonElement> & {
-  icon: (props: SVGProps<SVGSVGElement>) => JSX.Element,
+  icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;
   active?: boolean;
-}
+};
 
-const SettingsOption: FC<SettingsOptionProps> = ({ active,  children, icon: Icon, ...props }) => (
-  <button className={cn(
-    'group p-4 flex items-center space-x-2 rounded-xl hover:bg-charcoal-4 w-full',
-    active && 'bg-charcoal-4'
-  )} {...props}>
-    <Icon className={cn('w-8 h-8 group-hover:text-primary', active ? 'text-primary' : 'text-charcoal-1 ')} />
-    <span className='font-medium'>
-      {children}
-    </span>
+const SettingsOption: FC<SettingsOptionProps> = ({ active, children, icon: Icon, ...props }) => (
+  <button
+    className={cn(
+      'group p-4 flex items-center space-x-2 rounded-xl hover:bg-charcoal-4 w-full',
+      active && 'bg-charcoal-4'
+    )}
+    {...props}
+  >
+    <Icon
+      className={cn(
+        'w-8 h-8 group-hover:text-primary',
+        active ? 'text-primary' : 'text-charcoal-1 '
+      )}
+    />
+    <span className='font-medium'>{children}</span>
   </button>
-)
+);
 
 const SettingsMenu = () => {
   const { t } = useTranslation();
@@ -33,14 +39,15 @@ const SettingsMenu = () => {
 
   return (
     <div className='pt-4 px-4 space-y-1'>
-{/*       <SettingsOption
+      {/*       <SettingsOption
         active={settingsView === 'account-sync'}
         icon={Sync}
         onClick={() => setSettingsView('account-sync')}
       >
         {t('Account Sync')}
       </SettingsOption>
- */}      <SettingsOption
+ */}{' '}
+      <SettingsOption
         active={settingsView === 'notifications'}
         icon={NotificationsIcon}
         onClick={() => setSettingsView('notifications')}
@@ -71,7 +78,7 @@ const SettingsMenu = () => {
         </SettingsOption>
       )}
     </div>
-  )
-}
+  );
+};
 
 export default SettingsMenu;

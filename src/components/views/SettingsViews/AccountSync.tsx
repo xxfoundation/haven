@@ -20,10 +20,10 @@ const AccountSync = () => {
   const onSyncStart = async () => {
     setLoading(true);
     await awaitAppEvent(AppEvents.REMOTE_STORE_INITIALIZED).finally(() => {
-      alert({ type: 'success', content: t('Account successfully synced!' )})
+      alert({ type: 'success', content: t('Account successfully synced!') });
       setLoading(false);
     });
-  }
+  };
 
   return (
     <>
@@ -46,27 +46,36 @@ const AccountSync = () => {
         {isSynced && (
           <div className='flex justify-between items-center'>
             <h3 className='headline--sm'>{t('Service')}</h3>
-            <Badge color='gold' className='text-[0.875rem] p-2 flex space-x-2 tracking-normal rounded-lg'>
-              {service === AccountSyncService.Google && (<>
-                <FontAwesomeIcon className='w-5 h-5' icon={faGoogleDrive} />
-                <span>Google Drive</span>
-              </>)}
-              {service === AccountSyncService.Dropbox && (<>
-                <FontAwesomeIcon className='w-5 h-5' icon={faDropbox} />
-                <span>Dropbox</span>
-              </>)}
+            <Badge
+              color='gold'
+              className='text-[0.875rem] p-2 flex space-x-2 tracking-normal rounded-lg'
+            >
+              {service === AccountSyncService.Google && (
+                <>
+                  <FontAwesomeIcon className='w-5 h-5' icon={faGoogleDrive} />
+                  <span>Google Drive</span>
+                </>
+              )}
+              {service === AccountSyncService.Dropbox && (
+                <>
+                  <FontAwesomeIcon className='w-5 h-5' icon={faDropbox} />
+                  <span>Dropbox</span>
+                </>
+              )}
             </Badge>
           </div>
         )}
         {!isSynced && (
           <>
-            <p style={{ color: 'var(--orange)'}}>
+            <p style={{ color: 'var(--orange)' }}>
               <Trans t={t}>
-                <strong>Warning!</strong> Once you choose a cloud provider you will
-                not be able to change to another service or revert to local-only.
+                <strong>Warning!</strong> Once you choose a cloud provider you will not be able to
+                change to another service or revert to local-only.
               </Trans>
             </p>
-            {loading ? <Spinner size='md' /> : (
+            {loading ? (
+              <Spinner size='md' />
+            ) : (
               <div data-testid='account-sync-buttons' className='space-x-6 flex items-center'>
                 <GoogleButton onStartLoading={onSyncStart} />
                 <DropboxButton onStartLoading={onSyncStart} />
@@ -76,7 +85,7 @@ const AccountSync = () => {
         )}
       </div>
     </>
-  )
-}
+  );
+};
 
 export default AccountSync;

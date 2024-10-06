@@ -13,12 +13,15 @@ const options = [
 
 const SoundSelector = () => {
   const [touched, setTouched] = useState(false);
-  const { set: setNotificationSound, value: notificationSound } = useRemotelySynchedString('notification-sound', '/sounds/notification.mp3');
+  const { set: setNotificationSound, value: notificationSound } = useRemotelySynchedString(
+    'notification-sound',
+    '/sounds/notification.mp3'
+  );
   const [play, { stop }] = useSound(notificationSound ?? '');
   const selectedOption = useMemo(
     () => options.find((o) => o.value === notificationSound) ?? null,
     [notificationSound]
-  )
+  );
 
   useEffect(() => {
     if (touched) {
@@ -26,31 +29,30 @@ const SoundSelector = () => {
     }
 
     return () => stop();
-  }, [play, stop, touched])
+  }, [play, stop, touched]);
 
   return (
     <Select
       classNames={{
         menu: 'bg-charcoal-4 py-4 rounded-xl mt-1 absolute w-full',
-        menuButton: () => 'text-md rounded-3xl px-4 font-semibold flex bg-primary text-near-black justify-center',
-        listItem: ({ isSelected }) => (
+        menuButton: () =>
+          'text-md rounded-3xl px-4 font-semibold flex bg-primary text-near-black justify-center',
+        listItem: ({ isSelected } = { isSelected: false }) =>
           `block transition  font-semibold duration-200 hover:bg-primary hover:text-near-black p-2 cursor-pointer select-none truncate ${
-              isSelected
-                  ? ' bg-charcoal-3'
-                  : 'text-charcoal-1'
+            isSelected ? ' bg-charcoal-3' : 'text-charcoal-1'
           }`
-      )
       }}
       primaryColor={'primary'}
       options={options}
       value={selectedOption}
       onChange={(o) => {
-      if (o && !Array.isArray(o) && o !== null) {
-        setTouched(true);
-        setNotificationSound(o.value);
-      }
-    }} />
-  )
-}
+        if (o && !Array.isArray(o) && o !== null) {
+          setTouched(true);
+          setNotificationSound(o.value);
+        }
+      }}
+    />
+  );
+};
 
 export default SoundSelector;

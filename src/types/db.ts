@@ -11,10 +11,10 @@ export enum MessageType {
 }
 
 export enum MessageStatus {
-  Unsent    = 0,
-  Sent      = 1,
+  Unsent = 0,
+  Sent = 1,
   Delivered = 2,
-  Failed    = 3
+  Failed = 3
 }
 
 export type DBMessage = {
@@ -26,7 +26,7 @@ export type DBMessage = {
   timestamp: string;
   lease: number;
   status: MessageStatus;
-  hidden: boolean,
+  hidden: boolean;
   pinned: boolean;
   text: string;
   type: MessageType;
@@ -34,13 +34,13 @@ export type DBMessage = {
   pubkey: string;
   codeset_version: number;
   dm_token: number;
-}
+};
 
 export type DBChannel = {
   id: string;
   name: string;
   description: string;
-}
+};
 
 export type DBDirectMessage = {
   id: number;
@@ -54,12 +54,12 @@ export type DBDirectMessage = {
   text: string;
   type: MessageType;
   round: number;
-}
+};
 
 export type DBConversation = {
   pub_key: string;
   nickname?: string;
-  token: number; 
+  token: number;
   codeset_version: number;
   blocked: boolean;
-}
+};

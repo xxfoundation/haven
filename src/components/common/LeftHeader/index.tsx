@@ -7,7 +7,7 @@ import SidebarControls from './SidebarControls';
 
 type Props = {
   className?: string;
-}
+};
 
 const Header: FC<Props> = ({ className }) => {
   return (
@@ -15,7 +15,7 @@ const Header: FC<Props> = ({ className }) => {
       <User />
       <SidebarControls />
     </div>
-  )
-}
+  );
+};
 
 export default Header;

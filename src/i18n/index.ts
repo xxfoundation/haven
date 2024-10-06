@@ -32,9 +32,6 @@ i18next
     returnEmptyString: false,
     returnNull: false
   })
-  .catch((error: Error): void =>
-    console.error('i18n: failure', error)
-  );
-
+  .catch((error: Error): void => console.error('i18n: failure', error));
 
 export default i18next;

@@ -19,30 +19,36 @@ const initialChannelState = {
   hasMissedMessages: false
 };
 
-const sortedChannelsReducer = (state: ChannelsState['sortedChannels'], channel: Omit<Channel, 'currentPage' | 'missedMessages'>) => {
+const sortedChannelsReducer = (
+  state: ChannelsState['sortedChannels'],
+  channel: Omit<Channel, 'currentPage' | 'missedMessages'>
+) => {
   let copy = state.slice();
-  copy.push(channel)
+  copy.push(channel);
   copy = uniqBy(copy, (c) => c.id);
-  copy.sort((a, b) => a.name.localeCompare(b.name))
+  copy.sort((a, b) => a.name.localeCompare(b.name));
   return copy;
-}
+};
 
 export const slice = createSlice({
   initialState,
   name: 'channels',
   reducers: {
-    upsert: (state: ChannelsState, { payload }: PayloadAction<Omit<Channel, 'currentPage' | 'missedMessages'>>): ChannelsState => {
+    upsert: (
+      state: ChannelsState,
+      { payload }: PayloadAction<Omit<Channel, 'currentPage' | 'missedMessages'>>
+    ): ChannelsState => {
       return {
         ...state,
         byId: {
           ...state.byId,
           [payload.id]: {
             ...(state.byId[payload.id] || initialChannelState),
-            ...payload,
+            ...payload
           }
         },
         sortedChannels: sortedChannelsReducer(state.sortedChannels, payload)
-      }
+      };
     },
     incrementPage: (state: ChannelsState, { payload }: PayloadAction<ChannelId>): ChannelsState => {
       if (!state.byId[payload]) {
@@ -55,46 +61,67 @@ export const slice = createSlice({
           ...state.currentPages,
           [payload]: (state.currentPages[payload] ?? 1) + 1
         }
-      }
+      };
     },
-    delete: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
+    delete: (
+      state: ChannelsState,
+      { payload: channelId }: PayloadAction<ChannelId>
+    ): ChannelsState => {
       return {
         ...state,
         byId: pickBy(state.byId, ({ id }) => id !== channelId),
         sortedChannels: state.sortedChannels.filter((ch) => ch.id !== channelId)
-      }
+      };
     },
-    leaveChannel: (state: ChannelsState, { payload: channelId }: PayloadAction<ChannelId>): ChannelsState => {
+    leaveChannel: (
+      state: ChannelsState,
+      { payload: channelId }: PayloadAction<ChannelId>
+    ): ChannelsState => {
       const filtered = omit(state.byId, channelId) as ChannelsState['byId'];
 
       return {
         ...state,
         byId: filtered,
         sortedChannels: state.sortedChannels.filter((ch) => ch.id !== channelId)
-      }
+      };
     },
-    updateAdmin: (state: ChannelsState, { payload: { channelId, isAdmin = true } }: PayloadAction<{ channelId: ChannelId, isAdmin?: boolean }>) => {
-      return !state.byId[channelId] ? state : ({
-        ...state,
-        byId: {
-          ...state.byId,
-          [channelId]: {
-            ...state.byId[channelId],
-            isAdmin: isAdmin
-          }
-        }
-      })
+    updateAdmin: (
+      state: ChannelsState,
+      {
+        payload: { channelId, isAdmin = true }
+      }: PayloadAction<{ channelId: ChannelId; isAdmin?: boolean }>
+    ) => {
+      return !state.byId[channelId]
+        ? state
+        : {
+            ...state,
+            byId: {
+              ...state.byId,
+              [channelId]: {
+                ...state.byId[channelId],
+                isAdmin: isAdmin
+              }
+            }
+          };
     },
-    updateNickname: (state: ChannelsState, { payload: { channelId, nickname }}: PayloadAction<{ channelId: ChannelId, nickname?: string }>) => {
+    updateNickname: (
+      state: ChannelsState,
+      {
+        payload: { channelId, nickname }
+      }: PayloadAction<{ channelId: ChannelId; nickname?: string }>
+    ) => {
       return {
         ...state,
         nicknames: {
           ...state.nicknames,
           [channelId]: nickname
         }
-      }
+      };
     },
-    updateMuted: (state: ChannelsState, { payload: { channelId, pubkey, unmute }}: PayloadAction<UserMutedEvent>) => {
+    updateMuted: (
+      state: ChannelsState,
+      { payload: { channelId, pubkey, unmute } }: PayloadAction<UserMutedEvent>
+    ) => {
       const mutedUsers = unmute
         ? (state.mutedUsersByChannelId[channelId] || []).filter((key) => key !== pubkey)
         : uniq((state.mutedUsersByChannelId[channelId] || []).concat(pubkey));
@@ -105,38 +132,56 @@ export const slice = createSlice({
           ...state.mutedUsersByChannelId,
           [channelId]: mutedUsers
         }
-      }
+      };
     },
-    setMutedUsers: (state: ChannelsState, { payload: { channelId, mutedUsers } }: PayloadAction<{ channelId: ChannelId, mutedUsers: string[] }>) => {
+    setMutedUsers: (
+      state: ChannelsState,
+      {
+        payload: { channelId, mutedUsers }
+      }: PayloadAction<{ channelId: ChannelId; mutedUsers: string[] }>
+    ) => {
       return {
         ...state,
         mutedUsersByChannelId: {
           ...state.mutedUsersByChannelId,
           [channelId]: mutedUsers
         }
-      }
+      };
     },
-    updateNotificationLevel: (state: ChannelsState, { payload: { channelId, level } }: PayloadAction<{ channelId: ChannelId, level?: ChannelNotificationLevel }>) => ({
+    updateNotificationLevel: (
+      state: ChannelsState,
+      {
+        payload: { channelId, level }
+      }: PayloadAction<{ channelId: ChannelId; level?: ChannelNotificationLevel }>
+    ) => ({
       ...state,
       notificationLevels: {
         ...state.notificationLevels,
         [channelId]: level
       }
     }),
-    updateNotificationStatus: (state: ChannelsState, { payload: { channelId, status } }: PayloadAction<{ channelId: ChannelId, status?: NotificationStatus }>) => ({
+    updateNotificationStatus: (
+      state: ChannelsState,
+      {
+        payload: { channelId, status }
+      }: PayloadAction<{ channelId: ChannelId; status?: NotificationStatus }>
+    ) => ({
       ...state,
       notificationStatuses: {
         ...state.notificationStatuses,
         [channelId]: status
       }
     }),
-    updateDmsEnabled: (state: ChannelsState, { payload: { channelId, enabled } }: PayloadAction<{ channelId: ChannelId, enabled: boolean }>) => ({
+    updateDmsEnabled: (
+      state: ChannelsState,
+      { payload: { channelId, enabled } }: PayloadAction<{ channelId: ChannelId; enabled: boolean }>
+    ) => ({
       ...state,
       dmsEnabled: {
         ...state.dmsEnabled,
         [channelId]: enabled
       }
-    }),
+    })
   }
 });
 
@@ -144,5 +189,3 @@ export default slice.reducer;
 
 export const actions = slice.actions;
 export * as selectors from './selectors';
-
-

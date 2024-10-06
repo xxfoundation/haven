@@ -1,5 +1,12 @@
 import { RemoteKVWrapper } from '@contexts/remote-kv-context';
-import { CMix, Message, MessagePinEvent, MessageUnPinEvent, RemoteStore, TypedEventEmitter } from '@types';
+import {
+  CMix,
+  Message,
+  MessagePinEvent,
+  MessageUnPinEvent,
+  RemoteStore,
+  TypedEventEmitter
+} from '@types';
 import { makeEventAwaiter, makeEventHook, makeListenerHook } from '@utils/index';
 import { AccountSyncService } from 'src/hooks/useAccountSync';
 import EventEmitter from 'events';
@@ -42,7 +49,7 @@ export type AppEventHandlers = {
   [AppEvents.DM_PROCESSED]: (message: Message) => void;
   [AppEvents.EMOJI_SELECTED]: (emoji: string) => void;
   [AppEvents.MESSAGES_FETCHED]: (fetched: boolean) => void;
-}
+};
 
 export const appBus = new EventEmitter() as TypedEventEmitter<AppEventHandlers>;
 
@@ -51,4 +58,3 @@ export const useAppEventListener = makeListenerHook(appBus);
 export const awaitAppEvent = makeEventAwaiter(appBus);
 
 export const useAppEventValue = makeEventHook(appBus);
-

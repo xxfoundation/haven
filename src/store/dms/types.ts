@@ -11,7 +11,7 @@ export type Conversation = {
   codename: string;
   codeset: number;
   blocked: boolean;
-}
+};
 
 export type ConversationId = Conversation['pubkey'];
 
@@ -30,8 +30,7 @@ export type DirectMessage = {
   body: string;
   type: MessageType;
   round: number;
-}
-
+};
 
 export type DMState = {
   nickname?: string;

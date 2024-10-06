@@ -22,7 +22,7 @@ type AuthenticationContextType = {
 };
 
 export const AuthenticationContext = React.createContext<AuthenticationContextType>({
-  isAuthenticated: false,
+  isAuthenticated: false
 } as AuthenticationContextType);
 
 AuthenticationContext.displayName = 'AuthenticationContext';
@@ -39,15 +39,18 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     setStatus: setAccountSyncStatus,
     status: accountSyncStatus
   } = useAccountSync();
-  const [
-    cmixPreviouslyInitialized,
-    setCmixWasPreviouslyInitialized
-  ] = useLocalStorage(CMIX_INITIALIZATION_KEY, false);
+  const [cmixPreviouslyInitialized, setCmixWasPreviouslyInitialized] = useLocalStorage(
+    CMIX_INITIALIZATION_KEY,
+    false
+  );
 
-  const setSyncLoginService = useCallback((service: AccountSyncService) => {
-    setAccountSyncService(service);
-    setAccountSyncStatus(AccountSyncStatus.Synced);
-  }, [setAccountSyncService, setAccountSyncStatus]);
+  const setSyncLoginService = useCallback(
+    (service: AccountSyncService) => {
+      setAccountSyncService(service);
+      setAccountSyncStatus(AccountSyncStatus.Synced);
+    },
+    [setAccountSyncService, setAccountSyncStatus]
+  );
 
   const cancelSyncLogin = useCallback(() => {
     setAccountSyncStatus(AccountSyncStatus.NotSynced);
@@ -60,21 +63,26 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
     };
     bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
 
-    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener) }
+    return () => {
+      bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
+    };
   }, []);
 
-  const getOrInitPassword = useCallback(async (password: string) => {
-    try {
-      setRawPassword(password);
-      bus.emit(AppEvents.PASSWORD_ENTERED, password);
-      const encrypted = await utils.GetOrInitPassword(password);
-      bus.emit(AppEvents.PASSWORD_DECRYPTED, encrypted, password);
-      return true;
-    } catch (error) {
-      console.error('GetOrInitPassword failed', error);
-      return false;
-    }
-  }, [utils]);
+  const getOrInitPassword = useCallback(
+    async (password: string) => {
+      try {
+        setRawPassword(password);
+        bus.emit(AppEvents.PASSWORD_ENTERED, password);
+        const encrypted = await utils.GetOrInitPassword(password);
+        bus.emit(AppEvents.PASSWORD_DECRYPTED, encrypted, password);
+        return true;
+      } catch (error) {
+        console.error('GetOrInitPassword failed', error);
+        return false;
+      }
+    },
+    [utils]
+  );
 
   useEffect(() => {
     const onRequest = (ev: MessageEvent) => {
@@ -83,28 +91,28 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
           type: 'IS_AUTHENTICATED_RESPONSE',
           isAuthenticated,
           instanceId
-        })
+        });
       }
-    }
+    };
 
     authChannel.addEventListener('message', onRequest);
 
     return () => {
       authChannel.removeEventListener('message', onRequest);
-    }
+    };
   }, [authChannel, isAuthenticated, instanceId]);
 
   useEffect(() => {
     const listener = () => {
       setCmixWasPreviouslyInitialized(true);
-    }
-    
+    };
+
     bus.addListener(AppEvents.CHANNEL_MANAGER_LOADED, listener);
 
     return () => {
       bus.removeListener(AppEvents.CHANNEL_MANAGER_LOADED, listener);
-    }
-  }, [setCmixWasPreviouslyInitialized])
+    };
+  }, [setCmixWasPreviouslyInitialized]);
 
   return (
     <AuthenticationContext.Provider
@@ -112,7 +120,8 @@ export const AuthenticationProvider: FC<WithChildren> = (props) => {
         setSyncLoginService,
         cancelSyncLogin,
         cmixPreviouslyInitialized: !!cmixPreviouslyInitialized,
-        attemptingSyncedLogin: !cmixPreviouslyInitialized && accountSyncStatus === AccountSyncStatus.Synced,
+        attemptingSyncedLogin:
+          !cmixPreviouslyInitialized && accountSyncStatus === AccountSyncStatus.Synced,
         getOrInitPassword,
         instanceId,
         rawPassword,
@@ -128,11 +137,8 @@ export const useAuthentication = () => {
   const context = React.useContext(AuthenticationContext);
 
   if (context === undefined) {
-    throw new Error(
-      'useAuthentication must be used within a AuthenticationProvider'
-    );
+    throw new Error('useAuthentication must be used within a AuthenticationProvider');
   }
-
 
   return context;
 };
