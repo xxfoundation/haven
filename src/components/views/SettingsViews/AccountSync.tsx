@@ -4,24 +4,15 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Spinner } from '@components/common';
 import { useUI } from '@contexts/ui-context';
 import useAccountSync, { AccountSyncService } from 'src/hooks/useAccountSync';
-import { AppEvents, awaitAppEvent } from 'src/events';
 import Badge from '@components/common/Badge';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDropbox, faGoogleDrive } from '@fortawesome/free-brands-svg-icons';
 
 const AccountSync = () => {
   const { t } = useTranslation();
-  const { alert } = useUI();
-  const [loading, setLoading] = useState(false);
+  useUI();
+  const [loading] = useState(false);
   const { isSynced, service } = useAccountSync();
-
-  const onSyncStart = async () => {
-    setLoading(true);
-    await awaitAppEvent(AppEvents.REMOTE_STORE_INITIALIZED).finally(() => {
-      alert({ type: 'success', content: t('Account successfully synced!') });
-      setLoading(false);
-    });
-  };
 
   return (
     <>

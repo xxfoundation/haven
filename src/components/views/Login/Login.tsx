@@ -9,7 +9,7 @@ import s from './Login.module.scss';
 import { NormalHaven, OpenSource, NormalHash } from 'src/components/icons';
 import { useAuthentication } from '@contexts/authentication-context';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
-import { AppEvents, awaitAppEvent as awaitEvent, appBus as bus } from 'src/events';
+import { AppEvents, appBus as bus } from 'src/events';
 import Input from '@components/common/Input';
 
 const LoginView: FC = () => {
@@ -54,35 +54,6 @@ const LoginView: FC = () => {
         setIsLoading(false);
       }
     }, 1);
-  }, [getOrInitPassword, password, setIsAuthenticated, t]);
-
-  const onSyncLoad = useCallback(async () => {
-    setError('');
-    setIsLoading(true);
-    try {
-      const success = await getOrInitPassword(password);
-      if (!success) {
-        setError(t('Something went wrong, please check your credentials.'));
-        setIsLoading(false);
-        return;
-      }
-      setLoadingInfo(t('Retrieving account...'));
-      await awaitEvent(AppEvents.CMIX_SYNCED, undefined, 20000)
-        .then(() => {
-          setIsAuthenticated(true);
-        })
-        .catch(() => {
-          console.error('Cmix Sync timed out.');
-          setError(t('Something went wrong, please check your credentials.'));
-        })
-        .finally(() => {
-          setIsLoading(false);
-          setLoadingInfo('');
-        });
-    } catch (e) {
-      setError((e as Error).message);
-      setIsLoading(false);
-    }
   }, [getOrInitPassword, password, setIsAuthenticated, t]);
 
   return (
@@ -148,25 +119,6 @@ const LoginView: FC = () => {
               }}
             />
             <div className='flex flex-col mt-4 space-y-3'>
-              {accountSyncStatus === AccountSyncStatus.Synced &&
-                accountSyncService === AccountSyncService.Google && (
-                  <GoogleButton
-                    onError={() => setError(t('Something went wrong.'))}
-                    onStartLoading={onSyncLoad}
-                    disabled={isLoading}
-                    password={password}
-                  />
-                )}
-              {accountSyncStatus === AccountSyncStatus.Synced &&
-                accountSyncService === AccountSyncService.Dropbox && (
-                  <DropboxButton
-                    id='dropbox-button'
-                    onError={() => setError(t('Something went wrong.'))}
-                    onStartLoading={onSyncLoad}
-                    disabled={isLoading}
-                    password={password}
-                  />
-                )}
               {accountSyncStatus !== AccountSyncStatus.Synced && (
                 <Button data-testid='login-button' disabled={isLoading} onClick={handleSubmit}>
                   {t('Login')}

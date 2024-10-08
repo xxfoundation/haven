@@ -5,27 +5,19 @@ import { Button, Spinner } from '@components/common';
 import { useUI } from '@contexts/ui-context';
 import useAccountSync, { AccountSyncStatus } from 'src/hooks/useAccountSync';
 
-import { AppEvents, awaitAppEvent as awaitEvent } from 'src/events';
 import ModalTitle from '../ModalTitle';
 
 const AccountSyncView: FC = () => {
   const { t } = useTranslation();
   const { closeModal } = useUI();
   const { setStatus } = useAccountSync();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   const ignoreSync = useCallback(() => {
     setStatus(AccountSyncStatus.Ignore);
     closeModal();
   }, [closeModal, setStatus]);
 
-  const waitForRemoteSyncThenClose = async () => {
-    setLoading(true);
-    await awaitEvent(AppEvents.REMOTE_STORE_INITIALIZED).finally(() => {
-      setLoading(false);
-    });
-    closeModal();
-  };
   useEffect(() => {
     ignoreSync();
   }, [ignoreSync]);

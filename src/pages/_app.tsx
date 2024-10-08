@@ -1,7 +1,6 @@
 import type { WithChildren } from 'src/types';
 import React, { FC, useEffect, useState } from 'react';
 
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import { NextSeo } from 'next-seo';
 import { AppProps } from 'next/app';
 import Head from 'next/head';
