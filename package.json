@@ -16,7 +16,7 @@
     "see-cy-coverage": "open ./cypress-coverage/lcov-report/index.html"
   },
   "dependencies": {
-    "@emoji-mart/data": "^1.0.6",
+    "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.0.1",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-brands-svg-icons": "^6.4.0",
