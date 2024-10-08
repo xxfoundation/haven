@@ -4,3 +4,5 @@ react-draft-wysiwyg
 cypress.config.ts
 src/pages/api/__coverage__.js
 next.config.js
+src/declarations/app/app.did.js
+src/declarations/app/index.js
