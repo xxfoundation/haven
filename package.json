@@ -83,7 +83,7 @@
     "@types/contrast-color": "^1.0.0",
     "@types/dompurify": "^2.3.4",
     "@types/draftjs-to-html": "^0.8.1",
-    "@types/emoji-mart": "^3.0.9",
+    "@types/emoji-mart": "^3.0.14",
     "@types/file-saver": "^2.0.5",
     "@types/html-to-text": "^9.0.0",
     "@types/js-cookie": "^3.0.2",
