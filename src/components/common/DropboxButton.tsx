@@ -6,34 +6,38 @@ import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
 import Button, { Props as ButtonProps } from '@components/common/Button';
-import { AppEvents, appBus } from 'src/events'
+import { AppEvents, appBus } from 'src/events';
 
 type Props = Partial<ButtonProps> & {
   onStartLoading?: () => void;
   password?: string;
-}
+};
 
-const DropboxButton: FC<Props> = ({
-  onStartLoading = () => {},
-  ...props
-}) => {
+const DropboxButton: FC<Props> = ({ onStartLoading = () => {}, ...props }) => {
   const { t } = useTranslation();
 
-  const auth = useMemo(() => new DropboxAuth({
-    clientId: process.env.NEXT_PUBLIC_APP_DROPBOX_CLIENT_ID,
-  }), []);
+  const auth = useMemo(
+    () =>
+      new DropboxAuth({
+        clientId: process.env.NEXT_PUBLIC_APP_DROPBOX_CLIENT_ID
+      }),
+    []
+  );
 
-  const onTokenMessage = useCallback((e: MessageEvent) => {
-    if (window.location.origin === e.origin && e.data.code) {
-      appBus.emit(AppEvents.DROPBOX_TOKEN, e.data.code);
-      onStartLoading();
-    }
-  }, [onStartLoading]);
+  const onTokenMessage = useCallback(
+    (e: MessageEvent) => {
+      if (window.location.origin === e.origin && e.data.code) {
+        appBus.emit(AppEvents.DROPBOX_TOKEN, e.data.code);
+        onStartLoading();
+      }
+    },
+    [onStartLoading]
+  );
 
   useEffect(() => {
     window.addEventListener('message', onTokenMessage, false);
 
-    return () => window.removeEventListener('message', onTokenMessage)
+    return () => window.removeEventListener('message', onTokenMessage);
   }, [onStartLoading, onTokenMessage]);
 
   const onClick = useCallback(async () => {
@@ -53,7 +57,7 @@ const DropboxButton: FC<Props> = ({
       &nbsp;
       {t('Dropbox')}
     </Button>
-  )
-}
+  );
+};
 
 export default DropboxButton;

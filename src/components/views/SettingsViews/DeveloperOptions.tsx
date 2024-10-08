@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { faRadiation } from '@fortawesome/free-solid-svg-icons';
@@ -13,18 +12,17 @@ import { decoder } from '@utils/index';
 
 const DeveloperOptionsView = () => {
   const { t } = useTranslation();
-  const [remoteStore]= useRemoteStore();
+  const [remoteStore] = useRemoteStore();
   const { isSynced } = useAccountSync();
   const [currentFiles, setCurrentFiles] = useState<string>();
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // TODO: Remove speakeasyapp, this should be done via the npm package.
   const printCurrentFiles = useCallback(
-    async (folder = 'speakeasyapp') => { 
+    async (folder = 'speakeasyapp') => {
       setDeleteLoading(true);
       try {
-        await remoteStore?.ReadDir(folder)
-          .then((v) => setCurrentFiles(decoder.decode(v)));
+        await remoteStore?.ReadDir(folder).then((v) => setCurrentFiles(decoder.decode(v)));
       } catch (e) {
         console.error('Deleting remote store failed', e);
       }
@@ -70,7 +68,6 @@ const DeveloperOptionsView = () => {
     }, 0);
   }, [t]);
 
-
   return (
     <>
       <h2>{t('Developer Options')}</h2>
@@ -90,29 +87,29 @@ const DeveloperOptionsView = () => {
           </div>
         </div>
         <div className='flex justify-between items-center'>
-          <h3 className='headline--sm'>
-            {t('Remote Store')}
-          </h3>
+          <h3 className='headline--sm'>{t('Remote Store')}</h3>
           <div>
-            {isSynced
-              ? (
-                <Button className='flex items-center justify-center space-x-4' onClick={nukeRemoteStore}>
-                  <FontAwesomeIcon className='w-5 h-5' icon={faRadiation} />
-                  <span>{t('Nuke')}</span>
-                  <FontAwesomeIcon className='w-5 h-5' icon={faRadiation} />
-                </Button>
-              )
-              : t('Not synced')
-            }
+            {isSynced ? (
+              <Button
+                className='flex items-center justify-center space-x-4'
+                onClick={nukeRemoteStore}
+              >
+                <FontAwesomeIcon className='w-5 h-5' icon={faRadiation} />
+                <span>{t('Nuke')}</span>
+                <FontAwesomeIcon className='w-5 h-5' icon={faRadiation} />
+              </Button>
+            ) : (
+              t('Not synced')
+            )}
           </div>
         </div>
         {isSynced && (
           <>
-            {deleteLoading ? <Spinner size='md' /> : (
+            {deleteLoading ? (
+              <Spinner size='md' />
+            ) : (
               <div>
-                <h3 className='headline--sm mb-8'>
-                  {t('App Directory Contents')}
-                </h3>
+                <h3 className='headline--sm mb-8'>{t('App Directory Contents')}</h3>
                 <div className='overflow-auto w-full'>
                   <code className='m-h-12 bg-charcoal-4 p-4 rounded-lg block overflow-auto w-full'>
                     {currentFiles}
@@ -122,10 +119,9 @@ const DeveloperOptionsView = () => {
             )}
           </>
         )}
-        
       </div>
     </>
-  )
-}
+  );
+};
 
 export default DeveloperOptionsView;

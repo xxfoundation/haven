@@ -21,9 +21,16 @@ type Props = {
   codeset: number;
   clickable?: boolean;
   className?: string;
-}
+};
 
-const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMuteStyles, nickname, pubkey }) => {
+const Identity: FC<Props> = ({
+  className,
+  clickable = false,
+  codeset,
+  disableMuteStyles,
+  nickname,
+  pubkey
+}) => {
   const { t } = useTranslation();
   const { getCodeNameAndColor } = useUtils();
   const dispatch = useAppDispatch();
@@ -34,30 +41,28 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
     [disableMuteStyles, pubkey, mutedUsers]
   );
   const isBlocked = useAppSelector(dms.selectors.isBlocked(pubkey));
-  
+
   const { codename, color } = useMemo(
     () => getCodeNameAndColor(pubkey, codeset),
     [codeset, getCodeNameAndColor, pubkey]
-  )
-  const colorHex = (isMuted || isBlocked) ? 'var(--text-muted)' : color.replace('0x', '#');
-  const codenameColor = (isMuted || isBlocked)
-    ? 'var(--text-muted)'
-    : (nickname
-      ? '#73767C'
-      : colorHex);
+  );
+  const colorHex = isMuted || isBlocked ? 'var(--text-muted)' : color.replace('0x', '#');
+  const codenameColor =
+    isMuted || isBlocked ? 'var(--text-muted)' : nickname ? '#73767C' : colorHex;
 
   const onClick = useCallback(() => {
     if (clickable) {
       dispatch(app.actions.selectUser(pubkey));
       setRightSidebarView('user-details');
     }
-  }, [clickable, dispatch, pubkey, setRightSidebarView])
+  }, [clickable, dispatch, pubkey, setRightSidebarView]);
 
   return (
     <span
       onClick={onClick}
       title={`${nickname ? `${nickname} – ` : ''}${codename}`}
-      className={cn(className, classes.root, { [classes.clickable]: clickable })}>
+      className={cn(className, classes.root, { [classes.clickable]: clickable })}
+    >
       {nickname && (
         <>
           <span className='nickname' style={{ color: colorHex }}>
@@ -75,17 +80,17 @@ const Identity: FC<Props> = ({ className, clickable = false, codeset, disableMut
       {isMuted && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>[{t('muted')}]</span>
+          <span style={{ color: 'var(--red)' }}>[{t('muted')}]</span>
         </>
       )}
       {isBlocked && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)'}}>[{t('blocked')}]</span>
+          <span style={{ color: 'var(--red)' }}>[{t('blocked')}]</span>
         </>
       )}
     </span>
   );
-}
+};
 
 export default Identity;

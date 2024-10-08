@@ -15,11 +15,11 @@ import { CMIX_INITIALIZATION_KEY } from 'src/constants';
 
 export type ChannelManagerCallbacks = {
   EventUpdate: ChannelEventHandler;
-}
+};
 
 export type DMClientEventCallback = {
   EventUpdate: DMEventHandler;
-}
+};
 
 export type Notifications = {
   AddToken: (newToken: string, app: string) => void;
@@ -27,7 +27,7 @@ export type Notifications = {
   SetMaxState: (maxState: number) => void;
   GetMaxState: () => number;
   GetID: () => number;
-}
+};
 
 export type XXDKUtils = {
   NewCmix: (
@@ -41,7 +41,7 @@ export type XXDKUtils = {
     storageDir: string,
     remoteStoragePrefixPath: string,
     password: Uint8Array,
-    remoteStore: RemoteStore,
+    remoteStore: RemoteStore
   ) => Promise<void>;
   LoadCmix: (
     storageDirectory: string,
@@ -54,12 +54,8 @@ export type XXDKUtils = {
     remoteStore: RemoteStore,
     cmixParams: Uint8Array
   ) => Promise<CMix>;
-  LoadNotifications: (
-    cmixId: number
-  ) => Notifications;
-  LoadNotificationsDummy:  (
-    cmixId: number
-  ) => Notifications;
+  LoadNotifications: (cmixId: number) => Notifications;
+  LoadNotificationsDummy: (cmixId: number) => Notifications;
   GetDefaultCMixParams: () => Uint8Array;
   GetChannelInfo: (prettyPrint: string) => Uint8Array;
   Base64ToUint8Array: (base64: string) => Uint8Array;
@@ -115,10 +111,10 @@ export type XXDKUtils = {
   GetWasmSemanticVersion: () => Uint8Array;
   Purge: (userPassword: string) => void;
   ValidForever: () => number;
-}
+};
 
 const initialUtils = {
-  shouldRenderImportCodeNameScreen: false,
+  shouldRenderImportCodeNameScreen: false
 } as unknown as XXDKUtils;
 
 export type XXDKContext = {
@@ -126,13 +122,13 @@ export type XXDKContext = {
   setUtils: (utils: XXDKUtils) => void;
   utilsLoaded: boolean;
   setUtilsLoaded: (loaded: boolean) => void;
-  getCodeNameAndColor: (publicKey: string, codeset: number) => { codename: string, color: string };
-}
+  getCodeNameAndColor: (publicKey: string, codeset: number) => { codename: string; color: string };
+};
 
 export const UtilsContext = React.createContext<XXDKContext>({
   utils: initialUtils,
   utilsLoaded: false,
-  shouldRenderImportCodeNameScreen: false,
+  shouldRenderImportCodeNameScreen: false
 } as unknown as XXDKContext);
 
 UtilsContext.displayName = 'UtilsContext';
@@ -143,7 +139,7 @@ export type IdentityJSON = {
   Color: string;
   Extension: string;
   CodesetVersion: number;
-}
+};
 
 // Clear the storage in case a half assed registration was made
 if (typeof window !== 'undefined' && localStorage.getItem(CMIX_INITIALIZATION_KEY) === 'false') {
@@ -155,38 +151,36 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
   const [utils, setUtils] = useState<XXDKUtils>();
   const [utilsLoaded, setUtilsLoaded] = useState<boolean>(false);
 
-  const getCodeNameAndColor = useCallback((publicKey: string, codeset: number) => {
-    if (!utils || !utils.ConstructIdentity || !utils.Base64ToUint8Array) {
-      return { codename: '', color: 'var(--text-primary)' };
-    }
+  const getCodeNameAndColor = useCallback(
+    (publicKey: string, codeset: number) => {
+      if (!utils || !utils.ConstructIdentity || !utils.Base64ToUint8Array) {
+        return { codename: '', color: 'var(--text-primary)' };
+      }
 
-    let pubkeyUintArray: Uint8Array;
-    try {
-      pubkeyUintArray = utils.Base64ToUint8Array(publicKey);
-    } catch (e) {
-      const msg = `Invalid public key: ${publicKey}: ${e}`;
-      throw new Error(msg);
-    }
+      let pubkeyUintArray: Uint8Array;
+      try {
+        pubkeyUintArray = utils.Base64ToUint8Array(publicKey);
+      } catch (e) {
+        const msg = `Invalid public key: ${publicKey}: ${e}`;
+        throw new Error(msg);
+      }
 
-    try {
-      const identityJson = identityDecoder(JSON.parse(
-        decoder.decode(
-          utils.ConstructIdentity(
-            pubkeyUintArray,
-            codeset
-          )
-        )
-      ));
+      try {
+        const identityJson = identityDecoder(
+          JSON.parse(decoder.decode(utils.ConstructIdentity(pubkeyUintArray, codeset)))
+        );
 
-      return {
-        codename: identityJson.codename,
-        color: identityJson.color.replace('0x', '#')
-      };
-    } catch (e) {
-      const msg = `Failed to construct identity from: ${JSON.stringify({ publicKey, codeset })}`
-      throw new Error(msg);
-    }
-  }, [utils]);
+        return {
+          codename: identityJson.codename,
+          color: identityJson.color.replace('0x', '#')
+        };
+      } catch (e) {
+        const msg = `Failed to construct identity from: ${JSON.stringify({ publicKey, codeset })}`;
+        throw new Error(msg);
+      }
+    },
+    [utils]
+  );
 
   return (
     <UtilsContext.Provider
@@ -195,7 +189,7 @@ export const UtilsProvider: FC<WithChildren> = ({ children }) => {
         setUtils,
         utilsLoaded,
         setUtilsLoaded,
-        getCodeNameAndColor,
+        getCodeNameAndColor
       }}
     >
       <WebAssemblyRunner>

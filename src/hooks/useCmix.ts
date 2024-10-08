@@ -5,7 +5,12 @@ import assert from 'assert';
 
 import { useUtils } from '@contexts/utils-context';
 import { encoder, decoder } from '@utils/index';
-import { DUMMY_TRAFFIC_ARGS, FOLLOWER_TIMEOUT_PERIOD, MAXIMUM_PAYLOAD_BLOCK_SIZE, STATE_PATH } from 'src/constants';
+import {
+  DUMMY_TRAFFIC_ARGS,
+  FOLLOWER_TIMEOUT_PERIOD,
+  MAXIMUM_PAYLOAD_BLOCK_SIZE,
+  STATE_PATH
+} from 'src/constants';
 import useTrackNetworkPeriod from './useNetworkTrackPeriod';
 import { useAuthentication } from '@contexts/authentication-context';
 import { AppEvents, appBus as bus, useAppEventListener } from 'src/events';
@@ -44,18 +49,12 @@ const useCmix = () => {
 
   const createDatabaseCipher = useCallback(
     (id: number, password: Uint8Array) => {
-      const cipher = utils.NewDatabaseCipher(
-        id,
-        password,
-        MAXIMUM_PAYLOAD_BLOCK_SIZE
-      );
+      const cipher = utils.NewDatabaseCipher(id, password, MAXIMUM_PAYLOAD_BLOCK_SIZE);
 
       setDatabaseCipher({
         id: cipher.GetID(),
-        decrypt: (encrypted: string) => decoder.decode(
-          cipher.Decrypt(encrypted)
-        ),
-      })
+        decrypt: (encrypted: string) => decoder.decode(cipher.Decrypt(encrypted))
+      });
     },
     [utils]
   );
@@ -64,53 +63,55 @@ const useCmix = () => {
     if (cmix) {
       bus.emit(AppEvents.CMIX_LOADED, cmix);
     }
-  }, [cmix])
+  }, [cmix]);
 
-  const loadSynchronizedCmix = useCallback(async (password: Uint8Array, store: RemoteStore) => {
-    const loadedCmix = await utils.LoadSynchronizedCmix(
-      STATE_PATH,
-      password,
-      store,
-      encodedCmixParams
-    );
-
-    setCmix(loadedCmix);
-  }, [encodedCmixParams, utils]);
-
-  const initializeSynchronizedCmix = useCallback(async (password: Uint8Array, store: RemoteStore) => {
-    if (!cmixPreviouslyInitialized) {
-      await utils.NewSynchronizedCmix(
-        ndf,
+  const loadSynchronizedCmix = useCallback(
+    async (password: Uint8Array, store: RemoteStore) => {
+      const loadedCmix = await utils.LoadSynchronizedCmix(
         STATE_PATH,
-        '',
         password,
         store,
-      ).catch((e) => {
-        bus.emit(AppEvents.NEW_SYNC_CMIX_FAILED);
-        utils.Purge(rawPassword ?? '')
-        throw e;
-      });
-    }
-  }, [cmixPreviouslyInitialized, rawPassword, utils])
+        encodedCmixParams
+      );
 
-  const initializeCmix = useCallback(async (password: Uint8Array) => {
-    if (!cmixPreviouslyInitialized) {
-      await utils.NewCmix(ndf, STATE_PATH, password, '');
-    }
-  }, [cmixPreviouslyInitialized, utils]);
+      setCmix(loadedCmix);
+    },
+    [encodedCmixParams, utils]
+  );
 
-  const loadCmix = useCallback(async (password: Uint8Array) => {
-    const loadedCmix = await utils.LoadCmix(
-      STATE_PATH,
-      password,
-      encodedCmixParams
-    );
-    setCmix(loadedCmix)
-  }, [encodedCmixParams, utils]);
+  const initializeSynchronizedCmix = useCallback(
+    async (password: Uint8Array, store: RemoteStore) => {
+      if (!cmixPreviouslyInitialized) {
+        await utils.NewSynchronizedCmix(ndf, STATE_PATH, '', password, store).catch((e) => {
+          bus.emit(AppEvents.NEW_SYNC_CMIX_FAILED);
+          utils.Purge(rawPassword ?? '');
+          throw e;
+        });
+      }
+    },
+    [cmixPreviouslyInitialized, rawPassword, utils]
+  );
+
+  const initializeCmix = useCallback(
+    async (password: Uint8Array) => {
+      if (!cmixPreviouslyInitialized) {
+        await utils.NewCmix(ndf, STATE_PATH, password, '');
+      }
+    },
+    [cmixPreviouslyInitialized, utils]
+  );
+
+  const loadCmix = useCallback(
+    async (password: Uint8Array) => {
+      const loadedCmix = await utils.LoadCmix(STATE_PATH, password, encodedCmixParams);
+      setCmix(loadedCmix);
+    },
+    [encodedCmixParams, utils]
+  );
 
   const connect = useCallback(async () => {
-    if (!cmix) { 
-      throw Error('Cmix required') 
+    if (!cmix) {
+      throw Error('Cmix required');
     }
 
     setStatus(NetworkStatus.CONNECTING);
@@ -123,7 +124,7 @@ const useCmix = () => {
 
     try {
       await cmix.WaitForNetwork(10 * 60 * 1000);
-      setStatus(NetworkStatus.CONNECTED)
+      setStatus(NetworkStatus.CONNECTED);
     } catch (e) {
       console.error('Timed out. Network is not healthy.');
       setStatus(NetworkStatus.FAILED);
@@ -165,30 +166,25 @@ const useCmix = () => {
 
     return () => {
       bus.removeListener(AppEvents.REMOTE_STORE_INITIALIZED, listener);
-    }
-  }, [cmix])
+    };
+  }, [cmix]);
 
   useEffect(() => {
     if (cmix) {
       connect();
     }
   }, [connect, cmix]);
-  
 
   useEffect(() => {
     if (status === NetworkStatus.CONNECTED && dummyTraffic && !dummyTraffic.GetStatus()) {
       dummyTraffic.Start();
     }
-  }, [dummyTraffic, status])
-
+  }, [dummyTraffic, status]);
 
   useEffect(() => {
     if (cmixId !== undefined) {
       try {
-        setDummyTrafficManager(utils.NewDummyTrafficManager(
-          cmixId,
-          ...DUMMY_TRAFFIC_ARGS
-        ));
+        setDummyTrafficManager(utils.NewDummyTrafficManager(cmixId, ...DUMMY_TRAFFIC_ARGS));
       } catch (error) {
         console.error('error while creating the Dummy Traffic Object:', error);
       }
@@ -207,40 +203,52 @@ const useCmix = () => {
     }
   }, [cmix, createDatabaseCipher, decryptedPass]);
 
-  const initializeSync = useCallback((encryptedPass: Uint8Array, remote: RemoteStore) => {
-    return initializeSynchronizedCmix(encryptedPass, remote)
-      .then(() => loadSynchronizedCmix(encryptedPass, remote))
-      .then(() => {
-        bus.emit(AppEvents.CMIX_SYNCED, remote.service)
-      })
-      .catch(() => {
-        utils.Purge(rawPassword ?? '');
-        setStatus(NetworkStatus.FAILED);
-      })
-  }, [initializeSynchronizedCmix, loadSynchronizedCmix, rawPassword, utils]);
-  
-  const initialize = useCallback((encryptedPass: Uint8Array) => {
-    return initializeCmix(encryptedPass)
-      .then(() => loadCmix(encryptedPass))
-      .catch((e) => {
-        setStatus(NetworkStatus.FAILED);
-        throw e;
-      })
-  }, [initializeCmix, loadCmix]);
+  const initializeSync = useCallback(
+    (encryptedPass: Uint8Array, remote: RemoteStore) => {
+      return initializeSynchronizedCmix(encryptedPass, remote)
+        .then(() => loadSynchronizedCmix(encryptedPass, remote))
+        .then(() => {
+          bus.emit(AppEvents.CMIX_SYNCED, remote.service);
+        })
+        .catch(() => {
+          utils.Purge(rawPassword ?? '');
+          setStatus(NetworkStatus.FAILED);
+        });
+    },
+    [initializeSynchronizedCmix, loadSynchronizedCmix, rawPassword, utils]
+  );
 
-  const onPasswordDecryption = useCallback(async (password: Uint8Array) => {
-    setDecryptedPass(password);
-    if (accountSync.status !== AccountSyncStatus.Synced) {
-      await initialize(password);
-    }
-  }, [accountSync.status, initialize]);
+  const initialize = useCallback(
+    (encryptedPass: Uint8Array) => {
+      return initializeCmix(encryptedPass)
+        .then(() => loadCmix(encryptedPass))
+        .catch((e) => {
+          setStatus(NetworkStatus.FAILED);
+          throw e;
+        });
+    },
+    [initializeCmix, loadCmix]
+  );
+
+  const onPasswordDecryption = useCallback(
+    async (password: Uint8Array) => {
+      setDecryptedPass(password);
+      if (accountSync.status !== AccountSyncStatus.Synced) {
+        await initialize(password);
+      }
+    },
+    [accountSync.status, initialize]
+  );
 
   useAppEventListener(AppEvents.PASSWORD_DECRYPTED, onPasswordDecryption);
 
-  const onRemoteStoreInitialized = useCallback(async (remoteStore: RemoteStore) => {
-    assert(decryptedPass, 'Password required for sync login');
-    initializeSync(decryptedPass, remoteStore);
-  }, [decryptedPass, initializeSync]);
+  const onRemoteStoreInitialized = useCallback(
+    async (remoteStore: RemoteStore) => {
+      assert(decryptedPass, 'Password required for sync login');
+      initializeSync(decryptedPass, remoteStore);
+    },
+    [decryptedPass, initializeSync]
+  );
 
   useAppEventListener(AppEvents.REMOTE_STORE_INITIALIZED, onRemoteStoreInitialized);
 
@@ -249,10 +257,10 @@ const useCmix = () => {
       cmix.GetRemoteKV().then((rawKv) => {
         const wrappedKv = new RemoteKVWrapper(rawKv);
         bus.emit(AppEvents.REMOTE_KV_INITIALIZED, wrappedKv);
-      })
+      });
     }
   }, [cmix]);
-  
+
   return {
     connect,
     cmix,
@@ -263,6 +271,6 @@ const useCmix = () => {
     initialize,
     initializeSync
   };
-}
+};
 
 export default useCmix;

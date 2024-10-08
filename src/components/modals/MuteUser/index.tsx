@@ -12,27 +12,26 @@ export type MuteUserAction = 'mute' | 'mute+delete';
 type Props = {
   onConfirm: (action: 'mute' | 'mute+delete') => Promise<void>;
   onCancel: () => void;
-}
+};
 
-const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
+const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) => {
   const { t } = useTranslation();
-  const [loading, setLoading]  = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleConfirmation = useCallback((action: MuteUserAction) => async () => {
-    setLoading(true);
-    await onConfirm(action).finally(() => {
-      setLoading(false);
-    })
-  }, [onConfirm]);
+  const handleConfirmation = useCallback(
+    (action: MuteUserAction) => async () => {
+      setLoading(true);
+      await onConfirm(action).finally(() => {
+        setLoading(false);
+      });
+    },
+    [onConfirm]
+  );
 
   return (
     <Modal loading={loading} onClose={onCancel}>
-      <div
-        className={cn('w-full flex flex-col justify-center items-center')}
-      >
-        <h2 className={cn('mt-9 mb-4')}>
-          {t('Warning')}
-        </h2>
+      <div className={cn('w-full flex flex-col justify-center items-center')}>
+        <h2 className={cn('mt-9 mb-4')}>{t('Warning')}</h2>
         <p className='mb-4'>
           {t(`
             Muting a user will revoke their ability to send messages.
@@ -44,20 +43,13 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) =>  {
         </p>
         <div className={cn('mb-6', s.buttonGroup)}>
           <Button
-            style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)'  }}
+            style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)' }}
             onClick={handleConfirmation('mute+delete')}
           >
             {t('Mute and delete the last message')}
           </Button>
-          <Button
-            onClick={handleConfirmation('mute')}
-          >
-            {t('Just Mute')}
-          </Button>
-          <Button
-            variant='secondary'
-            onClick={onCancel}
-          >
+          <Button onClick={handleConfirmation('mute')}>{t('Just Mute')}</Button>
+          <Button variant='secondary' onClick={onCancel}>
             {t('Cancel')}
           </Button>
         </div>

@@ -18,6 +18,31 @@ You can start editing the page by modifying `pages/index.tsx`. The page auto-upd
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
+
+## ICP Cannister HOWTO
+
+https://internetcomputer.org/docs/current/developer-docs/web-apps/application-frontends/existing-frontend
+
+Test Locally:
+```
+dfx start
+dfx deploy
+```
+
+Generate and fund an Identity, in this case `icp_prod`:
+
+```
+dfx identity new icp_prod
+dfx ledger account-id --identity icp_prod --network ic # Use output here to send funds
+dfx ledger balance --identity icp_prod --network ic
+dfx cycles convert --amount 2.0 --network ic --identity icp_prod
+```
+
+Deploy
+```
+dfx deploy --network ic --identity icp_prod
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

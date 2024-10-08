@@ -6,5 +6,5 @@ export interface RootState {
 }
 
 // { [messageId]: { [emoji]: codename[] } }
-export type ReactionInfo = { pubkey: string, codeset: number, id: string, status?: MessageStatus };
-export type EmojiReactions =  Record<string, Record<string, ReactionInfo[]>>;
+export type ReactionInfo = { pubkey: string; codeset: number; id: string; status?: MessageStatus };
+export type EmojiReactions = Record<string, Record<string, ReactionInfo[]>>;

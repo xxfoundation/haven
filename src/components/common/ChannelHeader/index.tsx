@@ -40,9 +40,11 @@ import classNames from 'classnames';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
-}
+};
 
-const HeaderButton: FC<HTMLAttributes<HTMLButtonElement> & { notification?: boolean, active?: boolean }> = (props) => (
+const HeaderButton: FC<
+  HTMLAttributes<HTMLButtonElement> & { notification?: boolean; active?: boolean }
+> = (props) => (
   <button
     {...props}
     className={cn(
@@ -50,9 +52,10 @@ const HeaderButton: FC<HTMLAttributes<HTMLButtonElement> & { notification?: bool
       props.className,
       {
         'text-primary': props.active,
-        'text-charcoal-1': !props.active 
+        'text-charcoal-1': !props.active
       }
-    )}>
+    )}
+  >
     {props.children}
     {props.notification && (
       <div className='rounded-full w-2 h-2 absolute bottom-1 right-1 bg-red' />
@@ -60,12 +63,7 @@ const HeaderButton: FC<HTMLAttributes<HTMLButtonElement> & { notification?: bool
   </button>
 );
 
-const ChannelHeader: FC<Props> = ({
-  id,
-  isAdmin,
-  name,
-  privacyLevel
-}) => {
+const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
   const { t } = useTranslation();
   const { utils } = useUtils();
   const { channelManager } = useNetworkClient();
@@ -77,11 +75,14 @@ const ChannelHeader: FC<Props> = ({
   const isBlocked = useAppSelector(dms.selectors.isBlocked(conversationId ?? ''));
   const { toggleBlocked, toggleDmNotificationLevel } = useDmClient();
   const dmNotificationLevel = useAppSelector(dms.selectors.notificationLevel(conversationId));
-  const isChannelFavorited = useMemo(() => isFavorite(channelId), [isFavorite, channelId])
+  const isChannelFavorited = useMemo(() => isFavorite(channelId), [isFavorite, channelId]);
   const { openModal, setModalView, setRightSidebarView } = useUI();
   const pinnedMessages = useAppSelector(messages.selectors.currentPinnedMessages);
-  const channelNotificationLevel = useAppSelector(channels.selectors.notificationLevel(currentChannel?.id));
-  const channelNotificationsEnabled = channelNotificationLevel === ChannelNotificationLevel.NotifyPing;
+  const channelNotificationLevel = useAppSelector(
+    channels.selectors.notificationLevel(currentChannel?.id)
+  );
+  const channelNotificationsEnabled =
+    channelNotificationLevel === ChannelNotificationLevel.NotifyPing;
 
   const openShareModal = useCallback(() => {
     if (currentChannel) {
@@ -95,20 +96,22 @@ const ChannelHeader: FC<Props> = ({
     toggleDmNotificationLevel(conversationId);
   }, [toggleDmNotificationLevel, conversationId]);
 
-  const toggleChannelNotifications =  useCallback(() => {
-    const newLevel = channelNotificationLevel === ChannelNotificationLevel.NotifyPing
-      ? ChannelNotificationLevel.NotifyNone
-      : ChannelNotificationLevel.NotifyPing;
-    const newState = newLevel === ChannelNotificationLevel.NotifyPing
-      ? NotificationStatus.WhenOpen
-      : NotificationStatus.Mute;
+  const toggleChannelNotifications = useCallback(() => {
+    const newLevel =
+      channelNotificationLevel === ChannelNotificationLevel.NotifyPing
+        ? ChannelNotificationLevel.NotifyNone
+        : ChannelNotificationLevel.NotifyPing;
+    const newState =
+      newLevel === ChannelNotificationLevel.NotifyPing
+        ? NotificationStatus.WhenOpen
+        : NotificationStatus.Mute;
 
     if (currentChannel?.id) {
       channelManager?.SetMobileNotificationsLevel(
         utils.Base64ToUint8Array(currentChannel?.id),
         newLevel,
         newState
-      )
+      );
     }
   }, [channelManager, channelNotificationLevel, currentChannel?.id, utils]);
 
@@ -119,25 +122,27 @@ const ChannelHeader: FC<Props> = ({
           {name}
         </div>
         <div>
-        <div className={cn(s.channelId, 'space-x-2')}>
-          <ChannelBadges privacyLevel={privacyLevel}  isAdmin={isAdmin} />
-          <span className={s.channelId}>
-            ID: {id}
-          </span>
-        </div>
+          <div className={cn(s.channelId, 'space-x-2')}>
+            <ChannelBadges privacyLevel={privacyLevel} isAdmin={isAdmin} />
+            <span className={s.channelId}>ID: {id}</span>
+          </div>
         </div>
       </div>
       <div className='flex space-x-2 items-center relative'>
         <HeaderButton
           active={!!isChannelFavorited}
-          onClick={() => channelId && toggleFavorite(channelId)}>
+          onClick={() => channelId && toggleFavorite(channelId)}
+        >
           <FontAwesomeIcon title='Favorite the channel' className='w-5' icon={faStar} />
         </HeaderButton>
         {currentChannel && (
           <>
             <HeaderButton
               notification={!!pinnedMessages?.length}
-              onClick={() => { setRightSidebarView('pinned-messages') }}>
+              onClick={() => {
+                setRightSidebarView('pinned-messages');
+              }}
+            >
               <Pin className='w-full h-full' />
             </HeaderButton>
             <HeaderButton onClick={() => setRightSidebarView('contributors')}>
@@ -145,7 +150,11 @@ const ChannelHeader: FC<Props> = ({
             </HeaderButton>
           </>
         )}
-        <HeaderButton onClick={() => { setDropdownToggle(true); }}>
+        <HeaderButton
+          onClick={() => {
+            setDropdownToggle(true);
+          }}
+        >
           <Ellipsis className='w-full h-full' />
         </HeaderButton>
         <Dropdown isOpen={dropdownToggled} onChange={setDropdownToggle}>
@@ -154,70 +163,94 @@ const ChannelHeader: FC<Props> = ({
               <DropdownItem onClick={() => toggleBlocked(conversationId)} icon={Block}>
                 {isBlocked ? t('Unblock') : t('Block')}
               </DropdownItem>
-              <DropdownItem
-                onClick={toggleDMNotifications} icon={NotificationsIcon}>
-                {dmNotificationLevel === DMNotificationLevel.NotifyNone ? t('Enable Notifications') : t('Disable Notifications')}
+              <DropdownItem onClick={toggleDMNotifications} icon={NotificationsIcon}>
+                {dmNotificationLevel === DMNotificationLevel.NotifyNone
+                  ? t('Enable Notifications')
+                  : t('Disable Notifications')}
               </DropdownItem>
             </>
           )}
           {currentChannel && (
-          <>
-            <DropdownItem
-              onClick={toggleChannelNotifications}
-              icon={
-                (props: SVGProps<SVGSVGElement>) =>
-                  <NotificationsIcon {...props} className={classNames(props.className, {
-                    'text-primary': channelNotificationsEnabled,
-                    'text-charcoal-1': !channelNotificationsEnabled
-                  })} />
-              }>
-              {channelNotificationsEnabled ? t('Disable Notifications') : t('Enable Notifications')}
-            </DropdownItem>
-            <DropdownItem onClick={() => { setRightSidebarView('space-details'); }}icon={Notice}>
-              {t('Space Details')}
-            </DropdownItem>
-            <DropdownItem
-              onClick={openShareModal}
-              icon={Share}>
-              {t('Share Space')}
-            </DropdownItem>
-            <DropdownItem
-              icon={BannedUser}
-              onClick={() => {
-                setRightSidebarView('muted-users');
-              }}
-            >
-              {t('View Muted Users')}
-            </DropdownItem>
-            <DropdownItem onClick={() => {
-              setRightSidebarView('pinned-messages');
-            }} icon={ViewPinned}>
-              {t('View Pinned Messages')}
-            </DropdownItem>
-            {currentChannel?.isAdmin ? (
-              <DropdownItem icon={Keys} onClick={() => {
-                setModalView('EXPORT_ADMIN_KEYS');
-                openModal();
-              }}>
-                {t('Export Admin Keys')}
+            <>
+              <DropdownItem
+                onClick={toggleChannelNotifications}
+                icon={(props: SVGProps<SVGSVGElement>) => (
+                  <NotificationsIcon
+                    {...props}
+                    className={classNames(props.className, {
+                      'text-primary': channelNotificationsEnabled,
+                      'text-charcoal-1': !channelNotificationsEnabled
+                    })}
+                  />
+                )}
+              >
+                {channelNotificationsEnabled
+                  ? t('Disable Notifications')
+                  : t('Enable Notifications')}
               </DropdownItem>
-          ) : (
-            <DropdownItem onClick={() => { setModalView('CLAIM_ADMIN_KEYS'); openModal(); }} icon={LockOpen}>
-                {t('Claim Admin Keys')}
-            </DropdownItem>
+              <DropdownItem
+                onClick={() => {
+                  setRightSidebarView('space-details');
+                }}
+                icon={Notice}
+              >
+                {t('Space Details')}
+              </DropdownItem>
+              <DropdownItem onClick={openShareModal} icon={Share}>
+                {t('Share Space')}
+              </DropdownItem>
+              <DropdownItem
+                icon={BannedUser}
+                onClick={() => {
+                  setRightSidebarView('muted-users');
+                }}
+              >
+                {t('View Muted Users')}
+              </DropdownItem>
+              <DropdownItem
+                onClick={() => {
+                  setRightSidebarView('pinned-messages');
+                }}
+                icon={ViewPinned}
+              >
+                {t('View Pinned Messages')}
+              </DropdownItem>
+              {currentChannel?.isAdmin ? (
+                <DropdownItem
+                  icon={Keys}
+                  onClick={() => {
+                    setModalView('EXPORT_ADMIN_KEYS');
+                    openModal();
+                  }}
+                >
+                  {t('Export Admin Keys')}
+                </DropdownItem>
+              ) : (
+                <DropdownItem
+                  onClick={() => {
+                    setModalView('CLAIM_ADMIN_KEYS');
+                    openModal();
+                  }}
+                  icon={LockOpen}
+                >
+                  {t('Claim Admin Keys')}
+                </DropdownItem>
+              )}
+              <DropdownItem
+                onClick={() => {
+                  setModalView('LEAVE_CHANNEL_CONFIRMATION');
+                  openModal();
+                }}
+                icon={Leave}
+              >
+                {t('Leave Space')}
+              </DropdownItem>
+            </>
           )}
-            <DropdownItem onClick={() => {
-              setModalView('LEAVE_CHANNEL_CONFIRMATION');
-              openModal();
-            }} icon={Leave}>
-              {t('Leave Space')}
-            </DropdownItem>
-          </>
-        )}
         </Dropdown>
       </div>
     </div>
   );
-}
+};
 
 export default ChannelHeader;

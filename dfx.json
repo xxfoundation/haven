@@ -1,0 +1,12 @@
+{
+  "canisters": {
+    "app": {
+      "frontend": {
+        "entrypoint": "out/index.html"
+      },
+      "source": ["out"],
+      "type": "assets"
+    }
+  },
+  "output_env_file": ".env"
+}

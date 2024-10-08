@@ -19,85 +19,117 @@ const ChannelNotifications = () => {
   const { setRightSidebarView } = useUI();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const identity = useAppSelector(fullIdentity);
-  const notificationLevel = useAppSelector(channels.selectors.notificationLevel(currentChannel?.id));
-  const notificationStatus = useAppSelector(channels.selectors.notificationStatus(currentChannel?.id));
+  const notificationLevel = useAppSelector(
+    channels.selectors.notificationLevel(currentChannel?.id)
+  );
+  const notificationStatus = useAppSelector(
+    channels.selectors.notificationStatus(currentChannel?.id)
+  );
 
-  const correctInvalidNotificationStates = useCallback((level = ChannelNotificationLevel.NotifyPing, status = NotificationStatus.WhenOpen) => {
-    const previousStatus = notificationStatus;
-    const previousLevel = notificationLevel;
-  
-    const notificationStatusMuted = status === NotificationStatus.Mute && previousStatus !== NotificationStatus.Mute;
-    const notificationStatusUnmuted = status !== NotificationStatus.Mute && previousStatus === NotificationStatus.Mute;
-    const notificationLevelMuted = level === ChannelNotificationLevel.NotifyNone && previousLevel !== ChannelNotificationLevel.NotifyNone;
-    const notificationLevelUnmuted = level !== ChannelNotificationLevel.NotifyNone && previousLevel === ChannelNotificationLevel.NotifyNone;
-  
-    let stat = status;
-    let lev = level;
-  
-    if (notificationStatusMuted) {
-      lev = ChannelNotificationLevel.NotifyNone;
-    }
-  
-    if (notificationStatusUnmuted && lev === ChannelNotificationLevel.NotifyNone) {
-      lev = ChannelNotificationLevel.NotifyPing;
-    }
-  
-    if (notificationLevelMuted) {
-      stat = NotificationStatus.Mute;
-    }
-  
-    if (notificationLevelUnmuted && stat === NotificationStatus.Mute) {
-      stat = NotificationStatus.WhenOpen;
-    }
-  
-    return [lev, stat] as [ChannelNotificationLevel, NotificationStatus];
-  }, [notificationLevel, notificationStatus]);
+  const correctInvalidNotificationStates = useCallback(
+    (level = ChannelNotificationLevel.NotifyPing, status = NotificationStatus.WhenOpen) => {
+      const previousStatus = notificationStatus;
+      const previousLevel = notificationLevel;
 
-  const changeNotificationLevel = useCallback((level: ChannelNotificationLevel) => {
-    if (currentChannel?.id) {
-      channelManager?.SetMobileNotificationsLevel(
-        utils.Base64ToUint8Array(currentChannel?.id),
-        ...correctInvalidNotificationStates(level, notificationStatus)
-      )
-    }
-  }, [channelManager, correctInvalidNotificationStates, currentChannel?.id, notificationStatus, utils]);
+      const notificationStatusMuted =
+        status === NotificationStatus.Mute && previousStatus !== NotificationStatus.Mute;
+      const notificationStatusUnmuted =
+        status !== NotificationStatus.Mute && previousStatus === NotificationStatus.Mute;
+      const notificationLevelMuted =
+        level === ChannelNotificationLevel.NotifyNone &&
+        previousLevel !== ChannelNotificationLevel.NotifyNone;
+      const notificationLevelUnmuted =
+        level !== ChannelNotificationLevel.NotifyNone &&
+        previousLevel === ChannelNotificationLevel.NotifyNone;
 
-  const onNotificationLevelChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
-    const level = notificationLevelDecoder.decode(parseInt(evt.target.value, 10));
-    if (level.isOk()) {
-      changeNotificationLevel(level.value);
-    } else {
-      throw new Error(`Unknown notification level ${level.error}`)
-    }
-  }, [changeNotificationLevel]);
+      let stat = status;
+      let lev = level;
 
-  const changeNotificationStatus = useCallback((status: NotificationStatus) => {
-    if (currentChannel?.id) {
-      const level = status === NotificationStatus.Mute ? ChannelNotificationLevel.NotifyNone : (notificationLevel || ChannelNotificationLevel.NotifyPing);
-      
-      channelManager?.SetMobileNotificationsLevel(
-        utils.Base64ToUint8Array(currentChannel?.id),
-        ...correctInvalidNotificationStates(level, status)
-      )
-    }
-  }, [currentChannel?.id, notificationLevel, channelManager, utils, correctInvalidNotificationStates]);
+      if (notificationStatusMuted) {
+        lev = ChannelNotificationLevel.NotifyNone;
+      }
 
-  const onNotificationStatusChange = useCallback<ChangeEventHandler<HTMLSelectElement>>((evt) => {
-    const status = notificationStatusDecoder.decode(parseInt(evt.target.value, 10));
-    if (status.isOk()) {
-      changeNotificationStatus(status.value);
-    } else {
-      throw new Error(`Unknown notification status: ${status.error}`);
-    }
-  }, [changeNotificationStatus]);
+      if (notificationStatusUnmuted && lev === ChannelNotificationLevel.NotifyNone) {
+        lev = ChannelNotificationLevel.NotifyPing;
+      }
 
-  return (currentChannel && identity) ? (
+      if (notificationLevelMuted) {
+        stat = NotificationStatus.Mute;
+      }
+
+      if (notificationLevelUnmuted && stat === NotificationStatus.Mute) {
+        stat = NotificationStatus.WhenOpen;
+      }
+
+      return [lev, stat] as [ChannelNotificationLevel, NotificationStatus];
+    },
+    [notificationLevel, notificationStatus]
+  );
+
+  const changeNotificationLevel = useCallback(
+    (level: ChannelNotificationLevel) => {
+      if (currentChannel?.id) {
+        channelManager?.SetMobileNotificationsLevel(
+          utils.Base64ToUint8Array(currentChannel?.id),
+          ...correctInvalidNotificationStates(level, notificationStatus)
+        );
+      }
+    },
+    [
+      channelManager,
+      correctInvalidNotificationStates,
+      currentChannel?.id,
+      notificationStatus,
+      utils
+    ]
+  );
+
+  const onNotificationLevelChange = useCallback<ChangeEventHandler<HTMLSelectElement>>(
+    (evt) => {
+      const level = notificationLevelDecoder.decode(parseInt(evt.target.value, 10));
+      if (level.isOk()) {
+        changeNotificationLevel(level.value);
+      } else {
+        throw new Error(`Unknown notification level ${level.error}`);
+      }
+    },
+    [changeNotificationLevel]
+  );
+
+  const changeNotificationStatus = useCallback(
+    (status: NotificationStatus) => {
+      if (currentChannel?.id) {
+        const level =
+          status === NotificationStatus.Mute
+            ? ChannelNotificationLevel.NotifyNone
+            : notificationLevel || ChannelNotificationLevel.NotifyPing;
+
+        channelManager?.SetMobileNotificationsLevel(
+          utils.Base64ToUint8Array(currentChannel?.id),
+          ...correctInvalidNotificationStates(level, status)
+        );
+      }
+    },
+    [currentChannel?.id, notificationLevel, channelManager, utils, correctInvalidNotificationStates]
+  );
+
+  const onNotificationStatusChange = useCallback<ChangeEventHandler<HTMLSelectElement>>(
+    (evt) => {
+      const status = notificationStatusDecoder.decode(parseInt(evt.target.value, 10));
+      if (status.isOk()) {
+        changeNotificationStatus(status.value);
+      } else {
+        throw new Error(`Unknown notification status: ${status.error}`);
+      }
+    },
+    [changeNotificationStatus]
+  );
+
+  return currentChannel && identity ? (
     <div className='p-6 space-y-6'>
       <div className='flex justify-between items-center'>
-        <RightSideTitle>
-          {t('Notifications')}
-        </RightSideTitle>
-        <CloseButton className='w-8 h-8' onClick={() => setRightSidebarView(null) } />
+        <RightSideTitle>{t('Notifications')}</RightSideTitle>
+        <CloseButton className='w-8 h-8' onClick={() => setRightSidebarView(null)} />
       </div>
       <div className='flex justify-between items-center'>
         <h5>{t('Enabled')}</h5>
@@ -105,7 +137,8 @@ const ChannelNotifications = () => {
           className='bg-charcoal-4 p-3 border border-charcoal-1 rounded-lg hover:border-primary cursor-pointer pr-2'
           onChange={onNotificationStatusChange}
           value={notificationStatus}
-          id='notification-levels'>
+          id='notification-levels'
+        >
           <option value={NotificationStatus.WhenOpen}>When Open</option>
           <option value={NotificationStatus.Push}>Push</option>
           <option value={NotificationStatus.Mute}>Mute</option>
@@ -117,7 +150,8 @@ const ChannelNotifications = () => {
           className='bg-charcoal-4 p-3 border border-charcoal-1 rounded-lg hover:border-primary cursor-pointer pr-2'
           onChange={onNotificationLevelChange}
           value={notificationLevel}
-          id='notification-levels'>
+          id='notification-levels'
+        >
           <option value={ChannelNotificationLevel.NotifyAll}>All</option>
           <option value={ChannelNotificationLevel.NotifyPing}>Tags, replies, and pins</option>
           <option value={ChannelNotificationLevel.NotifyNone}>None</option>
@@ -125,6 +159,6 @@ const ChannelNotifications = () => {
       </div>
     </div>
   ) : null;
-}
+};
 
 export default ChannelNotifications;

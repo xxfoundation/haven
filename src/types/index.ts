@@ -4,10 +4,9 @@ import { DMNotificationLevel } from './events';
 
 export type WithChildren = {
   children?: ReactNode;
-}
+};
 
-type HealthCallback = { Callback: (healthy: boolean) => void }
-
+type HealthCallback = { Callback: (healthy: boolean) => void };
 
 export type CMix = {
   AddHealthCallback: (callback: HealthCallback) => number;
@@ -19,7 +18,7 @@ export type CMix = {
   WaitForNetwork: (timeoutMilliseconds: number) => Promise<void>;
   SetTrackNetworkPeriod: (periodMs: number) => void;
   GetRemoteKV: () => Promise<RemoteKV>;
-}
+};
 
 export type DMClient = {
   SendText: (
@@ -59,13 +58,13 @@ export type DMClient = {
     noop: undefined,
     cmixParams: Uint8Array
   ) => void;
-}
+};
 
 export type DummyTraffic = {
   GetStatus: () => boolean;
   Pause: () => void;
   Start: () => void;
-}
+};
 
 export type CMixParams = {
   Network: {
@@ -86,7 +85,7 @@ export type CMixParams = {
       HistoricalRoundsPeriod: number;
       HistoricalRoundsBufferLen: number;
       MaxHistoricalRoundsRetries: number;
-    },
+    };
     Pickup: {
       NumMessageRetrievalWorkers: number;
       LookupRoundsBufferLen: number;
@@ -96,44 +95,41 @@ export type CMixParams = {
       SendTimeout: number;
       RealtimeOnly: boolean;
       ForceHistoricalRounds: boolean;
-    },
+    };
     Message: {
       MessageReceptionBuffLen: number;
       MessageReceptionWorkerPoolSize: number;
       MaxChecksInProcessMessage: number;
       InProcessMessageWait: number;
       RealtimeOnly: boolean;
-    },
+    };
     Historical: {
       MaxHistoricalRounds: number;
       HistoricalRoundsPeriod: number;
       HistoricalRoundsBufferLen: number;
       MaxHistoricalRoundsRetries: number;
-    },
-  },
+    };
+  };
   CMIX: {
     RoundTries: number;
     Timeout: number;
     RetryDelay: number;
     SendTimeout: number;
     DebugTag: string;
-    BlacklistedNodes: Record<string, boolean>,
+    BlacklistedNodes: Record<string, boolean>;
     Critical: boolean;
-  }
-}
+  };
+};
 
-export type DatabaseCipher  = {
+export type DatabaseCipher = {
   id: number;
   decrypt: (encrypted: string) => string;
 };
 
-
 export type RawCipher = {
   GetID: () => number;
   Decrypt: (plaintext: string) => Uint8Array;
-}
-
-
+};
 
 export * from './collective';
 export * from './db';

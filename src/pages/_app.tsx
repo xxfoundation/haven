@@ -1,7 +1,6 @@
 import type { WithChildren } from 'src/types';
 import React, { FC, useEffect, useState } from 'react';
 
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import { NextSeo } from 'next-seo';
 import { AppProps } from 'next/app';
 import Head from 'next/head';
@@ -18,7 +17,7 @@ import { isDuplicatedWindow } from 'src/utils/oneTabEnforcer';
 
 import 'src/assets/scss/main.scss';
 import 'src/assets/scss/quill-overrides.scss';
-import 'react-tooltip/dist/react-tooltip.css'
+import 'react-tooltip/dist/react-tooltip.css';
 import ErrorBoundary from 'src/components/common/ErrorBoundary';
 import { DBProvider } from '@contexts/db-context';
 import '../i18n';
@@ -55,9 +54,8 @@ export const WarningComponent: FC<WithChildren> = ({ children }) => {
         </h1>
       </div>
     </>
-  )
+  );
 };
-
 
 const SEO = () => {
   const [url, setUrl] = useState('');
@@ -72,7 +70,8 @@ const SEO = () => {
         type: 'website',
         url: url,
         title: 'Haven',
-        description: 'The internet Haven. True Freedom to express yourself, your thoughts, your beliefs. Speak easily to a group of friends or a global community. Talk about what you want. Surveillance free. Censorship proof. Your Haven chats are yours.',
+        description:
+          'The internet Haven. True Freedom to express yourself, your thoughts, your beliefs. Speak easily to a group of friends or a global community. Talk about what you want. Surveillance free. Censorship proof. Your Haven chats are yours.',
         images: [
           {
             url: `${origin}/haven-icon.png`,
@@ -94,13 +93,7 @@ const Providers: FC<WithChildren> = ({ children }) => (
           <AuthenticationProvider>
             <DMContextProvider>
               <ManagedNetworkContext>
-                <ManagedUIContext>
-                  <GoogleOAuthProvider
-                    clientId={process.env.NEXT_PUBLIC_APP_GOOGLE_DRIVE_CLIENT_ID ?? ''}
-                  >
-                    {children}
-                  </GoogleOAuthProvider>
-                </ManagedUIContext>
+                <ManagedUIContext>{children}</ManagedUIContext>
               </ManagedNetworkContext>
             </DMContextProvider>
           </AuthenticationProvider>
@@ -143,8 +136,7 @@ const HavenApp = ({ Component, pageProps }: AppProps) => {
         </Head>
         <SEO />
         <AllProviders>
-          {!skipDuplicateTabCheck &&
-          isDuplicatedWindow(15000, 10000, 'HavenApp') ? (
+          {!skipDuplicateTabCheck && isDuplicatedWindow(15000, 10000, 'HavenApp') ? (
             <WarningComponent>
               {t('Haven can only run with one tab/window at a time.')}
               <br />
@@ -169,6 +161,6 @@ const HavenApp = ({ Component, pageProps }: AppProps) => {
       </ErrorBoundary>
     );
   }
-}
+};
 
 export default HavenApp;

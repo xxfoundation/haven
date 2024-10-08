@@ -8,7 +8,8 @@ import s from './styles.module.scss';
 
 const NotificationBanner = () => {
   const { t } = useTranslation();
-  const { isPermissionGranted, permissionIgnored, request, setPermissionIgnored } = useNotification();
+  const { isPermissionGranted, permissionIgnored, request, setPermissionIgnored } =
+    useNotification();
   const showBanner = !isPermissionGranted && !permissionIgnored;
 
   return showBanner ? (
@@ -16,9 +17,7 @@ const NotificationBanner = () => {
       <span>
         {t('Haven uses desktop notifications.')}
         &nbsp;
-        <button 
-          aria-label={t('Enable desktop notifications')}
-          onClick={request}>
+        <button aria-label={t('Enable desktop notifications')} onClick={request}>
           {t('Enable?')}
         </button>
       </span>
@@ -30,6 +29,6 @@ const NotificationBanner = () => {
       />
     </div>
   ) : null;
-}
+};
 
 export default NotificationBanner;

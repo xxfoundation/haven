@@ -1,7 +1,9 @@
 import { useState, useCallback, ChangeEvent } from 'react';
 
 type OnChangeType = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-type UseInput = (initialValue?: string) => [string, OnChangeType, { set: (value: string) => void, touched: boolean }];
+type UseInput = (
+  initialValue?: string
+) => [string, OnChangeType, { set: (value: string) => void; touched: boolean }];
 
 const useInput: UseInput = (initValue = '') => {
   const [value, set] = useState(initValue);
@@ -13,6 +15,6 @@ const useInput: UseInput = (initValue = '') => {
   }, []);
 
   return [value, handler, { set, touched }];
-}; 
+};
 
 export default useInput;

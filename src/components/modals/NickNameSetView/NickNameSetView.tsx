@@ -34,14 +34,13 @@ const NickNameSetView: FC = () => {
 
   return (
     <>
-      <ModalTitle>
-        {t('Set Nickname')}
-      </ModalTitle>
+      <ModalTitle>{t('Set Nickname')}</ModalTitle>
       <p className='text-charcoal-1'>
         {currentConversation
-         ? t('Set your nickname for the {{channelName}} channel', { channelName: currentChannel?.name })
-         : t('Set your nickname for all direct messages')
-        }
+          ? t('Set your nickname for the {{channelName}} channel', {
+              channelName: currentChannel?.name
+            })
+          : t('Set your nickname for all direct messages')}
       </p>
       <Input
         type='text'
@@ -54,19 +53,12 @@ const NickNameSetView: FC = () => {
             onSubmit();
           }
         }}
-        onChange={e => {
+        onChange={(e) => {
           setLocalNickname(e.target.value);
         }}
       />
-      {error && (
-        <FormError>
-          {error}
-        </FormError>
-      )}
-      <Button
-        className='my-7'
-        onClick={onSubmit}
-      >
+      {error && <FormError>{error}</FormError>}
+      <Button className='my-7' onClick={onSubmit}>
         {t('Save')}
       </Button>
     </>

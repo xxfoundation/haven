@@ -17,7 +17,7 @@ const useGoogleDrive = (gapi: any, accessToken?: string): GoogleDrive => {
           await gapi.client.setToken({ access_token: accessToken });
           setDrive(gapi.client.drive);
           setReady(true);
-        })
+        });
       } catch (error) {
         console.error('Error initializing Google Drive API:', error);
       }

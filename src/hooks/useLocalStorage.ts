@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect } from 'react';
 
-const useLocalStorage = <T = unknown>(keyName: string, defaultValue?: T): [value: T | null, setValue: (v: T) => void] => {
+const useLocalStorage = <T = unknown>(
+  keyName: string,
+  defaultValue?: T
+): [value: T | null, setValue: (v: T) => void] => {
   const [storedValue, setStoredValue] = React.useState<T | null>(() => {
     try {
       const value = window.localStorage.getItem(keyName);
@@ -19,7 +22,7 @@ const useLocalStorage = <T = unknown>(keyName: string, defaultValue?: T): [value
 
   const onStorage = useCallback(() => {
     const value = window.localStorage.getItem(keyName);
-    
+
     if (value !== null) {
       try {
         const parsed = JSON.parse(value);
@@ -35,15 +38,18 @@ const useLocalStorage = <T = unknown>(keyName: string, defaultValue?: T): [value
     window.addEventListener('storage', onStorage);
 
     return () => window.removeEventListener('storage', onStorage);
-  }, [onStorage])
+  }, [onStorage]);
 
-  const setValue = useCallback((newValue: T) => {
-    try {
-      window.localStorage.setItem(keyName, JSON.stringify(newValue));
-      window.dispatchEvent(new Event('storage'));
-    } catch (err) { }
-    setStoredValue(newValue);
-  }, [keyName]);
+  const setValue = useCallback(
+    (newValue: T) => {
+      try {
+        window.localStorage.setItem(keyName, JSON.stringify(newValue));
+        window.dispatchEvent(new Event('storage'));
+      } catch (err) {}
+      setStoredValue(newValue);
+    },
+    [keyName]
+  );
 
   return [storedValue, setValue];
 };

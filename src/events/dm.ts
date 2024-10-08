@@ -1,5 +1,15 @@
-import { DMBlockedUserEvent, DMNotificationsUpdateEvent, DMReceivedEvent, TypedEventEmitter } from '@types';
-import { Decoder, dmNotificationsUpdateEventDecoder, blockedUserEventDecoder, dmReceivedEventDecoder } from '@utils/decoders';
+import {
+  DMBlockedUserEvent,
+  DMNotificationsUpdateEvent,
+  DMReceivedEvent,
+  TypedEventEmitter
+} from '@types';
+import {
+  Decoder,
+  dmNotificationsUpdateEventDecoder,
+  blockedUserEventDecoder,
+  dmReceivedEventDecoder
+} from '@utils/decoders';
 import { makeEventAwaiter, makeListenerHook } from '@utils/index';
 import EventEmitter from 'events';
 
@@ -15,19 +25,19 @@ export type DMEventMap = {
   [DMEvents.DM_NOTIFICATION_UPDATE]: DMNotificationsUpdateEvent;
   [DMEvents.DM_BLOCKED_USER]: DMBlockedUserEvent;
   [DMEvents.DM_MESSAGE_RECEIVED]: DMReceivedEvent;
-}
+};
 
 export type DMEventHandlers = {
   [P in keyof DMEventMap]: (event: DMEventMap[P]) => void;
-}
+};
 
-export const dmBus = new EventEmitter()  as TypedEventEmitter<DMEventHandlers>;
+export const dmBus = new EventEmitter() as TypedEventEmitter<DMEventHandlers>;
 
 const dmDecoderMap: { [P in keyof DMEventMap]: Decoder<DMEventMap[P]> } = {
   [DMEvents.DM_NOTIFICATION_UPDATE]: dmNotificationsUpdateEventDecoder,
   [DMEvents.DM_BLOCKED_USER]: blockedUserEventDecoder,
   [DMEvents.DM_MESSAGE_RECEIVED]: dmReceivedEventDecoder
-} 
+};
 
 export const onDmEvent = (eventType: DMEvents, data: unknown) => {
   const eventDecoder = dmDecoderMap[eventType];
@@ -38,7 +48,7 @@ export const onDmEvent = (eventType: DMEvents, data: unknown) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dmBus.emit(eventType, eventDecoder(data) as any);
   }
-}
+};
 
 export const useDmListener = makeListenerHook(dmBus);
 

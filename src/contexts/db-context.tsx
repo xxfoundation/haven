@@ -18,29 +18,31 @@ export type DBMessage = {
   timestamp: string;
   lease: number;
   status: MessageStatus;
-  hidden: boolean,
+  hidden: boolean;
   pinned: boolean;
   text: string;
   type: MessageType;
   round: number;
   pubkey: string;
   codeset_version: number;
-}
+};
 
 export type DBChannel = {
   id: string;
   name: string;
   description: string;
-}
+};
 
 type DBContextType = {
   db?: Dexie | undefined;
   dmDb?: Dexie | undefined;
   initDb: (storageTag: string) => Promise<void>;
   initDmsDb: (storageTag: string) => Promise<void>;
-}
+};
 
-export const DBContext = createContext<DBContextType>({ initDb: () => {} } as unknown as DBContextType);
+export const DBContext = createContext<DBContextType>({
+  initDb: () => {}
+} as unknown as DBContextType);
 
 export const DBProvider: FC<WithChildren> = ({ children }) => {
   const [db, setDb] = useState<Dexie>();
@@ -68,7 +70,7 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
     if (dmsDatabaseName) {
       initDmsDb(dmsDatabaseName);
     }
-  }, [dmsDatabaseName, initDb, initDmsDb, storageTag])
+  }, [dmsDatabaseName, initDb, initDmsDb, storageTag]);
 
   useEffect(() => {
     if (managerLoaded) {
@@ -80,15 +82,15 @@ export const DBProvider: FC<WithChildren> = ({ children }) => {
     const listener = () => setManagerLoaded(true);
     bus.addListener(AppEvents.CHANNEL_MANAGER_LOADED, listener);
 
-    return () => { bus.removeListener(AppEvents.CHANNEL_MANAGER_LOADED, listener) }
-  }, [])
+    return () => {
+      bus.removeListener(AppEvents.CHANNEL_MANAGER_LOADED, listener);
+    };
+  }, []);
 
   return (
-    <DBContext.Provider value={{ db, dmDb, initDb, initDmsDb }}>
-      {children}
-    </DBContext.Provider>
-  )
-}
+    <DBContext.Provider value={{ db, dmDb, initDb, initDmsDb }}>{children}</DBContext.Provider>
+  );
+};
 
-export const useDb = (type: 'dm' | 'channels' = 'channels') => useContext(DBContext)[type === 'channels' ? 'db' : 'dmDb'];
-
+export const useDb = (type: 'dm' | 'channels' = 'channels') =>
+  useContext(DBContext)[type === 'channels' ? 'db' : 'dmDb'];

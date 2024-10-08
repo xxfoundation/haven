@@ -63,13 +63,11 @@ const ExportCodenameView: FC = () => {
       alert({ type: 'success', content: t('Admin keys successfully exported'), icon: Keys });
       closeModal();
     }
-  }, [alert, step, t, closeModal])
+  }, [alert, step, t, closeModal]);
 
   return (
     <>
-      <ModalTitle className='text-center'>
-        {t('Export Channel Admin Keys')}
-      </ModalTitle>
+      <ModalTitle className='text-center'>{t('Export Channel Admin Keys')}</ModalTitle>
       {step === 1 && (
         <>
           {error && (
@@ -84,10 +82,7 @@ const ExportCodenameView: FC = () => {
             value={password}
             onChange={setPassword}
           />
-          <Button
-            className={cn('mt-5', s.button)}
-            onClick={checkPassword}
-          >
+          <Button className={cn('mt-5', s.button)} onClick={checkPassword}>
             {t('Unlock')}
           </Button>
         </>
@@ -104,7 +99,10 @@ const ExportCodenameView: FC = () => {
           </p>
           <div className='mt-10 w-full'>
             {error && (
-              <div className={'text text-center text--xs mt-2 mb-4'} style={{ color: 'var(--red)' }}>
+              <div
+                className={'text text-center text--xs mt-2 mb-4'}
+                style={{ color: 'var(--red)' }}
+              >
                 {error}
               </div>
             )}
@@ -122,24 +120,13 @@ const ExportCodenameView: FC = () => {
                 onChange={setEncryptionPasswordConfirmation}
               />
             </div>
-            <input
-              type='file'
-              hidden
-              ref={fileInputRef}
-            />
+            <input type='file' hidden ref={fileInputRef} />
           </div>
           <div className='space-x-4 flex justify-between w-full'>
-            <Button
-              variant='outlined'
-              onClick={reset}
-            >
+            <Button variant='outlined' onClick={reset}>
               {t('Cancel')}
             </Button>
-            <Button
-              onClick={onExport}
-            >
-              {t('Export')}
-            </Button>
+            <Button onClick={onExport}>{t('Export')}</Button>
           </div>
         </>
       )}

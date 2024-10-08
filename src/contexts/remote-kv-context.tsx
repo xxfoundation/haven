@@ -24,7 +24,9 @@ export class RemoteKVWrapper {
         value = Buffer.from(entry.data, 'base64').toString();
       }
     } catch (e) {
-      console.warn(`Could not find ${key} in remote kv, returning undefined. Remote kv returned ${(e as Error).message}`);
+      console.warn(
+        `Could not find ${key} in remote kv, returning undefined. Remote kv returned ${(e as Error).message}`
+      );
     }
     return value;
   }
@@ -43,21 +45,13 @@ export class RemoteKVWrapper {
   }
 
   listenOn(key: string, onChange: OnChangeCallback) {
-    return this.kv.ListenOnRemoteKey(
-      key,
-      KV_VERSION,
-      {
-        Callback: (_k, _old, v, operationType) => {
-          const entry = kvEntryDecoder(v);
-          const converted = entry ? Buffer.from(entry.data, 'base64').toString() : undefined;
-          onChange(
-            operationType === OperationType.Deleted
-              ? undefined
-              : converted
-          );
-        }
+    return this.kv.ListenOnRemoteKey(key, KV_VERSION, {
+      Callback: (_k, _old, v, operationType) => {
+        const entry = kvEntryDecoder(v);
+        const converted = entry ? Buffer.from(entry.data, 'base64').toString() : undefined;
+        onChange(operationType === OperationType.Deleted ? undefined : converted);
       }
-    );
+    });
   }
 
   unregisterListener(key: string, id: number) {
@@ -66,21 +60,23 @@ export class RemoteKVWrapper {
 }
 
 type ContextType = {
-  kv?: RemoteKVWrapper,
-  remoteStore?: RemoteStore,
+  kv?: RemoteKVWrapper;
+  remoteStore?: RemoteStore;
   setRemoteStore: (store: RemoteStore | undefined) => void;
-}
+};
 
 const RemoteKVContext = createContext<ContextType>({} as ContextType);
 
 export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
   const [kv, setKv] = useState<RemoteKVWrapper>();
   const [remoteStore, setRemoteStore] = useState<RemoteStore>();
-  
+
   useEffect(() => {
     bus.addListener(AppEvents.REMOTE_KV_INITIALIZED, setKv);
 
-    return () => { bus.removeListener(AppEvents.REMOTE_KV_INITIALIZED, setKv); }
+    return () => {
+      bus.removeListener(AppEvents.REMOTE_KV_INITIALIZED, setKv);
+    };
   }, []);
 
   useEffect(() => {
@@ -95,20 +91,24 @@ export const RemoteKVProvider: FC<WithChildren> = ({ children }) => {
     };
     bus.addListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
 
-    return () => { bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener) }
+    return () => {
+      bus.removeListener(AppEvents.NEW_SYNC_CMIX_FAILED, listener);
+    };
   }, [setRemoteStore]);
 
   return (
     <RemoteKVContext.Provider value={{ kv, remoteStore, setRemoteStore }}>
       {children}
     </RemoteKVContext.Provider>
-  )
-}
+  );
+};
 
 export const useRemoteKV = () => useContext(RemoteKVContext).kv;
 
 export const useRemoteStore = () => {
   const { remoteStore, setRemoteStore } = useContext(RemoteKVContext);
-  return [remoteStore, setRemoteStore] as [ContextType['remoteStore'], ContextType['setRemoteStore']];
-}
-
+  return [remoteStore, setRemoteStore] as [
+    ContextType['remoteStore'],
+    ContextType['setRemoteStore']
+  ];
+};

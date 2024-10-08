@@ -27,12 +27,8 @@ const ExportCodenameView: FC = () => {
   }, [t, closeModal, exportPrivateIdentity, password]);
 
   return (
-    <div
-      className={cn('w-full flex flex-col justify-center items-center', s.root)}
-    >
-      <h2 className='mt-9 mb-4'>
-        {t('Export codename')}
-      </h2>
+    <div className={cn('w-full flex flex-col justify-center items-center', s.root)}>
+      <h2 className='mt-9 mb-4'>{t('Export codename')}</h2>
       <p className='mb-8'>
         {t(`You can export your codename for backup or to use your codename on a
         second device.`)}
@@ -46,7 +42,7 @@ const ExportCodenameView: FC = () => {
             handleSubmit();
           }
         }}
-        onChange={e => {
+        onChange={(e) => {
           setPassword(e.target.value);
         }}
       />
@@ -56,10 +52,7 @@ const ExportCodenameView: FC = () => {
           {error}
         </div>
       )}
-      <Button
-        className={cn('mt-5', s.button)}
-        onClick={handleSubmit}
-      >
+      <Button className={cn('mt-5', s.button)} onClick={handleSubmit}>
         {t('Export')}
       </Button>
     </div>

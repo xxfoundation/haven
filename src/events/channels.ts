@@ -1,5 +1,25 @@
-import { AdminKeysUpdateEvent, ChannelDMTokenUpdate, ChannelUpdateEvent, MessageDeletedEvent, MessageReceivedEvent, NicknameUpdatedEvent, NotificationUpdateEvent, TypedEventEmitter, UserMutedEvent } from '@types';
-import { Decoder, adminKeysUpdateDecoder, channelDMTokenUpdateDecoder, channelUpdateEventDecoder, messageDeletedEventDecoder, messageReceivedEventDecoder, nicknameUpdatedEventDecoder, notificationUpdateEventDecoder, userMutedEventDecoder } from '@utils/decoders';
+import {
+  AdminKeysUpdateEvent,
+  ChannelDMTokenUpdate,
+  ChannelUpdateEvent,
+  MessageDeletedEvent,
+  MessageReceivedEvent,
+  NicknameUpdatedEvent,
+  NotificationUpdateEvent,
+  TypedEventEmitter,
+  UserMutedEvent
+} from '@types';
+import {
+  Decoder,
+  adminKeysUpdateDecoder,
+  channelDMTokenUpdateDecoder,
+  channelUpdateEventDecoder,
+  messageDeletedEventDecoder,
+  messageReceivedEventDecoder,
+  nicknameUpdatedEventDecoder,
+  notificationUpdateEventDecoder,
+  userMutedEventDecoder
+} from '@utils/decoders';
 import { makeEventAwaiter, makeListenerHook } from '@utils/index';
 import EventEmitter from 'events';
 
@@ -23,11 +43,11 @@ export type ChannelEventMap = {
   [ChannelEvents.ADMIN_KEY_UPDATE]: AdminKeysUpdateEvent;
   [ChannelEvents.CHANNEL_UPDATE]: ChannelUpdateEvent[];
   [ChannelEvents.DM_TOKEN_UPDATE]: ChannelDMTokenUpdate;
-}
+};
 
 export type ChannelEventHandlers = {
   [P in keyof ChannelEventMap]: (event: ChannelEventMap[P]) => void;
-}
+};
 
 export type ChannelEventHandler = (eventType: ChannelEvents, data: unknown) => void;
 
@@ -39,8 +59,8 @@ const channelsEventDecoderMap: { [P in keyof ChannelEventMap]: Decoder<ChannelEv
   [ChannelEvents.NICKNAME_UPDATE]: nicknameUpdatedEventDecoder,
   [ChannelEvents.CHANNEL_UPDATE]: channelUpdateEventDecoder,
   [ChannelEvents.DM_TOKEN_UPDATE]: channelDMTokenUpdateDecoder,
-  [ChannelEvents.ADMIN_KEY_UPDATE]: adminKeysUpdateDecoder,
-}
+  [ChannelEvents.ADMIN_KEY_UPDATE]: adminKeysUpdateDecoder
+};
 
 export const channelsBus = new EventEmitter() as TypedEventEmitter<ChannelEventHandlers>;
 
@@ -53,7 +73,7 @@ export const onChannelEvent = (eventType: ChannelEvents, data: unknown) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     channelsBus.emit(eventType, eventDecoder(data) as any);
   }
-}
+};
 
 export const useChannelsListener = makeListenerHook(channelsBus);
 

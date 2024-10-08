@@ -34,20 +34,26 @@ import s from './UpdatesModal.module.scss';
 */
 
 const UpdatesModal = () => {
-  const [showModal, setShowModal] = useLocalStorage(`update-notice_${process.env.NEXT_PUBLIC_APP_VERSION}`, true);
-  
+  const [showModal, setShowModal] = useLocalStorage(
+    `update-notice_${process.env.NEXT_PUBLIC_APP_VERSION}`,
+    true
+  );
+
   return showModal ? (
-    <Modal data-testid='updates-modal' className={cn(s.root, 'w-[42rem]')} onClose={() => setShowModal(false)}>
+    <Modal
+      data-testid='updates-modal'
+      className={cn(s.root, 'w-[42rem]')}
+      onClose={() => setShowModal(false)}
+    >
       <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>
-      <ul style={{ marginLeft: '-1rem'}}>
-        <li className='text-center'>
-          ⭐ Automatically join xxGeneralChat
-        </li>
+      <ul style={{ marginLeft: '-1rem' }}>
+        <li className='text-center'>⭐ Automatically join xxGeneralChat</li>
         <li className='text-center'>
           🔍 Haven links now have previews when you send them via social media
         </li>
         <li className='text-center'>
-          👨‍🦳 Update to xxdk-wasm v0.3.22, which should improve time to initialize a new user codename
+          👨‍🦳 Update to xxdk-wasm v0.3.22, which should improve time to initialize a new user
+          codename
         </li>
       </ul>
       <div className='text-center'>
@@ -57,6 +63,6 @@ const UpdatesModal = () => {
       </div>
     </Modal>
   ) : null;
-}
+};
 
 export default UpdatesModal;

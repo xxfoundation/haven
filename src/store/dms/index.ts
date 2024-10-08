@@ -21,12 +21,13 @@ const upsertConversation = (state: DMState, conversation: Conversation) => ({
     ...state.conversationsByPubkey,
     [conversation.pubkey]: {
       ...state.conversationsByPubkey[conversation.pubkey],
-      ...conversation,
+      ...conversation
     }
   },
   notificationLevels: {
     ...state.notificationLevels,
-    [conversation.pubkey]: state.notificationLevels[conversation.pubkey] || DMNotificationLevel.NotifyAll
+    [conversation.pubkey]:
+      state.notificationLevels[conversation.pubkey] || DMNotificationLevel.NotifyAll
   }
 });
 
@@ -34,7 +35,7 @@ const upsertMessage = (state: DMState, message: Message) => ({
   ...state,
   reactions: reactionsReducer(state.reactions, message),
   ...(message.type !== MessageType.Reaction && {
-      messagesByPubkey: {
+    messagesByPubkey: {
       ...state.messagesByPubkey,
       [message.channelId]: {
         ...state.messagesByPubkey[message.channelId],
@@ -51,20 +52,16 @@ export const slice = createSlice({
   initialState,
   name: 'dms',
   reducers: {
-    upsertConversation: (
-      state: DMState,
-      { payload: conversation }: PayloadAction<Conversation>
-    ) => upsertConversation(state, conversation),
+    upsertConversation: (state: DMState, { payload: conversation }: PayloadAction<Conversation>) =>
+      upsertConversation(state, conversation),
     upsertManyConversations: (
       state: DMState,
       { payload: conversations }: PayloadAction<Conversation[]>
-    ) => conversations.reduce(upsertConversation,state),
-    upsertDirectMessage: (state: DMState, { payload: message }: PayloadAction<Message>) => 
+    ) => conversations.reduce(upsertConversation, state),
+    upsertDirectMessage: (state: DMState, { payload: message }: PayloadAction<Message>) =>
       upsertMessage(state, message),
-    upsertManyDirectMessages: (
-      state: DMState,
-      { payload: messages }: PayloadAction<Message[]>
-    ) => messages.reduce(upsertMessage, state),
+    upsertManyDirectMessages: (state: DMState, { payload: messages }: PayloadAction<Message[]>) =>
+      messages.reduce(upsertMessage, state),
     setUserNickname: (state: DMState, { payload: nickname }: PayloadAction<string>) => ({
       ...state,
       nickname
@@ -77,7 +74,10 @@ export const slice = createSlice({
       ...state,
       blocked: state.blocked.filter((b) => b !== pubkey)
     }),
-    upsertNotificationLevel: (state: DMState, { payload: { level, pubkey } }: PayloadAction<{ pubkey: string, level?: DMNotificationLevel }>) => ({
+    upsertNotificationLevel: (
+      state: DMState,
+      { payload: { level, pubkey } }: PayloadAction<{ pubkey: string; level?: DMNotificationLevel }>
+    ) => ({
       ...state,
       notificationLevels: {
         ...state.notificationLevels,
@@ -90,5 +90,3 @@ export const slice = createSlice({
 export default slice.reducer;
 export * as selectors from './selectors';
 export const actions = slice.actions;
-
-

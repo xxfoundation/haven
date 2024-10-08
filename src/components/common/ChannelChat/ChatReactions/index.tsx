@@ -18,7 +18,7 @@ import { EmojiPicker } from '@components/common/EmojiPortal';
 
 type Props = {
   message: Message;
-}
+};
 
 const ChatReactions: FC<Props> = ({ message }) => {
   const { t } = useTranslation();
@@ -28,43 +28,55 @@ const ChatReactions: FC<Props> = ({ message }) => {
   const reactions = useAppSelector(messages.selectors.reactionsTo(message));
   const id = useMemo(() => uniqueId(), []);
 
-  const toggleReaction = useCallback((emoji: string, reactingTo: string) => {
-    const currentReactions = reactions.find(([e]) => e === emoji);
-    const userReaction = currentReactions?.[1]?.find((r) => r.pubkey === userPubkey);
+  const toggleReaction = useCallback(
+    (emoji: string, reactingTo: string) => {
+      const currentReactions = reactions.find(([e]) => e === emoji);
+      const userReaction = currentReactions?.[1]?.find((r) => r.pubkey === userPubkey);
 
-    if (userReaction && currentChannelId !== null && userReaction.status === MessageStatus.Delivered) {
-      deleteMessage({ id: userReaction.id, channelId: currentChannelId });
-    } else {
-      sendReaction(emoji, reactingTo);
-    }
-  }, [currentChannelId, deleteMessage, reactions, sendReaction, userPubkey]);
+      if (
+        userReaction &&
+        currentChannelId !== null &&
+        userReaction.status === MessageStatus.Delivered
+      ) {
+        deleteMessage({ id: userReaction.id, channelId: currentChannelId });
+      } else {
+        sendReaction(emoji, reactingTo);
+      }
+    },
+    [currentChannelId, deleteMessage, reactions, sendReaction, userPubkey]
+  );
 
   return (
     <>
       <div className={cn('space-x-1', s.wrapper)}>
-        {reactions?.map(([emoji, reactionInfos]) => reactionInfos?.length > 0 && (
-          <div
-            key={`${id}-${message.id}-${emoji}`}
-            id={`${id}-${message.id}-${emoji}-emojis-users-reactions`}
-            className={cn('hover:bg-charcoal-3', s.emoji, {
-              'bg-primary-15 border border-primary': reactionInfos.map((i) => i.pubkey).includes(userPubkey ?? '')
-            })}
-            onClick={() => toggleReaction(emoji, message.id)}
-          >
-            <span className='mr-1'>{emoji}</span>
-            <span className={cn(s.count)}>
-              {reactionInfos.length}
-            </span>
-            {reactionInfos.filter((i) => i.status !== MessageStatus.Delivered).length > 0 && (
-              <Spinner size='xs' />
-            )}
-          </div>
-        ))}
+        {reactions?.map(
+          ([emoji, reactionInfos]) =>
+            reactionInfos?.length > 0 && (
+              <div
+                key={`${id}-${message.id}-${emoji}`}
+                id={`${id}-${message.id}-${emoji}-emojis-users-reactions`}
+                className={cn('hover:bg-charcoal-3', s.emoji, {
+                  'bg-primary-15 border border-primary': reactionInfos
+                    .map((i) => i.pubkey)
+                    .includes(userPubkey ?? '')
+                })}
+                onClick={() => toggleReaction(emoji, message.id)}
+              >
+                <span className='mr-1'>{emoji}</span>
+                <span className={cn(s.count)}>{reactionInfos.length}</span>
+                {reactionInfos.filter((i) => i.status !== MessageStatus.Delivered).length > 0 && (
+                  <Spinner size='xs' />
+                )}
+              </div>
+            )
+        )}
         {reactions.length > 0 && (
           <button className='bg-charcoal-4 text-charcoal-1 hover:text-primary rounded-xl p-1'>
-            <EmojiPicker onSelect={(e) => {
-              sendReaction(e, message.id);
-            }} />
+            <EmojiPicker
+              onSelect={(e) => {
+                sendReaction(e, message.id);
+              }}
+            />
           </button>
         )}
       </div>
@@ -78,16 +90,23 @@ const ChatReactions: FC<Props> = ({ message }) => {
         >
           <div className={cn(s.icon)}>{emoji}</div>
           <p>
-            {users.slice(0, Math.max(1, users.length - 1))
-              .map((u, i) => <>{i > 0 && ', '}<Identity key={u.pubkey} pubkey={u.pubkey} codeset={u.codeset} /></>)}
+            {users.slice(0, Math.max(1, users.length - 1)).map((u, i) => (
+              <>
+                {i > 0 && ', '}
+                <Identity key={u.pubkey} pubkey={u.pubkey} codeset={u.codeset} />
+              </>
+            ))}
             {users.length > 1 && (
-              <> {t('and')} <Identity clickable {...users[users.length - 1]} /></> 
+              <>
+                {' '}
+                {t('and')} <Identity clickable {...users[users.length - 1]} />
+              </>
             )}
           </p>
         </Tooltip>
       ))}
     </>
-  )
-}
+  );
+};
 
 export default ChatReactions;

@@ -4,13 +4,11 @@ import persistState from 'redux-localstorage';
 
 import app from './app';
 import channels from './channels';
-import dms from './dms'
+import dms from './dms';
 import identity from './identity';
 import messages from './messages';
 
-const enhancer = compose(
-  persistState(['app']),
-)
+const enhancer = compose(persistState(['app']));
 
 const store = configureStore({
   enhancers: typeof window === 'undefined' ? [] : [enhancer],
@@ -21,6 +19,6 @@ const store = configureStore({
     identity,
     messages
   })
-})
+});
 
 export default store;

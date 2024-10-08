@@ -10,9 +10,11 @@ const Register: FC = () => {
     setPassword(pass);
   }, []);
 
-  return password
-    ? <CodeNameRegistration password={password} />
-    : <Registration onPasswordConfirmation={onPasswordConfirmation}></Registration>
+  return password ? (
+    <CodeNameRegistration password={password} />
+  ) : (
+    <Registration onPasswordConfirmation={onPasswordConfirmation}></Registration>
+  );
 };
 
 export default Register;

@@ -30,5 +30,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/quill/constants.js"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/declarations/**/*.js", "src/declarations/**/*.ts"]
 }

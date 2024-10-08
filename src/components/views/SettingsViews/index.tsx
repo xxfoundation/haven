@@ -9,15 +9,14 @@ import NotificationsView from './NotificationsView';
 import DeveloperOptionsView from './DeveloperOptions';
 import LogOutView from './LogOut';
 
-
 const NOOP = () => null;
 
 const views: Partial<Record<SettingsView, FC>> = {
   notifications: NotificationsView,
   logout: LogOutView,
   'export-codename': ExportCodenameView,
-  'dev': DeveloperOptionsView
-}
+  dev: DeveloperOptionsView
+};
 
 const Settings = () => {
   const { settingsView } = useUI();
@@ -27,7 +26,7 @@ const Settings = () => {
     <div className='bg-near-black py-12 px-10 w-full max-w-4xl'>
       <View />
     </div>
-  )
-}
+  );
+};
 
 export default Settings;

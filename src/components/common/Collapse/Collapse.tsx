@@ -23,7 +23,7 @@ const CloseIcon = ({ className = '' }: { className?: string }) => {
   return <ArrowUp className={cn(s.icon, className)} />;
 };
 
-const IconTitle = ({ active, title }: { active: boolean, title: CollapseProps['title'] }) => {
+const IconTitle = ({ active, title }: { active: boolean; title: CollapseProps['title'] }) => {
   return (
     <>
       {!active ? <CloseIcon /> : <Icon />}
@@ -33,12 +33,7 @@ const IconTitle = ({ active, title }: { active: boolean, title: CollapseProps['t
 };
 
 const Collapse: FC<CollapseProps> = React.memo(
-  ({
-    children,
-    className = '',
-    defaultActive = false,
-    title
-  }) => {
+  ({ children, className = '', defaultActive = false, title }) => {
     const [isActive, setActive] = useState(defaultActive);
     const [ref, { height: viewHeight }] = useMeasure({
       polyfill: ResizeObserver
@@ -50,18 +45,11 @@ const Collapse: FC<CollapseProps> = React.memo(
       opacity: isActive ? 1 : 0
     });
 
-    const toggle = () => setActive(x => !x);
+    const toggle = () => setActive((x) => !x);
     return (
-      <div
-        className={cn(s.root, className)}
-        role='button'
-        tabIndex={0}
-        aria-expanded={isActive}
-      >
+      <div className={cn(s.root, className)} role='button' tabIndex={0} aria-expanded={isActive}>
         <div className={cn(s.header, 'text--sm')} onClick={toggle}>
-          <IconTitle
-            active={isActive}
-            title={title} />
+          <IconTitle active={isActive} title={title} />
         </div>
         <a.div style={{ overflow: 'hidden', ...animProps }}>
           <div ref={ref} className={s.content}>

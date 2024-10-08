@@ -4,7 +4,7 @@ export type Identity = {
   color: string;
   extension: string;
   codeset: number;
-}
+};
 
 export type IdentityState = { identity?: Identity };
 

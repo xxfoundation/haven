@@ -1,4 +1,4 @@
-import useLocalStorage from './useLocalStorage'
+import useLocalStorage from './useLocalStorage';
 import { useCallback } from 'react';
 import { FAST_MODE_TRACKING_PERIOD_MS, SLOW_MODE_TRACKING_PERIOD_MS } from 'src/constants';
 
@@ -11,11 +11,10 @@ const useTrackNetworkPeriod = () => {
 
   return {
     trackingMode,
-    trackingMs: trackingMode === 'slow'
-      ? SLOW_MODE_TRACKING_PERIOD_MS
-      : FAST_MODE_TRACKING_PERIOD_MS,
-    toggle,
-  }
+    trackingMs:
+      trackingMode === 'slow' ? SLOW_MODE_TRACKING_PERIOD_MS : FAST_MODE_TRACKING_PERIOD_MS,
+    toggle
+  };
 };
 
 export default useTrackNetworkPeriod;

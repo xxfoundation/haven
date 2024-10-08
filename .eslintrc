@@ -3,7 +3,7 @@
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
-    "project": ["tsconfig.json"]
+    "project": ["./tsconfig.json"]
   },
   "plugins": [
     "@next/eslint-plugin-next",
@@ -11,18 +11,16 @@
     "react-hooks",
     "import",
     "simple-import-sort",
-    "import-newlines",
-    "sort-destructure-keys"
+    "import-newlines"
   ],
   "extends": [
     "airbnb-typescript",
     "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "plugin:prettier/recommended"
   ],
   "rules": {
     "@typescript-eslint/no-explicit-any": "error",
     "no-unused-vars": "error",
-    "sort-destructure-keys/sort-destructure-keys": [2],
     "react/jsx-filename-extension": [0],
     "implicit-arrow-linebreak": "off",
     "react-hooks/rules-of-hooks": "error",
@@ -36,7 +34,10 @@
     "no-console": ["error", { "allow": ["warn", "error"] }],
     "@typescript-eslint/comma-dangle": "off",
     "function-paren-newline": "off",
-    "quotes": ["error", "single"],
+    "quotes": ["error", "single", {
+      "avoidEscape": true,
+      "allowTemplateLiterals": true
+    }],
     "jsx-quotes": ["error", "prefer-single"]
   },
   "settings": {

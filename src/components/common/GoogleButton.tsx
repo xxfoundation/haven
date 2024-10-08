@@ -18,12 +18,9 @@ declare global {
 type Props = Partial<ButtonProps> & {
   onStartLoading?: () => void;
   password?: string;
-}
+};
 
-const GoogleButton: FC<Props>  = ({
-  onStartLoading = () => {},
-  ...props
-}) => {
+const GoogleButton: FC<Props> = ({ onStartLoading = () => {}, ...props }) => {
   const { t } = useTranslation();
 
   const login = useGoogleLogin({
@@ -31,8 +28,8 @@ const GoogleButton: FC<Props>  = ({
     prompt: 'consent',
     onSuccess: (token) => {
       onStartLoading();
-      appBus.emit(AppEvents.GOOGLE_TOKEN, token.access_token)
-    },
+      appBus.emit(AppEvents.GOOGLE_TOKEN, token.access_token);
+    }
   });
 
   return (
@@ -41,7 +38,7 @@ const GoogleButton: FC<Props>  = ({
       className={cn('flex justify-center items-center space-x-1')}
       id='google-auth-button'
       onClick={() => {
-        login()
+        login();
       }}
     >
       <FontAwesomeIcon className='w-5 h-5' icon={faGoogleDrive} />
@@ -49,6 +46,6 @@ const GoogleButton: FC<Props>  = ({
       <span className='whitespace-nowrap'>{t('Google Drive')}</span>
     </Button>
   );
-}
+};
 
 export default GoogleButton;

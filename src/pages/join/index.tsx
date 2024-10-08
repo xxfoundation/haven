@@ -22,7 +22,9 @@ import { useAuthentication } from '@contexts/authentication-context';
 const Join: NextPage = () => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean|'loading'|'no-response'>('loading');
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState<
+    boolean | 'loading' | 'no-response'
+  >('loading');
   const { getShareUrlType } = useNetworkClient();
   const { instanceId } = useAuthentication();
   const [withLink, setWithLink] = useState(false);
@@ -32,9 +34,12 @@ const Join: NextPage = () => {
   const { utils, utilsLoaded } = useUtils();
   const [channelInfoJson, setChannelInfoJson] = useState<ChannelJSON>();
   const [channelPrettyPrint, setChannelPrettyPrint] = useState('');
-  const broadcastChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('join_channel'), []);
+  const broadcastChannel = useMemo<BroadcastChannel>(
+    () => new BroadcastChannel('join_channel'),
+    []
+  );
   const authChannel = useMemo<BroadcastChannel>(() => new BroadcastChannel('authentication'), []);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [dmsEnabled, setDmsEnabled] = useState<boolean>(true);
 
@@ -47,14 +52,14 @@ const Join: NextPage = () => {
     };
 
     setInterval(() => {
-      setIsUserAuthenticated((auth) => auth === 'loading' ? 'no-response' : auth);
+      setIsUserAuthenticated((auth) => (auth === 'loading' ? 'no-response' : auth));
     }, 2000);
 
-    authChannel.addEventListener('message', onResponse)
+    authChannel.addEventListener('message', onResponse);
 
     return () => {
       authChannel.removeEventListener('message', onResponse);
-    }
+    };
   }, [authChannel, instanceId]);
 
   useEffect(() => {
@@ -78,7 +83,6 @@ const Join: NextPage = () => {
     }
   }, [isLoading, isUserAuthenticated, utilsLoaded]);
 
-
   useEffect(() => {
     if (withLink) {
       const urlType = getShareUrlType(window.location.href);
@@ -89,9 +93,9 @@ const Join: NextPage = () => {
   useEffect(() => {
     if (channelType === PrivacyLevel.Public && broadcastChannel) {
       const prettyPrinted = utils.DecodePublicURL(window.location.href);
-      const infoJson = channelDecoder(JSON.parse(
-        decoder.decode(utils.GetChannelJSON(prettyPrinted))
-      ));
+      const infoJson = channelDecoder(
+        JSON.parse(decoder.decode(utils.GetChannelJSON(prettyPrinted)))
+      );
       setChannelPrettyPrint(prettyPrinted);
       setChannelInfoJson(infoJson);
     }
@@ -100,13 +104,10 @@ const Join: NextPage = () => {
   const joinPrivateChannel = useCallback(() => {
     if (password) {
       try {
-        const prettyPrinted = utils.DecodePrivateURL(
-          window.location.href,
-          password
+        const prettyPrinted = utils.DecodePrivateURL(window.location.href, password);
+        const infoJson = channelDecoder(
+          JSON.parse(decoder.decode(utils.GetChannelJSON(prettyPrinted)))
         );
-        const infoJson = channelDecoder(JSON.parse(
-          decoder.decode(utils.GetChannelJSON(prettyPrinted))
-        ));
         setChannelPrettyPrint(prettyPrinted);
         setChannelInfoJson(infoJson);
       } catch (e) {
@@ -142,7 +143,7 @@ const Join: NextPage = () => {
       </WarningComponent>
     );
   }
-  
+
   if (!withLink) {
     return (
       <WarningComponent>
@@ -150,7 +151,7 @@ const Join: NextPage = () => {
         <br />
         {t('Return to your Haven home tab to continue.')}
       </WarningComponent>
-    )
+    );
   }
 
   if (isUserAuthenticated === false) {
@@ -160,7 +161,7 @@ const Join: NextPage = () => {
         <br />
         {t('Return to the signup page to create an identity or log in.')}
       </WarningComponent>
-    )
+    );
   }
 
   return (
@@ -176,9 +177,7 @@ const Join: NextPage = () => {
       )}
       {!channelInfoJson && window?.location?.href && channelType === 2 && (
         <div className={s.passwordWrapper}>
-          <h2 className='mt-9 mb-6'>
-            {('This Haven Chat requires a passphrase to join')}
-          </h2>
+          <h2 className='mt-9 mb-6'>{'This Haven Chat requires a passphrase to join'}</h2>
           <input
             className='mt-3 mb-4'
             name=''
@@ -190,29 +189,21 @@ const Join: NextPage = () => {
             }}
             placeholder={t('Enter passphrase')}
             value={password}
-            onChange={e => {
+            onChange={(e) => {
               setPassword(e.target.value);
             }}
           />
 
           <div className='flex justify-between mt-8 w-full px-3'>
-            <h3 className='headline--sm'>
-              {t('Enable Direct Messages')}
-            </h3>
+            <h3 className='headline--sm'>{t('Enable Direct Messages')}</h3>
             <CheckboxToggle checked={dmsEnabled} onChange={() => setDmsEnabled((e) => !e)} />
           </div>
           {error && (
-            <div
-              className={'text text--xs mt-2 text-center'}
-              style={{ color: 'var(--red)' }}
-            >
+            <div className={'text text--xs mt-2 text-center'} style={{ color: 'var(--red)' }}>
               {error}
             </div>
           )}
-          <Button
-            className={cn('mb-7 mt-8 mr-4', s.button)}
-            onClick={joinPrivateChannel}
-          >
+          <Button className={cn('mb-7 mt-8 mr-4', s.button)} onClick={joinPrivateChannel}>
             {t('Confirm')}
           </Button>
         </div>

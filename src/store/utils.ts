@@ -5,18 +5,11 @@ import { omit, uniqBy } from 'lodash';
 
 import { MessageType } from '@types';
 
-export const byTimestamp = <T extends { timestamp: string }>(a: T, b: T) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+export const byTimestamp = <T extends { timestamp: string }>(a: T, b: T) =>
+  new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
 
 export const reactionsReducer = (state: EmojiReactions, message: Message): EmojiReactions => {
-  const { 
-    body: emoji,
-    codeset,
-    id,
-    pubkey,
-    repliedTo,
-    status,
-    type,
-  } = message
+  const { body: emoji, codeset, id, pubkey, repliedTo, status, type } = message;
   if (repliedTo === null || type !== MessageType.Reaction) {
     return state;
   }
@@ -27,10 +20,10 @@ export const reactionsReducer = (state: EmojiReactions, message: Message): Emoji
     ...state,
     [repliedTo]: {
       ...state[repliedTo],
-      [emoji]: uniqBy([info].concat(state[repliedTo]?.[emoji] ?? []), (m) => m.pubkey),
+      [emoji]: uniqBy([info].concat(state[repliedTo]?.[emoji] ?? []), (m) => m.pubkey)
     }
   };
-}
+};
 
 export const deleteReactionReducer = (state: EmojiReactions, messageId: MessageId) => {
   let emoji: string | undefined;
@@ -48,17 +41,16 @@ export const deleteReactionReducer = (state: EmojiReactions, messageId: MessageI
     return state;
   }
 
-  const reactions = state[repliedTo]?.[emoji]?.filter(
-    (r) => r.id !== messageId
-  );
-  
+  const reactions = state[repliedTo]?.[emoji]?.filter((r) => r.id !== messageId);
+
   return {
     ...state,
-    [repliedTo]: reactions.length === 0
-      ? omit(state[repliedTo], emoji)
-      : {
-      ...state[repliedTo],
-      [emoji]: reactions
-    },
+    [repliedTo]:
+      reactions.length === 0
+        ? omit(state[repliedTo], emoji)
+        : {
+            ...state[repliedTo],
+            [emoji]: reactions
+          }
   };
-}
+};

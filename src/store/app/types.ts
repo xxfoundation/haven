@@ -13,7 +13,7 @@ export type AppState = {
   missedMessages?: Record<ChannelId | ConversationId, MessageId[] | undefined>;
   replyingToMessageId?: string;
   highlightedMessageId?: string;
-}
+};
 
 declare module 'src/store/types' {
   interface RootState {

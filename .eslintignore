@@ -3,3 +3,6 @@ tailwind.config.js
 react-draft-wysiwyg
 cypress.config.ts
 src/pages/api/__coverage__.js
+next.config.js
+src/declarations/app/*
+.dfx/*

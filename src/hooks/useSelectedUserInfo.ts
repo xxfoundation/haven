@@ -9,12 +9,12 @@ import { useUtils } from '@contexts/utils-context';
 import { dmTokens as dmTokensSelector } from 'src/store/messages/selectors';
 
 type UserInfo = {
-  codeset: number,
-  codename: string,
+  codeset: number;
+  codename: string;
   dmToken?: number;
-  color: string,
-  nickname?: string,
-  pubkey: string
+  color: string;
+  nickname?: string;
+  pubkey: string;
 };
 
 type CommonChannel = {
@@ -22,7 +22,7 @@ type CommonChannel = {
   nickname?: string;
   codename: string;
   channelName: string;
-}
+};
 
 const useSelectedUserInfo = () => {
   const { getCodeNameAndColor } = useUtils();
@@ -36,11 +36,10 @@ const useSelectedUserInfo = () => {
   useEffect(() => {
     setUserInfo(null);
     setCommonChannels([]);
-    
+
     if (!db || selectedUserPubkey === null) {
       return;
     }
-
 
     db.table<DBMessage>('messages')
       .filter((msg) => msg.pubkey === selectedUserPubkey)
@@ -48,9 +47,12 @@ const useSelectedUserInfo = () => {
       .then((msgs) => {
         const sortedMessages = msgs.sort(byTimestamp);
         const recentMessage = sortedMessages[msgs.length - 1];
-        
+
         if (recentMessage) {
-          const { codename, color } = getCodeNameAndColor(recentMessage.pubkey, recentMessage.codeset_version);
+          const { codename, color } = getCodeNameAndColor(
+            recentMessage.pubkey,
+            recentMessage.codeset_version
+          );
           setUserInfo({
             codeset: recentMessage.codeset_version,
             codename,
@@ -59,11 +61,14 @@ const useSelectedUserInfo = () => {
             color,
             pubkey: recentMessage.pubkey
           });
-            
-          const latestMessageByChannelId = sortedMessages.reverse().reduce((acc, cur) => ({
-            ...acc,
-            [cur.channel_id]: acc[cur.channel_id] || cur,
-          }), {} as Record<string, DBMessage>);
+
+          const latestMessageByChannelId = sortedMessages.reverse().reduce(
+            (acc, cur) => ({
+              ...acc,
+              [cur.channel_id]: acc[cur.channel_id] || cur
+            }),
+            {} as Record<string, DBMessage>
+          );
 
           const channelIds = Object.keys(latestMessageByChannelId);
 
@@ -79,22 +84,29 @@ const useSelectedUserInfo = () => {
                   nickname: latestMessageByChannelId[c.id]?.nickname,
                   codename: codename
                 }))
-              )
+              );
             });
         }
-    });
+      });
 
-    if (!dmDb) { return }
+    if (!dmDb) {
+      return;
+    }
     Promise.all([
-      dmDb.table<DBConversation>('conversations')
+      dmDb
+        .table<DBConversation>('conversations')
         .filter((convo) => convo.pub_key === selectedUserPubkey)
         .first(),
-      dmDb.table<DBDirectMessage>('messages')
+      dmDb
+        .table<DBDirectMessage>('messages')
         .filter((msg) => msg.sender_pub_key === selectedUserPubkey)
         .last()
     ]).then(([conversation, recentMessage]) => {
       if (conversation && recentMessage) {
-        const { codename, color } = getCodeNameAndColor(conversation.pub_key, conversation.codeset_version);
+        const { codename, color } = getCodeNameAndColor(
+          conversation.pub_key,
+          conversation.codeset_version
+        );
         setUserInfo({
           codeset: conversation?.codeset_version,
           codename,
@@ -104,20 +116,15 @@ const useSelectedUserInfo = () => {
           nickname: conversation.nickname
         });
       }
-    })
-  }, [
-    db,
-    dmDb,
-    getCodeNameAndColor,
-    selectedUserPubkey,
-    dmTokens
-  ]);
+    });
+  }, [db, dmDb, getCodeNameAndColor, selectedUserPubkey, dmTokens]);
 
-
-  return userInfo && {
-    info: userInfo,
-    commonChannels,
-  }
-}
+  return (
+    userInfo && {
+      info: userInfo,
+      commonChannels
+    }
+  );
+};
 
 export default useSelectedUserInfo;

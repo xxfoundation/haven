@@ -6,17 +6,18 @@ import { Elixxir } from '@components/icons';
 import Profile from '@components/icons/Profile';
 import { useUI } from '@contexts/ui-context';
 
-const User: FC= () => {
+const User: FC = () => {
   const { leftSidebarView: sidebarView, setLeftSidebarView: setSidebarView } = useUI();
   const { codename } = useAppSelector(identity.selectors.identity) ?? {};
 
   return codename ? (
-    <button className='flex items-center text-blue font-semibold text-xs flex-nowrap text-md overflow-hidden' onClick={() => setSidebarView('settings')}>
-      <Profile 
+    <button
+      className='flex items-center text-blue font-semibold text-xs flex-nowrap text-md overflow-hidden'
+      onClick={() => setSidebarView('settings')}
+    >
+      <Profile
         style={{
-          fill: sidebarView === 'settings'
-            ? 'var(--primary)'
-            : 'var(--charcoal-1)'
+          fill: sidebarView === 'settings' ? 'var(--primary)' : 'var(--charcoal-1)'
         }}
       />
       <span
@@ -31,13 +32,11 @@ const User: FC= () => {
           overflow: 'hidden'
         }}
       >
-        <Elixxir
-          style={{ fill: 'var(--blue)', width: '1ch', display: 'inline' }}
-        />
+        <Elixxir style={{ fill: 'var(--blue)', width: '1ch', display: 'inline' }} />
         {codename}
       </span>
     </button>
   ) : null;
-}
+};
 
 export default User;

@@ -7,14 +7,13 @@ import { InitXXDK, setXXDKBasePath } from 'xxdk-wasm';
 import { useUtils } from 'src/contexts/utils-context';
 import { useRouter } from 'next/router';
 
-
 type Logger = {
-  StopLogging: () => void,
-  GetFile: () => Promise<string>,
-  Threshold: () => number,
-  MaxSize: () => number,
-  Size: () => Promise<number>,
-  Worker: () => Worker,
+  StopLogging: () => void;
+  GetFile: () => Promise<string>;
+  Threshold: () => number;
+  MaxSize: () => number;
+  Size: () => Promise<number>;
+  Worker: () => Worker;
 };
 
 declare global {
@@ -47,7 +46,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
       setXXDKBasePath(basePath);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      InitXXDK().then(async(result: any) => {
+      InitXXDK().then(async (result: any) => {
         setUtils(result);
         setUtilsLoaded(true);
       });
