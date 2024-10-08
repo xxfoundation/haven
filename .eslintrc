@@ -34,7 +34,10 @@
     "no-console": ["error", { "allow": ["warn", "error"] }],
     "@typescript-eslint/comma-dangle": "off",
     "function-paren-newline": "off",
-    "quotes": ["error", "single"],
+    "quotes": ["error", "single", {
+      "avoidEscape": true,
+      "allowTemplateLiterals": true
+    }],
     "jsx-quotes": ["error", "prefer-single"]
   },
   "settings": {
