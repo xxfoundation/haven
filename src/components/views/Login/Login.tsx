@@ -9,8 +9,6 @@ import s from './Login.module.scss';
 import { NormalHaven, OpenSource, NormalHash } from 'src/components/icons';
 import { useAuthentication } from '@contexts/authentication-context';
 import useAccountSync, { AccountSyncService, AccountSyncStatus } from 'src/hooks/useAccountSync';
-import GoogleButton from '@components/common/GoogleButton';
-import DropboxButton from '@components/common/DropboxButton';
 import { AppEvents, awaitAppEvent as awaitEvent, appBus as bus } from 'src/events';
 import Input from '@components/common/Input';
 

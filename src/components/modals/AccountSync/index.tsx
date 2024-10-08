@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Button, Spinner } from '@components/common';
 import { useUI } from '@contexts/ui-context';
 import useAccountSync, { AccountSyncStatus } from 'src/hooks/useAccountSync';
-import GoogleButton from '../../common/GoogleButton';
-import DropboxButton from '../../common/DropboxButton';
 
 import { AppEvents, awaitAppEvent as awaitEvent } from 'src/events';
 import ModalTitle from '../ModalTitle';
@@ -47,8 +45,6 @@ const AccountSyncView: FC = () => {
         <Spinner size='md' />
       ) : (
         <div data-testid='account-sync-buttons' className='grid grid-cols-2 gap-4 pt-4'>
-          <GoogleButton className='whitespace-nowrap' onStartLoading={waitForRemoteSyncThenClose} />
-          <DropboxButton onStartLoading={waitForRemoteSyncThenClose} />
           <div className='col-span-2 text-center'>
             <Button className='' data-testid='account-sync-local-only-button' onClick={ignoreSync}>
               {t('Local-only')}

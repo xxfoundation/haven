@@ -3,8 +3,6 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import { Spinner } from '@components/common';
 import { useUI } from '@contexts/ui-context';
-import GoogleButton from '@components/common/GoogleButton';
-import DropboxButton from '@components/common/DropboxButton';
 import useAccountSync, { AccountSyncService } from 'src/hooks/useAccountSync';
 import { AppEvents, awaitAppEvent } from 'src/events';
 import Badge from '@components/common/Badge';
@@ -73,14 +71,7 @@ const AccountSync = () => {
                 change to another service or revert to local-only.
               </Trans>
             </p>
-            {loading ? (
-              <Spinner size='md' />
-            ) : (
-              <div data-testid='account-sync-buttons' className='space-x-6 flex items-center'>
-                <GoogleButton onStartLoading={onSyncStart} />
-                <DropboxButton onStartLoading={onSyncStart} />
-              </div>
-            )}
+            {loading ? <Spinner size='md' /> : <strong>unsupported feature</strong>}
           </>
         )}
       </div>

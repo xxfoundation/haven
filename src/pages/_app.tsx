@@ -94,13 +94,7 @@ const Providers: FC<WithChildren> = ({ children }) => (
           <AuthenticationProvider>
             <DMContextProvider>
               <ManagedNetworkContext>
-                <ManagedUIContext>
-                  <GoogleOAuthProvider
-                    clientId={process.env.NEXT_PUBLIC_APP_GOOGLE_DRIVE_CLIENT_ID ?? ''}
-                  >
-                    {children}
-                  </GoogleOAuthProvider>
-                </ManagedUIContext>
+                <ManagedUIContext>{children}</ManagedUIContext>
               </ManagedNetworkContext>
             </DMContextProvider>
           </AuthenticationProvider>
