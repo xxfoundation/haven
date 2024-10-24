@@ -5,7 +5,6 @@ import { FC, useState, useEffect, useMemo, CSSProperties } from 'react';
 import UserTextArea from './UserTextArea/UserTextArea';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 
-import s from './ChannelChat.module.scss';
 import MessagesContainer from './MessagesContainer';
 import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
@@ -73,12 +72,12 @@ const ChannelChat: FC<Props> = ({ messages }) => {
               setAutoScrollBottom={setAutoScroll}
               nearBottom={pagination.previous}
               nearTop={pagination.next}
-              className={s.messagesContainer}
+              className='flex grow shrink basis-auto flex-col-reverse overflow-auto'
             >
               <MessagesContainer messages={paginatedItems} />
             </ScrollDiv>
           )}
-          <UserTextArea className={s.textArea} />
+          <UserTextArea className='relative grow-0 shrink-0 basis-10' />
         </>
       )}
     </>

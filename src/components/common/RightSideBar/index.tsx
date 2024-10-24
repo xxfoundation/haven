@@ -8,6 +8,7 @@ import PinnedMessages from './PinnedMessages';
 import MutedUsers from './MutedUsers';
 import ContributorsView from './Contributors';
 import ChannelNotifications from './ChannelNotifications';
+import cn from 'classnames';
 
 const views: Record<RightSidebarView, FC> = {
   'space-details': SpaceDetails,
@@ -18,7 +19,7 @@ const views: Record<RightSidebarView, FC> = {
   'channel-notifications': ChannelNotifications
 };
 
-const RightSideBar = () => {
+const RightSideBar: FC<{ className?: string }> = ({ className }) => {
   const { rightSidebarView, setRightSidebarView } = useUI();
   const Component = (rightSidebarView && views[rightSidebarView]) ?? (() => null);
 
@@ -30,9 +31,14 @@ const RightSideBar = () => {
     }
   }, [selectedUserId, setRightSidebarView]);
 
+  const classes = 'border-l border-charcoal-4 basis-80';
+  const classesMobile = 'order-first w-full fixed left-0 bg-charcoal-4 h-full'; // mobile first
+  const classesMD = 'md:min-w-[21.75rem] md:overflow-y-auto md:absolute md:inset-0'; // for devices above medium
+  const classesSMDTP = `smdtp:order-none smdtp:bg-charcoal-4-40 smdtp:min-w-[21.75rem] smdtp:overflow-y-auto smdtp:static`; // for devices above large
+
   return (
     rightSidebarView && (
-      <div className='border-l border-charcoal-4 bg-charcoal-4-40 basis-80 min-w-[21.75rem] overflow-y-auto'>
+      <div className={cn(className, classes, classesMobile, classesMD, classesSMDTP)}>
         <Component />
       </div>
     )

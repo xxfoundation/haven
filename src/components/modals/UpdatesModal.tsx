@@ -42,7 +42,7 @@ const UpdatesModal = () => {
   return showModal ? (
     <Modal
       data-testid='updates-modal'
-      className={cn(s.root, 'w-[42rem]')}
+      className={cn(s.root, 'm-4 md:w-[42rem]')}
       onClose={() => setShowModal(false)}
     >
       <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>

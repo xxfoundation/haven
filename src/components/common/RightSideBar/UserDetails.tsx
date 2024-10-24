@@ -68,7 +68,7 @@ const UserDetails = () => {
   const toggleBlockAsync = useAsync(toggleBlocked);
 
   return userInfo?.dmToken !== undefined ? (
-    <div className='min-w-[22rem] max-w-[22rem] flex flex-col '>
+    <div className='min-w-[22rem] flex flex-col '>
       <div
         className='px-6 py-4 flex flex-nowrap justify-between'
         style={{ backgroundColor: `${userInfo?.color}` }}

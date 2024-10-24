@@ -41,7 +41,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
         <div className={cn(s.header)}>
           <NormalHaven data-testid='speakeasy-logo' />
         </div>
-        <div className={cn('grid grid-cols-12 gap-0', s.content)}>
+        <div className={cn('grid grid-cols-1 gap-0 md:grid-cols-12', s.content)}>
           <div className='col-span-9 flex flex-col items-start'>
             <Trans>
               <span className={cn(s.golden)}>True Freedom</span>
@@ -59,7 +59,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
               </span>
             </Trans>
           </div>
-          <div className='col-span-3 pl-3'>
+          <div className='order-first mb-16 md:col-span-3 md:pl-3 md:order-none'>
             <h2 className='mb-2'>{t('Join the alpha')}</h2>
             {!showSelectServiceMenu && (
               <>
@@ -195,7 +195,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             href='https://git.xx.network/elixxir/speakeasy-web'
             target='_blank'
             rel='noreferrer'
-            className={cn('flex flex-col col-span-4', s.perkCard)}
+            className={cn('flex flex-col col-span-6 md:col-span-4', s.perkCard)}
           >
             <OpenSource />
             <span className={cn(s.perkCard__title)}>{t('Open Source')}</span>
@@ -207,7 +207,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
             href='https://learn.xx.network/'
             target='_blank'
             rel='noreferrer'
-            className={cn('flex flex-col col-span-4', s.perkCard)}
+            className={cn('flex flex-col col-span-6 md:col-span-4', s.perkCard)}
           >
             <NormalHash />
             <span className={cn(s.perkCard__title)}>{t('Fundamentally Different')}</span>
@@ -232,7 +232,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
  */}{' '}
         </div>
       </div>
-      <div className={cn(s.links)}>
+      <div className={cn(s.links, 'flex-wrap gap-y-3 xs:flex-row')}>
         <a href='https://xx.network/' target='_blank' rel='noreferrer'>
           {t('xx network')}
         </a>

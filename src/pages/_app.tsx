@@ -4,7 +4,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { NextSeo } from 'next-seo';
 import { AppProps } from 'next/app';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 import { Provider } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
@@ -25,11 +25,11 @@ import 'src/utils/extend-dayjs';
 import { RemoteKVProvider } from '@contexts/remote-kv-context';
 import { DMContextProvider } from '@contexts/dm-client-context';
 
-const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
-const isDesktop = () => {
-  const details = navigator.userAgent;
-  return !regexp.test(details);
-};
+// const regexp = /android|iphone|iPhone|kindle|ipad|iPad|Harmony|harmony|Tizen|tizen/i;
+// const isDesktop = () => {
+//   const details = navigator.userAgent;
+//   return !regexp.test(details);
+// };
 
 const Noop: FC<WithChildren> = ({ children }) => <>{children}</>;
 
@@ -110,13 +110,13 @@ const HavenApp = ({ Component, pageProps }: AppProps) => {
   useEffect(() => {
     setShouldRender(true);
   }, []);
-  const router = useRouter();
+  // const router = useRouter();
 
-  useEffect(() => {
-    if (!isDesktop()) {
-      router.push('https://haven.xx.network/mobile/');
-    }
-  }, [router]);
+  // useEffect(() => {
+  //   if (!isDesktop()) {
+  //     router.push('https://haven.xx.network/mobile/');
+  //   }
+  // }, [router]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Layout = (Component as any).Layout || Noop;

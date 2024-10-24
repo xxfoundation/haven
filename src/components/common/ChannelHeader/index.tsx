@@ -3,8 +3,7 @@ import type { Channel } from 'src/store/channels/types';
 import React, { FC, HTMLAttributes, SVGProps, useCallback, useMemo, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar } from '@fortawesome/free-solid-svg-icons';
+
 import assert from 'assert';
 
 import Ellipsis from '@components/icons/Ellipsis';
@@ -37,30 +36,33 @@ import LockOpen from '@components/icons/LockOpen';
 import { useNetworkClient } from '@contexts/network-client-context';
 import { useUtils } from '@contexts/utils-context';
 import classNames from 'classnames';
+import { Star } from 'lucide-react';
 
 type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
 };
 
-const HeaderButton: FC<
+const HeaderMenuItem: FC<
   HTMLAttributes<HTMLButtonElement> & { notification?: boolean; active?: boolean }
 > = (props) => (
-  <button
-    {...props}
-    className={cn(
-      'relative w-8 h-8 p-1 hover:text-primary hover:bg-charcoal-3-20 rounded-full',
-      props.className,
-      {
-        'text-primary': props.active,
-        'text-charcoal-1': !props.active
-      }
-    )}
-  >
-    {props.children}
-    {props.notification && (
-      <div className='rounded-full w-2 h-2 absolute bottom-1 right-1 bg-red' />
-    )}
-  </button>
+  <li className='list-none'>
+    <button
+      {...props}
+      className={cn(
+        'cursor-pointer relative w-8 h-8 p-1 hover:text-primary hover:bg-charcoal-3-20 rounded-full',
+        props.className,
+        {
+          'text-primary': props.active,
+          'text-charcoal-1': !props.active
+        }
+      )}
+    >
+      {props.children}
+      {props.notification && (
+        <div className='rounded-full w-2 h-2 absolute bottom-1 right-1 bg-red' />
+      )}
+    </button>
+  </li>
 );
 
 const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
@@ -116,47 +118,72 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
   }, [channelManager, channelNotificationLevel, currentChannel?.id, utils]);
 
   return (
-    <div data-testid='channel-header' className={cn('flex', s.root)}>
-      <div className='flex-grow'>
-        <div data-testid='channel-name' className={s.channelName}>
+    // .backButton {
+    //   transition: color 0.3s ease;
+
+    //   &:hover {
+    //     color: var(--text-secondary);
+    //   }
+    // }
+
+    <div data-testid='channel-header' className={cn('flex w-full', s.root)}>
+      <label
+        htmlFor='mobileToggle'
+        className={
+          'flex-none flex items-center text-xl cursor-pointer transition-colors ease-in duration-300 mr-4 hover:text-text-secondary md:hidden'
+        }
+      >
+        &#8592; {/* Left arrow */}
+      </label>
+      <div className='flex-1 min-w-0'>
+        <div data-testid='channel-name' className={cn(s.channelName, 'truncate')}>
           {name}
         </div>
-        <div>
-          <div className={cn(s.channelId, 'space-x-2')}>
+        <div className='flex'>
+          <div className={cn(s.channelId, 'flex space-x-2 truncate')}>
             <ChannelBadges privacyLevel={privacyLevel} isAdmin={isAdmin} />
-            <span className={s.channelId}>ID: {id}</span>
+            <span className={cn(s.channelId, 'truncate')}>ID: {id}</span>
           </div>
         </div>
       </div>
-      <div className='flex space-x-2 items-center relative'>
-        <HeaderButton
+
+      <menu className='flex-none flex space-x-2 items-center relative'>
+        <HeaderMenuItem
           active={!!isChannelFavorited}
           onClick={() => channelId && toggleFavorite(channelId)}
+          className='hidden xs:list-item'
+          title='Favorite this Space'
         >
-          <FontAwesomeIcon title='Favorite the channel' className='w-5' icon={faStar} />
-        </HeaderButton>
+          <Star
+            className='w-5'
+            strokeWidth='1'
+            fill={isChannelFavorited ? 'currentColor' : 'none'}
+          />
+        </HeaderMenuItem>
         {currentChannel && (
           <>
-            <HeaderButton
-              notification={!!pinnedMessages?.length}
-              onClick={() => {
-                setRightSidebarView('pinned-messages');
-              }}
+            <HeaderMenuItem
+              onClick={() => setRightSidebarView('pinned-messages')}
+              className='hidden xs:list-item'
             >
-              <Pin className='w-full h-full' />
-            </HeaderButton>
-            <HeaderButton onClick={() => setRightSidebarView('contributors')}>
+              <Pin className='w-full h-full' notification={!!pinnedMessages?.length} />
+            </HeaderMenuItem>
+            <HeaderMenuItem
+              onClick={() => setRightSidebarView('contributors')}
+              className='hidden xs:list-item'
+            >
               <Contributors />
-            </HeaderButton>
+            </HeaderMenuItem>
           </>
         )}
-        <HeaderButton
+        <HeaderMenuItem
+          data-dropdown-trigger
           onClick={() => {
-            setDropdownToggle(true);
+            setDropdownToggle(!dropdownToggled);
           }}
         >
           <Ellipsis className='w-full h-full' />
-        </HeaderButton>
+        </HeaderMenuItem>
         <Dropdown isOpen={dropdownToggled} onChange={setDropdownToggle}>
           {conversationId && (
             <>
@@ -172,6 +199,52 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
           )}
           {currentChannel && (
             <>
+              <DropdownItem
+                onClick={() => channelId && toggleFavorite(channelId)}
+                className='xs:hidden'
+                icon={(props: SVGProps<SVGSVGElement>) => (
+                  <Star
+                    {...props}
+                    width='36'
+                    height='36'
+                    strokeWidth='1'
+                    fill={isChannelFavorited ? 'currentColor' : 'none'}
+                    className={cn(props.className, {
+                      'text-primary': !!isChannelFavorited,
+                      'text-charcoal-1': isChannelFavorited
+                    })}
+                  />
+                )}
+              >
+                Favorite this Space
+              </DropdownItem>
+              {currentChannel && (
+                <>
+                  <DropdownItem
+                    onClick={() => setRightSidebarView('pinned-messages')}
+                    className='xs:hidden'
+                    icon={(props: SVGProps<SVGSVGElement>) => (
+                      <Pin
+                        {...props}
+                        width='36'
+                        height='36'
+                        notification={!!pinnedMessages?.length}
+                      />
+                    )}
+                  >
+                    Pinned Messages
+                  </DropdownItem>
+                  <DropdownItem
+                    onClick={() => setRightSidebarView('contributors')}
+                    className='xs:hidden'
+                    icon={(props: SVGProps<SVGSVGElement>) => (
+                      <Contributors {...props} width='36' height='36' />
+                    )}
+                  >
+                    Space Contributors
+                  </DropdownItem>
+                </>
+              )}
               <DropdownItem
                 onClick={toggleChannelNotifications}
                 icon={(props: SVGProps<SVGSVGElement>) => (
@@ -248,7 +321,7 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
             </>
           )}
         </Dropdown>
-      </div>
+      </menu>
     </div>
   );
 };
