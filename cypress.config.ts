@@ -1,4 +1,5 @@
 import { defineConfig } from 'cypress';
+import codeCoverage from '@cypress/code-coverage/task';
 
 export default defineConfig({
   env: {
@@ -10,7 +11,7 @@ export default defineConfig({
     hideXHRInCommandLog: true,
     baseUrl: 'http://127.0.0.1:3000/',
     setupNodeEvents(on, config) {
-      require('@cypress/code-coverage/task')(on, config);
+      codeCoverage(on, config);
       return config;
     }
   }
