@@ -94,14 +94,14 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
         <div
           data-testid='codename-registration-options'
           className={cn(
-            'grid sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-x-4 gap-y-6 overflow-auto',
+            'min-w-[85%] grid sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-x-4 gap-y-6 overflow-auto',
             s.codeContainers
           )}
         >
           {identities.map((i) => (
             <div
               key={i.codename}
-              className={cn('rounded-xl bg-charcoal-4', s.codename, {
+              className={cn('overflow:auto rounded-xl bg-charcoal-4 md:overflow-hidden', s.codename, {
                 [s.selected]: i.codename === selectedCodeName
               })}
               onClick={() => {

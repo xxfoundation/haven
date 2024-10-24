@@ -7,6 +7,7 @@ module.exports = {
     colors: {
       primary: 'var(--primary)',
       secondary: 'var(--secondary)',
+      "text-secondary": 'var(--text-secondary)',
       red: 'var(--red)',
       orange: 'var(--orange)',
       green: 'var(--green)',

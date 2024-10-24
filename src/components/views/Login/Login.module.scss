@@ -4,7 +4,6 @@
 
   display: flex;
   flex-direction: column;
-  padding: 0 60px 0px 60px;
   position: relative;
   align-items: center;
   overflow-y: auto;
@@ -28,12 +27,6 @@
     -webkit-text-fill-color: var(--text-primary);
   }
 
-  .header {
-    margin-top: 64px;
-    margin-bottom: 104px;
-    width: 100%;
-  }
-
   .content {
     width: 100%;
     margin-bottom: 120px;
@@ -51,7 +44,6 @@
     display: flex;
     justify-content: center;
 
-    flex-wrap: nowrap;
     a {
       font-family: "Montserrat";
       font-style: normal;

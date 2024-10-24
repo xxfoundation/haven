@@ -123,17 +123,19 @@ const Spaces = () => {
 
           return (
             <React.Fragment key={channel.id}>
-              <Space
-                favorite={favorites.includes(channel.id)}
-                missedMessagesCount={missedMessages?.[channel.id]?.length ?? 0}
-                message={latestMsg?.plaintext ?? ''}
-                date={latestMsg?.timestamp}
-                name={channel.name}
-                active={active}
-                onClick={() => {
-                  selectChannel(channel.id);
-                }}
-              />
+              <label htmlFor="mobileToggle" key={channel.id}>
+                <Space
+                  favorite={favorites.includes(channel.id)}
+                  missedMessagesCount={missedMessages?.[channel.id]?.length ?? 0}
+                  message={latestMsg?.plaintext ?? ''}
+                  date={latestMsg?.timestamp}
+                  name={channel.name}
+                  active={active}
+                  onClick={() => {
+                    selectChannel(channel.id);
+                  }}
+                />
+              </label>
               <hr
                 className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })}
               />
