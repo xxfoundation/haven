@@ -45,7 +45,7 @@
     "js-cookie": "^3.0.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.453.0",
-    "next": "12.2.5",
+    "next": "^14.2.16",
     "next-build-id": "^3.0.0",
     "next-seo": "^5.11.1",
     "parchment": "^2.0.1",
