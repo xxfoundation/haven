@@ -32,13 +32,13 @@ const RightSideBar: FC<{ className?: string }> = ({ className }) => {
   }, [selectedUserId, setRightSidebarView]);
 
   const classes = 'border-l border-charcoal-4 basis-80';
-  const classes_mobile = 'order-first w-full fixed left-0 bg-charcoal-4 h-full'; // mobile first
-  const classes_md = 'md:min-w-[21.75rem] md:overflow-y-auto md:absolute md:inset-0'; // for devices above medium
-  const classes_smdtp = `smdtp:order-none smdtp:bg-charcoal-4-40 smdtp:min-w-[21.75rem] smdtp:overflow-y-auto smdtp:static`; // for devices above large
+  const classesMobile = 'order-first w-full fixed left-0 bg-charcoal-4 h-full'; // mobile first
+  const classesMD = 'md:min-w-[21.75rem] md:overflow-y-auto md:absolute md:inset-0'; // for devices above medium
+  const classesSMDTP = `smdtp:order-none smdtp:bg-charcoal-4-40 smdtp:min-w-[21.75rem] smdtp:overflow-y-auto smdtp:static`; // for devices above large
 
   return (
     rightSidebarView && (
-      <div className={cn(className, classes, classes_mobile, classes_md, classes_smdtp)}>
+      <div className={cn(className, classes, classesMobile, classesMD, classesSMDTP)}>
         <Component />
       </div>
     )
