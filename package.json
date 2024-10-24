@@ -74,9 +74,9 @@
     "xxdk-wasm": "^0.3.21"
   },
   "devDependencies": {
-    "@cypress/browserify-preprocessor": "^3.0.2",
-    "@cypress/code-coverage": "^3.10.4",
-    "@testing-library/cypress": "^9.0.0",
+    "@cypress/code-coverage": "^3.13.4",
+    "@cypress/webpack-preprocessor": "^6.0.2",
+    "@testing-library/cypress": "^10.0.2",
     "@types/contrast-color": "^1.0.0",
     "@types/dompurify": "^2.3.4",
     "@types/draftjs-to-html": "^0.8.1",
@@ -94,7 +94,7 @@
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "autoprefixer": "^10.4.20",
     "babel-plugin-istanbul": "^6.1.1",
-    "cypress": "^12.12.0",
+    "cypress": "^13.15.1",
     "eslint": "8.23.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-next": "^13.0.6",
