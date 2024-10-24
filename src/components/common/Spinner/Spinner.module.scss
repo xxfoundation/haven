@@ -1,7 +1,6 @@
-
 $primary: #259cdb;
 $light-color: lighten(#259cdb, 30%);
-$dark-color:#259cdb;
+$dark-color: #259cdb;
 $speed: 3s;
 
 @keyframes draw {
@@ -26,8 +25,9 @@ $speed: 3s;
   }
 }
 
-
-.stroke-1, .stroke-2, .stroke-3 {
+.stroke-1,
+.stroke-2,
+.stroke-3 {
   animation-duration: 1.5s;
   animation-name: draw;
   animation-iteration-count: infinite;
@@ -35,7 +35,9 @@ $speed: 3s;
   fill: $light-color;
 }
 
-.stroke-1, .stroke-2, .stroke-3 {
+.stroke-1,
+.stroke-2,
+.stroke-3 {
   animation-name: draw;
   fill: $light-color;
 }

@@ -29,7 +29,8 @@
   fill: var(--text-primary);
 }
 
-.ql-snow .ql-fill, .ql-snow .ql-stroke.ql-fill {
+.ql-snow .ql-fill,
+.ql-snow .ql-stroke.ql-fill {
   fill: var(--text-primary);
 }
 
@@ -144,7 +145,7 @@
   bottom: 100% !important;
   top: unset !important;
 
-  input[type="text"] {
+  input[type='text'] {
     background-color: var(--dark-3);
     border: none;
     border-radius: 5px;
@@ -155,7 +156,8 @@
   font-size: 14px;
 }
 
-.ql-snow .ql-editor code, .ql-snow .ql-editor pre {
+.ql-snow .ql-editor code,
+.ql-snow .ql-editor pre {
   background-color: var(--our-black) !important;
   color: var(--primary);
 }
@@ -182,9 +184,8 @@
     border-radius: 2px;
     background-color: var(--primary-15);
     padding: 0 2px;
-
   }
-  
+
   ul li::before {
     display: none;
   }
@@ -196,36 +197,40 @@
   ul {
     padding-left: 1rem;
     list-style: disc !important;
-    list-style-type: disc; 
-    list-style-position: inside; 
+    list-style-type: disc;
+    list-style-position: inside;
 
     & li {
       list-style-type: disc;
     }
   }
 
-  ol { 
+  ol {
     padding-left: 0;
-    list-style-type: decimal; 
-    list-style-position: inside; 
+    list-style-type: decimal;
+    list-style-position: inside;
   }
 
-  ul ul, ol ul { 
-    list-style-type: circle; 
-    list-style-position: inside; 
-    margin-left: 15px; 
+  ul ul,
+  ol ul {
+    list-style-type: circle;
+    list-style-position: inside;
+    margin-left: 15px;
   }
 
-  ul ul ul, ol ul ul, ol ol ul { 
-    list-style-type: square; 
-    list-style-position: inside; 
-    margin-left: 15px; 
+  ul ul ul,
+  ol ul ul,
+  ol ol ul {
+    list-style-type: square;
+    list-style-position: inside;
+    margin-left: 15px;
   }
 
-  ol ol, ul ol { 
-    list-style-type: lower-latin; 
-    list-style-position: inside; 
-    margin-left: 15px; 
+  ol ol,
+  ul ol {
+    list-style-type: lower-latin;
+    list-style-position: inside;
+    margin-left: 15px;
   }
 
   blockquote:not(.ql-syntax) {
@@ -296,7 +301,6 @@
 
     &:hover {
       background-color: var(--dark-3);
-      
     }
   }
   box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.25);
@@ -304,4 +308,3 @@
   padding: 0.75rem;
   background-color: var(--dark-1);
 }
-

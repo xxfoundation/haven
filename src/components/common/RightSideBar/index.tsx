@@ -20,6 +20,7 @@ const views: Record<RightSidebarView, FC> = {
 };
 
 const RightSideBar: FC<{ className?: string }> = ({ className }) => {
+const RightSideBar: FC<{ className?: string }> = ({ className }) => {
   const { rightSidebarView, setRightSidebarView } = useUI();
   const Component = (rightSidebarView && views[rightSidebarView]) ?? (() => null);
 
@@ -33,12 +34,12 @@ const RightSideBar: FC<{ className?: string }> = ({ className }) => {
 
   const classes = 'border-l border-charcoal-4 basis-80';
   const classesMobile = 'order-first w-full fixed left-0 bg-charcoal-4 h-full'; // mobile first
-  const classesMd = 'md:min-w-[21.75rem] md:overflow-y-auto md:absolute md:inset-0'; // for devices above medium
-  const classesSmdtp = `smdtp:order-none smdtp:bg-charcoal-4-40 smdtp:min-w-[21.75rem] smdtp:overflow-y-auto smdtp:static`; // for devices above large
+  const classesMD = 'md:min-w-[21.75rem] md:overflow-y-auto md:absolute md:inset-0'; // for devices above medium
+  const classesSMDTP = `smdtp:order-none smdtp:bg-charcoal-4-40 smdtp:min-w-[21.75rem] smdtp:overflow-y-auto smdtp:static`; // for devices above large
 
   return (
     rightSidebarView && (
-      <div className={cn(className, classes, classesMobile, classesMd, classesSmdtp)}>
+      <div className={cn(className, classes, classesMobile, classesMD, classesSMDTP)}>
         <Component />
       </div>
     )
