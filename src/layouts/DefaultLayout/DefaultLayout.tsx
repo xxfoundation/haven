@@ -100,7 +100,7 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
                     {sidebarView === 'settings' && <SettingsView />}
                     {(sidebarView === 'spaces' || sidebarView === 'dms') && <>{children}</>}
                   </div>
-                  <RightSideBar className='' />
+                  <RightSideBar />
                 </div>
               </div>
             </div>
