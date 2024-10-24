@@ -1,6 +1,6 @@
 import { FC, SVGProps } from 'react';
 
-const Pin: FC<SVGProps<SVGSVGElement> & { notification?: boolean} > = (props: SVGProps<SVGSVGElement>, notification?: boolean) => (
+const Pin: FC<SVGProps<SVGSVGElement> & { notification?: boolean} > = ({notification,  ...props}) => (
   <div className="relative">
     <svg
       width='24'
