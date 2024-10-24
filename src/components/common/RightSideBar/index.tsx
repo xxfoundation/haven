@@ -20,6 +20,7 @@ const views: Record<RightSidebarView, FC> = {
 };
 
 const RightSideBar: FC<{ className?: string }> = ({ className }) => {
+const RightSideBar: FC<{ className?: string }> = ({ className }) => {
   const { rightSidebarView, setRightSidebarView } = useUI();
   const Component = (rightSidebarView && views[rightSidebarView]) ?? (() => null);
 

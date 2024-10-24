@@ -84,7 +84,10 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
           <AppModals />
           <div className={'grid grid-cols-1 md:grid-cols-[21.75rem_1fr] h-screen'}>
             <input type='checkbox' id='mobileToggle' className='hidden peer' />
+          <div className={'grid grid-cols-1 md:grid-cols-[21.75rem_1fr] h-screen'}>
+            <input type='checkbox' id='mobileToggle' className='hidden peer' />
 
+            <div className='flex flex-col h-screen peer-checked:hidden md:peer-checked:flex md:flex'>
             <div className='flex flex-col h-screen peer-checked:hidden md:peer-checked:flex md:flex'>
               <LeftHeader className='h-[3.75rem]' />
               <LeftSideBar className='' />
@@ -100,7 +103,7 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
                     {sidebarView === 'settings' && <SettingsView />}
                     {(sidebarView === 'spaces' || sidebarView === 'dms') && <>{children}</>}
                   </div>
-                  <RightSideBar className='' />
+                  <RightSideBar />
                 </div>
               </div>
             </div>
