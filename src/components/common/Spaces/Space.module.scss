@@ -1,6 +1,6 @@
 .root {
   padding: 0.75rem 0.875rem 0.8125rem 0.875rem;
-  
+
   .name {
     font-size: 0.875rem;
     font-style: normal;
@@ -25,10 +25,10 @@
     font-style: normal;
     font-weight: 400;
     line-height: normal;
-    letter-spacing: 0.0275rem; 
+    letter-spacing: 0.0275rem;
     padding: 0.25rem 0.375rem 0.1875rem 0.375rem;
     border-radius: 1rem;
-    background: var(--charcoal-2); 
+    background: var(--charcoal-2);
   }
 
   .date {
@@ -37,10 +37,11 @@
     font-style: normal;
     font-weight: 400;
     line-height: normal;
-    letter-spacing: 0.0275rem; 
+    letter-spacing: 0.0275rem;
   }
 
-  &:hover, &.active {
+  &:hover,
+  &.active {
     border: none;
     border-radius: var(--border-radius);
     background-color: var(--charcoal-4);

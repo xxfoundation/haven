@@ -19,7 +19,10 @@ const LeftSideBar: FC<WithChildren & { className?: string }> = ({ className }) =
 
   const View = views[leftSidebarView] ?? (() => null);
   return (
-    <div data-testid='left-side-bar' className={cn(className, 'h-full bg-our-black overflow-y-auto')}>
+    <div
+      data-testid='left-side-bar'
+      className={cn(className, 'h-full bg-our-black overflow-y-auto')}
+    >
       <View />
     </div>
   );

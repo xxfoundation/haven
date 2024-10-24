@@ -59,7 +59,7 @@ const LoginView: FC = () => {
   return (
     <div className={cn('px-12 md:px-[3.75rem]', s.root)}>
       <div className={cn('w-full flex flex-col', s.wrapper)}>
-        <div className={"my-16 w-full md:mt-16 md:mb-[6.5rem]"}>
+        <div className={'my-16 w-full md:mt-16 md:mb-[6.5rem]'}>
           <NormalHaven data-testid='haven-logo' />
         </div>
         <div className={cn('grid grid-cols-1 gap-0 md:grid-cols-12', s.content)}>

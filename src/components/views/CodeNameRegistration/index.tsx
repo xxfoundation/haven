@@ -101,9 +101,13 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
           {identities.map((i) => (
             <div
               key={i.codename}
-              className={cn('overflow:auto rounded-xl bg-charcoal-4 md:overflow-hidden', s.codename, {
-                [s.selected]: i.codename === selectedCodeName
-              })}
+              className={cn(
+                'overflow:auto rounded-xl bg-charcoal-4 md:overflow-hidden',
+                s.codename,
+                {
+                  [s.selected]: i.codename === selectedCodeName
+                }
+              )}
               onClick={() => {
                 setSelectedCodeName(i.codename);
                 setSelectedPrivateIdentity(i.privateIdentity);

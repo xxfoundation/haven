@@ -1,11 +1,10 @@
-
 .wrapper {
   position: relative;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   margin-top: 8px;
-  
+
   .emoji {
     margin-right: 2px;
     padding: 0px 6px;
@@ -35,7 +34,7 @@
     font-size: 48px;
     text-align: center;
   }
-  
+
   p {
     font-size: 12px !important;
     font-weight: 500;

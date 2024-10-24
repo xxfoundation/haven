@@ -82,7 +82,7 @@ const DMs = () => {
 
           return (
             <React.Fragment key={convo.pubkey}>
-              <label htmlFor="mobileToggle" key={convo.pubkey}>
+              <label htmlFor='mobileToggle' key={convo.pubkey}>
                 <Space
                   favorite={favorites.includes(convo.pubkey)}
                   missedMessagesCount={missedMessages?.[convo.pubkey]?.length ?? 0}
