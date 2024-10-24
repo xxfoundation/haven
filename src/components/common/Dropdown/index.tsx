@@ -18,9 +18,8 @@ type CTX = { isOpen: boolean; close: () => void };
 const DropdownContext = createContext<CTX>({} as CTX);
 
 type DropdownItemProps = WithChildren &
-  HTMLAttributes<HTMLButtonElement> & {
-    icon?: FC<SVGProps<SVGSVGElement>> | FC<{ className?: string }>;
-  };
+  HTMLAttributes<HTMLButtonElement> & 
+  { icon?: FC<SVGProps<SVGSVGElement>> | FC<{ className?: string }>;}
 
 export const DropdownItem: FC<DropdownItemProps> = ({
   children,
@@ -40,18 +39,22 @@ export const DropdownItem: FC<DropdownItemProps> = ({
   );
 
   return (
-    <button
-      {...props}
-      className={cn(
-        props.className,
-        s.item,
-        'group w-full space-x-2 hover:text-primary text-white'
-      )}
-      onClick={onClick}
-    >
-      {Icon && <Icon className='w-9 h-9 text-charcoal-1 group-hover:text-primary' />}
-      <span className=''>{children}</span>
-    </button>
+    <li className='list-item'>
+      <button
+        {...props}
+        className={cn(
+          props.className,
+          s.item,
+          'group w-full space-x-2 hover:text-primary text-white'
+        )}
+        onClick={onClick}
+      >
+        {Icon && (
+          <Icon className='w-9 h-9 text-charcoal-1 group-hover:text-primary' />
+        )}
+        <span className=''>{children}</span>
+      </button>
+    </li>
   );
 };
 
@@ -64,7 +67,14 @@ type Props = WithChildren & {
 const Dropdown: FC<Props> = ({ children, className, isOpen, onChange }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => onChange(false), [onChange]);
-  useOnClickOutside(dropdownRef, close);
+  useOnClickOutside(dropdownRef, (e) => {
+    // Check if the click came from the trigger button
+    const target = e.target as HTMLElement;
+    const isTriggerButton = target.closest('[data-dropdown-trigger]');
+    if (!isTriggerButton) {
+      close();
+    }
+  });
 
   return (
     <DropdownContext.Provider value={{ isOpen, close }}>

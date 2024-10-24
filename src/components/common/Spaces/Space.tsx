@@ -5,9 +5,8 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import s from './Space.module.scss';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar } from '@fortawesome/free-solid-svg-icons';
 import React from 'react';
+import { Star } from 'lucide-react';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   favorite?: boolean;
@@ -35,7 +34,7 @@ const Space: FC<Props> = ({
         <h5 className={cn(s.name, 'flex items-center space-x-1')}>
           {name}
           {favorite && (
-            <FontAwesomeIcon width='1.5ch' className='text-primary ml-1' icon={faStar} />
+            <Star width='1.5ch' className='text-primary ml-1' fill='currentColor' />
           )}
         </h5>
         <div className='flex space-x-1'>
