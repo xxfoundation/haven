@@ -149,7 +149,7 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
           className='hidden xs:list-item'
           title='Favorite this Space'
         >
-          <Star className='w-5' strokeWidth='1' fill={isChannelFavorited? 'currentColor' : ''} />
+          <Star className='w-5' strokeWidth='1' fill={isChannelFavorited? 'currentColor' : 'none'} />
         </HeaderMenuItem>
         {currentChannel && (
           <>
@@ -195,7 +195,7 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
                 className='xs:hidden'
                 icon={(props: SVGProps<SVGSVGElement>) => (
                   <Star {...props} width='36' height='36' strokeWidth='1'
-                    fill={isChannelFavorited? 'currentColor' : ''} 
+                    fill={isChannelFavorited? 'currentColor' : 'none'} 
                     className={cn(props.className,
                     {
                       'text-primary': !!isChannelFavorited,
