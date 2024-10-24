@@ -49,11 +49,15 @@ export const EmojiPortal: FC<WithChildren> = ({ children }) => {
     <EmojiContext.Provider value={{ openEmojiPicker, isOpen: pickerVisible }}>
       {pickerVisible && emojiPortalElement
         ? createPortal(
-            <div ref={pickerRef} style={pickerStyle} className='w-full xs:w-96 absolute z-50 [&_em-emoji-picker]:w-full'>
-              <Picker 
-                data={data} 
-                previewPosition='none' 
-                onEmojiSelect={onEmojiSelect} 
+            <div
+              ref={pickerRef}
+              style={pickerStyle}
+              className='w-full xs:w-96 absolute z-50 [&_em-emoji-picker]:w-full'
+            >
+              <Picker
+                data={data}
+                previewPosition='none'
+                onEmojiSelect={onEmojiSelect}
                 dynamicWidth='true'
               />
             </div>,

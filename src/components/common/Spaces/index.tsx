@@ -123,7 +123,7 @@ const Spaces = () => {
 
           return (
             <React.Fragment key={channel.id}>
-              <label htmlFor="mobileToggle" key={channel.id}>
+              <label htmlFor='mobileToggle' key={channel.id}>
                 <Space
                   favorite={favorites.includes(channel.id)}
                   missedMessagesCount={missedMessages?.[channel.id]?.length ?? 0}
