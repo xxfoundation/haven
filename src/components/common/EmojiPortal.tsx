@@ -32,10 +32,8 @@ export const EmojiPortal: FC<WithChildren> = ({ children }) => {
 
   const openEmojiPicker = useCallback((rect: DOMRect) => {
     setPickerStyle({
-      position: 'absolute',
-      zIndex: 3,
       top: Math.min(rect?.bottom + 5, window.innerHeight - 440),
-      left: rect.left - 350
+      left: Math.max(0, rect.left - 350)
     });
 
     setPickerVisible(true);
@@ -51,8 +49,13 @@ export const EmojiPortal: FC<WithChildren> = ({ children }) => {
     <EmojiContext.Provider value={{ openEmojiPicker, isOpen: pickerVisible }}>
       {pickerVisible && emojiPortalElement
         ? createPortal(
-            <div ref={pickerRef} style={pickerStyle} className='absolute z-10'>
-              <Picker data={data} previewPosition='none' onEmojiSelect={onEmojiSelect} />
+            <div ref={pickerRef} style={pickerStyle} className='w-full xs:w-96 absolute z-50 [&_em-emoji-picker]:w-full'>
+              <Picker 
+                data={data} 
+                previewPosition='none' 
+                onEmojiSelect={onEmojiSelect} 
+                dynamicWidth='true'
+              />
             </div>,
             emojiPortalElement
           )
