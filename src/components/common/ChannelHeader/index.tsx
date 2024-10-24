@@ -45,11 +45,11 @@ type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
 const HeaderMenuItem: FC<
   HTMLAttributes<HTMLButtonElement> & { notification?: boolean; active?: boolean }
 > = (props) => (
-  <li>
+  <li className='list-none'>
     <button
       {...props}
       className={cn(
-        'cursor-pointer list-none relative w-8 h-8 p-1 hover:text-primary hover:bg-charcoal-3-20 rounded-full',
+        'cursor-pointer relative w-8 h-8 p-1 hover:text-primary hover:bg-charcoal-3-20 rounded-full',
         props.className,
         {
           'text-primary': props.active,

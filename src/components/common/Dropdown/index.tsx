@@ -39,7 +39,7 @@ export const DropdownItem: FC<DropdownItemProps> = ({
   );
 
   return (
-    <li className='list-item'>
+    <li className='list-none list-item'>
       <button
         {...props}
         className={cn(
