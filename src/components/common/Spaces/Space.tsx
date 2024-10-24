@@ -34,7 +34,7 @@ const Space: FC<Props> = ({
         <h5 className={cn(s.name, 'flex items-center space-x-1')}>
           {name}
           {favorite && (
-            <Star width='12' height='20' className='text-primary ml-1' fill='currentColor'/>
+            <Star width='12' height='20' className='text-primary ml-1' fill='currentColor' />
           )}
         </h5>
         <div className='flex space-x-1'>

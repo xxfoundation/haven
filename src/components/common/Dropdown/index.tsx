@@ -18,8 +18,9 @@ type CTX = { isOpen: boolean; close: () => void };
 const DropdownContext = createContext<CTX>({} as CTX);
 
 type DropdownItemProps = WithChildren &
-  HTMLAttributes<HTMLButtonElement> & 
-  { icon?: FC<SVGProps<SVGSVGElement>> | FC<{ className?: string }>;}
+  HTMLAttributes<HTMLButtonElement> & {
+    icon?: FC<SVGProps<SVGSVGElement>> | FC<{ className?: string }>;
+  };
 
 export const DropdownItem: FC<DropdownItemProps> = ({
   children,
@@ -49,9 +50,7 @@ export const DropdownItem: FC<DropdownItemProps> = ({
         )}
         onClick={onClick}
       >
-        {Icon && (
-          <Icon className='w-9 h-9 text-charcoal-1 group-hover:text-primary' />
-        )}
+        {Icon && <Icon className='w-9 h-9 text-charcoal-1 group-hover:text-primary' />}
         <span className=''>{children}</span>
       </button>
     </li>

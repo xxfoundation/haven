@@ -1,13 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx}"
-  ],
+  content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     colors: {
       primary: 'var(--primary)',
       secondary: 'var(--secondary)',
-      "text-secondary": 'var(--text-secondary)',
+      'text-secondary': 'var(--text-secondary)',
       red: 'var(--red)',
       orange: 'var(--orange)',
       green: 'var(--green)',
@@ -18,7 +16,7 @@ module.exports = {
       'charcoal-4': 'var(--charcoal-4)',
       'near-black': 'var(--near-black)',
       'our-black': 'var(--our-black)',
-      'white': 'var(--primary-white)',
+      white: 'var(--primary-white)',
       'charcoal-3-20': 'var(--charcoal-3-20)',
       'charcoal-4-40': 'var(--charcoal-4-40)',
       'charcoal-4-80': 'var(--charcoal-4-80)',
@@ -27,16 +25,16 @@ module.exports = {
       'primary-15': 'var(--primary-15)'
     },
     fontFamily: {
-      sans: ["Moderat"]
+      sans: ['Moderat']
     },
     extend: {
       screens: {
-        xs: "425px",
-        smdtp: "960px",
-        dtp: "1024px", // Desktop 1024px min-width alias
-        lg: "1280px",
-        xl: "1280px",
-        "2xl": "1560px"
+        xs: '425px',
+        smdtp: '960px',
+        dtp: '1024px', // Desktop 1024px min-width alias
+        lg: '1280px',
+        xl: '1280px',
+        '2xl': '1560px'
       }
     }
   },
