@@ -1,0 +1,92 @@
+name: Docker Build and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on any tag starting with 'v'
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: 'Source of build'
+        type: choice
+        required: true
+        options:
+          - github.com
+          - git.xx.network
+        default: 'github.com'
+      ref:
+        description: 'Branch or tag'
+        required: true
+        type: string
+        default: 'main'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # ref
+          # 1. When manually dispatched (workflow_dispatch):
+          #   * If using git.xx.network, use github.ref/default to get latest Dockerfile
+          #   * Else, use the supplied ref
+          # 2. When dispatched due to a v* push, use github.ref/default
+          ref: >-
+            ${{
+              github.event_name == 'workflow_dispatch' && inputs.build-type == 'git.xx.network' && github.ref ||
+              github.event_name == 'workflow_dispatch' && inputs.ref ||
+              github.ref
+            }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # Latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            
+            # For automated tag pushes
+            type=semver,pattern={{version}},enable=${{ github.event_name == 'push' }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'push' }}
+            
+            # For manual workflow runs
+            type=raw,value=${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
+
+            # For manual workflow runs with source
+            type=raw,value=${{ github.event_name == 'workflow_dispatch' && inputs.ref || '' }}
+            
+            # Always include SHA
+            type=sha
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: >-
+            ${{
+              inputs.build-type == 'git.xx.network' && './Dockerfile' ||
+              './local.Dockerfile'
+            }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            SPEAKEASY_VER=${{ inputs.ref }}
