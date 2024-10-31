@@ -8,6 +8,7 @@
     "ts": "tsc --noEmit --incremental",
     "ts:watch": "yarn ts --watch",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "npx serve out",
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
@@ -75,6 +76,7 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.13.4",
     "@cypress/webpack-preprocessor": "^6.0.2",
+    "@next/bundle-analyzer": "^15.0.2",
     "@testing-library/cypress": "^10.0.2",
     "@types/contrast-color": "^1.0.0",
     "@types/dompurify": "^2.3.4",
