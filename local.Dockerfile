@@ -1,14 +1,32 @@
-FROM ubuntu:20.04
+# Build stage
+FROM node:20 AS builder
+WORKDIR /haven-web
 
-ARG SPEAKEASY_VER
-ENV SPEAKEASY_VER=$SPEAKEASY_VER
+# Copy only files needed for installation
+COPY package*.json ./
+COPY next.config.js ./
+COPY tsconfig*.json ./
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y curl git
+# Install dependencies
+RUN npm ci
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
-
-WORKDIR /speakeasy-web
+# Copy sourcecode
 COPY . .
 
-RUN npm install && npm run build
+# Build the application
+RUN npm run build
+
+# Lightweight production image
+FROM node:20-slim
+ENV NODE_ENV=production
+WORKDIR /haven-web
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy only the built output from the builder stage
+COPY --from=builder /haven-web/.next .next
+COPY --from=builder /haven-web/out out
+
 ENTRYPOINT [ "npm", "run", "start" ]

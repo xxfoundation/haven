@@ -1,13 +1,35 @@
-FROM ubuntu:20.04
+# Build stage
+FROM node:20 AS builder
+WORKDIR /haven-web
 
 ARG SPEAKEASY_VER
 ENV SPEAKEASY_VER=$SPEAKEASY_VER
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y curl git
+# Install git
+RUN apt-get update && apt-get upgrade -y && apt-get install -y git
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
+# Clone repo from git.xx.network
+RUN git clone --depth=1 --branch $SPEAKEASY_VER https://git.xx.network/elixxir/speakeasy-web.git /haven-web
 
-RUN mkdir /speakeasy-web && git clone --depth=1 -b $SPEAKEASY_VER https://git.xx.network/elixxir/speakeasy-web.git /speakeasy-web && cd /speakeasy-web && npm install && npm run build
+# Install dependencies
+# Check if package-lock.json exists and run appropriate install command
+RUN [ -f package-lock.json ] && npm ci || npm install
 
-WORKDIR /speakeasy-web
+# Build the application
+RUN npm run build
+
+# Lightweight production image
+FROM node:20-slim
+ENV NODE_ENV=production
+WORKDIR /haven-web
+
+# Install only production dependencies
+COPY package*.json ./
+# Check if package-lock.json exists and run appropriate install command
+RUN [ -f package-lock.json ] && npm ci --omit=dev || npm install --omit=dev
+
+# Copy only the built output from the builder stage
+COPY --from=builder /haven-web/.next .next
+COPY --from=builder /haven-web/out out
+
 ENTRYPOINT [ "npm", "run", "start" ]
