@@ -118,14 +118,6 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
   }, [channelManager, channelNotificationLevel, currentChannel?.id, utils]);
 
   return (
-    // .backButton {
-    //   transition: color 0.3s ease;
-
-    //   &:hover {
-    //     color: var(--text-secondary);
-    //   }
-    // }
-
     <div data-testid='channel-header' className={cn('flex w-full', s.root)}>
       <label
         htmlFor='mobileToggle'
@@ -133,7 +125,7 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
           'flex-none flex items-center text-xl cursor-pointer transition-colors ease-in duration-300 mr-4 hover:text-text-secondary md:hidden'
         }
       >
-        &#8592; {/* Left arrow */}
+        ←
       </label>
       <div className='flex-1 min-w-0'>
         <div data-testid='channel-name' className={cn(s.channelName, 'truncate')}>
@@ -146,7 +138,6 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
           </div>
         </div>
       </div>
-
       <menu className='flex-none flex space-x-2 items-center relative'>
         <HeaderMenuItem
           active={!!isChannelFavorited}
