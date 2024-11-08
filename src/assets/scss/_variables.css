@@ -1,25 +1,25 @@
 :root {
-  --our-black: #07080A;
-  --near-black: #0A0C0F;
-  --near-black-80: rgba(10, 12, 15, 0.80);
-  --charcoal-4: #16181D;
-  --charcoal-3-20: rgba(46, 49, 55, 0.20);
-  --charcoal-4-80: rgba(22, 24, 29, 0.80);
-  --charcoal-4-40: rgba(22, 24, 29, 0.40);
-  --charcoal-3: #2E3137;
-  --charcoal-2: #41444A;
-  --charcoal-1: #6C6E74;
-  --primary-white: #DADCE5;
-  --light: #EBECF2;
-  --near-white: #F5F6FA;
+  --our-black: #07080a;
+  --near-black: #0a0c0f;
+  --near-black-80: rgba(10, 12, 15, 0.8);
+  --charcoal-4: #16181d;
+  --charcoal-3-20: rgba(46, 49, 55, 0.2);
+  --charcoal-4-80: rgba(22, 24, 29, 0.8);
+  --charcoal-4-40: rgba(22, 24, 29, 0.4);
+  --charcoal-3: #2e3137;
+  --charcoal-2: #41444a;
+  --charcoal-1: #6c6e74;
+  --primary-white: #dadce5;
+  --light: #ebecf2;
+  --near-white: #f5f6fa;
 
-  --primary: #ECBA60;
+  --primary: #ecba60;
   --primary-15: rgba(236, 186, 96, 0.15);
-  --red: #E3304B;
-  --orange: #FA7B48;
-  --green: #00C291;
-  --green-10: rgba(0, 194, 145, 0.10);
-  --blue: #259CDB;
+  --red: #e3304b;
+  --orange: #fa7b48;
+  --green: #00c291;
+  --green-10: rgba(0, 194, 145, 0.1);
+  --blue: #259cdb;
 
   --secondary: var(--blue);
 
@@ -28,5 +28,5 @@
   --text-muted: var(--charcoal-2);
   --border-radius: 1rem;
 
-  --font-sans: "Roboto Flex", sans-serif;
+  --font-sans: 'Roboto Flex', sans-serif;
 }

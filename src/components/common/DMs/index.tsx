@@ -82,17 +82,19 @@ const DMs = () => {
 
           return (
             <React.Fragment key={convo.pubkey}>
-              <Space
-                favorite={favorites.includes(convo.pubkey)}
-                missedMessagesCount={missedMessages?.[convo.pubkey]?.length ?? 0}
-                message={latestMsg?.plaintext ?? ''}
-                date={latestMsg?.timestamp}
-                name={<Identity {...convo} />}
-                active={active}
-                onClick={() => {
-                  selectChannel(convo.pubkey);
-                }}
-              />
+              <label htmlFor='mobileToggle' key={convo.pubkey}>
+                <Space
+                  favorite={favorites.includes(convo.pubkey)}
+                  missedMessagesCount={missedMessages?.[convo.pubkey]?.length ?? 0}
+                  message={latestMsg?.plaintext ?? ''}
+                  date={latestMsg?.timestamp}
+                  name={<Identity {...convo} />}
+                  active={active}
+                  onClick={() => {
+                    selectChannel(convo.pubkey);
+                  }}
+                />
+              </label>
               <hr
                 className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })}
               />

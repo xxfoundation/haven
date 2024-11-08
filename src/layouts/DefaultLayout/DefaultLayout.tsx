@@ -20,10 +20,11 @@ import useGoogleRemoteStore from 'src/hooks/useGoogleRemoteStore';
 import useDropboxRemoteStore from 'src/hooks/useDropboxRemoteStore';
 import LeftSideBar from '@components/common/LeftSideBar';
 import MainHeader from '@components/common/MainHeader';
+
+import AppModals from 'src/components/modals/AppModals';
 import SettingsView from '@components/views/SettingsViews';
 
-import Notices from 'src/components/common/Notices';
-import AppModals from 'src/components/modals/AppModals';
+import Notices from '@components/common/Notices';
 import { RightSideBar } from '@components/common';
 import PinnedMessage from '@components/common/ChannelChat/PinnedMessage';
 
@@ -81,19 +82,26 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
         <>
           <ConnectingDimmer />
           <AppModals />
-          <div className='grid lg:grid-cols-[21.75rem_1fr] grid-cols-[18rem_1fr] grid-rows-[3.75rem_1fr] h-screen'>
-            <LeftHeader />
-            <MainHeader />
-            <LeftSideBar className='overflow-y-auto' />
-            <div className='overflow-hidden flex flex-col items-stretch'>
-              <div className='flex h-full'>
-                <div className='flex flex-col flex-grow'>
-                  <Notices />
-                  {sidebarView === 'spaces' && <PinnedMessage />}
-                  {sidebarView === 'settings' && <SettingsView />}
-                  {(sidebarView === 'spaces' || sidebarView === 'dms') && <>{children}</>}
+          <div className={'grid grid-cols-1 md:grid-cols-[21.75rem_1fr] h-screen'}>
+            <input type='checkbox' id='mobileToggle' className='hidden peer' />
+
+            <div className='flex flex-col h-screen peer-checked:hidden md:peer-checked:flex md:flex'>
+              <LeftHeader className='h-[3.75rem]' />
+              <LeftSideBar className='' />
+            </div>
+
+            <div className='flex flex-col overflow-x-hidden h-screen hidden peer-checked:flex md:peer-checked:flex md:flex'>
+              <MainHeader className='h-[3.75rem] flex items-middle' />
+              <div className='overflow-hidden flex grow flex-col items-stretch'>
+                <div className='flex min-h-0 flex-1 w-full relative'>
+                  <div className='flex flex-col flex-1 min-w-0'>
+                    <Notices />
+                    {sidebarView === 'spaces' && <PinnedMessage />}
+                    {sidebarView === 'settings' && <SettingsView />}
+                    {(sidebarView === 'spaces' || sidebarView === 'dms') && <>{children}</>}
+                  </div>
+                  <RightSideBar className='' />
                 </div>
-                <RightSideBar />
               </div>
             </div>
           </div>
