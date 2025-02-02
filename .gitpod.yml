@@ -1,0 +1,27 @@
+# example .gitpod.yml from https://github.com/gitpod-io/demo-multi-repo-frontend
+additionalRepositories:
+    - url: https://github.com/thisisommore/xxdk-wasm.git
+      checkoutLocation: xxdk-wasm
+
+image:
+  file: Dockerfile
+tasks:
+    - name: xxdk-wasm
+      # change working directory as per configured in `checkoutLocation`
+      # which is configured above as `/workspaces/backend`
+      before: |
+          cd ../xxdk-wasm
+      init: |
+          npm i && npm run build && npm link && gp sync-done xxdk-wasm-link
+      command: |
+          echo npm run dev
+
+      # changing of working directory is not required as these tasks will
+      # by default by executed in `/workspaces/demo-multi-repo-frontend`
+    - name: haven
+      init: |
+          gp sync-await xxdk-wasm-link
+          npm link
+          npm run build
+      command: |
+          npm run dev
