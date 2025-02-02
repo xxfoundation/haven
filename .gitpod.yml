@@ -13,7 +13,7 @@ tasks:
       before: |
           cd ../xxdk-wasm
       init: |
-          npm i && npm run build && npm link && gp sync-done xxdk-wasm-link
+          npm i && npm run build && sudo npm link && gp sync-done xxdk-wasm-link
 
       # changing of working directory is not required as these tasks will
       # by default by executed in `/workspaces/demo-multi-repo-frontend`
