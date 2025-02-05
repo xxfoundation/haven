@@ -31,7 +31,8 @@ const LoginView: FC = () => {
     };
   }, [t]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError('');
     setIsLoading(true);
     setTimeout(async () => {
@@ -79,72 +80,66 @@ const LoginView: FC = () => {
             <p className="mb-8 text-[#5B5D62] leading-[17px]">
               {t('Use your password to unlock your Haven identity')}
             </p>
-            <Input
-              data-testid="password-input"
-              type="password"
-              placeholder={t('Enter your password')}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  if (accountSyncStatus !== AccountSyncStatus.Synced) {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
+            <form onSubmit={handleSubmit} className="w-full">
+              <input 
+                type="text"
+                autoComplete="username"
+                style={{ display: 'none' }}
+                aria-hidden="true"
+              />
+              <Input
+                data-testid="password-input"
+                type="password"
+                placeholder={t('Enter your password')}
+                value={password}
+                autoComplete="current-password"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    if (accountSyncStatus !== AccountSyncStatus.Synced) {
+                      e.preventDefault();
+                      handleSubmit();
+                    }
 
-                  if (
-                    accountSyncStatus === AccountSyncStatus.Synced &&
-                    accountSyncService === AccountSyncService.Dropbox
-                  ) {
-                    const dropboxButton = document.getElementById('dropbox-button');
-                    dropboxButton?.click();
                   }
+                }}
+                className="[&_input:-webkit-autofill]:shadow-[0_0_0_30px_var(--dark-5)_inset] [&_input:-webkit-autofill]:-webkit-text-fill-color-[var(--text-primary)]"
+              />
+              <div className="flex flex-col mt-4 space-y-3">
+                {accountSyncStatus !== AccountSyncStatus.Synced && (
+                  <Button 
+                    type="submit"
+                    data-testid="login-button" 
+                    disabled={isLoading} 
+                    className="rounded-lg font-bold text-sm"
+                  >
+                    {t('Login')}
+                  </Button>
+                )}
+                {attemptingSyncedLogin && (
+                  <Button variant="secondary" onClick={cancelSyncLogin}>
+                    Cancel
+                  </Button>
+                )}
+              </div>
+              {isLoading && (
+                <div className="text-center">
+                  {loadingInfo && <p className="mt-4">{loadingInfo}</p>}
+                  <Spinner />
+                </div>
+              )}
 
-                  if (
-                    accountSyncStatus === AccountSyncStatus.Synced &&
-                    accountSyncService === AccountSyncService.Google
-                  ) {
-                    const googleButton = document.getElementById('google-auth-button');
-                    googleButton?.click();
-                  }
-                }
-              }}
-              className="[&_input:-webkit-autofill]:shadow-[0_0_0_30px_var(--dark-5)_inset] [&_input:-webkit-autofill]:-webkit-text-fill-color-[var(--text-primary)]"
-            />
-            <div className="flex flex-col mt-4 space-y-3">
-              {accountSyncStatus !== AccountSyncStatus.Synced && (
-                <Button 
-                  data-testid="login-button" 
-                  disabled={isLoading} 
-                  onClick={handleSubmit}
-                  className="rounded-lg font-bold text-sm"
+              {error && (
+                <div
+                  data-testid="login-error"
+                  className="mt-[14px] text-[11px] text-center border border-red bg-red/10 p-4"
                 >
-                  {t('Login')}
-                </Button>
+                  {error}
+                </div>
               )}
-              {attemptingSyncedLogin && (
-                <Button variant="secondary" onClick={cancelSyncLogin}>
-                  Cancel
-                </Button>
-              )}
-            </div>
-            {isLoading && (
-              <div className="text-center">
-                {loadingInfo && <p className="mt-4">{loadingInfo}</p>}
-                <Spinner />
-              </div>
-            )}
-
-            {error && (
-              <div
-                data-testid="login-error"
-                className="mt-[14px] text-[11px] text-center border border-red bg-red/10 p-4"
-              >
-                {error}
-              </div>
-            )}
+            </form>
           </div>
         </div>
         <div className="w-full grid grid-cols-12 gap-0">

@@ -13,13 +13,11 @@ const SoundPlayer = lazy(async () => {
         
     return {
       default: function Sound({ soundUrl, onInit }: Props) {
-        console.log('Loading sound:', soundUrl);
         const [play] = useSound(soundUrl, {
           html5: true,
           preload: true,
           volume: 1.0
         });
-        console.log('Playing...');
         
         useEffect(() => {
           if (play) {

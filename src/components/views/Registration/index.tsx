@@ -18,7 +18,8 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSelectServiceMenu] = useState(false);
 
-  const onContinue = useCallback(() => {
+  const onSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
     if (passwordConfirm !== password) {
       setError(t("Password doesn't match confirmation."));
     } else {
@@ -57,7 +58,13 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
           <div className="order-first mb-16 md:col-span-3 md:pl-3 md:order-none">
             <h2 className="mb-2 font-medium">{t('Join the alpha')}</h2>
             {!showSelectServiceMenu && (
-              <>
+              <form onSubmit={onSubmit}>
+                <input 
+                  type="text"
+                  autoComplete="username"
+                  style={{ display: 'none' }}
+                  aria-hidden="true"
+                />
                 <p className="mb-8 text-[#5B5D62] leading-[17px]">
                   {t('Enter a password to secure your sovereign Haven identity')}
                 </p>
@@ -66,9 +73,10 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                   type="password"
                   placeholder={t('Enter your password')}
                   value={password}
+                  autoComplete="new-password"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                      onContinue();
+                      onSubmit(e);
                     }
                   }}
                   onChange={(e) => {
@@ -80,13 +88,14 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                   data-testid="registration-password-confirmation"
                   type="password"
                   placeholder={t('Confirm your password')}
+                  value={passwordConfirm}
+                  autoComplete="new-password"
                   className="mt-4"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                      onContinue();
+                      onSubmit(e);
                     }
                   }}
-                  value={passwordConfirm}
                   onChange={(e) => {
                     setPasswordConfirm(e.target.value);
                   }}
@@ -109,9 +118,9 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
 
                 <div className="flex flex-col mt-4">
                   <Button
+                    type="submit"
                     data-testid="registration-button"
                     disabled={isLoading}
-                    onClick={onContinue}
                   >
                     {t('Continue')}
                   </Button>
@@ -131,7 +140,7 @@ const RegisterView: FC<Props> = ({ onPasswordConfirmation }) => {
                     an existing account
                   </Trans>
                 </div>
-              </>
+              </form>
             )}
           </div>
         </div>
