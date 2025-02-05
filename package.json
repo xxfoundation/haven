@@ -73,7 +73,7 @@
     "serve": "^14.2.4",
     "ts.data.json": "^2.2.0",
     "use-sound": "^4.0.3",
-    "usehooks-ts": "^2.9.1",
+    "usehooks-ts": "^3.1.0",
     "uuid": "^9.0.0",
     "vite": "^6.0.11",
     "xxdk-wasm": "^0.3.21"

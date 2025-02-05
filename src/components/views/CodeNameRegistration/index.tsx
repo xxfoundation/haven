@@ -6,7 +6,6 @@ import { Button, ImportCodeNameLoading } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Spinner } from 'src/components/common';
 
-import s from './CodeNameRegistration.module.css';
 import Identity from 'src/components/common/Identity';
 import { AMOUNT_OF_IDENTITIES_TO_GENERATE } from 'src/constants';
 import { useAuthentication } from '@contexts/authentication-context';
@@ -58,21 +57,11 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
   return loading ? (
     <ImportCodeNameLoading fullscreen readyProgress={readyProgress} />
   ) : (
-    <div className={cn('w-full flex flex-col justify-center items-center px-6', s.root)}>
-      <h2 data-testid='codename-registration-title' className='mt-9 mb-4'>
+    <div className="w-full flex flex-col justify-center items-center px-6">
+      <h2 data-testid="codename-registration-title" className="mt-9 mb-4">
         {t('Find your Codename')}
       </h2>
-      <p
-        className='mb-8 text text--sm'
-        style={{
-          color: 'var(--cyan)',
-          lineHeight: '18px',
-          fontSize: '14px',
-          fontWeight: '500',
-          maxWidth: '800px',
-          textAlign: 'center'
-        }}
-      >
+      <p className="mb-8 text-sm text-[var(--cyan)] leading-[18px] font-medium max-w-[800px] text-center">
         <span>
           {t(`
             Codenames are generated on your computer by you. No servers or
@@ -91,46 +80,38 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
 
       {identities.length ? (
         <div
-          data-testid='codename-registration-options'
-          className={cn(
-            'min-w-[85%] grid sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-x-4 gap-y-6 overflow-auto',
-            s.codeContainers
-          )}
+          data-testid="codename-registration-options"
+          className="min-w-[85%] grid sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-x-4 gap-y-6 overflow-auto"
         >
           {identities.map((i) => (
             <div
               key={i.codename}
               className={cn(
-                'overflow:auto rounded-xl bg-charcoal-4 md:overflow-hidden',
-                s.codename,
-                {
-                  [s.selected]: i.codename === selectedCodeName
-                }
+                'overflow-auto md:overflow-hidden rounded-xl bg-charcoal-4 cursor-pointer p-4',
+                i.codename === selectedCodeName ? 'ring-2 ring-cyan' : ''
               )}
               onClick={() => {
                 setSelectedCodeName(i.codename);
                 setSelectedPrivateIdentity(i.privateIdentity);
               }}
             >
-              <span className='text-xs'>
-                <Identity className={s.identity} {...i} />
+              <span className="text-xs">
+                <Identity {...i} />
               </span>
             </div>
           ))}
         </div>
       ) : (
-        <div className={s.loading}>
-          <div className='w-full h-full flex justify-center items-center'>
-            <Spinner size='lg' />
-          </div>
+        <div className="w-full h-64 flex justify-center items-center">
+          <Spinner size="lg" />
         </div>
       )}
 
-      <div className='flex mb-5 mt-12'>
+      <div className="flex mb-5 mt-12 gap-4">
         <Button
-          variant='outlined'
-          data-testid='discover-more-button'
-          className={s.generateButton}
+          variant="outlined"
+          data-testid="discover-more-button"
+          className="disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => {
             setSelectedCodeName('');
             setIdentites(generateIdentities(AMOUNT_OF_IDENTITIES_TO_GENERATE));
@@ -140,9 +121,10 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
           {t('Discover More')}
         </Button>
         <Button
-          data-testid='claim-codename-button'
+          data-testid="claim-codename-button"
           onClick={register}
           disabled={!cmix || selectedCodeName.length === 0}
+          className="disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('Claim')}
         </Button>

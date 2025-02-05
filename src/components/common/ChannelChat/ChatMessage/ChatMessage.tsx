@@ -9,12 +9,10 @@ import React, {
   useRef,
   useState
 } from 'react';
-import cn from 'classnames';
 import Clamp from 'react-multiline-clamp';
 import { useTranslation } from 'react-i18next';
 
 import Identity from 'src/components/common/Identity';
-import s from './ChatMessage.module.css';
 import ChatReactions from '../ChatReactions';
 import Spinner from '@components/common/Spinner';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';

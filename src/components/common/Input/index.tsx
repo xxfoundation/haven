@@ -1,7 +1,4 @@
 import { FC, InputHTMLAttributes } from 'react';
-import cn from 'classnames';
-
-import s from './styles.module.css';
 
 type Size = 'sm' | 'md' | 'lg';
 
@@ -18,7 +15,17 @@ const sizeMap: Record<Size, string> = {
 const Input: FC<Props> = ({ size = 'md', ...props }) => (
   <input
     {...props}
-    className={cn(sizeMap[size], s.root, props.className, 'focus:border-primary')}
+    className={`
+      w-full block
+      rounded-[1.5rem]
+      px-4
+      bg-transparent
+      border border-[var(--charcoal-1)]
+      focus:outline-none focus:border-[var(--primary)]
+      placeholder:text-sm placeholder:text-[var(--charcoal-1)]
+      ${sizeMap[size]}
+      ${props.className || ''}
+    `}
   />
 );
 

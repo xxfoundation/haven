@@ -138,10 +138,10 @@ export enum PrivacyLevel {
 }
 
 export enum MessageStatus {
-  Unsent = 'unsent',
-  Sent = 'sent',
-  Delivered = 'delivered',
-  Failed = 'failed'
+  Unsent = 0,
+  Sent = 1,
+  Delivered = 2,
+  Failed = 3
 }
 
 export enum ChannelNotificationLevel {

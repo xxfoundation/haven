@@ -82,26 +82,28 @@ const NotificationSoundSelector: FC = () => {
   );
 
   return (
-    <Select
-      classNames={{
-        menu: 'bg-charcoal-4 py-4 rounded-xl mt-1 absolute w-full',
-        menuButton: () =>
-          'text-md rounded-3xl px-4 font-semibold flex bg-primary text-near-black justify-center',
-        listItem: ({ isSelected } = { isSelected: false }) =>
-          `block transition  font-semibold duration-200 hover:bg-primary hover:text-near-black p-2 cursor-pointer select-none truncate ${
-            isSelected ? ' bg-charcoal-3' : 'text-charcoal-1'
-          }`
-      }}
-      primaryColor={'primary'}
-      options={options}
-      value={selectedOption}
-      onChange={(o) => {
-        if (o && !Array.isArray(o) && o !== null) {
-          setTouched(true);
-          setNotificationSound(o.value);
-        }
-      }}
-    />
+    <div className="p-16 h-[32rem]">
+      <Select
+        classNames={{
+          menu: 'bg-charcoal-4 py-4 rounded-xl mt-1 absolute w-full',
+          menuButton: () =>
+            'text-md rounded-3xl px-4 font-semibold flex bg-primary text-near-black justify-center',
+          listItem: ({ isSelected } = { isSelected: false }) =>
+            `block transition font-semibold duration-200 hover:bg-primary hover:text-near-black p-2 cursor-pointer select-none truncate ${
+              isSelected ? ' bg-charcoal-3' : 'text-charcoal-1'
+            }`
+        }}
+        primaryColor={'primary'}
+        options={options}
+        value={selectedOption}
+        onChange={(o) => {
+          if (o && !Array.isArray(o) && o !== null) {
+            setTouched(true);
+            setNotificationSound(o.value);
+          }
+        }}
+      />
+    </div>
   );
 };
 

@@ -12,27 +12,17 @@ const User: FC = () => {
 
   return codename ? (
     <button
-      className='flex items-center text-blue font-semibold text-xs flex-nowrap text-md overflow-hidden'
+      className="flex items-center text-blue font-semibold text-xs flex-nowrap overflow-hidden"
       onClick={() => setSidebarView('settings')}
     >
       <Profile
-        style={{
-          fill: sidebarView === 'settings' ? 'var(--primary)' : 'var(--charcoal-1)'
-        }}
+        className={sidebarView === 'settings' ? 'fill-[var(--primary)]' : 'fill-[var(--charcoal-1)]'}
       />
       <span
-        className='flex-grow whitespace-nowrap text-md'
+        className="flex-1 whitespace-nowrap text-[0.8125rem] max-w-[12rem] truncate"
         title={codename}
-        style={{
-          fontSize: '0.8125rem',
-          maxWidth: '12rem',
-          flexGrow: 1,
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis',
-          overflow: 'hidden'
-        }}
       >
-        <Elixxir style={{ fill: 'var(--blue)', width: '1ch', display: 'inline' }} />
+        <Elixxir className="fill-[var(--blue)] w-[1ch] inline" />
         {codename}
       </span>
     </button>

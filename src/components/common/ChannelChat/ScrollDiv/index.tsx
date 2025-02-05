@@ -8,10 +8,7 @@ import React, {
   MouseEventHandler
 } from 'react';
 
-import cn from 'classnames';
-
-import s from './scrolldiv.module.css';
-import { useElementSize } from 'usehooks-ts';
+import { useResizeObserver } from 'usehooks-ts';
 
 const THUMB_MIN_HEIGHT = 20;
 
@@ -38,7 +35,8 @@ const ScrollDiv: FC<Props> = ({
   const [lastScrollThumbPosition, setScrollThumbPosition] = useState(0);
   const [isDragging, setDragging] = useState(false);
   const scrollHostRef = useRef<HTMLDivElement>(null);
-  const [itemsRef, { height }] = useElementSize();
+  const { width, height } = useResizeObserver<HTMLDivElement>({
+    ref: scrollHostRef, box: 'border-box'  });
   const scrollThumb = useRef<HTMLDivElement>(null);
 
   const handleScrollThumbMouseDown = useCallback<MouseEventHandler<HTMLDivElement>>((e) => {
@@ -201,7 +199,7 @@ const ScrollDiv: FC<Props> = ({
         `}
         {...rest}
       >
-        <div className="mt-auto" ref={itemsRef}>
+        <div className="mt-auto" ref={scrollHostRef}>
           {children}
         </div>
       </div>

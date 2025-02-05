@@ -1,6 +1,4 @@
 import { FC } from 'react';
-
-import s from './NetworkStatusIcon.module.css';
 import cn from 'classnames';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 
@@ -11,12 +9,14 @@ const NetworkStatusIcon: FC = () => {
     return null;
   } else {
     return (
-      <div className={cn('flex items-center mt-4')}>
+      <div className="flex items-center mt-4">
         <div
           className={cn(
-            s.bubble,
-            { [s.bubble__connected]: isNetworkHealthy },
-            { [s.bubble__failed]: !isNetworkHealthy }
+            "block cursor-pointer after:block after:w-2 after:h-2 after:rounded-full",
+            {
+              "after:bg-[greenyellow] hover:after:bg-[greenyellow]": isNetworkHealthy,
+              "after:bg-[var(--red)] hover:after:bg-[var(--red)]": !isNetworkHealthy
+            }
           )}
         ></div>
       </div>
