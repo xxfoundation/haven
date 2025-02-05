@@ -3,16 +3,15 @@ import { Trans, useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import * as dms from 'src/store/dms';
 import * as app from 'src/store/app';
 import SearchInput from '../SearchInput';
 import useChannelFavorites from 'src/hooks/useChannelFavorites';
-import s from 'src/components/common/Spaces/styles.module.scss';
-import * as dms from 'src/store/dms';
+import Space from '../Spaces/Space';
 import Add from 'src/components/icons/Add';
-import { useUI } from 'src/contexts/ui-context';
-import Space from 'src/components/common/Spaces/Space';
-import Identity from '../Identity';
+import { useUI } from '@contexts/ui-context';
 import Button from '../Button';
+import Identity from '../Identity';
 
 const DMs = () => {
   const { t } = useTranslation();
@@ -50,7 +49,7 @@ const DMs = () => {
   }, [filteredConversations, currentConversation, dispatch, favsLoading]);
 
   return (
-    <div className={s.root}>
+    <div className='bg-our-black p-4 pb-8 h-full'>
       {allConversations.length > 0 && (
         <div className='flex items-center relative mb-2'>
           <SearchInput
@@ -71,7 +70,7 @@ const DMs = () => {
       )}
       <div className='space-y-1'>
         {allConversations.length > 0 && filteredConversations.length === 0 && (
-          <p className='p-3  text-sm text-orange'>
+          <p className='p-3 text-sm text-orange'>
             {t('No conversations found with your search criteria')}
           </p>
         )}
@@ -90,13 +89,13 @@ const DMs = () => {
                   date={latestMsg?.timestamp}
                   name={<Identity {...convo} />}
                   active={active}
-                  onClick={() => {
-                    selectChannel(convo.pubkey);
-                  }}
+                  onClick={() => selectChannel(convo.pubkey)}
                 />
               </label>
               <hr
-                className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })}
+                className={cn('border-charcoal-4 border-1', {
+                  'invisible': active || nextActive
+                })}
               />
             </React.Fragment>
           );

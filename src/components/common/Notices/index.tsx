@@ -5,8 +5,8 @@ import { useAppSelector } from 'src/store/hooks';
 import * as channels from 'src/store/channels';
 import * as messages from 'src/store/messages';
 import * as dms from 'src/store/dms';
-import { EasterEggs, useUI } from '@contexts/ui-context';
-import { WithChildren } from '@types';
+import { EasterEggs, useUI } from 'src/contexts/ui-context';
+import { WithChildren } from 'src/types';
 import Identity from '../Identity';
 import NoticeIcon from 'src/components/icons/Notice';
 

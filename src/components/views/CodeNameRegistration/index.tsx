@@ -6,7 +6,7 @@ import { Button, ImportCodeNameLoading } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { Spinner } from 'src/components/common';
 
-import s from './CodeNameRegistration.module.scss';
+import s from './CodeNameRegistration.module.css';
 import Identity from 'src/components/common/Identity';
 import { AMOUNT_OF_IDENTITIES_TO_GENERATE } from 'src/constants';
 import { useAuthentication } from '@contexts/authentication-context';
@@ -17,7 +17,7 @@ type Props = {
 
 const CodenameRegistration: FC<Props> = ({ password }) => {
   const { t } = useTranslation();
-  const { getOrInitPassword } = useAuthentication();
+  const { getOrInitPassword, setIsAuthenticated } = useAuthentication();
   const { checkRegistrationReadiness, cmix, generateIdentities } = useNetworkClient();
   const [loading, setLoading] = useState(false);
   const [identities, setIdentites] = useState<ReturnType<typeof generateIdentities>>([]);
@@ -46,15 +46,14 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
           if (isReadyInfo.isReady) {
             setTimeout(() => {
               setLoading(false);
-              // Dont mess with this, it needs exactly 3 seconds
-              // for the database to initialize
+              setIsAuthenticated(true);
             }, 3000);
           }
           setReadyProgress(Math.ceil((isReadyInfo?.howClose || 0) * 100));
         });
       }
     }, 500);
-  }, [checkRegistrationReadiness, selectedPrivateIdentity]);
+  }, [checkRegistrationReadiness, selectedPrivateIdentity, setIsAuthenticated]);
 
   return loading ? (
     <ImportCodeNameLoading fullscreen readyProgress={readyProgress} />

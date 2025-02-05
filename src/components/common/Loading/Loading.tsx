@@ -1,9 +1,9 @@
-import type { WithChildren } from '@types';
+import type { WithChildren } from 'src/types';
 import type { FC } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import s from './Loading.module.scss';
+import s from './Loading.module.css';
 import { Spinner } from 'src/components/common';
 
 type Props = WithChildren;

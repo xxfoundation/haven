@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import Quill, { DeltaStatic, RangeStatic, Sources } from 'quill';
+import Quill from 'quill';
 import Fuse from 'fuse.js';
 import emojiData, { EmojiMartData } from '@emoji-mart/data';
+import { Range } from 'quill';
 
 const emojiMap = emojiData as EmojiMartData;
 const allEmojiKeys = Object.keys(emojiMap.emojis);
@@ -13,14 +13,27 @@ const TRIGGER_CHAR = ':';
 const MATCHING_CHARS = /:[a-zA-Z0-9_+]*:/dg;
 const MIN_MATCH_LENGTH = 1;
 
+interface ShortNameEmojiOptions {
+  fuse?: Fuse.IFuseOptions<any>;
+  source?: (searchTerm: string) => any[];
+  onOpen?: () => void;
+  onClose?: (value: string | null) => void;
+  container?: HTMLElement;
+}
+
 class ShortNameEmoji extends Module {
   container: HTMLUListElement;
+  quill: Quill;
+  options: ShortNameEmojiOptions;
+  fuse: Fuse<any>;
+  private open: boolean = false;
+  private triggerIndex: number | null = null;
+  private focusedButton: number | null = null;
+  private query: string = '';
+  private buttons: HTMLElement[] = [];
+  private isWhiteSpace: (ch: string) => boolean;
 
-  quill: Quill & { container?: any };
-
-  fuse: Fuse<string>;
-
-  constructor(quill: Quill, options: any) {
+  constructor(quill: Quill, options: ShortNameEmojiOptions = {}) {
     super(quill, options);
 
     this.fuse = new Fuse(allEmojiKeys, {
@@ -40,6 +53,7 @@ class ShortNameEmoji extends Module {
 
     quill.on('text-change', this.onTextChange.bind(this));
 
+    this.options = options;
     this.open = false;
     this.triggerIndex = null;
     this.focusedButton = null;
@@ -53,7 +67,7 @@ class ShortNameEmoji extends Module {
     };
   }
 
-  onTextChange(delta: DeltaStatic, oldDelta: DeltaStatic, source: Sources) {
+  onTextChange(delta: unknown, oldDelta: unknown, source: string) {
     if (source === 'user') {
       this.onSomethingChange();
     }
@@ -127,10 +141,15 @@ class ShortNameEmoji extends Module {
     }
   }
 
-  triggerPicker(range: RangeStatic) {
+  triggerPicker(range: Range) {
     if (this.open) return true;
 
     const triggerBounds = this.quill.getBounds(range.index);
+
+    if (!triggerBounds) {
+      console.warn('No trigger bounds found');
+      return;
+    }
 
     const paletteMaxPos = triggerBounds.left + 250;
     if (paletteMaxPos > this.quill.container.offsetWidth) {
@@ -142,8 +161,8 @@ class ShortNameEmoji extends Module {
     this.container.style.bottom = triggerBounds.top + triggerBounds.height + 'px';
     this.open = true;
 
-    if (this.onOpen) {
-      this.onOpen();
+    if (this.options.onOpen) {
+      this.options.onOpen();
     }
   }
 
@@ -158,6 +177,16 @@ class ShortNameEmoji extends Module {
 
   update() {
     const sel = this.quill.getSelection()?.index ?? 0;
+
+    if (!sel) {
+      console.warn('No selection found');
+      return;
+    }
+    if (!this.triggerIndex) {
+      console.warn('No trigger index found');
+      return;
+    }
+
     if (this.triggerIndex >= sel) {
       return this.close(null);
     }
@@ -291,14 +320,18 @@ class ShortNameEmoji extends Module {
 
     if (value) {
       const index = this.triggerIndex;
+      if (!index) {
+        console.warn('No trigger index found');
+        return;
+      }
       this.quill.deleteText(index, this.query.length + 1 + trailingDelete, 'user');
       this.quill.insertEmbed(index, 'emoji', value, 'user');
       setTimeout(() => this.quill.setSelection(index + value.length), 0);
     }
     this.quill.focus();
     this.open = false;
-    if (this.onClose) {
-      this.onClose(value);
+    if (this.options.onClose) {
+      this.options.onClose(value);
     }
   }
 }

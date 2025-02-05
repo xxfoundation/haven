@@ -1,9 +1,10 @@
-import cn from 'classnames';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@components/common';
 import Modal from 'src/components/modals/Modal';
-import useLocalStorage from 'src/hooks/useLocalStorage';
+import { useUI } from 'src/contexts/ui-context';
 
-import s from './UpdatesModal.module.scss';
+const APP_VERSION = import.meta.env.APP_VERSION || 'Unknown';
 
 /*
         <li className='text-center'>
@@ -34,35 +35,49 @@ import s from './UpdatesModal.module.scss';
 */
 
 const UpdatesModal = () => {
-  const [showModal, setShowModal] = useLocalStorage(
-    `update-notice_${process.env.NEXT_PUBLIC_APP_VERSION}`,
-    true
-  );
+  const { t } = useTranslation();
+  const [show, setShow] = useState(false);
 
-  return showModal ? (
+  const closeModal = () => {
+    setShow(false);
+  };
+
+  useEffect(() => {
+    const lastVersion = localStorage.getItem('version');
+    if (lastVersion !== APP_VERSION) {
+      setShow(true);
+      localStorage.setItem('version', APP_VERSION);
+    }
+  }, []);
+
+  if (!show) return null;
+
+  return (
     <Modal
       data-testid='updates-modal'
-      className={cn(s.root, 'm-4 md:w-[42rem]')}
-      onClose={() => setShowModal(false)}
+      className="
+        m-4 md:w-[42rem]
+        p-16 max-h-[70vh] overflow-auto
+        [&>h2]:mb-10
+        [&>h3]:mb-4
+        [&>ul]:indent-[-1.4rem]
+        [&>ul]:ml-12
+        [&>ul]:mb-8
+        [&>ul>li]:mb-4
+      "
+      onClose={closeModal}
     >
-      <h2 className='text-center'>Version {process.env.NEXT_PUBLIC_APP_VERSION}</h2>
-      <ul style={{ marginLeft: '-1rem' }}>
-        <li className='text-center'>⭐ Automatically join xxGeneralChat</li>
-        <li className='text-center'>
-          🔍 Haven links now have previews when you send them via social media
-        </li>
-        <li className='text-center'>
-          👨‍🦳 Update to xxdk-wasm v0.3.22, which should improve time to initialize a new user
-          codename
-        </li>
-      </ul>
+      <h2 className='text-center'>{t('Updates')}</h2>
+      <p className='mb-8'>
+        {t('Haven has been updated to version')} {APP_VERSION}
+      </p>
       <div className='text-center'>
-        <Button data-testid='updates-modal-confirm' onClick={() => setShowModal(false)}>
-          Big ups!
+        <Button data-testid='updates-modal-confirm' onClick={closeModal}>
+          {t('Close')}
         </Button>
       </div>
     </Modal>
-  ) : null;
+  );
 };
 
 export default UpdatesModal;

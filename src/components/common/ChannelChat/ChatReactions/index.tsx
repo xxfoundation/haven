@@ -1,12 +1,10 @@
-import { Message, MessageStatus } from '@types';
+import { Message, MessageStatus } from '../../../../types';
 
 import React, { FC, useCallback, useMemo } from 'react';
-import cn from 'classnames';
 import { Tooltip } from 'react-tooltip';
 import { uniqueId } from 'lodash';
 import { useTranslation } from 'react-i18next';
 
-import s from './styles.module.scss';
 import * as messages from 'src/store/messages';
 import * as identity from 'src/store/identity';
 import * as app from 'src/store/app';
@@ -48,22 +46,24 @@ const ChatReactions: FC<Props> = ({ message }) => {
 
   return (
     <>
-      <div className={cn('space-x-1', s.wrapper)}>
+      <div className="relative flex items-center flex-wrap mt-2 space-x-1">
         {reactions?.map(
           ([emoji, reactionInfos]) =>
             reactionInfos?.length > 0 && (
               <div
                 key={`${id}-${message.id}-${emoji}`}
                 id={`${id}-${message.id}-${emoji}-emojis-users-reactions`}
-                className={cn('hover:bg-charcoal-3', s.emoji, {
-                  'bg-primary-15 border border-primary': reactionInfos
-                    .map((i) => i.pubkey)
-                    .includes(userPubkey ?? '')
-                })}
+                className={`
+                  mr-0.5 px-1.5 rounded-[10px] flex items-center text-base cursor-pointer
+                  hover:bg-charcoal-3
+                  ${reactionInfos.map((i) => i.pubkey).includes(userPubkey ?? '') 
+                    ? 'bg-primary-15 border border-primary' 
+                    : ''}
+                `}
                 onClick={() => toggleReaction(emoji, message.id)}
               >
-                <span className='mr-1'>{emoji}</span>
-                <span className={cn(s.count)}>{reactionInfos.length}</span>
+                <span className="mr-1">{emoji}</span>
+                <span className="text-[10px]">{reactionInfos.length}</span>
                 {reactionInfos.filter((i) => i.status !== MessageStatus.Delivered).length > 0 && (
                   <Spinner size='xs' />
                 )}
@@ -71,7 +71,7 @@ const ChatReactions: FC<Props> = ({ message }) => {
             )
         )}
         {reactions.length > 0 && (
-          <button className='bg-charcoal-4 text-charcoal-1 hover:text-primary rounded-xl p-1'>
+          <button className="bg-charcoal-4 text-charcoal-1 hover:text-primary rounded-xl p-1">
             <EmojiPicker
               onSelect={(e) => {
                 sendReaction(e, message.id);
@@ -83,13 +83,13 @@ const ChatReactions: FC<Props> = ({ message }) => {
       {reactions?.map(([emoji, users]) => (
         <Tooltip
           clickable
-          className={s.tooltip}
+          className="!p-1 !pb-2 !opacity-100 !max-w-[320px] !max-h-[350px] overflow-auto rounded"
           key={emoji}
           anchorId={`${id}-${message.id}-${emoji}-emojis-users-reactions`}
           place={'bottom'}
         >
-          <div className={cn(s.icon)}>{emoji}</div>
-          <p>
+          <div className="text-[48px] text-center">{emoji}</div>
+          <p className="text-xs font-medium text-center">
             {users.slice(0, Math.max(1, users.length - 1)).map((u, i) => (
               <>
                 {i > 0 && ', '}

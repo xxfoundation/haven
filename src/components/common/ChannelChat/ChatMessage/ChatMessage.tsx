@@ -14,7 +14,7 @@ import Clamp from 'react-multiline-clamp';
 import { useTranslation } from 'react-i18next';
 
 import Identity from 'src/components/common/Identity';
-import s from './ChatMessage.module.scss';
+import s from './ChatMessage.module.css';
 import ChatReactions from '../ChatReactions';
 import Spinner from '@components/common/Spinner';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
@@ -32,6 +32,10 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   message: Message;
   className?: string;
   noReply?: boolean;
+};
+
+type ClampToggleProps = {
+  toggle: () => void;
 };
 
 const HoveredMention = ({ codename }: { codename: string }) => {
@@ -91,27 +95,22 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
       data-testid='message-container'
       id={message.id}
       {...htmlProps}
-      className={cn(
-        htmlProps.className,
-        'transition-all',
-        {
-          'bg-charcoal-4-40 border-l-2 border-charcoal-2': highlighted,
-          'bg-near-black hover:bg-charcoal-4-40':
-            (!message.id || message.id !== userReplyId) && !htmlProps.className?.includes('bg-'),
-          'bg-green-10 border-l-2 border-green':
-            userReplyId && message.id === userReplyId && !noReply
-        },
-        s.root,
-        {
-          [s.root__withReply]: message.repliedTo !== null
-        },
-        htmlProps.className
-      )}
+      className={`
+        px-4 py-2 relative transition-all
+        ${highlighted ? 'bg-charcoal-4-40 border-l-2 border-charcoal-2' : ''}
+        ${(!message.id || message.id !== userReplyId) && !htmlProps.className?.includes('bg-') 
+          ? 'bg-near-black hover:bg-charcoal-4-40' 
+          : ''}
+        ${userReplyId && message.id === userReplyId && !noReply 
+          ? 'bg-green-10 border-l-2 border-green' 
+          : ''}
+        ${htmlProps.className || ''}
+      `}
     >
       {repliedToMessage && !noReply && (
         <div
           ref={replyRef}
-          className='cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative hover:bg-charcoal-4'
+          className="cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative hover:bg-charcoal-4"
           onClick={() => {
             const originalMessage = document.getElementById(repliedToMessage.id || '');
             if (originalMessage) {
@@ -120,13 +119,13 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
             }
           }}
         >
-          <ConnectingLine className='absolute -left-6 text-charcoal-3 bottom-0' />
+          <ConnectingLine className="absolute -left-6 text-charcoal-3 bottom-0" />
           {repliedToMessage ? (
             <>
               <Identity clickable {...repliedToMessage} />
               <Clamp lines={3}>
                 <div
-                  className='message'
+                  className="message"
                   dangerouslySetInnerHTML={{
                     __html: repliedToMessage.body
                   }}
@@ -141,17 +140,17 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
       <Tooltip clickable style={tooltipStyles} isOpen={hoveredMention !== null}>
         {hoveredMention && <HoveredMention codename={hoveredMention} />}
       </Tooltip>
-      <div className='w-full'>
-        <div className='shrink truncate overflow-hidden break-word hyphens-auto'>
-          <div className={cn(s.header)}>
+      <div className="w-full">
+        <div className="shrink truncate overflow-hidden break-words hyphens-auto">
+          <div className="flex items-center">
             {message.repliedTo !== null ? (
               <>
                 <Identity clickable {...message} />
-                <span className={cn(s.separator, 'mx-1')}>{t('replied to')}</span>
+                <span className="mx-1 text-xs">{t('replied to')}</span>
                 {repliedToMessage ? (
                   <Identity clickable {...repliedToMessage} />
                 ) : (
-                  <span className={cn(s.separator, '')}>
+                  <span className="text-xs">
                     <strong>{t('deleted/unknown')}</strong>
                   </span>
                 )}
@@ -159,11 +158,12 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
             ) : (
               <Identity clickable {...message} />
             )}
-            <span className={cn(s.messageTimestamp)}>
+            <span className="text-[10px] font-normal ml-1.5">
               {dayjs(message.timestamp).format('hh:mm A')}
             </span>
-            {message.status === MessageStatus.Unsent ||
-              (message.status === MessageStatus.Sent && <Spinner size='xs' />)}
+            {(message.status === MessageStatus.Unsent || message.status === MessageStatus.Sent) && 
+              <Spinner size='xs' />
+            }
             {message.round !== 0 && (
               <a
                 href={`https://dashboard.xx.network/rounds/${message.round}`}
@@ -178,21 +178,21 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
             )}
             &nbsp;
             {message.status === MessageStatus.Failed && (
-              <span className='text-xs' style={{ color: 'var(--red)' }}>
+              <span className='text-xs text-red'>
                 ({t('Failed')})
               </span>
             )}
           </div>
 
-          <div className={cn('message-body', s.body)}>
+          <div className="text-sm">
             <Clamp
-              showMoreElement={({ toggle }: { toggle: () => void }) => (
-                <button style={{ color: 'var(--cyan)' }} type='button' onClick={toggle}>
+              showMoreElement={({ toggle }: ClampToggleProps) => (
+                <button className="text-cyan" type='button' onClick={toggle}>
                   {t('Show more')}
                 </button>
               )}
-              showLessElement={({ toggle }: { toggle: () => void }) => (
-                <button style={{ color: 'var(--cyan)' }} type='button' onClick={toggle}>
+              showLessElement={({ toggle }: ClampToggleProps) => (
+                <button className="text-cyan" type='button' onClick={toggle}>
                   {t('Show less')}
                 </button>
               )}
@@ -202,9 +202,7 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
             >
               {message.body ? (
                 <div
-                  className={cn('message', s.messageBody, {
-                    [s.messageBody__failed]: message.status === MessageStatus.Failed
-                  })}
+                  className={`message ${message.status === MessageStatus.Failed ? 'text-red' : ''}`}
                   dangerouslySetInnerHTML={{
                     __html: message.body
                   }}

@@ -2,7 +2,7 @@ import { Spinner } from '@components/common';
 import { NetworkStatus, useNetworkClient } from '@contexts/network-client-context';
 import React from 'react';
 
-import s from './ConnectingDimmer.module.scss';
+import s from './ConnectingDimmer.module.css';
 
 const ConnectingDimmer = () => {
   const { networkStatus } = useNetworkClient();

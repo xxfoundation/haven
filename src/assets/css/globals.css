@@ -1,0 +1,461 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100;400;500;600;700&display=swap');
+
+/* Third-party CSS */
+@import './quill-overrides.css';
+@import 'react-tooltip/dist/react-tooltip.css';
+
+/* Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Variables */
+:root {
+  /* Colors */
+  --our-black: #07080a;
+  --near-black: #0a0c0f;
+  --near-black-80: rgba(10, 12, 15, 0.8);
+  --charcoal-4: #16181d;
+  --charcoal-3-20: rgba(46, 49, 55, 0.2);
+  --charcoal-4-80: rgba(22, 24, 29, 0.8);
+  --charcoal-4-40: rgba(22, 24, 29, 0.4);
+  --charcoal-3: #2e3137;
+  --charcoal-2: #41444a;
+  --charcoal-1: #6c6e74;
+  --primary-white: #dadce5;
+  --light: #ebecf2;
+  --near-white: #f5f6fa;
+  --primary: #ecba60;
+  --primary-15: rgba(236, 186, 96, 0.15);
+  --red: #e3304b;
+  --orange: #fa7b48;
+  --green: #00c291;
+  --green-10: rgba(0, 194, 145, 0.1);
+  --blue: #259cdb;
+  --secondary: var(--blue);
+  --text-primary: var(--primary-white);
+  --text-secondary: var(--charcoal-1);
+  --text-muted: var(--charcoal-2);
+  --border-radius: 1rem;
+  --font-sans: "Roboto Flex", sans-serif;
+  
+  /* Fonts */
+  --font-primary: var(--font-sans);
+  --font-montserrat: 'Montserrat', sans-serif;
+  
+  /* Sizing */
+  --browser-context: 10px;
+  --base-line-height: 1.5;
+  --base-letter-spacing: 0.25px;
+  
+  /* Breakpoints */
+  --breakpoint-xs: 425px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-smdtp: 960px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* Button Colors */
+  --button-bg: var(--primary);
+  --button-hover: var(--secondary);
+  --button-text: var(--our-black);
+  --button-disabled: rgba(255, 255, 255, 0.3);
+}
+
+/* Base Styles */
+html {
+  height: -webkit-fill-available;
+  box-sizing: border-box;
+  touch-action: manipulation;
+  font-feature-settings: "case" 1, "rlig" 1, "calt" 0;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+  tab-size: 4;
+  font-family: var(--font-sans);
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body, html {
+  background-color: var(--near-black);
+  color: var(--text-primary);
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  position: relative;
+  min-height: 100%;
+  margin: 0;
+  line-height: inherit;
+}
+
+*, :after, :before {
+  box-sizing: border-box;
+  border: 0 solid;
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Search Input Styles */
+.search {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+/* Notification Banner Styles */
+.notification-banner {
+  padding: 0.5rem 60px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.notification-banner span {
+  display: block;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.notification-banner button {
+  color: var(--primary);
+}
+
+.notification-banner svg {
+  cursor: pointer;
+}
+
+.notification-banner svg path {
+  fill: var(--primary);
+  stroke-width: 2px;
+}
+
+/* Join Page Styles */
+.password-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.password-wrapper > div,
+.password-wrapper > p,
+.password-wrapper .channel-credentials {
+  width: 100%;
+  max-width: 534px;
+}
+
+.password-wrapper .button {
+  color: black;
+}
+
+.password-wrapper .button:disabled:hover {
+  cursor: not-allowed;
+}
+
+/* Footer Links */
+.footer-link {
+  font-family: var(--font-montserrat);
+  font-size: 0.75rem;
+  line-height: 0.9375rem;
+  color: #2e3137;
+  margin: 0 1.25rem;
+  white-space: nowrap;
+}
+
+.footer-link:hover {
+  color: var(--text-primary);
+}
+
+/* Typography */
+.headline {
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  font-weight: 700;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: var(--base-letter-spacing);
+}
+
+.headline--xl {
+  font-size: 40px;
+  font-weight: 700;
+}
+
+.headline--lg {
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.headline--md {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.headline--sm {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.headline--xs {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.headline--text {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* Heading Styles */
+h1, .h1 {
+  composes: headline headline--xl;
+}
+
+h2, .h2 {
+  composes: headline headline--lg;
+}
+
+h3, .h3 {
+  composes: headline headline--md;
+}
+
+h4, .h4 {
+  composes: headline headline--sm;
+}
+
+h5, .h5 {
+  composes: headline headline--xs;
+}
+
+/* Text Styles */
+.text {
+  font-family: var(--font-primary);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.3;
+}
+
+.text--md {
+  font-size: 13px;
+}
+
+.text--sm {
+  font-size: 12px;
+}
+
+.text--xs {
+  font-size: 11px;
+  line-height: 13px;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Message & Editor Styles */
+.message-body,
+.editor {
+  ul {
+    list-style-type: disc;
+    list-style-position: inside;
+  }
+
+  ol {
+    list-style-type: decimal;
+    list-style-position: inside;
+  }
+
+  ul ul,
+  ol ul {
+    list-style-type: circle;
+    list-style-position: inside;
+    margin-left: 15px;
+  }
+
+  ul ul ul,
+  ol ul ul,
+  ol ol ul {
+    list-style-type: square;
+    list-style-position: inside;
+    margin-left: 15px;
+  }
+
+  ol ol,
+  ul ol {
+    list-style-type: lower-latin;
+    list-style-position: inside;
+    margin-left: 15px;
+  }
+
+  blockquote:not(.ql-container) {
+    border-left: 0;
+    position: relative;
+    padding-left: 1ch;
+    white-space: pre-wrap;
+  }
+
+  blockquote:not(.ql-container)::before {
+    content: ' ';
+    width: 0.25rem;
+    height: 100%;
+    background-color: var(--grey);
+    position: absolute;
+    left: 0;
+    border-radius: 0.25rem;
+  }
+
+  blockquote + blockquote::before {
+    height: calc(100% + 6px);
+    top: -6px;
+  }
+
+  code {
+    background-color: var(--dark-7);
+    color: var(--light-orange);
+    padding: 0 0.25ch;
+    margin: 0 0.25ch;
+    border-radius: 0.25rem;
+  }
+
+  pre.ql-syntax {
+    background-color: var(--dark-7) !important;
+    color: var(--light-orange);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    margin: 0.5rem 0;
+    white-space: break-spaces;
+  }
+}
+
+.message {
+  white-space: break-spaces;
+}
+
+/* Custom global styles can go here */
+
+/* Button Styles */
+.button {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+}
+
+.button:hover:not(:disabled) {
+  background-color: var(--button-hover);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--button-disabled);
+}
+
+.button--secondary {
+  background-color: transparent;
+  border: 1px solid var(--button-bg);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background-color: var(--primary-15);
+}
+
+/* Input Field Styles */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="search"],
+textarea {
+  background-color: var(--charcoal-4);
+  color: var(--text-primary);
+  border: 1px solid var(--charcoal-4-40);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="search"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: var(--charcoal-4-80);
+}
+
+input[type="text"]::placeholder,
+input[type="password"]::placeholder,
+input[type="email"]::placeholder,
+input[type="search"]::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Dark Mode Form Elements */
+select {
+  background-color: var(--charcoal-4);
+  color: var(--text-primary);
+  border: 1px solid var(--charcoal-4-40);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23999' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: var(--charcoal-4-80);
+}
+
+/* Disabled State */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--charcoal-4-40);
+} 

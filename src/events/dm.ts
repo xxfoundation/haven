@@ -3,13 +3,13 @@ import {
   DMNotificationsUpdateEvent,
   DMReceivedEvent,
   TypedEventEmitter
-} from '@types';
+} from 'src/types';
 import {
   Decoder,
   dmNotificationsUpdateEventDecoder,
   blockedUserEventDecoder,
   dmReceivedEventDecoder
-} from '@utils/decoders';
+} from 'src/utils/decoders';
 import { makeEventAwaiter, makeListenerHook } from '@utils/index';
 import EventEmitter from 'events';
 
@@ -45,7 +45,7 @@ export const onDmEvent = (eventType: DMEvents, data: unknown) => {
   if (!eventDecoder) {
     console.error('Unhandled channel event:', eventType, data);
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     dmBus.emit(eventType, eventDecoder(data) as any);
   }
 };

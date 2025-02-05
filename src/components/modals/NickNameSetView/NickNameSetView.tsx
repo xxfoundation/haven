@@ -1,67 +1,62 @@
 import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import { Button } from 'src/components/common';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
-import * as channels from 'src/store/channels';
-import * as dms from 'src/store/dms';
-import { useAppSelector } from 'src/store/hooks';
-import * as globalSelectors from 'src/store/selectors';
+import useInput from 'src/hooks/useInput';
 import ModalTitle from '../ModalTitle';
-import Input from '@components/common/Input';
-import FormError from '@components/common/FormError';
 
 const NickNameSetView: FC = () => {
   const { t } = useTranslation();
-  const currentChannel = useAppSelector(channels.selectors.currentChannel);
-  const currentConversation = useAppSelector(dms.selectors.currentConversation);
-  const { setNickname: setNickName } = useNetworkClient();
-  const nickname = useAppSelector(globalSelectors.currentNickname);
-  const [localNickname, setLocalNickname] = useState(nickname || '');
-  const [error, setError] = useState('');
   const { closeModal } = useUI();
+  const { setNickname } = useNetworkClient();
+  const [nickname, setNicknameValue] = useInput('');
+  const [error, setError] = useState('');
 
-  const onSubmit = useCallback(() => {
-    setError('');
-    const success = setNickName(localNickname);
-    if (success) {
-      closeModal();
-    } else {
-      setError(t('Invalid nickname'));
+  const handleSubmit = useCallback(async () => {
+    if (nickname.length) {
+      try {
+        setNickname(nickname);
+        closeModal();
+      } catch (e) {
+        setError(t('Something wrong happened, please try again.'));
+      }
     }
-  }, [t, closeModal, localNickname, setNickName]);
+  }, [closeModal, nickname, setNickname, t]);
 
   return (
-    <>
+    <div className="w-full flex flex-col justify-center items-center">
       <ModalTitle>{t('Set Nickname')}</ModalTitle>
-      <p className='text-charcoal-1'>
-        {currentConversation
-          ? t('Set your nickname for the {{channelName}} channel', {
-              channelName: currentChannel?.name
-            })
-          : t('Set your nickname for all direct messages')}
+      <p className="mb-8 font-medium text-xs leading-tight text-cyan max-w-[520px] text-left w-full">
+        {t('Set a nickname to make yourself more recognizable to others.')}
       </p>
-      <Input
-        type='text'
-        placeholder={t('Enter your nickname')}
-        className='mt-1'
-        value={localNickname}
+      <input
+        type="text"
+        className="
+          w-full max-w-[520px]
+          border-none outline-none
+          bg-dark-5 px-2.5 py-[18px]
+          text-text-primary text-sm
+          rounded mb-6
+        "
+        placeholder={t('Enter nickname')}
+        value={nickname}
+        onChange={setNicknameValue}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
-            e.preventDefault();
-            onSubmit();
+            handleSubmit();
           }
         }}
-        onChange={(e) => {
-          setLocalNickname(e.target.value);
-        }}
       />
-      {error && <FormError>{error}</FormError>}
-      <Button className='my-7' onClick={onSubmit}>
-        {t('Save')}
+      {error && (
+        <div className="text-xs mt-2 text-red w-full max-w-[520px]">
+          {error}
+        </div>
+      )}
+      <Button className="mt-5 w-full max-w-[520px]" onClick={handleSubmit}>
+        {t('Set Nickname')}
       </Button>
-    </>
+    </div>
   );
 };
 

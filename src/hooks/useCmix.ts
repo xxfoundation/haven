@@ -1,7 +1,6 @@
 import type { CMix, CMixParams, DatabaseCipher, DummyTraffic, RemoteStore } from 'src/types';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import assert from 'assert';
 
 import { useUtils } from '@contexts/utils-context';
 import { encoder, decoder } from '@utils/index';
@@ -27,9 +26,18 @@ export enum NetworkStatus {
   FAILED = 'failed'
 }
 
+export enum InitState {
+  UNINITIALIZED = 0,
+  NEWCMIX = 1,
+  NEWCMIXCOMPLETED = 2,
+  LOADCMIX = 3,
+  LOADCMIXCOMPLETED = 4
+}
+
 const ndf = GetDefaultNDF();
 
 const useCmix = () => {
+  const [initState, setInitState] = useState<InitState>(InitState.UNINITIALIZED);
   const { cmixPreviouslyInitialized, rawPassword } = useAuthentication();
   const [status, setStatus] = useState<NetworkStatus>(NetworkStatus.UNINITIALIZED);
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
@@ -90,23 +98,6 @@ const useCmix = () => {
       }
     },
     [cmixPreviouslyInitialized, rawPassword, utils]
-  );
-
-  const initializeCmix = useCallback(
-    async (password: Uint8Array) => {
-      if (!cmixPreviouslyInitialized) {
-        await utils.NewCmix(ndf, STATE_PATH, password, '');
-      }
-    },
-    [cmixPreviouslyInitialized, utils]
-  );
-
-  const loadCmix = useCallback(
-    async (password: Uint8Array) => {
-      const loadedCmix = await utils.LoadCmix(STATE_PATH, password, encodedCmixParams);
-      setCmix(loadedCmix);
-    },
-    [encodedCmixParams, utils]
   );
 
   const connect = useCallback(async () => {
@@ -203,54 +194,34 @@ const useCmix = () => {
     }
   }, [cmix, createDatabaseCipher, decryptedPass]);
 
-  const initializeSync = useCallback(
-    (encryptedPass: Uint8Array, remote: RemoteStore) => {
-      return initializeSynchronizedCmix(encryptedPass, remote)
-        .then(() => loadSynchronizedCmix(encryptedPass, remote))
-        .then(() => {
-          bus.emit(AppEvents.CMIX_SYNCED, remote.service);
-        })
-        .catch(() => {
-          utils.Purge(rawPassword ?? '');
-          setStatus(NetworkStatus.FAILED);
-        });
-    },
-    [initializeSynchronizedCmix, loadSynchronizedCmix, rawPassword, utils]
-  );
 
-  const initialize = useCallback(
-    (encryptedPass: Uint8Array) => {
-      return initializeCmix(encryptedPass)
-        .then(() => loadCmix(encryptedPass))
-        .catch((e) => {
-          setStatus(NetworkStatus.FAILED);
-          throw e;
-        });
-    },
-    [initializeCmix, loadCmix]
-  );
+
+  // Cmix initialization and loading
+  const initializeCmix = async (password: Uint8Array) => {
+    if (!cmixPreviouslyInitialized) {
+      await utils.NewCmix(ndf, STATE_PATH, password, '');
+    } 
+  };
+  const loadCmix = async (password: Uint8Array) => {
+    const loadedCmix = await utils.LoadCmix(STATE_PATH, password, encodedCmixParams);
+    setCmix(loadedCmix);
+  };
+  useEffect(() => {
+    if (decryptedPass) {
+      initializeCmix(decryptedPass).then(() => {
+        loadCmix(decryptedPass);
+      });
+    }
+  }, [decryptedPass]);
 
   const onPasswordDecryption = useCallback(
     async (password: Uint8Array) => {
       setDecryptedPass(password);
-      if (accountSync.status !== AccountSyncStatus.Synced) {
-        await initialize(password);
-      }
     },
-    [accountSync.status, initialize]
+    [accountSync.status]
   );
 
   useAppEventListener(AppEvents.PASSWORD_DECRYPTED, onPasswordDecryption);
-
-  const onRemoteStoreInitialized = useCallback(
-    async (remoteStore: RemoteStore) => {
-      assert(decryptedPass, 'Password required for sync login');
-      initializeSync(decryptedPass, remoteStore);
-    },
-    [decryptedPass, initializeSync]
-  );
-
-  useAppEventListener(AppEvents.REMOTE_STORE_INITIALIZED, onRemoteStoreInitialized);
 
   useEffect(() => {
     if (cmix) {
@@ -268,8 +239,6 @@ const useCmix = () => {
     disconnect,
     id: cmixId,
     status,
-    initialize,
-    initializeSync
   };
 };
 

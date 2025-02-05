@@ -31,7 +31,9 @@ const ContributorComponent: FC<Contributor> = (contributor) => {
   );
 
   const onClick = useCallback(() => {
-    assert(typeof contributor.dmToken === 'number', 'Token required for dm');
+    if (typeof contributor.dmToken !== 'number') {
+      throw new Error('Token required for dm');
+    }
     createConversation({
       ...contributor,
       color: contributor.color ?? 'var(--text-charcoal-1)',

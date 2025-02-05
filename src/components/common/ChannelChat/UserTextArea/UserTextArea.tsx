@@ -1,6 +1,6 @@
-import { default as ReactQuill, ReactQuillProps } from 'react-quill';
-import { Quill, RangeStatic, StringMap } from 'quill';
-import type { QuillAutoDetectUrlOptions } from 'quill-auto-detect-url';
+import Quill from 'quill';
+import type { Range } from 'quill';
+import {Mention, MentionBlot} from "quill-mention";
 import React, {
   FC,
   useEffect,
@@ -10,42 +10,40 @@ import React, {
   useRef,
   HTMLAttributes
 } from 'react';
-import cn from 'classnames';
-import dynamic from 'next/dynamic';
 import EventEmitter from 'events';
 import { Tooltip } from 'react-tooltip';
 import { useTranslation } from 'react-i18next';
 
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
-import s from './UserTextArea.module.scss';
+
 import SendButton from '../SendButton';
 import * as app from 'src/store/app';
 import * as messages from 'src/store/messages';
 import { userIsMuted } from 'src/store/selectors';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import Spinner from 'src/components/common/Spinner';
 
-import { deflate } from 'src/utils/index';
+import { deflate } from 'src/utils/compression';
 import { MESSAGE_TAGS_LIMIT } from 'src/constants';
-import X from '@components/icons/X';
-import Identity from '@components/common/Identity';
+import X from 'src/components/icons/X';
+import Identity from 'src/components/common/Identity';
 import { replyingToMessage } from 'src/store/selectors';
-import { EmojiPicker } from '@components/common/EmojiPortal';
-import AtSign from '@components/icons/AtSign';
-import RTF from '@components/icons/RTF';
+import { EmojiPortal, EmojiPicker } from 'src/components/common/EmojiPortal';
+  
+import AtSign from 'src/components/icons/AtSign';
+import RTF from 'src/components/icons/RTF';
 import { useOnClickOutside, useToggle } from 'usehooks-ts';
-import Bold from '@components/icons/Bold';
-import Italics from '@components/icons/Italics';
-import Strikethrough from '@components/icons/Strikethrough';
-import LinkIcon from '@components/icons/Link';
-import OrderedList from '@components/icons/OrderedList';
-import BulletList from '@components/icons/BulletList';
-import Blockquote from '@components/icons/Blockquote';
-import Code from '@components/icons/Code';
-import CodeBlock from '@components/icons/CodeBlock';
-import Input from '@components/common/Input';
-import Button from '@components/common/Button';
+import Bold from 'src/components/icons/Bold';
+import Italics from 'src/components/icons/Italics';
+import Strikethrough from 'src/components/icons/Strikethrough';
+import LinkIcon from 'src/components/icons/Link';
+import OrderedList from 'src/components/icons/OrderedList';
+import BulletList from 'src/components/icons/BulletList';
+import Blockquote from 'src/components/icons/Blockquote';
+import Code from 'src/components/icons/Code';
+import CodeBlock from 'src/components/icons/CodeBlock';
+import Input from 'src/components/common/Input';
+import Button from 'src/components/common/Button';
 import useInput from 'src/hooks/useInput';
 
 export const bus = new EventEmitter();
@@ -64,34 +62,17 @@ const extractTagsFromMessage = (message: string) => {
 };
 
 const ToolbarButton: FC<
-  Omit<HTMLAttributes<HTMLButtonElement>, 'active'> & { active?: boolean }
-> = (props) => (
+  Omit<HTMLAttributes<HTMLButtonElement>, 'active'> & { active?: boolean | undefined }
+> = ({ active, className, ...props }) => (
   <button
     {...props}
-    className={cn(
-      props.className,
-      {
-        'bg-charcoal-3-20 text-primary': props.active
-      },
-      'text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 hover:text-primary leading-none'
-    )}
+    className={`${className || ''} ${
+      active ? 'bg-charcoal-3-20 text-primary' : 'text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 hover:text-primary leading-none'
+    }`}
+    data-active={active}
   >
     {props.children}
   </button>
-);
-
-const Editor = dynamic(
-  async () => {
-    const { default: RQ } = await import('react-quill');
-
-    return ({
-      forwardedRef,
-      ...props
-    }: ReactQuillProps & { forwardedRef: React.LegacyRef<ReactQuill> }) => (
-      <RQ {...props} ref={forwardedRef} />
-    );
-  },
-  { ssr: false, loading: () => <Spinner /> }
 );
 
 type Props = {
@@ -107,7 +88,10 @@ type CustomToolbarProps = {
 
 const useCurrentFormats = (quill: Quill) => {
   const [selection, setSelection] = useState(quill.getSelection());
-  const formats = useMemo(() => selection && quill.getFormat(selection), [quill, selection]);
+  const formats = useMemo(() => {
+    if (!selection) return null;
+    return quill.getFormat(selection) as QuillFormats;
+  }, [quill, selection]);
 
   useEffect(() => {
     const onSelectionChange = () => {
@@ -122,19 +106,20 @@ const useCurrentFormats = (quill: Quill) => {
   }, [quill]);
 
   const toggle = useCallback(
-    (format: string, value?: string) => {
+    (format: keyof QuillFormats, value?: any) => {
+      if (!quill || !selection) return;
+      
       if (format === 'list' && value === 'ordered') {
         if (formats?.list) {
-          quill.format(format, false);
+          quill.format('list', false, 'user');
         } else {
-          quill.formatLine(selection?.index ?? 0, selection?.length ?? 0, 'list', 'ordered');
+          quill.formatLine(selection.index, selection.length, 'list', 'ordered', 'user');
         }
       } else {
-        quill.format(format, value !== undefined ? value : !formats?.[format]);
+        quill.format(String(format), value ?? !formats?.[format], 'user');
       }
-      setSelection(quill.getSelection());
     },
-    [formats, quill, selection?.index, selection?.length]
+    [formats, quill, selection]
   );
 
   return {
@@ -144,12 +129,32 @@ const useCurrentFormats = (quill: Quill) => {
   };
 };
 
+// Update the types at the top
+interface QuillFormats {
+  bold?: boolean;
+  italic?: boolean;
+  strike?: boolean;
+  link?: boolean;
+  blockquote?: boolean;
+  code?: boolean;
+  'code-block'?: boolean;
+  list?: boolean | 'ordered' | 'list';
+  [key: string]: unknown;
+}
+
+interface QuillRange {
+  index: number;
+  length: number;
+}
+
+type Sources = 'user' | 'api' | 'silent';
+
 const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
   const { t } = useTranslation();
   const { formats, selection, toggle } = useCurrentFormats(quill);
   const [linkMenuOpened, setLinkMenuOpened] = useState(false);
   const [linkInput, onLinkInputChanged, linkInputControls] = useInput();
-  const [savedSelection, setSavedSelection] = useState<RangeStatic | null>(null);
+  const [savedSelection, setSavedSelection] = useState<QuillRange | null>(null);
   const linkMenuRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(linkMenuRef, () => {
@@ -176,12 +181,12 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
   const onLinkClicked = useCallback(() => {
     if (!formats?.link) {
       const text = quill.getText(selection?.index ?? 0, selection?.length ?? 0);
-      quill.format('link', text);
+      quill.format('link', text, 'user');
       saveSelection();
-      linkInputControls.set(text);
+      linkInputControls.set(text || '');
       setLinkMenuOpened(true);
     } else {
-      quill.format('link', false);
+      quill.format('link', false, 'user');
     }
   }, [formats?.link, linkInputControls, quill, saveSelection, selection?.index, selection?.length]);
 
@@ -218,7 +223,7 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
       const link = currentFormats?.link;
       if (link) {
         setLinkMenuOpened(true);
-        linkInputControls.set(link);
+        linkInputControls.set(link as string);
       } else {
         setLinkMenuOpened(false);
       }
@@ -232,7 +237,7 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
   }, [linkInputControls, quill, quill.root]);
 
   return (
-    <div className={cn(className, 'px-2 pt-2 space-x-2')}>
+    <div className={`${className || ''} px-2 pt-2 space-x-2`}>
       <ToolbarButton
         active={formats?.bold}
         onClick={() => {
@@ -286,10 +291,9 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
       <div
         ref={linkMenuRef}
         onMouseDown={saveSelection}
-        className={cn(
-          { hidden: !linkMenuOpened },
-          'flex w-[25rem] items-center space-x-2 absolute bottom-[100%] bg-charcoal-4-80 backdrop-blur-lg rounded-xl p-4'
-        )}
+        className={`${
+          linkMenuOpened ? 'flex w-[25rem] items-center space-x-2 absolute bottom-[100%] bg-charcoal-4-80 backdrop-blur-lg rounded-xl p-4' : 'hidden'
+        }`}
       >
         <span>{t('Link:')}</span>
         <div className='relative flex-grow'>
@@ -338,7 +342,7 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
         CTRL/CMD + SHIFT + 8
       </Tooltip>
       <ToolbarButton
-        active={formats?.list === 'bullet'}
+        active={formats?.list === 'list'}
         onClick={() => toggle('list')}
         id='unordered-list-button'
         className='ql-list'
@@ -386,6 +390,32 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
 // so we're instantiating a reference outside of the component, lol
 let atMentions: { id: string; value: string }[] = [];
 
+// Add these types at the top
+interface KeyBinding {
+  key: string;
+  shortKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+  handler(range: { index: number; length: number }): void;
+}
+
+interface KeyBindings {
+  [key: string]: KeyBinding;
+}
+
+// Add this interface for keyboard bindings
+interface NormalizedBinding {
+  key: string;
+  shortKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+  handler(this: { quill: Quill }, range: Range): void;
+}
+
 const UserTextArea: FC<Props> = ({ className }) => {
   const replyToMessage = useAppSelector(replyingToMessage);
   const { t } = useTranslation();
@@ -402,7 +432,6 @@ const UserTextArea: FC<Props> = ({ className }) => {
   const isMuted = useAppSelector(userIsMuted);
   const { openModal, setModalView } = useUI();
   const { cmix, sendMessage, sendReply } = useNetworkClient();
-  const [editorLoaded, setEditorLoaded] = useState(false);
   const message = useAppSelector(app.selectors.messageDraft(channelId ?? ''));
   const deflatedContent = useMemo(() => deflate(message), [message]);
   const messageIsUnderLimit = useMemo(
@@ -425,86 +454,234 @@ const UserTextArea: FC<Props> = ({ className }) => {
     const isMac = navigator?.userAgent.indexOf('Mac') !== -1;
     return isMac ? { metaKey: true } : { ctrlKey: true };
   }, []);
-  const editorRef = useRef<ReactQuill>(null);
+  const [quill, setQuill] = useState<Quill | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [toolbarEnabled, toggleToolbar] = useToggle();
 
+
+  // Update formats array to match registered formats
+  const formats = useMemo(
+    () => [
+      'bold',
+      'italic',
+      'underline',
+      'strike',
+      'blockquote',
+      'list',
+      'mention',
+      'link',
+      'code',
+      'code-block',
+    ],
+    []
+  );
+
+  const emojiIcon = "<svg class='i' viewBox='0 0 24 24'><use href='#emoticon-happy'></use></svg>";
+  // Update modules configuration
+  const modules = useMemo(() => ({
+    toolbar: false,
+    keyboard: {
+      bindings: [
+        {
+          key: 'X',
+          shiftKey: true,
+          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+          handler(this: { quill: Quill }, range: Range) {
+            const format = this.quill.getFormat(range) as QuillFormats;
+            this.quill.format('strike', !format.strike, 'user');
+          }
+        },
+        {
+          key: 'Enter',
+          handler() {
+            enterEvent();
+            return false;
+          }
+        },
+        {
+          key: '7',
+          shiftKey: true,
+          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+          handler(range: { index: number; length: number }) {
+            const format = this.quill.getFormat(range.index, range.length);
+            if (format.list) {
+              this.quill.format('list', false, 'user');
+            } else {
+              this.quill.format('list', 'ordered', 'user');
+            }
+          }
+        },
+        {
+          key: '8',
+          shiftKey: true,
+          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+          handler: function (this: { quill: Quill }, range: Range) {
+            const format = this.quill.getFormat(range);
+            this.quill.format('list', !format.list);
+          }
+        },
+        {
+          key: 'C',
+          shiftKey: true,
+          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+          handler: function (this: { quill: Quill }, range: Range) {
+            const format = this.quill.getFormat(range);
+            this.quill.format('code', !format.code);
+          }
+        },
+        {
+          key: 'C',
+          shiftKey: true,
+          altKey: true,
+          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+          handler: function (this: { quill: Quill }, range: Range) {
+            const format = this.quill.getFormat(range);
+            this.quill.format('code-block', !format['code-block']);
+          }
+        },
+        {
+          key: '9',
+          shiftKey: true,
+          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+          handler: function (this: { quill: Quill }, range: Range) {
+            const format = this.quill.getFormat(range);
+            this.quill.format('blockquote', !format.blockquote);
+          }
+        },
+        {
+          key: 'U',
+          shiftKey: false,
+          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+          handler: function (this: { quill: Quill }, range: Range) {
+            const format = this.quill.getFormat(range);
+            this.quill.format('link', !format.link);
+          }
+        }
+      ] as NormalizedBinding[]
+    },
+    clipboard: {
+      matchVisual: false
+    },
+    autoDetectUrl: {
+      urlRegularExpression: /(https?:\/\/|www\.)[\w-.]+\.[\w-.]+[\S]+/i
+    },
+    mention: {
+      allowedChars: /^[A-Za-z\s]*$/,
+      mentionDenotationChars: ['@'],
+      source(searchTerm: string, renderList: (values: { id: string; value: string }[], search: string) => void) {
+        const matches = atMentions.filter((v) =>
+          v.value.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        renderList(matches, searchTerm);
+      },
+      renderItem(item: { id: string; value: string }) {
+        return `<div>${item.value}</div>`;
+      }
+    },
+  }), [ctrlOrCmd]);
+
+
+
+  // Initialize Quill
+  useEffect(() => {
+    // Only initialize if we have a container and haven't initialized quill yet
+    if (!containerRef.current) return;
+
+    const initQuill = async () => {
+      if (quill) return;
+      try {
+        const [
+          { default: DetectUrl },
+        ] = await Promise.all([
+          import('quill-auto-detect-url'),
+        ]);
+
+        // Only register if not already registered
+        if (!Quill.imports['blots/mention']) {
+          Quill.register('blots/mention', MentionBlot);
+        }
+        if (!Quill.imports['modules/mention']) {
+          Quill.register('modules/mention', Mention);
+        }
+        if (!Quill.imports['modules/autoDetectUrl']) {
+          Quill.register('modules/autoDetectUrl', DetectUrl, true);
+        }
+
+        // Create Quill instance
+        const quillInstance = new Quill(containerRef.current as HTMLElement, {
+          theme: 'snow',
+          modules: modules,
+          formats: formats,
+          placeholder: placeholder,
+          readOnly: false,
+          bounds: containerRef.current
+        });
+
+        setQuill(quillInstance);
+      } catch (error) {
+        console.error('Error initializing Quill:', error);
+      }
+    };
+
+    // Initialize Quill
+    initQuill();
+
+  }, []);
+
   const insertEmoji = useCallback((emoji: string) => {
-    const quill = editorRef.current?.editor;
     if (!quill) {
+      console.error('No quill instance found when inserting emoji');
       return;
     }
     const { index, length } = quill.getSelection(true);
+    console.log('insertEmoji', emoji, index, length);
     quill.deleteText(index, length);
-    quill.insertEmbed(index, 'emoji', emoji, 'user');
-    setTimeout(() => quill.setSelection(index + emoji.length, 0), 0);
-  }, []);
+    quill.insertText(index, emoji);
+    quill.setSelection(index + emoji.length, 0); // Move cursor after emoji
+  }, [quill]);
 
   const insertMention = useCallback(() => {
-    const quill = editorRef.current?.editor;
     if (!quill) {
+      console.error('No quill instance found when inserting mention');
       return;
     }
-    const mention = quill.getModule('mention');
+    const mention = quill.getModule('mention') as Mention;
 
     mention.openMenu('@');
-  }, []);
+  }, [quill]);
 
-  const loadQuillModules = useCallback(async () => {
-    await import('quill-mention');
-    const QuillInstance = (await import('react-quill')).default.Quill;
-    const DetectUrl = (await import('quill-auto-detect-url')).default;
-    const ShortNameEmoji = (await import('src/quill/ShortNameEmoji')).default;
-    const Link = QuillInstance.import('formats/link');
-    const icons = QuillInstance.import('ui/icons');
-    const EmojiBlot = (await import('src/quill/EmojiBlot')).default;
-
-    icons['code-block'] =
-      "<svg data-tml='true' aria-hidden='true' viewBox='0 0 20 20'><path fill='currentColor' fillRule='evenodd' d='M9.212 2.737a.75.75 0 1 0-1.424-.474l-2.5 7.5a.75.75 0 0 0 1.424.474l2.5-7.5Zm6.038.265a.75.75 0 0 0 0 1.5h2a.25.25 0 0 1 .25.25v11.5a.25.25 0 0 1-.25.25h-13a.25.25 0 0 1-.25-.25v-3.5a.75.75 0 0 0-1.5 0v3.5c0 .966.784 1.75 1.75 1.75h13a1.75 1.75 0 0 0 1.75-1.75v-11.5a1.75 1.75 0 0 0-1.75-1.75h-2Zm-3.69.5a.75.75 0 1 0-1.12.996l1.556 1.753-1.556 1.75a.75.75 0 1 0 1.12.997l2-2.248a.75.75 0 0 0 0-.996l-2-2.252ZM3.999 9.06a.75.75 0 0 1-1.058-.062l-2-2.248a.75.75 0 0 1 0-.996l2-2.252a.75.75 0 1 1 1.12.996L2.504 6.251l1.557 1.75a.75.75 0 0 1-.062 1.06Z' clipRule='evenodd'></path></svg>";
-    Link.PROTOCOL_WHITELIST = ['http', 'https', 'mailto', 'tel', 'radar', 'rdar', 'smb', 'sms'];
-
-    class CustomLinkSanitizer extends Link {
-      static sanitize(url: string) {
-        const sanitizedUrl = super.sanitize(url);
-
-        if (!sanitizedUrl || sanitizedUrl === 'about:blank') return sanitizedUrl;
-
-        const hasWhitelistedProtocol = this.PROTOCOL_WHITELIST.some((protocol: string) =>
-          sanitizedUrl?.startsWith(protocol)
-        );
-
-        if (hasWhitelistedProtocol) return sanitizedUrl;
-
-        return `https://${sanitizedUrl}`;
-      }
-    }
-
-    QuillInstance.register('formats/emoji', EmojiBlot);
-    QuillInstance.register('modules/shortNameEmoji', ShortNameEmoji);
-    QuillInstance.register(CustomLinkSanitizer, true);
-    QuillInstance.register('modules/autoDetectUrl', DetectUrl);
-
-    setEditorLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    loadQuillModules();
-  }, [loadQuillModules]);
 
   const resetEditor = useCallback(() => {
     if (channelId) {
       dispatch(app.actions.clearMessageDraft(channelId));
     }
-  }, [channelId, dispatch]);
+    quill?.setText('');
+  }, [channelId, dispatch, quill]);
 
   const updateMessage = useCallback(
     (text: string) => {
       if (channelId) {
         const trimmed = text === '<p><br></p>' ? '' : text;
+        console.log('updateMessage', trimmed);
         dispatch(app.actions.updateMessageDraft({ channelId, text: trimmed }));
       }
     },
     [channelId, dispatch]
   );
+
+  useEffect(() => {
+    if (!quill) {
+      return;
+    }
+    quill.on('text-change', (_delta: unknown, _oldDelta: unknown, source: Sources) => {
+      if (source === 'user' && updateMessage) {
+        const html = quill.root.innerHTML;
+        if (html !== message) {
+          updateMessage(html);
+        }
+      }
+    });
+  }, [quill, updateMessage]);
 
   const sendCurrentMessage = useCallback(async () => {
     if (cmix && cmix.ReadyToSend && !cmix.ReadyToSend()) {
@@ -518,6 +695,7 @@ const UserTextArea: FC<Props> = ({ className }) => {
       }
 
       if (message.length === 0 || !messageIsUnderLimit || tooManyTags) {
+        console.log('sendCurrentMessage cannot send: ', JSON.stringify({ messageLength: message.length, messageIsUnderLimit, tooManyTags }));
         return;
       }
 
@@ -556,133 +734,14 @@ const UserTextArea: FC<Props> = ({ className }) => {
     };
   }, [sendCurrentMessage]);
 
-  const modules = useMemo<StringMap>(
-    () => ({
-      toolbar: false,
-      shortNameEmoji: true,
-      autoDetectUrl: {
-        urlRegularExpression: /(https?:\/\/|www\.)[\w-.]+\.[\w-.]+[\S]+/i
-      } as QuillAutoDetectUrlOptions,
-      mention: {
-        allowedChars: /^[A-Za-z]*$/,
-        mentionDenotationChars: ['@'],
-        source: function (
-          searchTerm: string,
-          renderList: (values: { id: string; value: string }[], search: string) => void
-        ) {
-          const matches = atMentions.filter((v) =>
-            v.value.toLocaleLowerCase().startsWith(searchTerm.toLocaleLowerCase())
-          );
-          renderList(matches, searchTerm);
-        }
-      },
-      keyboard: {
-        bindings: {
-          strike: {
-            ...ctrlOrCmd,
-            key: 'X',
-            shiftKey: true,
-            handler: function (this: { quill: Quill }, range: RangeStatic) {
-              const format = this.quill.getFormat(range);
-              this.quill.format('strike', !format.strike);
-            }
-          },
-          enter: {
-            key: 'Enter',
-            handler: () => {
-              enterEvent();
-            }
-          },
-          listOrdered: {
-            ...ctrlOrCmd,
-            key: '7',
-            shiftKey: true,
-            handler: function (this: { quill: Quill }, range: RangeStatic) {
-              const format = this.quill.getFormat(range);
-              if (format.list) {
-                this.quill.format('list', false);
-              } else {
-                this.quill.formatLine(range.index, range.length, 'list', 'ordered');
-              }
-            }
-          },
-          list: {
-            ...ctrlOrCmd,
-            key: '8',
-            shiftKey: true,
-            handler: function (this: { quill: Quill }, range: RangeStatic) {
-              const format = this.quill.getFormat(range);
-              this.quill.format('list', !format.list);
-            }
-          },
-          code: {
-            ...ctrlOrCmd,
-            key: 'C',
-            shiftKey: true,
-            handler: function (this: { quill: Quill }, range: RangeStatic) {
-              const format = this.quill.getFormat(range);
-              this.quill.format('code', !format.code);
-            }
-          },
-          codeblock: {
-            ...ctrlOrCmd,
-            key: 'C',
-            shiftKey: true,
-            altKey: true,
-            handler: function (this: { quill: Quill }, range: RangeStatic) {
-              const format = this.quill.getFormat(range);
-              this.quill.format('code-block', !format['code-block']);
-            }
-          },
-          blockquote: {
-            ...ctrlOrCmd,
-            key: '9',
-            shiftKey: true,
-            handler: function (this: { quill: Quill }, range: RangeStatic) {
-              const format = this.quill.getFormat(range);
-              this.quill.format('blockquote', !format.blockquote);
-            }
-          },
-          link: {
-            ...ctrlOrCmd,
-            key: 'U',
-            shiftKey: false,
-            handler: function (this: { quill: Quill }, range: RangeStatic) {
-              const format = this.quill.getFormat(range);
-              this.quill.format('link', !format.link);
-            }
-          }
-        }
-      }
-    }),
-    [ctrlOrCmd]
-  );
-
-  const formats = useMemo(
-    () => [
-      'bold',
-      'italic',
-      'underline',
-      'strike',
-      'blockquote',
-      'list',
-      'bullet',
-      'link',
-      'code',
-      'code-block',
-      'mention',
-      'emoji'
-    ],
-    []
-  );
-
   return (
-    <div className={cn('relative bg-charcoal-4-80 p-2', s.textArea, className)}>
+    <EmojiPortal>
+    <div className={`relative bg-charcoal-4-80 p-2 ${className || ''}`}>
       {replyToMessage && replyMessageMarkup && (
         <div className='flex justify-between mb-3 items-center'>
-          <div className={s.replyHeader}>
+          <div className='text-charcoal-1'>
             {t('Replying to')} &nbsp;
-            <Identity className='text-charcoal-3-important' {...replyToMessage} />
+            <Identity className='text-charcoal-3' {...replyToMessage} />
           </div>
           <button className='hover:bg-charcoal-3-20 hover:text-primary p-2 rounded-full'>
             <X
@@ -701,31 +760,22 @@ const UserTextArea: FC<Props> = ({ className }) => {
         >
           <RTF className='w-6 h-6' />
         </button>
-        <div className='rounded-2xl bg-near-black flex-grow'>
-          {editorLoaded && editorRef.current?.editor && (
+        <div className='rounded-2xl bg-near-black flex-grow w-full'>
+          {quill && (
             <CustomToolbar
-              quill={editorRef.current.editor}
-              className={cn({
-                hidden: !toolbarEnabled
-              })}
+              quill={quill}
+              className={toolbarEnabled ? '' : 'hidden'}
             />
           )}
-          <div className='flex'>
-            {editorLoaded && (
-              <Editor
-                className={cn('flex-grow', { 'text-red': isMuted })}
-                forwardedRef={editorRef}
-                id='editor'
-                preserveWhitespace
-                value={message}
-                theme='snow'
-                formats={formats}
-                modules={modules}
-                onChange={updateMessage}
-                placeholder={placeholder}
-              />
-            )}
-            <div className='px-1 flex items-center'>
+          <div className='flex w-full'>
+            <div className="flex-grow">
+              <div className={`w-full`}>
+                <div ref={containerRef} className="w-full">
+                  <div className="editor-container" />
+                </div>
+              </div>
+            </div>
+            <div className='px-1 flex items-center flex-shrink-0'>
               <ToolbarButton
                 onClick={insertMention}
                 className='text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 leading-none hover:text-primary'
@@ -733,19 +783,28 @@ const UserTextArea: FC<Props> = ({ className }) => {
                 <AtSign className='w-6 h-6' />
               </ToolbarButton>
               <ToolbarButton>
-                <EmojiPicker className='w-6 h-6' onSelect={insertEmoji} />
+                <EmojiPicker onSelect={insertEmoji} />
               </ToolbarButton>
             </div>
           </div>
         </div>
-        {tooManyTags && <div className={s.error}>{t('Too many tags.')}</div>}
-        {!messageIsUnderLimit && <div className={s.error}>{t('Message is too long.')}</div>}
+        {tooManyTags && (
+          <div className='text-red text-sm absolute bottom-full left-0 mb-1'>
+            {t('Too many tags.')}
+          </div>
+        )}
+        {!messageIsUnderLimit && (
+          <div className='text-red text-sm absolute bottom-full left-0 mb-1'>
+            {t('Message is too long.')}
+          </div>
+        )}
         <SendButton
           disabled={!messageIsUnderLimit || tooManyTags || isMuted}
           onClick={sendCurrentMessage}
         />
       </div>
     </div>
+    </EmojiPortal>
   );
 };
 

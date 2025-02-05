@@ -1,6 +1,6 @@
 import { SVGProps } from 'react';
 
-import s from './Mute.module.scss';
+import s from './Mute.module.css';
 
 const Pin = (props: SVGProps<SVGSVGElement>) => (
   <svg

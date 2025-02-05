@@ -60,7 +60,7 @@ const useDmClient = () => {
   const sendDMReply = useCallback(
     async (reply: string, replyToMessageId: string) => {
       if (!client || !currentConversation) {
-        return;
+        throw new Error('Current conversation is undefined');
       }
       try {
         await client?.SendReply(
@@ -81,7 +81,7 @@ const useDmClient = () => {
   const sendDMReaction = useCallback(
     async (reaction: string, reactToMessageId: string) => {
       if (!client || !currentConversation) {
-        return;
+        throw new Error('Current conversation is undefined');
       }
       try {
         await client.SendReaction(
@@ -168,7 +168,9 @@ const useDmClient = () => {
 
   const deleteDirectMessage = useCallback(
     (messageId: string) => {
-      assert(currentConversation, 'Current conversation is undefined');
+      if (!currentConversation) {
+        throw new Error('Current conversation is undefined');
+      }
       client?.DeleteMessage(
         utils.Base64ToUint8Array(currentConversation.pubkey),
         currentConversation.token,

@@ -1,13 +1,7 @@
-import { FC } from 'react';
-import cn from 'classnames';
-
+import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useCallback, useState } from 'react';
-
 import { Button } from 'src/components/common';
 import Modal from 'src/components/modals/Modal';
-
-import s from './DeleteMessage.module.scss';
 import ModalTitle from '../ModalTitle';
 
 type Props = {
@@ -29,14 +23,16 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) => {
   return (
     <Modal loading={loading} onClose={onCancel}>
       <ModalTitle>{t('Warning')}</ModalTitle>
-      <p className='mb-4 text-red uppercase text-center'>
+      <p className="mb-4 text-red uppercase text-center">
         ** {t('Important to note that deleting messages cannot be undone.')} **
       </p>
-      <div className={cn('mb-6', s.buttonGroup)}>
-        <Button variant='outlined' onClick={onCancel}>
+      <div className="flex flex-wrap justify-center -mx-2">
+        <Button variant="outlined" className="m-2" onClick={onCancel}>
           {t('Cancel')}
         </Button>
-        <Button onClick={handleConfirmation}>{t('Delete')}</Button>
+        <Button className="m-2" onClick={handleConfirmation}>
+          {t('Delete')}
+        </Button>
       </div>
     </Modal>
   );

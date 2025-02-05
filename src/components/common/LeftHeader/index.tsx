@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import cn from 'classnames';
 
-import s from './LeftHeader.module.scss';
+import s from './LeftHeader.module.css';
 import User from './User';
 import SidebarControls from './SidebarControls';
 

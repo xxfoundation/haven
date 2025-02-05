@@ -1,9 +1,9 @@
-import { WithChildren } from '@types';
+import { WithChildren } from 'src/types';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { SettingsView, LeftSidebarView, RightSidebarView } from 'src/types/ui';
 import toast, { Toaster } from 'react-hot-toast';
-import Alert, { AlertType } from '@components/common/Alert';
-import { EmojiPortal } from '@components/common/EmojiPortal';
+import Alert, { AlertType } from 'src/components/common/Alert';
+import { EmojiPortal } from 'src/components/common/EmojiPortal';
 
 export type ModalViews =
   | 'SHARE_CHANNEL'

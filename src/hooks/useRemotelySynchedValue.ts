@@ -1,7 +1,6 @@
 import { Decoder, makeDecoder } from '@utils/decoders';
 
 import { useCallback, useEffect, useState } from 'react';
-import assert from 'assert';
 
 import { useRemoteKV } from 'src/contexts/remote-kv-context';
 import { JsonDecoder } from 'ts.data.json';
@@ -38,7 +37,7 @@ const useRemotelySynchedValue = <T>(key: string, decoder: Decoder<T>, defaultVal
         });
     }
     // decoders never change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [key, kv]);
 
   // Adding this workaround because of the bug where setting the first time
@@ -58,9 +57,12 @@ const useRemotelySynchedValue = <T>(key: string, decoder: Decoder<T>, defaultVal
 
   const set = useCallback(
     async (v: T) => {
-      assert(kv, `Attempted to set value on key ${key} but the store wasn't initialized`);
-      await kv.set(key, JSON.stringify(v));
-      bus.emit('set', key, v);
+      if (kv) {
+        await kv.set(key, JSON.stringify(v));
+        bus.emit('set', key, v);
+      } else {
+        throw new Error(`Attempted to set value on key ${key} but the store wasn't initialized`);
+      }
     },
     [key, kv]
   );

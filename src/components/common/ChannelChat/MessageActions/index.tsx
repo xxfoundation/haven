@@ -1,20 +1,16 @@
 import React, { FC, useCallback, useEffect, useState, HTMLAttributes } from 'react';
-
-import cn from 'classnames';
-
 import { Delete, Reply } from 'src/components/icons';
 import { Mute, Pin } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
-
 import { useAppSelector } from 'src/store/hooks';
-import Envelope from '@components/icons/Envelope';
+import Envelope from 'src/components/icons/Envelope';
 import { userIsMuted as userIsMutedSelector } from 'src/store/selectors';
 import * as dms from 'src/store/dms';
 import { AppEvents, awaitAppEvent as awaitEvent } from 'src/events';
-import { WithChildren } from '@types';
+import { WithChildren } from 'src/types';
 import useDmClient from 'src/hooks/useDmClient';
-import { EmojiPicker } from '@components/common/EmojiPortal';
-import Block from '@components/icons/Block';
+import { EmojiPicker } from 'src/components/common/EmojiPortal';
+import Block from 'src/components/icons/Block';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   isMuted: boolean;
@@ -36,7 +32,7 @@ const MessageAction: FC<WithChildren & HTMLAttributes<HTMLButtonElement>> = ({
   ...props
 }) => {
   return (
-    <button {...props} className={cn('text-charcoal-1 hover:text-primary w-5', props.className)}>
+    <button {...props} className={`text-charcoal-1 hover:text-primary w-5 ${props.className || ''}`}>
       {children}
     </button>
   );
@@ -83,17 +79,12 @@ const MessageActions: FC<Props> = ({
         closeModal();
       });
     }
-
-    return () => {};
   }, [closeModal, loading, openModal, setModalView]);
 
   return (
     <div
       {...props}
-      className={cn(
-        props.className,
-        'bg-near-black-80 p-3 backdrop-blur-md space-x-4 rounded-lg z-10'
-      )}
+      className={`${props.className || ''} bg-near-black-80 p-3 backdrop-blur-md space-x-4 rounded-lg z-10`}
     >
       <>
         {dmsEnabled && (
@@ -103,7 +94,7 @@ const MessageActions: FC<Props> = ({
         )}
         {isAdmin && !isOwn && (
           <MessageAction onClick={() => onMuteUser(isMuted)}>
-            <Mute className={cn({ 'text-primary': isMuted })} />
+            <Mute className={isMuted ? 'text-primary' : ''} />
           </MessageAction>
         )}
         {isBlocked && !isOwn && (

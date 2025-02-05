@@ -1,21 +1,17 @@
-import type { WithChildren } from '@types';
 import { FC, HTMLProps, useRef } from 'react';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-
-import s from './Modal.module.scss';
 import Close from 'src/components/icons/X';
 import { useOnClickOutside } from 'usehooks-ts';
 import { Spinner } from '@components/common';
 
-type ModalProps = WithChildren &
-  HTMLProps<HTMLDivElement> & {
-    closeable?: boolean;
-    className?: string;
-    loading?: boolean;
-    onClose: () => void;
-    onEnter?: () => void | null;
-  };
+type ModalProps = {
+  children: React.ReactNode;
+  closeable?: boolean;
+  className?: string;
+  loading?: boolean;
+  onClose: () => void;
+  onEnter?: () => void | null;
+} & HTMLProps<HTMLDivElement>;
 
 const Modal: FC<ModalProps> = ({
   children,
@@ -30,26 +26,32 @@ const Modal: FC<ModalProps> = ({
   useOnClickOutside(ref, closeable ? onClose : () => {});
 
   return (
-    <div {...props} className={cn('z-20', s.root)}>
+    <div {...props} className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-20">
       <div
-        className={cn(
-          className,
-          'drop-shadow-xl rounded-2xl bg-charcoal-4 w-[28rem] p-12 relative'
-        )}
-        role='dialog'
+        className={`
+          drop-shadow-xl rounded-2xl bg-charcoal-4 
+          w-[28rem] p-12 relative
+          ${className}
+        `}
+        role="dialog"
         ref={ref}
       >
         {closeable && (
           <Close
-            className='w-9 h-9 p-2 absolute right-5 top-5 cursor-pointer hover:text-near-black rounded-full hover:bg-primary'
+            className="
+              w-9 h-9 p-2 
+              absolute right-5 top-5 
+              cursor-pointer hover:text-near-black 
+              rounded-full hover:bg-primary
+            "
             onClick={onClose}
             aria-label={t('Close panel')}
           />
         )}
-        <div className='w-full flex flex-col justify-center items-center space-y-8'>
+        <div className="w-full flex flex-col justify-center items-center space-y-8">
           {loading ? (
-            <div className='my-24'>
-              <Spinner size='lg' />
+            <div className="my-24">
+              <Spinner size="lg" />
             </div>
           ) : (
             children

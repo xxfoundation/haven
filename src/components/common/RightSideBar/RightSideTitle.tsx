@@ -1,4 +1,4 @@
-import type { WithChildren } from '@types';
+import type { WithChildren } from 'src/types';
 import type { FC } from 'react';
 
 const RightSideTitle: FC<WithChildren> = ({ children }) => (

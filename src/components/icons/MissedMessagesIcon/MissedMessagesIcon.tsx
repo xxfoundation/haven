@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import s from './MissedMessagesIcon.module.scss';
+import s from './MissedMessagesIcon.module.css';
 import cn from 'classnames';
 
 const MissedMessagesIcon: FC<{ muted?: boolean }> = ({ muted }) => {

@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import s from './NetworkStatusIcon.module.scss';
+import s from './NetworkStatusIcon.module.css';
 import cn from 'classnames';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 

@@ -1,5 +1,6 @@
 import { FC, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { PrivacyLevel } from 'src/types';
 import { Button } from 'src/components/common';
@@ -7,7 +8,6 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import { useUtils } from 'src/contexts/utils-context';
 import CheckboxToggle from 'src/components/common/CheckboxToggle';
-import { useRouter } from 'next/router';
 import Input from 'src/components/common/Input';
 import ModalTitle from '../ModalTitle';
 import FormError from '@components/common/FormError';
@@ -18,7 +18,7 @@ const JoinChannelView: FC = () => {
 
   const [url, setUrl] = useState<string>(channelInviteLink || '');
   const { getShareUrlType, joinChannel } = useNetworkClient();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { utils } = useUtils();
   const [error, setError] = useState('');
   const [needPassword, setNeedPassword] = useState(false);
@@ -29,10 +29,10 @@ const JoinChannelView: FC = () => {
     return () => {
       if (channelInviteLink?.length) {
         setChannelInviteLink('');
-        router.replace('/', undefined, { shallow: true });
+        navigate('/', { replace: true });
       }
     };
-  }, [channelInviteLink?.length, router, setChannelInviteLink]);
+  }, [channelInviteLink?.length, navigate, setChannelInviteLink]);
 
   useEffect(() => {
     setError('');
@@ -72,7 +72,7 @@ const JoinChannelView: FC = () => {
           setPassword('');
           closeModal();
         } catch (e) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           console.error((e as Error).message);
           setError(t('Something wrong happened, please check your details.'));
         }

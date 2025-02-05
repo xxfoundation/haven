@@ -2,12 +2,12 @@ import type { ChannelJSON } from 'src/types';
 import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
+import s from './JoinChannel.module.css';
 
 import { Button } from 'src/components/common';
-import { WarningComponent } from 'src/pages/_app';
+import WarningComponent from 'src/components/common/WarningComponent';
 
-import s from './JoinChannel.module.scss';
-import CheckboxToggle from '@components/common/CheckboxToggle';
+import CheckboxToggle from 'src/components/common/CheckboxToggle';
 
 type Props = {
   channelInfo: ChannelJSON;

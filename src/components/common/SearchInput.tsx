@@ -4,7 +4,7 @@ import cn from 'classnames';
 
 import Input, { Props } from 'src/components/common/Input';
 
-import s from './SearchInput.module.scss';
+import s from './SearchInput.module.css';
 
 const SearchInput: FC<Props> = ({ className, ...props }) => {
   const { t } = useTranslation();

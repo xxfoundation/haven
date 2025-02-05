@@ -7,7 +7,6 @@ import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
 import SearchInput from '../SearchInput';
 import useChannelFavorites from 'src/hooks/useChannelFavorites';
-import s from './styles.module.scss';
 import Space from './Space';
 import * as messages from 'src/store/messages';
 import Add from 'src/components/icons/Add';
@@ -76,7 +75,7 @@ const Spaces = () => {
   }, [channelManager, joinChannel]);
 
   return (
-    <div className={s.root}>
+    <div className='bg-our-black p-4 pb-8 h-full'>
       {allChannels.length > 0 && (
         <div className='flex items-center relative mb-2'>
           <SearchInput
@@ -112,7 +111,7 @@ const Spaces = () => {
       )}
       <div className='space-y-1'>
         {allChannels.length > 0 && filteredChannels.length === 0 && (
-          <p className='p-3  text-sm text-orange'>
+          <p className='p-3 text-sm text-orange'>
             {t('No channels found with your search criteria')}
           </p>
         )}
@@ -123,7 +122,7 @@ const Spaces = () => {
 
           return (
             <React.Fragment key={channel.id}>
-              <label htmlFor='mobileToggle' key={channel.id}>
+              <label htmlFor='mobileToggle'>
                 <Space
                   favorite={favorites.includes(channel.id)}
                   missedMessagesCount={missedMessages?.[channel.id]?.length ?? 0}
@@ -131,13 +130,13 @@ const Spaces = () => {
                   date={latestMsg?.timestamp}
                   name={channel.name}
                   active={active}
-                  onClick={() => {
-                    selectChannel(channel.id);
-                  }}
+                  onClick={() => selectChannel(channel.id)}
                 />
               </label>
               <hr
-                className={cn('border-charcoal-4 border-1', { invisible: active || nextActive })}
+                className={cn('border-charcoal-4 border-1', {
+                  'invisible': active || nextActive
+                })}
               />
             </React.Fragment>
           );
@@ -145,7 +144,7 @@ const Spaces = () => {
       </div>
       {allChannels.length === 0 && (
         <div className='px-8 py-12 space-y-8'>
-          <img src={havenLogo.src} />
+          <img src={havenLogo} alt='Haven Logo' />
           <p className='text-primary text-xl leading-relaxed font-thin'>
             <Trans>
               This is the beginning of your{' '}

@@ -7,7 +7,7 @@ import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
 import Identity from '../Identity';
 
-import s from './styles.module.scss';
+import s from './styles.module.css';
 import { useUI } from '@contexts/ui-context';
 
 type Props = {

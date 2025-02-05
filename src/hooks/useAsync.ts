@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { useCallback, useState } from 'react';
 
 type AsyncStatus = 'idle' | 'pending' | 'success' | 'error';

@@ -1,7 +1,7 @@
 import type { Channel, ChannelId, ChannelsState } from './types';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ChannelNotificationLevel, NotificationStatus, UserMutedEvent } from '@types';
+import { ChannelNotificationLevel, NotificationStatus, UserMutedEvent } from 'src/types';
 import { pickBy, omit, uniqBy, uniq } from 'lodash';
 
 const initialState: ChannelsState = {

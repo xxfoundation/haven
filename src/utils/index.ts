@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { deflateSync, inflateSync } from 'zlib';
-import DOMPurify from 'dompurify';
-import { TypedEventEmitter } from '@types';
+import { TypedEventEmitter } from 'src/types';
 import { useEffect, useState } from 'react';
 import delay from 'delay';
 
@@ -40,43 +37,6 @@ export const exportDataToFile = (data: Uint8Array) => {
 export const byEntryTimestamp = (x: [string, unknown], y: [string, unknown]) =>
   new Date(x[0]).getTime() - new Date(y[0]).getTime();
 
-const sanitize = (markup: string) =>
-  DOMPurify.sanitize(markup, {
-    ALLOWED_TAGS: [
-      'blockquote',
-      'p',
-      'a',
-      'br',
-      'code',
-      'ol',
-      'ul',
-      'li',
-      'pre',
-      'i',
-      'strong',
-      'b',
-      'em',
-      'span',
-      's'
-    ],
-    ALLOWED_ATTR: ['target', 'href', 'rel', 'class', 'style']
-  });
-
-export const inflate = (content: string) => {
-  let inflated: string;
-  try {
-    inflated = inflateSync(Buffer.from(content, 'base64')).toString();
-  } catch (e) {
-    console.error(`Couldn\'t decode message "${content}". Falling back to plaintext.`, e);
-    inflated = content;
-  }
-
-  return sanitize(inflated);
-};
-
-export const deflate = (content: string) => deflateSync(content).toString('base64');
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const makeListenerHook =
   <T extends Record<string | number, any>>(bus: TypedEventEmitter<T>) =>
   <K extends keyof T>(key: K, listener: T[K]) => {
@@ -120,14 +80,14 @@ export const makeEventAwaiter =
     let listener: AnyFunc;
     let resolved = false;
     const promise = new Promise<Parameters<T[K]>>((resolve) => {
-      listener = (...args) => {
+      listener = (...args: Parameters<T[K]>) => {
         const result = predicate(...args);
         if (result) {
           resolved = true;
-          resolve(args);
+          resolve(args as Parameters<T[K]>);
         }
       };
-      bus.addListener(evt, listener as any);
+      bus.addListener(evt, listener as T[K]);
     });
 
     return Promise.race([

@@ -1,5 +1,4 @@
 import {
-  MessageStatus,
   type CMix,
   type DBConversation,
   type DBDirectMessage,
@@ -9,16 +8,17 @@ import {
   type Message,
   WithChildren,
   DatabaseCipher,
-  MessageType
+  MessageType,
+  MessageStatus
 } from 'src/types';
 import type { Conversation } from 'src/store/dms/types';
 
 import { FC, createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import assert from 'assert';
 
 import { useUtils, XXDKContext } from '@contexts/utils-context';
 import { MAXIMUM_PAYLOAD_BLOCK_SIZE, DMS_DATABASE_NAME as DMS_DATABASE_NAME } from 'src/constants';
-import { decoder, HTMLToPlaintext, inflate } from '@utils/index';
+import { decoder, HTMLToPlaintext } from '@utils/index';
+import { inflate } from '@utils/compression';
 import { AppEvents, DMEvents, useAppEventValue, useDmListener } from 'src/events';
 import { useDb } from '@contexts/db-context';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
@@ -30,6 +30,7 @@ import useLocalStorage from 'src/hooks/useLocalStorage';
 import { onDmEvent, appBus as bus } from 'src/events';
 
 import { dmIndexedDbWorkerPath } from 'xxdk-wasm';
+import { ChannelManager } from 'public/xxdk-wasm/dist/src/types';
 
 const DMClientContext = createContext<{ cipher?: DatabaseCipher; client?: DMClient }>({});
 
@@ -80,7 +81,7 @@ const makeMessageMapper =
       ...codenameConverter(message.sender_pub_key, message.codeset_version),
       uuid: message.id,
       id: message.message_id,
-      status: message.status,
+      status: message.status as unknown as MessageStatus,
       type: message.type,
       channelId: message.conversation_pub_key,
       repliedTo:
@@ -169,7 +170,9 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
 
   const createDMClient = useCallback(
     async (cmix: CMix, cipher: DatabaseCipher, privateIdentity: Uint8Array) => {
-      assert(privateIdentity, 'Private identity required for dmClient');
+      if (!privateIdentity) {
+        throw new Error('Private identity required for dmClient');
+      }
 
       try {
         const workerPath = (await dmIndexedDbWorkerPath()).toString();
@@ -190,19 +193,19 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
     [NewDMClientWithIndexedDb, utils]
   );
 
-  const rawPassword = useAppEventValue(AppEvents.PASSWORD_ENTERED);
-  const decryptedPassword = useAppEventValue(AppEvents.PASSWORD_DECRYPTED);
-  const cmix = useAppEventValue(AppEvents.CMIX_LOADED);
-  const channelManager = useAppEventValue(AppEvents.CHANNEL_MANAGER_LOADED);
+  const rawPassword = useAppEventValue(AppEvents.PASSWORD_ENTERED) as string;
+  const decryptedPassword = useAppEventValue(AppEvents.PASSWORD_DECRYPTED) as Uint8Array;
+  const cmix = useAppEventValue(AppEvents.CMIX_LOADED) as CMix;
+  const channelManager = useAppEventValue(AppEvents.CHANNEL_MANAGER_LOADED) as unknown as ChannelManager;
 
   useEffect(() => {
     if (rawPassword && decryptedPassword && cmix && channelManager) {
       const privateIdentity = utils.ImportPrivateIdentity(
-        rawPassword,
-        channelManager.ExportPrivateIdentity(rawPassword)
+        rawPassword as string,
+        channelManager.ExportPrivateIdentity(rawPassword as string)
       );
-      const cipher = createDatabaseCipher(cmix, decryptedPassword);
-      createDMClient(cmix, cipher, privateIdentity);
+      const cipher = createDatabaseCipher(cmix as CMix, decryptedPassword as Uint8Array);
+      createDMClient(cmix as CMix, cipher, privateIdentity);
     }
   }, [
     channelManager,
@@ -287,7 +290,7 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
         }
 
         dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
-        if (messageIsNew && message.status === MessageStatus.Delivered) {
+        if (messageIsNew && message.status as unknown as MessageStatus === MessageStatus.Delivered) {
           bus.emit(AppEvents.DM_PROCESSED, decryptedMessage);
         }
       });

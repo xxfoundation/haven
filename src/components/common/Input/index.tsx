@@ -1,7 +1,7 @@
 import { FC, InputHTMLAttributes } from 'react';
 import cn from 'classnames';
 
-import s from './styles.module.scss';
+import s from './styles.module.css';
 
 type Size = 'sm' | 'md' | 'lg';
 

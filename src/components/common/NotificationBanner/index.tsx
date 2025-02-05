@@ -4,7 +4,7 @@ import useNotification from 'src/hooks/useNotification';
 import Close from 'src/components/icons/X';
 import { useTranslation } from 'react-i18next';
 
-import s from './styles.module.scss';
+import s from './styles.module.css';
 
 const NotificationBanner = () => {
   const { t } = useTranslation();

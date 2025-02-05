@@ -1,9 +1,8 @@
-import type { ReactNode } from 'react';
 import { RemoteKV } from './collective';
 import { DMNotificationLevel } from './events';
 
 export type WithChildren = {
-  children?: ReactNode;
+  children?: React.ReactNode;
 };
 
 type HealthCallback = { Callback: (healthy: boolean) => void };
@@ -129,6 +128,38 @@ export type DatabaseCipher = {
 export type RawCipher = {
   GetID: () => number;
   Decrypt: (plaintext: string) => Uint8Array;
+};
+
+export type MuteUserAction = 'mute' | 'mute+delete';
+
+export enum PrivacyLevel {
+  Public = 0,
+  Secret = 2
+}
+
+export enum MessageStatus {
+  Unsent = 'unsent',
+  Sent = 'sent',
+  Delivered = 'delivered',
+  Failed = 'failed'
+}
+
+export enum ChannelNotificationLevel {
+  NotifyNone = 0,
+  NotifyPing = 1,
+  NotifyAll = 2
+}
+
+export enum NotificationStatus {
+  Mute = 0,
+  WhenOpen = 1,
+  All = 2
+}
+
+export type UserMutedEvent = {
+  channelId: string;
+  pubkey: string;
+  unmute: boolean;
 };
 
 export * from './collective';

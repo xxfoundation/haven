@@ -1,4 +1,4 @@
-import { type Channel, PrivacyLevel } from '@types';
+import { type Channel, PrivacyLevel } from '../../types';
 
 import { FC, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
