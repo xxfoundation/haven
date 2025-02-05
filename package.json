@@ -21,7 +21,6 @@
     "@emoji-mart/react": "^1.1.1",
     "@fortawesome/free-brands-svg-icons": "^6.4.0",
     "@juggle/resize-observer": "^3.4.0",
-    "@react-oauth/google": "^0.9.0",
     "@react-spring/web": "^9.5.5",
     "@reduxjs/toolkit": "^1.9.1",
     "@vitejs/plugin-react": "^4.3.4",
