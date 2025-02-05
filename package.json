@@ -19,10 +19,7 @@
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
-    "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-brands-svg-icons": "^6.4.0",
-    "@fortawesome/free-solid-svg-icons": "^6.4.0",
-    "@fortawesome/react-fontawesome": "^0.2.0",
     "@juggle/resize-observer": "^3.4.0",
     "@react-oauth/google": "^0.9.0",
     "@react-spring/web": "^9.5.5",
@@ -38,8 +35,6 @@
     "delay": "^5.0.0",
     "dexie": "^3.2.2",
     "dompurify": "^2.4.0",
-    "dropbox": "^10.34.0",
-    "emoji-mart": "^5.6.0",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",
     "html-to-text": "^9.0.4",
@@ -51,7 +46,7 @@
     "pako": "^2.1.0",
     "parchment": "^2.0.1",
     "quill": "^2.0.3",
-    "quill-auto-detect-url": "^0.2.1",
+    "quill-auto-detect-url": "^1.0.0-alpha.1",
     "quill-mention": "6.0.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -59,18 +54,13 @@
     "react-helmet-async": "^2.0.5",
     "react-hot-toast": "^2.4.1",
     "react-i18next": "^12.2.0",
-    "react-moment": "^1.1.2",
     "react-multiline-clamp": "^2.0.0",
-    "react-quill": "^2.0.0",
     "react-redux": "^8.0.5",
     "react-router-dom": "^7.1.5",
-    "react-spring": "^9.5.2",
     "react-tailwindcss-select": "^1.6.0",
     "react-tooltip": "^5.7.4",
     "react-use-measure": "^2.1.1",
     "redux": "^4.2.0",
-    "redux-localstorage": "^0.4.1",
-    "serve": "^14.2.4",
     "ts.data.json": "^2.2.0",
     "use-sound": "^4.0.3",
     "usehooks-ts": "^3.1.0",
@@ -123,6 +113,8 @@
   },
   "trustedDependencies": [
     "@swc/core",
-    "core-js-pure"
+    "core-js-pure",
+    "cypress",
+    "esbuild"
   ]
 }

@@ -1,9 +1,8 @@
+import { MessageSquareOff } from 'lucide-react';
 import { FC } from 'react';
-import { FontAwesomeIcon, FontAwesomeIconProps } from '@fortawesome/react-fontawesome';
-import { faCommentSlash } from '@fortawesome/free-solid-svg-icons';
 
-const CommentSlash: FC<Omit<FontAwesomeIconProps, 'icon'>> = (props) => (
-  <FontAwesomeIcon {...props} icon={faCommentSlash} />
+const CommentSlash: FC = (props) => (
+  <MessageSquareOff {...props} />
 );
 
 export default CommentSlash;
