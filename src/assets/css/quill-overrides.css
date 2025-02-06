@@ -1,3 +1,15 @@
+.quill-editor {
+	white-space: pre-wrap;
+}
+
+.ql-editor {
+  white-space: pre-wrap;
+}
+
+.ql-align-justify {
+  white-space: pre-wrap;
+}
+  
 .ql-toolbar.ql-snow {
   border: none;
   background: none;
