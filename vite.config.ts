@@ -19,9 +19,17 @@ export default defineConfig({
     })
   ],
   build: {
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 5000,
+    minify: false,
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+      requireReturnsDefault: 'auto',
+      strictRequires: true,
+    },
     rollupOptions: {
       output: {
+        format: 'es',
         manualChunks: {
           // Core vendor dependencies
           vendor: ['react', 'react-dom', 'react-router-dom'],
@@ -61,21 +69,18 @@ export default defineConfig({
             './src/components/modals/UpdatesModal.tsx',
           ],
 
-          // Context providers
-          'contexts': [
-            './src/contexts/dm-client-context.tsx',
-            './src/contexts/network-client-context.tsx',
-            './src/contexts/ui-context.tsx'
-          ],
-
           // Emoji and reactions
           'emoji': [
             './src/components/common/EmojiPortal.tsx',
             './src/components/common/ChannelChat/ChatReactions/index.tsx',
           ]
         }
-      },
-    }
+      }
+    },
+    modulePreload: {
+      polyfill: true
+    },
+    target: ['es2015', 'edge88', 'firefox78', 'chrome87', 'safari13'],
   },
   server: {
     port: 3000, 
@@ -96,7 +101,24 @@ export default defineConfig({
     'import.meta.env.APP_VERSION': JSON.stringify(version),
     global: 'window',
   },
+  esbuild: {
+    target: 'es2015',
+    supported: {
+      'async-await': true,
+    },
+  },
   optimizeDeps: {
-    include: ['buffer', 'use-sound', 'howler']
+    include: [
+      'buffer', 
+      'use-sound', 
+      'howler'
+    ],
+    exclude: [],
+    esbuildOptions: {
+      target: 'es2015',
+      supported: {
+        'async-await': true
+      }
+    }
   }
 });
