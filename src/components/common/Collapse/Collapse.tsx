@@ -15,22 +15,22 @@ export interface CollapseProps {
 
 const Icon = ({ className = '' }: { className?: string }) => {
   return (
-    <ArrowDown 
+    <ArrowDown
       className={`
         mr-1 transition-transform duration-200 ease-in-out
         ${className}
-      `} 
+      `}
     />
   );
 };
 
 const CloseIcon = ({ className = '' }: { className?: string }) => {
   return (
-    <ArrowUp 
+    <ArrowUp
       className={`
         mr-1 transition-transform duration-200 ease-in-out
         ${className}
-      `} 
+      `}
     />
   );
 };
@@ -39,7 +39,7 @@ const IconTitle = ({ active, title }: { active: boolean; title: CollapseProps['t
   return (
     <>
       {!active ? <CloseIcon /> : <Icon />}
-      <span className="block w-full">{title}</span>
+      <span className='block w-full'>{title}</span>
     </>
   );
 };
@@ -58,22 +58,19 @@ const Collapse: FC<CollapseProps> = React.memo(
     });
 
     const toggle = () => setActive((x) => !x);
-    
+
     return (
-      <div 
+      <div
         className={`flex flex-col outline-none ${className}`}
-        role="button" 
-        tabIndex={0} 
+        role='button'
+        tabIndex={0}
         aria-expanded={isActive}
       >
-        <div 
-          className="flex flex-row items-center text-grey text-sm"
-          onClick={toggle}
-        >
+        <div className='flex flex-row items-center text-grey text-sm' onClick={toggle}>
           <IconTitle active={isActive} title={title} />
         </div>
         <a.div style={{ overflow: 'hidden', ...animProps }}>
-          <div ref={ref} className="pt-3 overflow-hidden">
+          <div ref={ref} className='pt-3 overflow-hidden'>
             {children}
           </div>
         </a.div>

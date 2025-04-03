@@ -66,31 +66,28 @@ const Identity: FC<Props> = ({
     >
       {nickname && (
         <>
-          <span className="nickname" style={{ color: colorHex }}>
+          <span className='nickname' style={{ color: colorHex }}>
             {nickname}
           </span>
           &nbsp;
         </>
       )}
-      <span className="whitespace-nowrap">
-        <Elixxir 
-          className="w-3 inline mb-0.5" 
-          style={{ fill: codenameColor }} 
-        />
-        <span className="codename" style={{ color: codenameColor }}>
+      <span className='whitespace-nowrap'>
+        <Elixxir className='w-3 inline mb-0.5' style={{ fill: codenameColor }} />
+        <span className='codename' style={{ color: codenameColor }}>
           {codename}
         </span>
       </span>
       {isMuted && (
         <>
           &nbsp;
-          <span className="text-red">[{t('muted')}]</span>
+          <span className='text-red'>[{t('muted')}]</span>
         </>
       )}
       {isBlocked && (
         <>
           &nbsp;
-          <span className="text-red">[{t('blocked')}]</span>
+          <span className='text-red'>[{t('blocked')}]</span>
         </>
       )}
     </span>

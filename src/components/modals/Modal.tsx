@@ -26,32 +26,35 @@ const Modal: FC<ModalProps> = ({
   useOnClickOutside(ref, closeable ? onClose : () => {});
 
   return (
-    <div {...props} className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-20">
+    <div
+      {...props}
+      className='fixed inset-0 backdrop-blur-sm flex items-center justify-center z-20'
+    >
       <div
         className={`
           drop-shadow-xl rounded-2xl bg-charcoal-4 
           w-[28rem] p-12 relative
           ${className}
         `}
-        role="dialog"
+        role='dialog'
         ref={ref}
       >
         {closeable && (
           <Close
-            className="
+            className='
               w-9 h-9 p-2 
               absolute right-5 top-5 
               cursor-pointer hover:text-near-black 
               rounded-full hover:bg-primary
-            "
+            '
             onClick={onClose}
             aria-label={t('Close panel')}
           />
         )}
-        <div className="w-full flex flex-col justify-center items-center space-y-8">
+        <div className='w-full flex flex-col justify-center items-center space-y-8'>
           {loading ? (
-            <div className="my-24">
-              <Spinner size="lg" />
+            <div className='my-24'>
+              <Spinner size='lg' />
             </div>
           ) : (
             children

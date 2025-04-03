@@ -28,8 +28,8 @@ const Space: FC<Props> = ({
   const { t } = useTranslation();
 
   return (
-    <div 
-      {...props} 
+    <div
+      {...props}
       className={cn(
         props.className,
         'px-3.5 py-3 hover:bg-charcoal-4 hover:cursor-pointer hover:rounded-[var(--border-radius)]',

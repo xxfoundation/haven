@@ -1,4 +1,3 @@
- 
 import type { ChannelId } from 'src/store/channels/types';
 import type { Message } from 'src/store/messages/types';
 import type { MessageType } from './db';

@@ -24,9 +24,7 @@ const Providers = ({ children }: { children: React.ReactNode }) => (
             <DMContextProvider>
               <ManagedNetworkContext>
                 <SoundProvider>
-                  <ManagedUIContext>
-                    {children}
-                  </ManagedUIContext>
+                  <ManagedUIContext>{children}</ManagedUIContext>
                 </SoundProvider>
               </ManagedNetworkContext>
             </DMContextProvider>
@@ -51,7 +49,7 @@ const App = () => {
           <Outlet />
         </Providers>
       </ErrorBoundary>
-      <div id="emoji-portal" />
+      <div id='emoji-portal' />
     </>
   );
 };

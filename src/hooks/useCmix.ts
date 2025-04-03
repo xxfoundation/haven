@@ -194,13 +194,11 @@ const useCmix = () => {
     }
   }, [cmix, createDatabaseCipher, decryptedPass]);
 
-
-
   // Cmix initialization and loading
   const initializeCmix = async (password: Uint8Array) => {
     if (!cmixPreviouslyInitialized) {
       await utils.NewCmix(ndf, STATE_PATH, password, '');
-    } 
+    }
   };
   const loadCmix = async (password: Uint8Array) => {
     const loadedCmix = await utils.LoadCmix(STATE_PATH, password, encodedCmixParams);
@@ -238,7 +236,7 @@ const useCmix = () => {
     cipher: databaseCipher,
     disconnect,
     id: cmixId,
-    status,
+    status
   };
 };
 

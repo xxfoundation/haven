@@ -1,4 +1,3 @@
- 
 import { encoder } from '@utils/index';
 import { AccountSyncService } from 'src/hooks/useAccountSync';
 

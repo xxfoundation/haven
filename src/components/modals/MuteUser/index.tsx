@@ -24,17 +24,17 @@ const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) => {
   return (
     <Modal onClose={onCancel}>
       <ModalTitle>{t('Warning')}</ModalTitle>
-      <p className="mb-4 text-red uppercase text-center">
+      <p className='mb-4 text-red uppercase text-center'>
         ** {t('Important to note that muting users cannot be undone.')} **
       </p>
-      <div className="flex flex-wrap justify-center -mx-2">
-        <Button variant="outlined" className="m-2" onClick={onCancel}>
+      <div className='flex flex-wrap justify-center -mx-2'>
+        <Button variant='outlined' className='m-2' onClick={onCancel}>
           {t('Cancel')}
         </Button>
-        <Button className="m-2" onClick={handleMute}>
+        <Button className='m-2' onClick={handleMute}>
           {t('Mute')}
         </Button>
-        <Button className="m-2" onClick={handleMuteAndDelete}>
+        <Button className='m-2' onClick={handleMuteAndDelete}>
           {t('Mute and Delete Messages')}
         </Button>
       </div>

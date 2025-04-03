@@ -64,7 +64,6 @@ const CreateChannelView: FC = () => {
       setChannelDesc('');
       closeModal();
     } catch (e) {
-       
       console.error((e as any).message);
       alert({
         type: 'error',

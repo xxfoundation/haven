@@ -24,15 +24,13 @@ const NotificationSoundSelector: FC = () => {
 
     const initSound = async () => {
       try {
-        const [{ default: useSound }] = await Promise.all([
-          import('use-sound'),
-        ]);
+        const [{ default: useSound }] = await Promise.all([import('use-sound')]);
 
         // Create and resume audio context
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const tempContext = new AudioContext();
         await tempContext.resume();
-        
+
         if (!mounted) return;
 
         const [playFn, { stop: stopFn }] = useSound(notificationSound ?? '');
@@ -82,7 +80,7 @@ const NotificationSoundSelector: FC = () => {
   );
 
   return (
-    <div className="p-16 h-[32rem]">
+    <div className='p-16 h-[32rem]'>
       <Select
         classNames={{
           menu: 'bg-charcoal-4 py-4 rounded-xl mt-1 absolute w-full',

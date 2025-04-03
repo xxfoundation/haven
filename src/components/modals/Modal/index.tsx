@@ -26,15 +26,15 @@ const Modal: FC<Props> = ({ children, onClose, closeable = true, loading = false
   }, [handleEscape]);
 
   return createPortal(
-    <div 
-      className="
+    <div
+      className='
         fixed inset-0
         backdrop-blur-[3px] -webkit-backdrop-blur-[3px]
         flex items-center justify-center
-      "
+      '
     >
-      <div 
-        className="
+      <div
+        className='
           relative flex flex-col items-center
           overflow-y-hidden
           bg-dark-1 backdrop-blur-[100px]
@@ -42,13 +42,10 @@ const Modal: FC<Props> = ({ children, onClose, closeable = true, loading = false
           min-w-[680px] max-w-[680px]
           rounded-[10px]
           focus:outline-none
-        "
+        '
       >
         {closeable && onClose && (
-          <button 
-            onClick={onClose}
-            className="absolute right-5 top-5 cursor-pointer"
-          >
+          <button onClick={onClose} className='absolute right-5 top-5 cursor-pointer'>
             <X />
           </button>
         )}
@@ -59,4 +56,4 @@ const Modal: FC<Props> = ({ children, onClose, closeable = true, loading = false
   );
 };
 
-export default Modal; 
+export default Modal;

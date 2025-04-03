@@ -37,7 +37,6 @@ const useRemotelySynchedValue = <T>(key: string, decoder: Decoder<T>, defaultVal
         });
     }
     // decoders never change
-     
   }, [key, kv]);
 
   // Adding this workaround because of the bug where setting the first time

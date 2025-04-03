@@ -3,15 +3,16 @@ import React, { InputHTMLAttributes, FC } from 'react';
 type Props = InputHTMLAttributes<HTMLInputElement>;
 
 const CheckboxToggle: FC<Props> = (props) => (
-  <label className="relative inline-flex items-center cursor-pointer">
+  <label className='relative inline-flex items-center cursor-pointer'>
     <input
-      data-testid="channel-dm-toggle"
-      type="checkbox"
+      data-testid='channel-dm-toggle'
+      type='checkbox'
       checked
       {...props}
       className={`sr-only peer ${props.className || ''}`}
     />
-    <div className={`
+    <div
+      className={`
       w-11 h-6 rounded-full 
       border border-charcoal-1 bg-near-black
       transition-all
@@ -29,7 +30,8 @@ const CheckboxToggle: FC<Props> = (props) => (
       peer-checked:after:translate-x-full
       peer-checked:after:bg-near-black
       peer-checked:after:border-white
-    `}/>
+    `}
+    />
   </label>
 );
 

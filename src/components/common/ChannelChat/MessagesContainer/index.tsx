@@ -26,13 +26,13 @@ const MessagesContainer: FC<Props> = ({ messages, readonly = false, ...props }) 
   return (
     <div data-testid='messages-container'>
       {sortedGroupedMessagesPerDay.map(([key, msgs]) => (
-        <div className="mb-4" key={key}>
-          <div className="flex items-center my-1">
-            <hr className="border-charcoal-4 w-full" />
-            <span className="flex-grow mx-4 whitespace-nowrap text-charcoal-1 text-xs">
+        <div className='mb-4' key={key}>
+          <div className='flex items-center my-1'>
+            <hr className='border-charcoal-4 w-full' />
+            <span className='flex-grow mx-4 whitespace-nowrap text-charcoal-1 text-xs'>
               {formatDate(key, msgs[0]?.timestamp)}
             </span>
-            <hr className="border-charcoal-4 w-full" />
+            <hr className='border-charcoal-4 w-full' />
           </div>
           {msgs.map((m) => (
             <MessageContainer readonly={readonly} key={m.id} message={m} />

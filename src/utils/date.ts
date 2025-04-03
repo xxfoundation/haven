@@ -7,7 +7,7 @@ export const formatTimeAgo = (date: Date | number): string => {
 export const formatDate = (key: string, timestamp?: string): string => {
   const date = dayjs(key);
   const today = dayjs();
-  
+
   if (date.isSame(today, 'day')) {
     return 'Today';
   }

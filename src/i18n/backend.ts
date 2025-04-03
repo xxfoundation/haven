@@ -1,4 +1,3 @@
- 
 import languageCache from './cache';
 
 type Callback = (error: string | null, data: any) => void;
@@ -17,7 +16,6 @@ export default class Backend {
       return responder(null, languageCache[lng]);
     }
 
-     
     if (!loaders[lng]) {
       loaders[lng] = this.createLoader(lng);
     }

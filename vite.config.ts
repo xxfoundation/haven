@@ -25,7 +25,7 @@ export default defineConfig({
       include: [/node_modules/],
       transformMixedEsModules: true,
       requireReturnsDefault: 'auto',
-      strictRequires: true,
+      strictRequires: true
     },
     rollupOptions: {
       output: {
@@ -33,46 +33,44 @@ export default defineConfig({
         manualChunks: {
           // Core vendor dependencies
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          
-          // Editor related chunks
-          'editor': ['quill', 'quill-mention', 'quill-auto-detect-url'],
 
-          'editor-ui': [
-            './src/components/common/ChannelChat/UserTextArea/UserTextArea.tsx',
-          ],
-          
+          // Editor related chunks
+          editor: ['quill', 'quill-mention', 'quill-auto-detect-url'],
+
+          'editor-ui': ['./src/components/common/ChannelChat/UserTextArea/UserTextArea.tsx'],
+
           // Chat UI components
           'chat-ui': [
             './src/components/common/ChannelChat/MessageContainer/index.tsx',
             './src/components/common/ChannelChat/ChatMessage/ChatMessage.tsx',
-            './src/components/common/ChannelChat/MessagesContainer/index.tsx',
+            './src/components/common/ChannelChat/MessagesContainer/index.tsx'
           ],
 
           // Channel management components
           'channel-ui': [
             './src/components/common/ChannelHeader/index.tsx',
             './src/components/common/ChannelBadges.tsx',
-            './src/components/common/LeftSideBar/LeftSideBar.tsx',
+            './src/components/common/LeftSideBar/LeftSideBar.tsx'
           ],
 
           // Common UI components
           'common-ui': [
             './src/components/common/Button/index.tsx',
             './src/components/common/Badge.tsx',
-            './src/components/common/Dropdown/index.tsx',
+            './src/components/common/Dropdown/index.tsx'
           ],
 
           // Modal components
-          'modals': [
+          modals: [
             './src/components/modals/Modal.tsx',
             './src/components/modals/ModalTitle.tsx',
-            './src/components/modals/UpdatesModal.tsx',
+            './src/components/modals/UpdatesModal.tsx'
           ],
 
           // Emoji and reactions
-          'emoji': [
+          emoji: [
             './src/components/common/EmojiPortal.tsx',
-            './src/components/common/ChannelChat/ChatReactions/index.tsx',
+            './src/components/common/ChannelChat/ChatReactions/index.tsx'
           ]
         }
       }
@@ -80,16 +78,16 @@ export default defineConfig({
     modulePreload: {
       polyfill: true
     },
-    target: ['es2015', 'edge88', 'firefox78', 'chrome87', 'safari13'],
+    target: ['es2015', 'edge88', 'firefox78', 'chrome87', 'safari13']
   },
   server: {
-    port: 3000, 
+    port: 3000,
     open: true
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      'src': path.resolve(__dirname, './src'),
+      src: path.resolve(__dirname, './src'),
       '@contexts': path.resolve(__dirname, './src/contexts'),
       '@components': path.resolve(__dirname, './src/components'),
       '@assets': path.resolve(__dirname, './src/assets'),
@@ -99,20 +97,16 @@ export default defineConfig({
   },
   define: {
     'import.meta.env.APP_VERSION': JSON.stringify(version),
-    global: 'window',
+    global: 'window'
   },
   esbuild: {
     target: 'es2015',
     supported: {
-      'async-await': true,
-    },
+      'async-await': true
+    }
   },
   optimizeDeps: {
-    include: [
-      'buffer', 
-      'use-sound', 
-      'howler'
-    ],
+    include: ['buffer', 'use-sound', 'howler'],
     exclude: [],
     esbuildOptions: {
       target: 'es2015',

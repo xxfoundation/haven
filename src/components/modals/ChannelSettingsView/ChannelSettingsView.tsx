@@ -137,23 +137,23 @@ const ChannelSettingsView: FC = () => {
 
   return (
     <>
-      <div className="w-full flex flex-col justify-center items-center">
-        <h2 className="mt-9 mb-8">{t('Channel Settings')}</h2>
-        <div className="w-full mb-[180px]">
-          <div className="mx-auto max-w-[30rem] flex justify-between items-center mb-9">
-            <h3 className="text-sm font-medium">{t('Enable Direct Messages')}</h3>
+      <div className='w-full flex flex-col justify-center items-center'>
+        <h2 className='mt-9 mb-8'>{t('Channel Settings')}</h2>
+        <div className='w-full mb-[180px]'>
+          <div className='mx-auto max-w-[30rem] flex justify-between items-center mb-9'>
+            <h3 className='text-sm font-medium'>{t('Enable Direct Messages')}</h3>
             {dmsEnabled === null ? (
-              <Spinner className="m-0 mr-1" />
+              <Spinner className='m-0 mr-1' />
             ) : (
               <CheckboxToggle checked={dmsEnabled} onChange={toggleDms} />
             )}
           </div>
 
           {currentChannel?.isAdmin ? (
-            <div className="mx-auto max-w-[30rem] flex justify-between items-center mb-9">
-              <h3 className="text-sm font-medium">{t('Export Admin Keys')}</h3>
+            <div className='mx-auto max-w-[30rem] flex justify-between items-center mb-9'>
+              <h3 className='text-sm font-medium'>{t('Export Admin Keys')}</h3>
               <Keys
-                className="cursor-pointer text-primary w-6 h-6 hover:text-primary-dark"
+                className='cursor-pointer text-primary w-6 h-6 hover:text-primary-dark'
                 onClick={() => {
                   setModalView('EXPORT_ADMIN_KEYS');
                   openModal();
@@ -161,10 +161,10 @@ const ChannelSettingsView: FC = () => {
               />
             </div>
           ) : (
-            <div className="mx-auto max-w-[30rem] flex justify-between items-center mb-9">
-              <h3 className="text-sm font-medium">{t('Claim Admin Keys')}</h3>
+            <div className='mx-auto max-w-[30rem] flex justify-between items-center mb-9'>
+              <h3 className='text-sm font-medium'>{t('Claim Admin Keys')}</h3>
               <LockOpen
-                className="cursor-pointer text-primary w-6 h-6 hover:text-primary-dark"
+                className='cursor-pointer text-primary w-6 h-6 hover:text-primary-dark'
                 onClick={() => {
                   setModalView('CLAIM_ADMIN_KEYS');
                   openModal();
@@ -173,13 +173,13 @@ const ChannelSettingsView: FC = () => {
             </div>
           )}
 
-          <div className="mx-auto max-w-[30rem] flex justify-between items-center mb-9">
-            <h3 className="text-sm font-medium">{t('Notifications')}</h3>
+          <div className='mx-auto max-w-[30rem] flex justify-between items-center mb-9'>
+            <h3 className='text-sm font-medium'>{t('Notifications')}</h3>
             <select
               onChange={onNotificationStatusChange}
               value={notificationStatus}
-              id="notification-levels"
-              className="bg-dark-2 px-4 py-2 rounded border-none outline-none text-sm"
+              id='notification-levels'
+              className='bg-dark-2 px-4 py-2 rounded border-none outline-none text-sm'
             >
               <option value={NotificationStatus.WhenOpen}>When Open</option>
               <option value={NotificationStatus.All}>All</option>
@@ -187,13 +187,13 @@ const ChannelSettingsView: FC = () => {
             </select>
           </div>
 
-          <div className="mx-auto max-w-[30rem] flex justify-between items-center mb-9">
-            <h3 className="text-sm font-medium">{t('Notification Level')}</h3>
+          <div className='mx-auto max-w-[30rem] flex justify-between items-center mb-9'>
+            <h3 className='text-sm font-medium'>{t('Notification Level')}</h3>
             <select
               onChange={onNotificationLevelChange}
               value={notificationLevel}
-              id="notification-levels"
-              className="bg-dark-2 px-4 py-2 rounded border-none outline-none text-sm"
+              id='notification-levels'
+              className='bg-dark-2 px-4 py-2 rounded border-none outline-none text-sm'
             >
               <option value={ChannelNotificationLevel.NotifyAll}>All</option>
               <option value={ChannelNotificationLevel.NotifyPing}>Tags, replies, and pins</option>
@@ -201,10 +201,10 @@ const ChannelSettingsView: FC = () => {
             </select>
           </div>
 
-          <div className="mx-auto max-w-[30rem] flex justify-between items-center mb-9">
-            <h3 className="text-sm font-medium">{t('Leave Channel')}</h3>
+          <div className='mx-auto max-w-[30rem] flex justify-between items-center mb-9'>
+            <h3 className='text-sm font-medium'>{t('Leave Channel')}</h3>
             <RightFromBracket
-              className="cursor-pointer text-primary w-6 h-6 hover:text-primary-dark"
+              className='cursor-pointer text-primary w-6 h-6 hover:text-primary-dark'
               onClick={() => {
                 if (currentChannel) {
                   setModalView('LEAVE_CHANNEL_CONFIRMATION');

@@ -6,7 +6,7 @@ const ConnectingDimmer = () => {
   const { networkStatus } = useNetworkClient();
 
   return networkStatus === NetworkStatus.CONNECTING ? (
-    <div className="fixed w-full h-full bg-black/50 flex flex-col justify-center items-center z-20">
+    <div className='fixed w-full h-full bg-black/50 flex flex-col justify-center items-center z-20'>
       <Spinner size='md' />
       <p>Connecting to the network...</p>
     </div>

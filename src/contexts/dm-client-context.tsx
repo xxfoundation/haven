@@ -196,7 +196,9 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
   const rawPassword = useAppEventValue(AppEvents.PASSWORD_ENTERED) as string;
   const decryptedPassword = useAppEventValue(AppEvents.PASSWORD_DECRYPTED) as Uint8Array;
   const cmix = useAppEventValue(AppEvents.CMIX_LOADED) as CMix;
-  const channelManager = useAppEventValue(AppEvents.CHANNEL_MANAGER_LOADED) as unknown as ChannelManager;
+  const channelManager = useAppEventValue(
+    AppEvents.CHANNEL_MANAGER_LOADED
+  ) as unknown as ChannelManager;
 
   useEffect(() => {
     if (rawPassword && decryptedPassword && cmix && channelManager) {
@@ -290,7 +292,10 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
         }
 
         dispatch(dms.actions.upsertDirectMessage(decryptedMessage));
-        if (messageIsNew && message.status as unknown as MessageStatus === MessageStatus.Delivered) {
+        if (
+          messageIsNew &&
+          (message.status as unknown as MessageStatus) === MessageStatus.Delivered
+        ) {
           bus.emit(AppEvents.DM_PROCESSED, decryptedMessage);
         }
       });

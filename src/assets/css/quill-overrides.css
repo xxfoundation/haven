@@ -20,7 +20,7 @@
     justify-content: center;
     height: 2rem;
     width: 2.5rem;
-    padding: 0.25rem;
+    padding: 0.25rem; 
     background-color: var(--dark-5);
     border-radius: 5px;
     margin: 0.25rem;

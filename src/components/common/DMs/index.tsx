@@ -94,7 +94,7 @@ const DMs = () => {
               </label>
               <hr
                 className={cn('border-charcoal-4 border-1', {
-                  'invisible': active || nextActive
+                  invisible: active || nextActive
                 })}
               />
             </React.Fragment>

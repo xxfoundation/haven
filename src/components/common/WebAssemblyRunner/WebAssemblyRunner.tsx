@@ -45,7 +45,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
 
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
       setXXDKBasePath(basePath);
-       
+
       InitXXDK().then(async (result: any) => {
         setUtils(result);
         setUtilsLoaded(true);

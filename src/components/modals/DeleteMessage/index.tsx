@@ -23,14 +23,14 @@ const DeleteMessageModal: FC<Props> = ({ onCancel, onConfirm }) => {
   return (
     <Modal loading={loading} onClose={onCancel}>
       <ModalTitle>{t('Warning')}</ModalTitle>
-      <p className="mb-4 text-red uppercase text-center">
+      <p className='mb-4 text-red uppercase text-center'>
         ** {t('Important to note that deleting messages cannot be undone.')} **
       </p>
-      <div className="flex flex-wrap justify-center -mx-2">
-        <Button variant="outlined" className="m-2" onClick={onCancel}>
+      <div className='flex flex-wrap justify-center -mx-2'>
+        <Button variant='outlined' className='m-2' onClick={onCancel}>
           {t('Cancel')}
         </Button>
-        <Button className="m-2" onClick={handleConfirmation}>
+        <Button className='m-2' onClick={handleConfirmation}>
           {t('Delete')}
         </Button>
       </div>

@@ -25,9 +25,9 @@ const NewDM: FC = () => {
         codename: user.codename,
         nickname: user.nickname,
         color: user.color || 'var(--charcoal-1)',
-        codeset: user.codeset,
+        codeset: user.codeset
       };
-      
+
       await createConversation(conversation);
       closeModal();
     } catch (e) {
@@ -38,18 +38,18 @@ const NewDM: FC = () => {
   return (
     <>
       <ModalTitle>{t('Start Direct Message')}</ModalTitle>
-      <p className="mb-8 font-medium text-xs leading-tight text-cyan max-w-[520px] text-left w-full">
+      <p className='mb-8 font-medium text-xs leading-tight text-cyan max-w-[520px] text-left w-full'>
         {t('Enter an invite link to start a direct message conversation.')}
       </p>
       <input
-        type="text"
-        className="
+        type='text'
+        className='
           w-full max-w-[520px]
           border-none outline-none
           bg-dark-5 px-2.5 py-[18px]
           text-text-primary text-sm
           rounded mb-6
-        "
+        '
         placeholder={t('Enter invite link')}
         value={inviteLink}
         onChange={(e) => setInviteLink(e.target.value)}
@@ -59,16 +59,8 @@ const NewDM: FC = () => {
           }
         }}
       />
-      {error && (
-        <div className="text-xs mt-2 text-red w-full max-w-[520px]">
-          {error}
-        </div>
-      )}
-      <Button 
-        className="mt-5 w-full max-w-[520px]" 
-        onClick={handleSubmit}
-        disabled={!inviteLink}
-      >
+      {error && <div className='text-xs mt-2 text-red w-full max-w-[520px]'>{error}</div>}
+      <Button className='mt-5 w-full max-w-[520px]' onClick={handleSubmit} disabled={!inviteLink}>
         {t('Start Conversation')}
       </Button>
     </>

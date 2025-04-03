@@ -1,6 +1,6 @@
 import Quill from 'quill';
 import type { Range } from 'quill';
-import {Mention, MentionBlot} from "quill-mention";
+import { Mention, MentionBlot } from 'quill-mention';
 import React, {
   FC,
   useEffect,
@@ -29,7 +29,7 @@ import X from 'src/components/icons/X';
 import Identity from 'src/components/common/Identity';
 import { replyingToMessage } from 'src/store/selectors';
 import { EmojiPortal, EmojiPicker } from 'src/components/common/EmojiPortal';
-  
+
 import AtSign from 'src/components/icons/AtSign';
 import RTF from 'src/components/icons/RTF';
 import { useOnClickOutside, useToggle } from 'usehooks-ts';
@@ -67,7 +67,9 @@ const ToolbarButton: FC<
   <button
     {...props}
     className={`${className || ''} ${
-      active ? 'bg-charcoal-3-20 text-primary' : 'text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 hover:text-primary leading-none'
+      active
+        ? 'bg-charcoal-3-20 text-primary'
+        : 'text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 hover:text-primary leading-none'
     }`}
     data-active={active}
   >
@@ -108,7 +110,7 @@ const useCurrentFormats = (quill: Quill) => {
   const toggle = useCallback(
     (format: keyof QuillFormats, value?: any) => {
       if (!quill || !selection) return;
-      
+
       if (format === 'list' && value === 'ordered') {
         if (formats?.list) {
           quill.format('list', false, 'user');
@@ -292,7 +294,9 @@ const CustomToolbar: FC<CustomToolbarProps> = ({ className, quill }) => {
         ref={linkMenuRef}
         onMouseDown={saveSelection}
         className={`${
-          linkMenuOpened ? 'flex w-[25rem] items-center space-x-2 absolute bottom-[100%] bg-charcoal-4-80 backdrop-blur-lg rounded-xl p-4' : 'hidden'
+          linkMenuOpened
+            ? 'flex w-[25rem] items-center space-x-2 absolute bottom-[100%] bg-charcoal-4-80 backdrop-blur-lg rounded-xl p-4'
+            : 'hidden'
         }`}
       >
         <span>{t('Link:')}</span>
@@ -458,7 +462,6 @@ const UserTextArea: FC<Props> = ({ className }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [toolbarEnabled, toggleToolbar] = useToggle();
 
-
   // Update formats array to match registered formats
   const formats = useMemo(
     () => [
@@ -471,116 +474,120 @@ const UserTextArea: FC<Props> = ({ className }) => {
       'mention',
       'link',
       'code',
-      'code-block',
+      'code-block'
     ],
     []
   );
 
   const emojiIcon = "<svg class='i' viewBox='0 0 24 24'><use href='#emoticon-happy'></use></svg>";
   // Update modules configuration
-  const modules = useMemo(() => ({
-    toolbar: false,
-    keyboard: {
-      bindings: [
-        {
-          key: 'X',
-          shiftKey: true,
-          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
-          handler(this: { quill: Quill }, range: Range) {
-            const format = this.quill.getFormat(range) as QuillFormats;
-            this.quill.format('strike', !format.strike, 'user');
-          }
-        },
-        {
-          key: 'Enter',
-          handler() {
-            enterEvent();
-            return false;
-          }
-        },
-        {
-          key: '7',
-          shiftKey: true,
-          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
-          handler(range: { index: number; length: number }) {
-            const format = this.quill.getFormat(range.index, range.length);
-            if (format.list) {
-              this.quill.format('list', false, 'user');
-            } else {
-              this.quill.format('list', 'ordered', 'user');
+  const modules = useMemo(
+    () => ({
+      toolbar: false,
+      keyboard: {
+        bindings: [
+          {
+            key: 'X',
+            shiftKey: true,
+            ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+            handler(this: { quill: Quill }, range: Range) {
+              const format = this.quill.getFormat(range) as QuillFormats;
+              this.quill.format('strike', !format.strike, 'user');
+            }
+          },
+          {
+            key: 'Enter',
+            handler() {
+              enterEvent();
+              return false;
+            }
+          },
+          {
+            key: '7',
+            shiftKey: true,
+            ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+            handler(range: { index: number; length: number }) {
+              const format = this.quill.getFormat(range.index, range.length);
+              if (format.list) {
+                this.quill.format('list', false, 'user');
+              } else {
+                this.quill.format('list', 'ordered', 'user');
+              }
+            }
+          },
+          {
+            key: '8',
+            shiftKey: true,
+            ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+            handler: function (this: { quill: Quill }, range: Range) {
+              const format = this.quill.getFormat(range);
+              this.quill.format('list', !format.list);
+            }
+          },
+          {
+            key: 'C',
+            shiftKey: true,
+            ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+            handler: function (this: { quill: Quill }, range: Range) {
+              const format = this.quill.getFormat(range);
+              this.quill.format('code', !format.code);
+            }
+          },
+          {
+            key: 'C',
+            shiftKey: true,
+            altKey: true,
+            ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+            handler: function (this: { quill: Quill }, range: Range) {
+              const format = this.quill.getFormat(range);
+              this.quill.format('code-block', !format['code-block']);
+            }
+          },
+          {
+            key: '9',
+            shiftKey: true,
+            ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+            handler: function (this: { quill: Quill }, range: Range) {
+              const format = this.quill.getFormat(range);
+              this.quill.format('blockquote', !format.blockquote);
+            }
+          },
+          {
+            key: 'U',
+            shiftKey: false,
+            ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
+            handler: function (this: { quill: Quill }, range: Range) {
+              const format = this.quill.getFormat(range);
+              this.quill.format('link', !format.link);
             }
           }
-        },
-        {
-          key: '8',
-          shiftKey: true,
-          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
-          handler: function (this: { quill: Quill }, range: Range) {
-            const format = this.quill.getFormat(range);
-            this.quill.format('list', !format.list);
-          }
-        },
-        {
-          key: 'C',
-          shiftKey: true,
-          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
-          handler: function (this: { quill: Quill }, range: Range) {
-            const format = this.quill.getFormat(range);
-            this.quill.format('code', !format.code);
-          }
-        },
-        {
-          key: 'C',
-          shiftKey: true,
-          altKey: true,
-          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
-          handler: function (this: { quill: Quill }, range: Range) {
-            const format = this.quill.getFormat(range);
-            this.quill.format('code-block', !format['code-block']);
-          }
-        },
-        {
-          key: '9',
-          shiftKey: true,
-          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
-          handler: function (this: { quill: Quill }, range: Range) {
-            const format = this.quill.getFormat(range);
-            this.quill.format('blockquote', !format.blockquote);
-          }
-        },
-        {
-          key: 'U',
-          shiftKey: false,
-          ...(ctrlOrCmd.metaKey ? { metaKey: true } : { ctrlKey: true }),
-          handler: function (this: { quill: Quill }, range: Range) {
-            const format = this.quill.getFormat(range);
-            this.quill.format('link', !format.link);
-          }
-        }
-      ] as NormalizedBinding[]
-    },
-    clipboard: {
-      matchVisual: false
-    },
-    autoDetectUrl: {
-      urlRegularExpression: /(https?:\/\/|www\.)[\w-.]+\.[\w-.]+[\S]+/i
-    },
-    mention: {
-      allowedChars: /^[A-Za-z\s]*$/,
-      mentionDenotationChars: ['@'],
-      source(searchTerm: string, renderList: (values: { id: string; value: string }[], search: string) => void) {
-        const matches = atMentions.filter((v) =>
-          v.value.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        renderList(matches, searchTerm);
+        ] as NormalizedBinding[]
       },
-      renderItem(item: { id: string; value: string }) {
-        return `<div>${item.value}</div>`;
+      clipboard: {
+        matchVisual: false
+      },
+      autoDetectUrl: {
+        urlRegularExpression: /(https?:\/\/|www\.)[\w-.]+\.[\w-.]+[\S]+/i
+      },
+      mention: {
+        allowedChars: /^[A-Za-z\s]*$/,
+        mentionDenotationChars: ['@'],
+        source(
+          searchTerm: string,
+          renderList: (values: { id: string; value: string }[], search: string) => void
+        ) {
+          const matches = atMentions.filter((v) =>
+            v.value.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          renderList(matches, searchTerm);
+        },
+        renderItem(item: { id: string; value: string }) {
+          return `<div>${item.value}</div>`;
+        }
       }
-    },
-  }), [ctrlOrCmd]);
-
-
+    }),
+    [ctrlOrCmd]
+  );
 
   // Initialize Quill
   useEffect(() => {
@@ -590,11 +597,7 @@ const UserTextArea: FC<Props> = ({ className }) => {
     const initQuill = async () => {
       if (quill) return;
       try {
-        const [
-          { default: DetectUrl },
-        ] = await Promise.all([
-          import('quill-auto-detect-url'),
-        ]);
+        const [{ default: DetectUrl }] = await Promise.all([import('quill-auto-detect-url')]);
 
         // Only register if not already registered
         if (!Quill.imports['blots/mention']) {
@@ -625,20 +628,22 @@ const UserTextArea: FC<Props> = ({ className }) => {
 
     // Initialize Quill
     initQuill();
-
   }, []);
 
-  const insertEmoji = useCallback((emoji: string) => {
-    if (!quill) {
-      console.error('No quill instance found when inserting emoji');
-      return;
-    }
-    const { index, length } = quill.getSelection(true);
-    console.log('insertEmoji', emoji, index, length);
-    quill.deleteText(index, length);
-    quill.insertText(index, emoji);
-    quill.setSelection(index + emoji.length, 0); // Move cursor after emoji
-  }, [quill]);
+  const insertEmoji = useCallback(
+    (emoji: string) => {
+      if (!quill) {
+        console.error('No quill instance found when inserting emoji');
+        return;
+      }
+      const { index, length } = quill.getSelection(true);
+      console.log('insertEmoji', emoji, index, length);
+      quill.deleteText(index, length);
+      quill.insertText(index, emoji);
+      quill.setSelection(index + emoji.length, 0); // Move cursor after emoji
+    },
+    [quill]
+  );
 
   const insertMention = useCallback(() => {
     if (!quill) {
@@ -649,7 +654,6 @@ const UserTextArea: FC<Props> = ({ className }) => {
 
     mention.openMenu('@');
   }, [quill]);
-
 
   const resetEditor = useCallback(() => {
     if (channelId) {
@@ -695,7 +699,10 @@ const UserTextArea: FC<Props> = ({ className }) => {
       }
 
       if (message.length === 0 || !messageIsUnderLimit || tooManyTags) {
-        console.log('sendCurrentMessage cannot send: ', JSON.stringify({ messageLength: message.length, messageIsUnderLimit, tooManyTags }));
+        console.log(
+          'sendCurrentMessage cannot send: ',
+          JSON.stringify({ messageLength: message.length, messageIsUnderLimit, tooManyTags })
+        );
         return;
       }
 
@@ -736,74 +743,69 @@ const UserTextArea: FC<Props> = ({ className }) => {
 
   return (
     <EmojiPortal>
-    <div className={`relative bg-charcoal-4-80 p-2 ${className || ''}`}>
-      {replyToMessage && replyMessageMarkup && (
-        <div className='flex justify-between mb-3 items-center'>
-          <div className='text-charcoal-1'>
-            {t('Replying to')} &nbsp;
-            <Identity className='text-charcoal-3' {...replyToMessage} />
+      <div className={`relative bg-charcoal-4-80 p-2 ${className || ''}`}>
+        {replyToMessage && replyMessageMarkup && (
+          <div className='flex justify-between mb-3 items-center'>
+            <div className='text-charcoal-1'>
+              {t('Replying to')} &nbsp;
+              <Identity className='text-charcoal-3' {...replyToMessage} />
+            </div>
+            <button className='hover:bg-charcoal-3-20 hover:text-primary p-2 rounded-full'>
+              <X
+                className='w-5 h-5'
+                onClick={() => {
+                  dispatch(app.actions.replyTo(undefined));
+                }}
+              />
+            </button>
           </div>
-          <button className='hover:bg-charcoal-3-20 hover:text-primary p-2 rounded-full'>
-            <X
-              className='w-5 h-5'
-              onClick={() => {
-                dispatch(app.actions.replyTo(undefined));
-              }}
-            />
+        )}
+        <div className='flex items-end'>
+          <button
+            onClick={toggleToolbar}
+            className='p-1 text-charcoal-1 -ml-1 mr-0.5 rounded-full hover:bg-charcoal-3-20 leading-none hover:text-primary'
+          >
+            <RTF className='w-6 h-6' />
           </button>
-        </div>
-      )}
-      <div className='flex items-end'>
-        <button
-          onClick={toggleToolbar}
-          className='p-1 text-charcoal-1 -ml-1 mr-0.5 rounded-full hover:bg-charcoal-3-20 leading-none hover:text-primary'
-        >
-          <RTF className='w-6 h-6' />
-        </button>
-        <div className='rounded-2xl bg-near-black flex-grow w-full'>
-          {quill && (
-            <CustomToolbar
-              quill={quill}
-              className={toolbarEnabled ? '' : 'hidden'}
-            />
-          )}
-          <div className='flex w-full'>
-            <div className="flex-grow">
-              <div className={`w-full`}>
-                <div ref={containerRef} className="w-full">
-                  <div className="editor-container" />
+          <div className='rounded-2xl bg-near-black flex-grow w-full'>
+            {quill && <CustomToolbar quill={quill} className={toolbarEnabled ? '' : 'hidden'} />}
+            <div className='flex w-full'>
+              <div className='flex-grow'>
+                <div className={`w-full`}>
+                  <div ref={containerRef} className='w-full'>
+                    <div className='editor-container' />
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className='px-1 flex items-center flex-shrink-0'>
-              <ToolbarButton
-                onClick={insertMention}
-                className='text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 leading-none hover:text-primary'
-              >
-                <AtSign className='w-6 h-6' />
-              </ToolbarButton>
-              <ToolbarButton>
-                <EmojiPicker onSelect={insertEmoji} />
-              </ToolbarButton>
+              <div className='px-1 flex items-center flex-shrink-0'>
+                <ToolbarButton
+                  onClick={insertMention}
+                  className='text-charcoal-1 p-1 rounded-full hover:bg-charcoal-3-20 leading-none hover:text-primary'
+                >
+                  <AtSign className='w-6 h-6' />
+                </ToolbarButton>
+                <ToolbarButton>
+                  <EmojiPicker onSelect={insertEmoji} />
+                </ToolbarButton>
+              </div>
             </div>
           </div>
+          {tooManyTags && (
+            <div className='text-red text-sm absolute bottom-full left-0 mb-1'>
+              {t('Too many tags.')}
+            </div>
+          )}
+          {!messageIsUnderLimit && (
+            <div className='text-red text-sm absolute bottom-full left-0 mb-1'>
+              {t('Message is too long.')}
+            </div>
+          )}
+          <SendButton
+            disabled={!messageIsUnderLimit || tooManyTags || isMuted}
+            onClick={sendCurrentMessage}
+          />
         </div>
-        {tooManyTags && (
-          <div className='text-red text-sm absolute bottom-full left-0 mb-1'>
-            {t('Too many tags.')}
-          </div>
-        )}
-        {!messageIsUnderLimit && (
-          <div className='text-red text-sm absolute bottom-full left-0 mb-1'>
-            {t('Message is too long.')}
-          </div>
-        )}
-        <SendButton
-          disabled={!messageIsUnderLimit || tooManyTags || isMuted}
-          onClick={sendCurrentMessage}
-        />
       </div>
-    </div>
     </EmojiPortal>
   );
 };

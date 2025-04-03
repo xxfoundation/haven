@@ -32,7 +32,10 @@ const MessageAction: FC<WithChildren & HTMLAttributes<HTMLButtonElement>> = ({
   ...props
 }) => {
   return (
-    <button {...props} className={`text-charcoal-1 hover:text-primary w-5 ${props.className || ''}`}>
+    <button
+      {...props}
+      className={`text-charcoal-1 hover:text-primary w-5 ${props.className || ''}`}
+    >
       {children}
     </button>
   );

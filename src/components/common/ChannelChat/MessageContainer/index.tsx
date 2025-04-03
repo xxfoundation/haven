@@ -152,11 +152,9 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   return (
     <>
       {isNewMessage && (
-        <div className="relative flex items-center px-4">
-          <div className="flex-grow border-t border-primary"></div>
-          <span className="flex-shrink mx-4 text-primary">
-            {t('New!')}
-          </span>
+        <div className='relative flex items-center px-4'>
+          <div className='flex-grow border-t border-primary'></div>
+          <span className='flex-shrink mx-4 text-primary'>{t('New!')}</span>
         </div>
       )}
       {!readonly && (
@@ -171,7 +169,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
             <PinMessageModal onConfirm={pinSelectedMessage} onCancel={hidePinModal} />
           )}
           {message.status === MessageStatus.Delivered && (
-            <div className="relative">
+            <div className='relative'>
               <MessageActions
                 pubkey={message.pubkey}
                 onMouseEnter={() => setShowActionsWrapper(true)}

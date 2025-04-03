@@ -16,7 +16,7 @@ const SendButton: FC<ButtonHTMLAttributes<HTMLButtonElement>> = (props) => {
         ${props.className || ''}
       `}
     >
-      <span className="mr-1">
+      <span className='mr-1'>
         <Send />
       </span>
     </button>

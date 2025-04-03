@@ -2,7 +2,6 @@ import pako from 'pako';
 import DOMPurify from 'dompurify';
 import { Buffer } from 'buffer';
 
-
 export const inflate = (content: string) => {
   let inflated: string;
   try {

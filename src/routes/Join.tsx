@@ -174,13 +174,13 @@ const Join = () => {
         />
       )}
       {!channelInfoJson && window?.location?.href && channelType === 2 && (
-        <div className="flex flex-col items-center">
-          <h2 className="mt-9 mb-6">{t('This Haven Chat requires a passphrase to join')}</h2>
-          <div className="w-full max-w-[534px]">
+        <div className='flex flex-col items-center'>
+          <h2 className='mt-9 mb-6'>{t('This Haven Chat requires a passphrase to join')}</h2>
+          <div className='w-full max-w-[534px]'>
             <input
-              className="mt-3 mb-4"
-              name=""
-              type="password"
+              className='mt-3 mb-4'
+              name=''
+              type='password'
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   joinPrivateChannel();
@@ -193,18 +193,16 @@ const Join = () => {
               }}
             />
 
-            <div className="flex justify-between mt-8 px-3">
-              <h3 className="headline--sm">{t('Enable Direct Messages')}</h3>
+            <div className='flex justify-between mt-8 px-3'>
+              <h3 className='headline--sm'>{t('Enable Direct Messages')}</h3>
               <CheckboxToggle checked={dmsEnabled} onChange={() => setDmsEnabled((e) => !e)} />
             </div>
             {error && (
-              <div className="text text--xs mt-2 text-center text-[var(--red)]">
-                {error}
-              </div>
+              <div className='text text--xs mt-2 text-center text-[var(--red)]'>{error}</div>
             )}
-            <div className="flex justify-center">
-              <Button 
-                className="mb-7 mt-8 text-black disabled:cursor-not-allowed"
+            <div className='flex justify-center'>
+              <Button
+                className='mb-7 mt-8 text-black disabled:cursor-not-allowed'
                 onClick={joinPrivateChannel}
               >
                 {t('Confirm')}

@@ -37,7 +37,7 @@ export const DropdownItem: FC<DropdownItemProps> = ({
   );
 
   return (
-    <li className="list-none list-item">
+    <li className='list-none list-item'>
       <button
         {...props}
         className={`
@@ -51,7 +51,7 @@ export const DropdownItem: FC<DropdownItemProps> = ({
         `}
         onClick={onClick}
       >
-        {Icon && <Icon className="w-9 h-9 text-charcoal-1 group-hover:text-primary" />}
+        {Icon && <Icon className='w-9 h-9 text-charcoal-1 group-hover:text-primary' />}
         <span>{children}</span>
       </button>
     </li>

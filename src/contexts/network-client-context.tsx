@@ -502,7 +502,6 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
     }
   }, [currentChannel, currentChannels, currentConversationId, dispatch]);
 
-
   const loadChannelManager = useCallback(
     async (tag: string) => {
       console.log('Loading channel manager with tag:', tag);
@@ -532,12 +531,14 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
       hasUtils: !!utils,
       storageTag
     });
-    
+
     if (cmix && cipher && utils) {
       if (storageTag) {
         loadChannelManager(storageTag);
       } else {
-        console.log('No storage tag found, channel manager should have been created during registration/import');
+        console.log(
+          'No storage tag found, channel manager should have been created during registration/import'
+        );
       }
     }
   }, [cipher, cmix, loadChannelManager, storageTag, utils]);
@@ -776,17 +777,17 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
       }
       try {
         if (channelManager && currentChannel) {
-            const messageId = await channelManager.SendMessage(
-              utils.Base64ToUint8Array(currentChannel.id),
-              message,
-              MESSAGE_LEASE,
-              new Uint8Array(),
+          const messageId = await channelManager.SendMessage(
+            utils.Base64ToUint8Array(currentChannel.id),
+            message,
+            MESSAGE_LEASE,
+            new Uint8Array(),
             encoder.encode(JSON.stringify(tags))
           );
-          
+
           // Log to verify the message was sent and we got a messageId back
           console.log('Message sent successfully, messageId:', messageId);
-          
+
           return messageId;
         } else if (currentConversation) {
           sendDirectMessage(message);
@@ -983,12 +984,6 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
             const isReadyInfo = isReadyInfoDecoder(
               JSON.parse(decoder.decode(cmix?.IsReady(CMIX_NETWORK_READINESS_THRESHOLD)))
             );
-            console.log('Ready info:', {
-              isReady: isReadyInfo.isReady,
-              howClose: isReadyInfo.howClose,
-              threshold: CMIX_NETWORK_READINESS_THRESHOLD
-            });
-
             onIsReadyInfoChange(isReadyInfo);
             if (isReadyInfo.isReady) {
               clearInterval(intervalId);

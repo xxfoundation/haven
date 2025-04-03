@@ -96,19 +96,23 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
       className={`
         px-4 py-2 relative transition-all
         ${highlighted ? 'bg-charcoal-4-40 border-l-2 border-charcoal-2' : ''}
-        ${(!message.id || message.id !== userReplyId) && !htmlProps.className?.includes('bg-') 
-          ? 'bg-near-black hover:bg-charcoal-4-40' 
-          : ''}
-        ${userReplyId && message.id === userReplyId && !noReply 
-          ? 'bg-green-10 border-l-2 border-green' 
-          : ''}
+        ${
+          (!message.id || message.id !== userReplyId) && !htmlProps.className?.includes('bg-')
+            ? 'bg-near-black hover:bg-charcoal-4-40'
+            : ''
+        }
+        ${
+          userReplyId && message.id === userReplyId && !noReply
+            ? 'bg-green-10 border-l-2 border-green'
+            : ''
+        }
         ${htmlProps.className || ''}
       `}
     >
       {repliedToMessage && !noReply && (
         <div
           ref={replyRef}
-          className="cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative hover:bg-charcoal-4"
+          className='cursor-pointer border rounded-lg border-charcoal-3 py-1.5 px-2.5 ml-5 mb-2 relative hover:bg-charcoal-4'
           onClick={() => {
             const originalMessage = document.getElementById(repliedToMessage.id || '');
             if (originalMessage) {
@@ -117,13 +121,13 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
             }
           }}
         >
-          <ConnectingLine className="absolute -left-6 text-charcoal-3 bottom-0" />
+          <ConnectingLine className='absolute -left-6 text-charcoal-3 bottom-0' />
           {repliedToMessage ? (
             <>
               <Identity clickable {...repliedToMessage} />
               <Clamp lines={3}>
                 <div
-                  className="message"
+                  className='message'
                   dangerouslySetInnerHTML={{
                     __html: repliedToMessage.body
                   }}
@@ -138,17 +142,17 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
       <Tooltip clickable style={tooltipStyles} isOpen={hoveredMention !== null}>
         {hoveredMention && <HoveredMention codename={hoveredMention} />}
       </Tooltip>
-      <div className="w-full">
-        <div className="shrink truncate overflow-hidden break-words hyphens-auto">
-          <div className="flex items-center">
+      <div className='w-full'>
+        <div className='shrink truncate overflow-hidden break-words hyphens-auto'>
+          <div className='flex items-center'>
             {message.repliedTo !== null ? (
               <>
                 <Identity clickable {...message} />
-                <span className="mx-1 text-xs">{t('replied to')}</span>
+                <span className='mx-1 text-xs'>{t('replied to')}</span>
                 {repliedToMessage ? (
                   <Identity clickable {...repliedToMessage} />
                 ) : (
-                  <span className="text-xs">
+                  <span className='text-xs'>
                     <strong>{t('deleted/unknown')}</strong>
                   </span>
                 )}
@@ -156,12 +160,12 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
             ) : (
               <Identity clickable {...message} />
             )}
-            <span className="text-[10px] font-normal ml-1.5">
+            <span className='text-[10px] font-normal ml-1.5'>
               {dayjs(message.timestamp).format('hh:mm A')}
             </span>
-            {(message.status === MessageStatus.Unsent || message.status === MessageStatus.Sent) && 
+            {(message.status === MessageStatus.Unsent || message.status === MessageStatus.Sent) && (
               <Spinner size='xs' />
-            }
+            )}
             {message.round !== 0 && (
               <a
                 href={`https://dashboard.xx.network/rounds/${message.round}`}
@@ -176,21 +180,19 @@ const ChatMessage: FC<Props> = ({ clamped, message, noReply, ...htmlProps }) => 
             )}
             &nbsp;
             {message.status === MessageStatus.Failed && (
-              <span className='text-xs text-red'>
-                ({t('Failed')})
-              </span>
+              <span className='text-xs text-red'>({t('Failed')})</span>
             )}
           </div>
 
-          <div className="text-sm">
+          <div className='text-sm'>
             <Clamp
               showMoreElement={({ toggle }: ClampToggleProps) => (
-                <button className="text-cyan" type='button' onClick={toggle}>
+                <button className='text-cyan' type='button' onClick={toggle}>
                   {t('Show more')}
                 </button>
               )}
               showLessElement={({ toggle }: ClampToggleProps) => (
-                <button className="text-cyan" type='button' onClick={toggle}>
+                <button className='text-cyan' type='button' onClick={toggle}>
                   {t('Show less')}
                 </button>
               )}

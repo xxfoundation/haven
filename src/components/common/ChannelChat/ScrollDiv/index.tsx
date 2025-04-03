@@ -36,7 +36,9 @@ const ScrollDiv: FC<Props> = ({
   const [isDragging, setDragging] = useState(false);
   const scrollHostRef = useRef<HTMLDivElement>(null);
   const { width, height } = useResizeObserver<HTMLDivElement>({
-    ref: scrollHostRef, box: 'border-box'  });
+    ref: scrollHostRef,
+    box: 'border-box'
+  });
   const scrollThumb = useRef<HTMLDivElement>(null);
 
   const handleScrollThumbMouseDown = useCallback<MouseEventHandler<HTMLDivElement>>((e) => {
@@ -185,13 +187,15 @@ const ScrollDiv: FC<Props> = ({
   }, [handleDocumentMouseMove, handleDocumentMouseUp]);
 
   return (
-    <div className={`
+    <div
+      className={`
       relative h-full pr-2
       group
       ${className || ''}
-    `}>
-      <div 
-        ref={scrollHostRef} 
+    `}
+    >
+      <div
+        ref={scrollHostRef}
         className={`
           overflow-auto h-full relative
           flex max-w-full flex-col flex-nowrap
@@ -199,7 +203,7 @@ const ScrollDiv: FC<Props> = ({
         `}
         {...rest}
       >
-        <div className="mt-auto" ref={scrollHostRef}>
+        <div className='mt-auto' ref={scrollHostRef}>
           {children}
         </div>
       </div>
@@ -213,7 +217,7 @@ const ScrollDiv: FC<Props> = ({
       >
         <div
           ref={scrollThumb}
-          className="w-2 ml-0.5 absolute rounded-lg opacity-100 bg-charcoal-3"
+          className='w-2 ml-0.5 absolute rounded-lg opacity-100 bg-charcoal-3'
           style={{ height: thumbHeight, top: scrollThumbTop }}
           onMouseDown={handleScrollThumbMouseDown}
         />

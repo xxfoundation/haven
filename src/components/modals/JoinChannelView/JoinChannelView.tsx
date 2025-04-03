@@ -72,7 +72,6 @@ const JoinChannelView: FC = () => {
           setPassword('');
           closeModal();
         } catch (e) {
-           
           console.error((e as Error).message);
           setError(t('Something wrong happened, please check your details.'));
         }

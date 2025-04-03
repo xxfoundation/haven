@@ -13,7 +13,15 @@ import { useNetworkClient } from '@contexts/network-client-context';
 import useLocalStorage from './useLocalStorage';
 import { useRemotelySynchedString } from './useRemotelySynchedValue';
 import { DMNotificationLevel } from 'src/types/events';
-import { Message, ChannelId, ChannelNotificationLevel, NotificationStatus, MessageStatus, MessageType, DBMessage } from 'src/types';
+import {
+  Message,
+  ChannelId,
+  ChannelNotificationLevel,
+  NotificationStatus,
+  MessageStatus,
+  MessageType,
+  DBMessage
+} from 'src/types';
 import { useSound } from 'src/contexts/sound-context';
 
 const useNotification = () => {

@@ -8,7 +8,7 @@ import appReducer from './app';
 const store = configureStore({
   reducer: {
     channels: channelsReducer,
-    messages: messagesReducer, 
+    messages: messagesReducer,
     identity: identityReducer,
     dms: dmsReducer,
     app: appReducer

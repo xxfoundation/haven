@@ -44,28 +44,24 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
   }, []);
 
   return (
-    <form className="w-full flex flex-col items-center min-h-[476px]" onSubmit={handleSubmission}>
-      <h2 className="mt-9 mb-4">{t('Import your account')}</h2>
-      <p className="mb-8 font-medium text-xs leading-tight text-cyan max-w-[520px] text-left w-full">
+    <form className='w-full flex flex-col items-center min-h-[476px]' onSubmit={handleSubmission}>
+      <h2 className='mt-9 mb-4'>{t('Import your account')}</h2>
+      <p className='mb-8 font-medium text-xs leading-tight text-cyan max-w-[520px] text-left w-full'>
         {t(`Note that importing your account will only restore your codename. You
         need to rejoin manually any previously joined channel`)}
       </p>
-      {error && (
-        <div className="text-xs mt-2 text-red">
-          {error}
-        </div>
-      )}
+      {error && <div className='text-xs mt-2 text-red'>{error}</div>}
       <input
         required
-        id="identityFile"
-        type="file"
+        id='identityFile'
+        type='file'
         placeholder={t('Choose a file')}
         onChange={onFileChange}
-        className="hidden"
+        className='hidden'
       />
-      <label 
-        htmlFor="identityFile" 
-        className="
+      <label
+        htmlFor='identityFile'
+        className='
           flex justify-between
           border-none outline-none
           bg-dark-5 px-2.5 py-[18px]
@@ -73,28 +69,28 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
           w-full max-w-[520px] h-[55px]
           rounded mb-[26px]
           cursor-pointer
-        "
+        '
       >
         <span ref={fileInputLabelRef}>{t('Choose a file')}</span>
         <Upload />
       </label>
       <input
         required
-        type="password"
+        type='password'
         placeholder={t('Unlock export with your password')}
         value={password}
         onChange={(e) => {
           setPassword(e.target.value);
         }}
-        className="
+        className='
           border-none outline-none
           bg-dark-5 px-2.5 py-[18px]
           text-text-primary text-sm
           w-full max-w-[520px] h-[55px]
           rounded mb-[26px]
-        "
+        '
       />
-      <Button type="submit" className="mt-5 text-black mb-30">
+      <Button type='submit' className='mt-5 text-black mb-30'>
         {t('Import')}
       </Button>
     </form>

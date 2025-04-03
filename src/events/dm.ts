@@ -45,7 +45,6 @@ export const onDmEvent = (eventType: DMEvents, data: unknown) => {
   if (!eventDecoder) {
     console.error('Unhandled channel event:', eventType, data);
   } else {
-     
     dmBus.emit(eventType, eventDecoder(data) as any);
   }
 };

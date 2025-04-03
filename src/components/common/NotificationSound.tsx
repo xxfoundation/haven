@@ -10,7 +10,7 @@ const SoundPlayer = lazy(async () => {
   try {
     // First import use-sound module
     const useSound = (await import('use-sound')).default;
-        
+
     return {
       default: function Sound({ soundUrl, onInit }: Props) {
         const [play] = useSound(soundUrl, {
@@ -18,13 +18,13 @@ const SoundPlayer = lazy(async () => {
           preload: true,
           volume: 1.0
         });
-        
+
         useEffect(() => {
           if (play) {
             onInit(play);
           }
         }, [play, onInit]);
-        
+
         return null;
       }
     };
@@ -68,4 +68,4 @@ const NotificationSound: FC<Props> = (props) => {
   );
 };
 
-export default NotificationSound; 
+export default NotificationSound;

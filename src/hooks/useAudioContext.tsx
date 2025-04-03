@@ -10,13 +10,12 @@ export const useAudioContext = () => {
       // Create a temporary audio context to request permission
       const tempContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       await tempContext.resume();
-      
-     
+
       // Clean up temp context
       await tempContext.close();
-      
+
       initialized.current = true;
-      
+
       // Cleanup listeners once initialized
       window.removeEventListener('click', initAudio, true);
       window.removeEventListener('touchstart', initAudio, true);
@@ -41,4 +40,4 @@ export const useAudioContext = () => {
 
   // Return whether audio is initialized
   return initialized.current;
-}; 
+};

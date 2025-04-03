@@ -16,11 +16,13 @@ const MainHeader: FC<Props> = ({ className }) => {
   const { leftSidebarView: sidebarView } = useUI();
 
   return (
-    <div className={`
+    <div
+      className={`
       rounded-tr-[var(--border-radius)]
       bg-[var(--charcoal-4)]
       ${className || ''}
-    `}>
+    `}
+    >
       {currentChannel && sidebarView === 'spaces' && <ChannelHeader {...currentChannel} />}
       {currentConversation && sidebarView === 'dms' && (
         <ChannelHeader

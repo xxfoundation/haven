@@ -27,12 +27,12 @@ const LeaveChannelConfirmationView: FC = () => {
 
   return (
     <>
-      <ModalTitle className="mb-0">{t('Leave Space')}</ModalTitle>
-      <h2 className="text-lg font-medium">{currentChannel?.name}</h2>
-      <p className="text-charcoal-1 mb-6">
+      <ModalTitle className='mb-0'>{t('Leave Space')}</ModalTitle>
+      <h2 className='text-lg font-medium'>{currentChannel?.name}</h2>
+      <p className='text-charcoal-1 mb-6'>
         {t('Are you sure you would like to leave this space?')}
       </p>
-      <Button className="w-full" onClick={onLeave}>
+      <Button className='w-full' onClick={onLeave}>
         {t('Yes, leave this space')}
       </Button>
     </>

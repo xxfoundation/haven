@@ -12,14 +12,14 @@ const NetworkNotReadyView: FC = () => {
   return (
     <>
       <ModalTitle>{t('Network Not Ready')}</ModalTitle>
-      <p className="mb-6 text-sm text-center text-charcoal-1">
+      <p className='mb-6 text-sm text-center text-charcoal-1'>
         {t('The network is not ready to send messages yet. Please try again in a few seconds.')}
       </p>
-      <Button className="w-full" onClick={closeModal}>
+      <Button className='w-full' onClick={closeModal}>
         {t('Ok')}
       </Button>
     </>
   );
 };
 
-export default NetworkNotReadyView; 
+export default NetworkNotReadyView;

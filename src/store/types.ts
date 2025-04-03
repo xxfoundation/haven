@@ -1,6 +1,5 @@
 import { MessageStatus } from 'src/types';
 
- 
 export interface RootState {
   // empty on purpose so that the slices extend the interface
 }

@@ -70,7 +70,6 @@ export const onChannelEvent = (eventType: ChannelEvents, data: unknown) => {
   if (!eventDecoder) {
     console.error('Unhandled channel event:', eventType, data);
   } else {
-     
     channelsBus.emit(eventType, eventDecoder(data) as any);
   }
 };

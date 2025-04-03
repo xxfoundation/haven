@@ -12,7 +12,7 @@ const ErrorFallback = ({ error }: { error: Error }) => {
       <Helmet>
         <title>Error - Haven Web</title>
       </Helmet>
-      <section role='alert' className="error-boundary">
+      <section role='alert' className='error-boundary'>
         <h2>Something went wrong:</h2>
         <pre>{error.message}</pre>
       </section>
@@ -22,10 +22,7 @@ const ErrorFallback = ({ error }: { error: Error }) => {
 
 const ErrorBoundary: React.FC<Props> = ({ children }) => {
   return (
-    <ReactErrorBoundary 
-      FallbackComponent={ErrorFallback}
-      onReset={() => window.location.reload()}
-    >
+    <ReactErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
       {children}
     </ReactErrorBoundary>
   );

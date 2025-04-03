@@ -57,11 +57,11 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
   return loading ? (
     <ImportCodeNameLoading fullscreen readyProgress={readyProgress} />
   ) : (
-    <div className="w-full flex flex-col justify-center items-center px-6">
-      <h2 data-testid="codename-registration-title" className="mt-9 mb-4">
+    <div className='w-full flex flex-col justify-center items-center px-6'>
+      <h2 data-testid='codename-registration-title' className='mt-9 mb-4'>
         {t('Find your Codename')}
       </h2>
-      <p className="mb-8 text-sm text-[var(--cyan)] leading-[18px] font-medium max-w-[800px] text-center">
+      <p className='mb-8 text-sm text-[var(--cyan)] leading-[18px] font-medium max-w-[800px] text-center'>
         <span>
           {t(`
             Codenames are generated on your computer by you. No servers or
@@ -80,8 +80,8 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
 
       {identities.length ? (
         <div
-          data-testid="codename-registration-options"
-          className="min-w-[85%] grid sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-x-4 gap-y-6 overflow-auto"
+          data-testid='codename-registration-options'
+          className='min-w-[85%] grid sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-x-4 gap-y-6 overflow-auto'
         >
           {identities.map((i) => (
             <div
@@ -95,23 +95,23 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
                 setSelectedPrivateIdentity(i.privateIdentity);
               }}
             >
-              <span className="text-xs">
+              <span className='text-xs'>
                 <Identity {...i} />
               </span>
             </div>
           ))}
         </div>
       ) : (
-        <div className="w-full h-64 flex justify-center items-center">
-          <Spinner size="lg" />
+        <div className='w-full h-64 flex justify-center items-center'>
+          <Spinner size='lg' />
         </div>
       )}
 
-      <div className="flex mb-5 mt-12 gap-4">
+      <div className='flex mb-5 mt-12 gap-4'>
         <Button
-          variant="outlined"
-          data-testid="discover-more-button"
-          className="disabled:opacity-50 disabled:cursor-not-allowed"
+          variant='outlined'
+          data-testid='discover-more-button'
+          className='disabled:opacity-50 disabled:cursor-not-allowed'
           onClick={() => {
             setSelectedCodeName('');
             setIdentites(generateIdentities(AMOUNT_OF_IDENTITIES_TO_GENERATE));
@@ -121,10 +121,10 @@ const CodenameRegistration: FC<Props> = ({ password }) => {
           {t('Discover More')}
         </Button>
         <Button
-          data-testid="claim-codename-button"
+          data-testid='claim-codename-button'
           onClick={register}
           disabled={!cmix || selectedCodeName.length === 0}
-          className="disabled:opacity-50 disabled:cursor-not-allowed"
+          className='disabled:opacity-50 disabled:cursor-not-allowed'
         >
           {t('Claim')}
         </Button>
