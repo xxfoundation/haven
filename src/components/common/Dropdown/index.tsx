@@ -1,4 +1,4 @@
-import { WithChildren } from '@types';
+import { WithChildren } from 'src/types';
 import React, {
   FC,
   HTMLAttributes,
@@ -10,9 +10,6 @@ import React, {
   useRef
 } from 'react';
 import { useOnClickOutside } from 'usehooks-ts';
-import cn from 'classnames';
-
-import s from './Dropdown.module.scss';
 
 type CTX = { isOpen: boolean; close: () => void };
 const DropdownContext = createContext<CTX>({} as CTX);
@@ -43,15 +40,19 @@ export const DropdownItem: FC<DropdownItemProps> = ({
     <li className='list-none list-item'>
       <button
         {...props}
-        className={cn(
-          props.className,
-          s.item,
-          'group w-full space-x-2 hover:text-primary text-white'
-        )}
+        className={`
+          flex items-center self-stretch w-full
+          py-2 pl-4 pr-8
+          text-sm font-medium tracking-[0.00875rem]
+          text-white hover:text-primary
+          hover:bg-charcoal-3 hover:cursor-pointer
+          group space-x-2
+          ${props.className || ''}
+        `}
         onClick={onClick}
       >
         {Icon && <Icon className='w-9 h-9 text-charcoal-1 group-hover:text-primary' />}
-        <span className=''>{children}</span>
+        <span>{children}</span>
       </button>
     </li>
   );
@@ -67,7 +68,6 @@ const Dropdown: FC<Props> = ({ children, className, isOpen, onChange }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => onChange(false), [onChange]);
   useOnClickOutside(dropdownRef, (e) => {
-    // Check if the click came from the trigger button
     const target = e.target as HTMLElement;
     const isTriggerButton = target.closest('[data-dropdown-trigger]');
     if (!isTriggerButton) {
@@ -79,9 +79,15 @@ const Dropdown: FC<Props> = ({ children, className, isOpen, onChange }) => {
     <DropdownContext.Provider value={{ isOpen, close }}>
       <div
         ref={dropdownRef}
-        className={cn(className, 'bg-charcoal-4-80 backdrop-blur-md min-w-[16rem] z-10', s.root, {
-          hidden: !isOpen
-        })}
+        className={`
+          absolute right-0 top-full
+          min-w-[16rem] z-10
+          rounded-xl shadow-lg
+          py-4
+          bg-charcoal-4-80 backdrop-blur-md
+          ${!isOpen ? 'hidden' : ''}
+          ${className || ''}
+        `}
       >
         {children}
       </div>

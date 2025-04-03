@@ -8,7 +8,7 @@ import {
   NotificationUpdateEvent,
   TypedEventEmitter,
   UserMutedEvent
-} from '@types';
+} from 'src/types';
 import {
   Decoder,
   adminKeysUpdateDecoder,
@@ -19,8 +19,8 @@ import {
   nicknameUpdatedEventDecoder,
   notificationUpdateEventDecoder,
   userMutedEventDecoder
-} from '@utils/decoders';
-import { makeEventAwaiter, makeListenerHook } from '@utils/index';
+} from 'src/utils/decoders';
+import { makeEventAwaiter, makeListenerHook } from 'src/utils/index';
 import EventEmitter from 'events';
 
 export enum ChannelEvents {
@@ -70,7 +70,6 @@ export const onChannelEvent = (eventType: ChannelEvents, data: unknown) => {
   if (!eventDecoder) {
     console.error('Unhandled channel event:', eventType, data);
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     channelsBus.emit(eventType, eventDecoder(data) as any);
   }
 };

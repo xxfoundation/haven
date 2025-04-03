@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
 import { useOnClickOutside } from 'usehooks-ts';
-import { WithChildren } from '@types';
+import { WithChildren } from 'src/types';
 import { AppEvents, appBus } from 'src/events';
 import EmojisPickerIcon from 'src/components/icons/EmojisPicker';
 
@@ -29,6 +29,22 @@ export const EmojiPortal: FC<WithChildren> = ({ children }) => {
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(pickerRef, () => setPickerVisible(false));
+
+  // Create portal element if it doesn't exist
+  useEffect(() => {
+    let portalElement = document.getElementById('emoji-portal');
+    if (!portalElement) {
+      portalElement = document.createElement('div');
+      portalElement.id = 'emoji-portal';
+      document.body.appendChild(portalElement);
+    }
+    return () => {
+      // Clean up only if we created it
+      if (portalElement && !document.getElementById('emoji-portal')) {
+        portalElement.remove();
+      }
+    };
+  }, []);
 
   const openEmojiPicker = useCallback((rect: DOMRect) => {
     setPickerStyle({

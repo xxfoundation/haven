@@ -26,6 +26,11 @@ import {
 import { KVEntry } from 'src/types/collective';
 import { Err, JsonDecoder } from 'ts.data.json';
 import { decoder as uintDecoder } from './index';
+import {
+  ChannelNotificationLevel as EventsChannelNotificationLevel,
+  NotificationState as EventsNotificationState,
+  NotificationStatus as EventsNotificationStatus
+} from 'src/types/events';
 
 const attemptParse = (object: unknown) => {
   let parsed = object;
@@ -209,15 +214,15 @@ export const nicknameUpdatedEventDecoder = makeDecoder(
   )
 );
 
-export const notificationLevelDecoder = JsonDecoder.enumeration<ChannelNotificationLevel>(
-  ChannelNotificationLevel,
+export const notificationLevelDecoder = JsonDecoder.enumeration<EventsChannelNotificationLevel>(
+  EventsChannelNotificationLevel,
   'NotificationLevelDecoder'
 );
-export const notificationStatusDecoder = JsonDecoder.enumeration<NotificationStatus>(
-  NotificationStatus,
+export const notificationStatusDecoder = JsonDecoder.enumeration<EventsNotificationStatus>(
+  EventsNotificationStatus,
   'NotificationStatusDecoder'
 );
-const notificationStateDecoder = JsonDecoder.object<NotificationState>(
+const notificationStateDecoder = JsonDecoder.object<EventsNotificationState>(
   {
     channelId: JsonDecoder.string,
     level: notificationLevelDecoder,
@@ -232,7 +237,7 @@ const notificationStateDecoder = JsonDecoder.object<NotificationState>(
 export const notificationUpdateEventDecoder = makeDecoder(
   JsonDecoder.object<NotificationUpdateEvent>(
     {
-      changedNotificationStates: JsonDecoder.array<NotificationState>(
+      changedNotificationStates: JsonDecoder.array<EventsNotificationState>(
         notificationStateDecoder,
         'ChangedNotificationStatesDecoder'
       ),

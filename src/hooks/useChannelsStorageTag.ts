@@ -5,7 +5,9 @@ import { makeDecoder } from '@utils/decoders';
 const KEY = 'channels-storage-tag';
 
 const useStorageTag = () => {
-  return useRemotelySynchedValue(KEY, makeDecoder(JsonDecoder.string));
+  const result = useRemotelySynchedValue(KEY, makeDecoder(JsonDecoder.string));
+  console.log('Ready storage tag value:', result.value);
+  return result;
 };
 
 export default useStorageTag;

@@ -1,13 +1,9 @@
 import type { ChannelJSON } from 'src/types';
 import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import cn from 'classnames';
-
 import { Button } from 'src/components/common';
-import { WarningComponent } from 'src/pages/_app';
-
-import s from './JoinChannel.module.scss';
-import CheckboxToggle from '@components/common/CheckboxToggle';
+import WarningComponent from 'src/components/common/WarningComponent';
+import CheckboxToggle from 'src/components/common/CheckboxToggle';
 
 type Props = {
   channelInfo: ChannelJSON;
@@ -59,20 +55,20 @@ const JoinChannelView: FC<Props> = ({
   }
 
   return (
-    <div className={cn('w-full flex flex-col justify-center items-center', s.root)}>
+    <div className='w-full flex flex-col justify-center items-center p-4'>
       <h2 className='mt-9 mb-6'>{t('Join a Chat')}</h2>
-      <div>
-        <div className={cn('mb-4')}>
+      <div className='w-full max-w-[534px]'>
+        <div className='mb-4'>
           <h4>{channelInfo?.name || ''}</h4>
-          <p className={cn('mt-2 text text--xs')}>{channelInfo?.description || ''}</p>
+          <p className='mt-2 text-xs'>{channelInfo?.description || ''}</p>
         </div>
-        <div className={cn('text text--sm mb-2')}>
+        <div className='text-sm mb-2'>
           <span className='font-bold mr-1'>{t('Chat id')}:</span>
           <span>{channelInfo?.receptionId || ''}</span>
         </div>
-        <div className={cn(s.channelCredentials)}>
-          <span className='text--sm font-bold'>{t('Chat invite link')}:</span>
-          {<span className={cn('text text--xs')}>{url}</span>}
+        <div className='w-full max-w-[534px] bg-[var(--dark-5)] mt-4 p-1.5 rounded flex flex-col gap-2 text-[var(--text-secondary)]'>
+          <span className='text-sm font-bold'>{t('Chat invite link')}:</span>
+          <span className='text-xs break-all'>{url}</span>
         </div>
       </div>
       <div className='flex justify-between mt-8 w-full px-3'>
@@ -80,10 +76,16 @@ const JoinChannelView: FC<Props> = ({
         <CheckboxToggle checked={dmsEnabled} onChange={() => onDmsEnabledChange(!dmsEnabled)} />
       </div>
       <div className='flex justify-center'>
-        <Button className={cn('mb-7 mt-16 mr-4', s.button)} onClick={handleConfirmation}>
+        <Button
+          className='mb-7 mt-16 mr-4 min-w-[120px] text-black disabled:cursor-not-allowed'
+          onClick={handleConfirmation}
+        >
           {t('Join')}
         </Button>
-        <Button className={cn('mb-7 mt-16', s.button)} onClick={handleCancelation}>
+        <Button
+          className='mb-7 mt-16 min-w-[120px] text-black disabled:cursor-not-allowed'
+          onClick={handleCancelation}
+        >
           {t('Cancel')}
         </Button>
       </div>

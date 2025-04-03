@@ -11,11 +11,10 @@ import { useNetworkClient } from 'src/contexts/network-client-context';
 import * as channels from 'src/store/channels';
 import { useAppSelector } from 'src/store/hooks';
 
-import s from './styles.module.scss';
 import ModalTitle from '../ModalTitle';
-import Input from '@components/common/Input';
-import { useUI } from '@contexts/ui-context';
-import Keys from '@components/icons/Keys';
+import Input from 'src/components/common/Input';
+import { useUI } from 'src/contexts/ui-context';
+import Keys from 'src/components/icons/Keys';
 
 const ExportCodenameView: FC = () => {
   const { t } = useTranslation();
@@ -82,7 +81,7 @@ const ExportCodenameView: FC = () => {
             value={password}
             onChange={setPassword}
           />
-          <Button className={cn('mt-5', s.button)} onClick={checkPassword}>
+          <Button className={cn('mt-5')} onClick={checkPassword}>
             {t('Unlock')}
           </Button>
         </>

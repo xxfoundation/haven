@@ -1,11 +1,11 @@
-import type { WithChildren } from '@types';
+import type { WithChildren } from 'src/types';
 
 import { FC, useEffect } from 'react';
+//import { useLocation } from 'react-router-dom';
 
 import { InitXXDK, setXXDKBasePath } from 'xxdk-wasm';
 
 import { useUtils } from 'src/contexts/utils-context';
-import { useRouter } from 'next/router';
 
 type Logger = {
   StopLogging: () => void;
@@ -27,9 +27,9 @@ declare global {
 }
 
 const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
-  const router = useRouter();
+  //const location = useLocation();
 
-  const getLink = (origin: string, path: string) => `${origin}${router.basePath}${path}`;
+  const getLink = (origin: string, path: string) => `${origin}${path}`;
   const { setUtils, setUtilsLoaded, utilsLoaded } = useUtils();
 
   const basePath = getLink(window.location.origin, '/xxdk-wasm');
@@ -45,7 +45,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
 
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
       setXXDKBasePath(basePath);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       InitXXDK().then(async (result: any) => {
         setUtils(result);
         setUtilsLoaded(true);

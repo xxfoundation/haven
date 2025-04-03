@@ -1,24 +1,21 @@
-import type { RootState } from 'src/store/types';
-import { compose, configureStore, combineReducers } from '@reduxjs/toolkit';
-import persistState from 'redux-localstorage';
-
-import app from './app';
-import channels from './channels';
-import dms from './dms';
-import identity from './identity';
-import messages from './messages';
-
-const enhancer = compose(persistState(['app']));
+import { configureStore } from '@reduxjs/toolkit';
+import channelsReducer from './channels';
+import messagesReducer from './messages';
+import identityReducer from './identity';
+import dmsReducer from './dms';
+import appReducer from './app';
 
 const store = configureStore({
-  enhancers: typeof window === 'undefined' ? [] : [enhancer],
-  reducer: combineReducers<RootState>({
-    app,
-    channels,
-    dms,
-    identity,
-    messages
-  })
+  reducer: {
+    channels: channelsReducer,
+    messages: messagesReducer,
+    identity: identityReducer,
+    dms: dmsReducer,
+    app: appReducer
+  }
 });
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
 export default store;

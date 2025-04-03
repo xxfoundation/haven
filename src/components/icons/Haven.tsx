@@ -1,10 +1,8 @@
 import { SVGProps } from 'react';
 
-import s from './Haven.module.scss';
-
 const Haven = (props: SVGProps<SVGSVGElement>) => (
   <svg
-    className={s.root}
+    className={`scale-150 w-full ${props.className || ''}`}
     width='151'
     height='22'
     viewBox='0 0 151 22'

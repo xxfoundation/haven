@@ -1,16 +1,16 @@
-import type { CMix, DummyTraffic, RawCipher, WithChildren } from '@types';
+import type { CMix, DummyTraffic, RawCipher, WithChildren } from 'src/types';
 import type { ChannelManager } from './network-client-context';
 import type { DMClient } from 'src/types';
 
 import React, { FC, useCallback, useState } from 'react';
-import { decoder } from '@utils/index';
+import { decoder } from 'src/utils/index';
 import Loading from 'src/components/views/LoadingView';
-import { identityDecoder } from '@utils/decoders';
+import { identityDecoder } from 'src/utils/decoders';
 import { RemoteStore } from 'src/types/collective';
 import { ChannelEventHandler, DMEventHandler } from 'src/events';
-import { WebAssemblyRunner } from '@components/common';
+import { WebAssemblyRunner } from 'src/components/common';
 import { useTranslation } from 'react-i18next';
-import { PrivacyLevel } from '@types';
+import { PrivacyLevel } from 'src/types';
 import { CMIX_INITIALIZATION_KEY } from 'src/constants';
 
 export type ChannelManagerCallbacks = {

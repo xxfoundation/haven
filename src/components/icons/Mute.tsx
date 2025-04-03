@@ -7,6 +7,7 @@ const Mute = (props: SVGProps<SVGSVGElement>) => (
     viewBox='0 0 24 24'
     fill='none'
     xmlns='http://www.w3.org/2000/svg'
+    className='hover:scale-110 cursor-pointer transition-transform'
     {...props}
   >
     <g id='Icon'>

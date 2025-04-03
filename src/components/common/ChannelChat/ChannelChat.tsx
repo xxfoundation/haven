@@ -11,8 +11,8 @@ import * as dms from 'src/store/dms';
 import { useAppSelector } from 'src/store/hooks';
 import ScrollDiv from './ScrollDiv';
 import { useTranslation } from 'react-i18next';
-import { EasterEggs, useUI } from '@contexts/ui-context';
-import Spaceman from '@components/icons/Spaceman';
+import { EasterEggs, useUI } from '../../../contexts/ui-context';
+import Spaceman from '../../icons/Spaceman';
 
 type Props = {
   messages: Message[];

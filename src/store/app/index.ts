@@ -4,7 +4,7 @@ import type { ConversationId } from '../dms/types';
 import type { Message } from '../messages/types';
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { MessageType } from '@types';
+import { MessageType } from '../../types';
 
 const initialState: AppState = {
   selectedChannelIdOrConversationId: null,

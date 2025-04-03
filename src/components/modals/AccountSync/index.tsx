@@ -25,11 +25,11 @@ const AccountSyncView: FC = () => {
   return (
     <>
       <ModalTitle>{t('Account Sync')}</ModalTitle>
-      <p>
+      <p className='text-sm font-medium mb-4'>
         Sync your account with multiple devices using the cloud with account sync. The file is
         encrypted so there are no privacy concerns with using these third party services.
       </p>
-      <p style={{ color: 'var(--orange)' }}>
+      <p className='text-orange font-bold mb-4'>
         <strong>Warning!</strong> Once you choose a cloud provider you will not be able to change to
         another service or revert to local-only.
       </p>
@@ -38,7 +38,7 @@ const AccountSyncView: FC = () => {
       ) : (
         <div data-testid='account-sync-buttons' className='grid grid-cols-2 gap-4 pt-4'>
           <div className='col-span-2 text-center'>
-            <Button className='' data-testid='account-sync-local-only-button' onClick={ignoreSync}>
+            <Button data-testid='account-sync-local-only-button' onClick={ignoreSync}>
               {t('Local-only')}
             </Button>
           </div>

@@ -1,8 +1,7 @@
-import { Message, MessageStatus } from 'src/types';
+import { Message, MessageStatus, MuteUserAction } from 'src/types';
 import { FC, useEffect } from 'react';
 
 import { useCallback, useState } from 'react';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 import MessageActions from '../MessageActions';
@@ -10,7 +9,7 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import useToggle from 'src/hooks/useToggle';
 import PinMessageModal from 'src/components/modals/PinMessageModal';
-import MuteUserModal, { MuteUserAction } from 'src/components/modals/MuteUser';
+import MuteUserModal from 'src/components/modals/MuteUser';
 import DeleteMessageModal from 'src/components/modals/DeleteMessage';
 import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
@@ -18,17 +17,16 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
 import { AppEvents, awaitAppEvent } from 'src/events';
 
-import classes from './MessageContainer.module.scss';
 import useAsync from 'src/hooks/useAsync';
 import { useUI } from '@contexts/ui-context';
 import useDmClient from 'src/hooks/useDmClient';
 import assert from 'assert';
 
 type Props = {
-  className?: string;
-  clamped?: boolean;
-  readonly?: boolean;
   message: Message;
+  clamped?: boolean;
+  className?: string;
+  readonly?: boolean;
 };
 
 const MessageContainer: FC<Props> = ({ clamped = false, className, message, readonly }) => {
@@ -128,7 +126,9 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   const asyncMuter = useAsync(handleMute);
 
   const dmUser = useCallback(() => {
-    assert(message.dmToken, 'dmToken is required to dm a user');
+    if (!message.dmToken) {
+      throw new Error('dmToken is required to dm a user');
+    }
     setLeftSidebarView('dms');
     dispatch(app.actions.selectUser(message.pubkey));
     createConversation({
@@ -153,10 +153,8 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
     <>
       {isNewMessage && (
         <div className='relative flex items-center px-4'>
-          <div className='flex-grow border-t' style={{ borderColor: 'var(--primary)' }}></div>
-          <span className='flex-shrink mx-4' style={{ color: 'var(--primary)' }}>
-            {t('New!')}
-          </span>
+          <div className='flex-grow border-t border-primary'></div>
+          <span className='flex-shrink mx-4 text-primary'>{t('New!')}</span>
         </div>
       )}
       {!readonly && (
@@ -171,14 +169,15 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
             <PinMessageModal onConfirm={pinSelectedMessage} onCancel={hidePinModal} />
           )}
           {message.status === MessageStatus.Delivered && (
-            <div className={classes.container}>
+            <div className='relative'>
               <MessageActions
                 pubkey={message.pubkey}
                 onMouseEnter={() => setShowActionsWrapper(true)}
                 onMouseLeave={() => setShowActionsWrapper(false)}
-                className={cn(classes.actions, {
-                  [classes.show]: showActionsWrapper
-                })}
+                className={`
+                  absolute right-4 -top-12 opacity-0 transition-opacity duration-200
+                  ${showActionsWrapper ? 'opacity-100' : ''}
+                `}
                 onDmClicked={dmUser}
                 dmsEnabled={message.dmToken !== undefined}
                 isPinned={message.pinned}

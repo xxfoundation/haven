@@ -6,7 +6,7 @@ import cn from 'classnames';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import useInput from 'src/hooks/useInput';
-import { PrivacyLevel } from '@types';
+import { PrivacyLevel } from '../../../types';
 import CheckboxToggle from '@components/common/CheckboxToggle';
 import Input from '@components/common/Input';
 import ModalTitle from '../ModalTitle';
@@ -64,7 +64,6 @@ const CreateChannelView: FC = () => {
       setChannelDesc('');
       closeModal();
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       console.error((e as any).message);
       alert({
         type: 'error',

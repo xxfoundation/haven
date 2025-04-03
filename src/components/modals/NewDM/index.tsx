@@ -1,76 +1,68 @@
-import SearchInput from '@components/common/SearchInput';
+import React, { FC, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from 'src/components/common';
+import { useUI } from 'src/contexts/ui-context';
+import useDmClient from 'src/hooks/useDmClient';
 import ModalTitle from '../ModalTitle';
 import { useAppSelector } from 'src/store/hooks';
-import * as messages from 'src/store/messages';
-import Identity from '@components/common/Identity';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@components/common';
-import { useMemo } from 'react';
-import useInput from 'src/hooks/useInput';
-import useDmClient from 'src/hooks/useDmClient';
 import { fullIdentity } from 'src/store/selectors';
 
-const NewDM = () => {
+const NewDM: FC = () => {
   const { t } = useTranslation();
+  const { closeModal } = useUI();
   const { createConversation } = useDmClient();
-  const contributors = useAppSelector(messages.selectors.messageableContributors);
-  const [search, setSearch] = useInput('');
+  const [error, setError] = useState('');
+  const [inviteLink, setInviteLink] = useState('');
   const user = useAppSelector(fullIdentity);
 
-  const filteredContributors = useMemo(() => {
-    const s = search.toLocaleLowerCase();
-    return contributors.filter(
-      (c) =>
-        c.codename.toLocaleLowerCase().includes(s) ||
-        c.nickname?.toLocaleLowerCase().includes(s) ||
-        ('Note to self'.toLocaleLowerCase().includes(s) && c.pubkey === user?.pubkey)
-    );
-  }, [contributors, search, user?.pubkey]);
+  const handleSubmit = useCallback(async () => {
+    if (!inviteLink || !user) return;
 
-  const userDmToken = useMemo(
-    () => filteredContributors.find((c) => c.pubkey === user?.pubkey)?.dmToken,
-    [filteredContributors, user?.pubkey]
-  );
+    try {
+      const conversation = {
+        token: parseInt(inviteLink, 10),
+        pubkey: user.pubkey,
+        codename: user.codename,
+        nickname: user.nickname,
+        color: user.color || 'var(--charcoal-1)',
+        codeset: user.codeset
+      };
+
+      await createConversation(conversation);
+      closeModal();
+    } catch (e) {
+      setError(t('Invalid invite link'));
+    }
+  }, [closeModal, createConversation, inviteLink, t, user]);
 
   return (
     <>
-      <ModalTitle>{t('Send a Direct Message')}</ModalTitle>
-
-      {contributors.length === 0 ? (
-        <p className='text-red'>{t('Nobody from your channels is messageable.')}</p>
-      ) : (
-        <SearchInput value={search} onChange={setSearch} className='w-full' />
-      )}
-
-      <div className='w-full space-y-2 max-h-80 overflow-y-auto'>
-        {user && userDmToken !== undefined && (
-          <Button
-            onClick={() => createConversation({ ...user, token: userDmToken })}
-            className='block w-full text-left hover:bg-charcoal-3-20 rounded-lg px-4 py-1'
-            variant='unstyled'
-          >
-            <Identity {...user} /> {t('(Note to self)')}
-          </Button>
-        )}
-        {filteredContributors
-          .filter((c) => c.pubkey !== user?.pubkey)
-          .map((contributor) => (
-            <Button
-              key={contributor.pubkey}
-              onClick={() =>
-                createConversation({
-                  ...contributor,
-                  token: contributor.dmToken ?? -1,
-                  color: contributor.color ?? 'var(charcoal-1)'
-                })
-              }
-              className='block w-full text-left hover:bg-charcoal-3-20 rounded-lg px-4 py-1'
-              variant='unstyled'
-            >
-              <Identity {...contributor} />
-            </Button>
-          ))}
-      </div>
+      <ModalTitle>{t('Start Direct Message')}</ModalTitle>
+      <p className='mb-8 font-medium text-xs leading-tight text-cyan max-w-[520px] text-left w-full'>
+        {t('Enter an invite link to start a direct message conversation.')}
+      </p>
+      <input
+        type='text'
+        className='
+          w-full max-w-[520px]
+          border-none outline-none
+          bg-dark-5 px-2.5 py-[18px]
+          text-text-primary text-sm
+          rounded mb-6
+        '
+        placeholder={t('Enter invite link')}
+        value={inviteLink}
+        onChange={(e) => setInviteLink(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleSubmit();
+          }
+        }}
+      />
+      {error && <div className='text-xs mt-2 text-red w-full max-w-[520px]'>{error}</div>}
+      <Button className='mt-5 w-full max-w-[520px]' onClick={handleSubmit} disabled={!inviteLink}>
+        {t('Start Conversation')}
+      </Button>
     </>
   );
 };

@@ -16,7 +16,6 @@ import { MessageType, PrivacyLevel, type Message, type WithChildren } from 'src/
 import React, { FC, useState, useEffect, useCallback, useMemo } from 'react';
 
 import Cookies from 'js-cookie';
-import assert from 'assert';
 
 import {
   AppEvents,
@@ -26,7 +25,8 @@ import {
   onChannelEvent,
   useChannelsListener
 } from 'src/events';
-import { HTMLToPlaintext, decoder, encoder, exportDataToFile, inflate } from 'src/utils';
+import { HTMLToPlaintext, decoder, encoder, exportDataToFile } from 'src/utils';
+import { inflate } from 'src/utils/compression';
 import { useAuthentication } from 'src/contexts/authentication-context';
 import { useUtils } from 'src/contexts/utils-context';
 import {
@@ -393,7 +393,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
 
   const dbMessageMapper = useCallback(
     (dbMsg: DBMessage): Message => {
-      assert(cipher, 'Cipher required');
+      if (!cipher) throw new Error('Cipher required');
 
       const decrypted = cipher.decrypt(dbMsg.text);
       const inflated = dbMsg.type !== MessageType.Reaction ? inflate(decrypted) : decrypted;
@@ -409,7 +409,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
         timestamp: dbMsg.timestamp,
         nickname: dbMsg.nickname || '',
         channelId: dbMsg.channel_id,
-        status: dbMsg.status,
+        status: dbMsg.status as unknown as MessageStatus,
         uuid: dbMsg.id,
         round: dbMsg.round,
         pubkey: dbMsg.pubkey,
@@ -449,10 +449,12 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   useChannelsListener(ChannelEvents.MESSAGE_RECEIVED, handleMessageEvent);
 
   const fetchChannels = useCallback(async () => {
-    assert(db);
-    assert(channelManager);
+    console.log('fetchedChannels');
+    if (!db || !channelManager) throw new Error('DB and channel manager required');
 
     const fetchedChannels = await db.table<DBChannel>('channels').toArray();
+
+    console.log('fetchedChannels', JSON.stringify(fetchedChannels));
 
     const channelList = fetchedChannels.map((ch: DBChannel) => ({
       ...ch,
@@ -464,7 +466,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   }, [channelManager, db, dispatch, getPrivacyLevel, utils]);
 
   const fetchMessages = useCallback(async () => {
-    assert(db, 'DB required to fetch messages');
+    if (!db) throw new Error('DB required to fetch messages');
     const msgs: DBMessage[] = await db
       .table<DBMessage>('messages')
       .orderBy('timestamp')
@@ -478,18 +480,21 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   }, [db, dbMessageMapper, dispatch]);
 
   const fetchInitialData = useCallback(async () => {
-    try {
-      assert(db);
-      assert(cmix);
-      assert(channelManager);
-    } catch (e) {
+    console.log('Fetching initial data...');
+    if (!channelManager) {
+      console.log('No channel manager available');
       return;
     }
-    fetchIdentity();
-    await fetchChannels();
-    await fetchMessages();
-    appBus.emit(AppEvents.MESSAGES_FETCHED, true);
-  }, [channelManager, cmix, db, fetchChannels, fetchIdentity, fetchMessages]);
+
+    try {
+      fetchIdentity();
+      await fetchChannels();
+      await fetchMessages();
+      appBus.emit(AppEvents.MESSAGES_FETCHED, true);
+    } catch (err) {
+      console.error('Error fetching initial data:', err);
+    }
+  }, [channelManager, fetchChannels, fetchIdentity, fetchMessages]);
 
   useEffect(() => {
     if (!currentChannel && currentChannels.length > 0 && currentConversationId === null) {
@@ -497,14 +502,9 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
     }
   }, [currentChannel, currentChannels, currentConversationId, dispatch]);
 
-  useEffect(() => {
-    if (db && channelManager && cmix) {
-      fetchInitialData();
-    }
-  }, [db, cmix, channelManager, fetchInitialData]);
-
   const loadChannelManager = useCallback(
     async (tag: string) => {
+      console.log('Loading channel manager with tag:', tag);
       if (cmixId !== undefined && cipher && utils) {
         const notifications = utils.LoadNotificationsDummy(cmixId);
         const loadedChannelsManager = await utils.LoadChannelsManagerWithIndexedDb(
@@ -513,9 +513,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
           tag,
           new Uint8Array(),
           notifications.GetID(),
-          {
-            EventUpdate: onChannelEvent
-          },
+          { EventUpdate: onChannelEvent },
           cipher?.id
         );
 
@@ -527,10 +525,52 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   );
 
   useEffect(() => {
-    if (cmix && cipher && utils && storageTag) {
-      loadChannelManager(storageTag);
+    console.log('Ready load channel manager dependencies:', {
+      hasCmix: !!cmix,
+      hasCipher: !!cipher,
+      hasUtils: !!utils,
+      storageTag
+    });
+
+    if (cmix && cipher && utils) {
+      if (storageTag) {
+        loadChannelManager(storageTag);
+      } else {
+        console.log(
+          'No storage tag found, channel manager should have been created during registration/import'
+        );
+      }
     }
   }, [cipher, cmix, loadChannelManager, storageTag, utils]);
+
+  const createChannelManager = useCallback(
+    async (privIdentity: Uint8Array) => {
+      console.log('Creating channel manager...');
+      if (cmixId !== undefined && cipher && utils && utils.NewChannelsManagerWithIndexedDb) {
+        const workerPath = (await channelsIndexedDbWorkerPath()).toString();
+        const notifications = utils.LoadNotificationsDummy(cmixId);
+        const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
+          cmixId,
+          workerPath,
+          privIdentity,
+          new Uint8Array(),
+          notifications.GetID(),
+          { EventUpdate: onChannelEvent },
+          cipher.id
+        );
+
+        const tag = createdChannelManager.GetStorageTag();
+        console.log('Got storage tag from creation:', tag);
+        if (tag) {
+          setStorageTag(tag);
+        }
+
+        setChannelManager(createdChannelManager);
+        appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, createdChannelManager);
+      }
+    },
+    [cmixId, cipher, utils, setStorageTag]
+  );
 
   const getMutedUsers = useCallback(async () => {
     let users: User[] = [];
@@ -579,35 +619,6 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
 
     return users;
   }, [channelManager, currentChannel, db, dispatch, getCodeNameAndColor, utils]);
-
-  const createChannelManager = useCallback(
-    async (privIdentity: Uint8Array) => {
-      if (cmixId !== undefined && cipher && utils && utils.NewChannelsManagerWithIndexedDb) {
-        const workerPath = (await channelsIndexedDbWorkerPath()).toString();
-        //console.log('WORKERPATHCHANNELS: ' + workerPath)
-        const notifications = utils.LoadNotificationsDummy(cmixId);
-        const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
-          cmixId,
-          workerPath,
-          privIdentity,
-          new Uint8Array(),
-          notifications.GetID(),
-          { EventUpdate: onChannelEvent },
-          cipher.id
-        );
-
-        setChannelManager(createdChannelManager);
-
-        appBus.emit(AppEvents.CHANNEL_MANAGER_LOADED, createdChannelManager);
-
-        const tag = createdChannelManager.GetStorageTag();
-        if (tag) {
-          setStorageTag(tag);
-        }
-      }
-    },
-    [cmixId, cipher, utils, setStorageTag]
-  );
 
   const [hasMore, setHasMore] = useState(true);
 
@@ -755,23 +766,38 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
 
   const sendMessage = useCallback(
     async (message: string, tags: string[] = []) => {
-      if (message.length && channelManager && utils && utils.Base64ToUint8Array && currentChannel) {
-        try {
-          await channelManager.SendMessage(
+      if (!message.length || !utils?.Base64ToUint8Array) {
+        console.error('Cannot send message - missing required dependencies:', {
+          messageLength: !!message.length,
+          channelManager: !!channelManager,
+          base64Uint8Array: !!utils?.Base64ToUint8Array,
+          currentChannel: !!currentChannel
+        });
+        return;
+      }
+      try {
+        if (channelManager && currentChannel) {
+          const messageId = await channelManager.SendMessage(
             utils.Base64ToUint8Array(currentChannel.id),
             message,
             MESSAGE_LEASE,
             new Uint8Array(),
             encoder.encode(JSON.stringify(tags))
           );
-        } catch (e) {
-          console.error('Error sending message', e);
+
+          // Log to verify the message was sent and we got a messageId back
+          console.log('Message sent successfully, messageId:', messageId);
+
+          return messageId;
+        } else if (currentConversation) {
+          sendDirectMessage(message);
         }
-      } else if (currentConversation) {
-        sendDirectMessage(message);
+      } catch (e) {
+        console.error('Error sending message:', e);
+        throw e; // Propagate error to caller
       }
     },
-    [channelManager, currentChannel, sendDirectMessage, currentConversation, utils]
+    [channelManager, currentChannel, utils]
   );
 
   const sendReply = useCallback(
@@ -951,17 +977,18 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
       selectedPrivateIdentity: Uint8Array,
       onIsReadyInfoChange: (readinessInfo: IsReadyInfoJSON) => void
     ) => {
+      console.log('Checking registration readiness...');
       return new Promise<void>((resolve) => {
         const intervalId = setInterval(() => {
           if (cmix) {
             const isReadyInfo = isReadyInfoDecoder(
               JSON.parse(decoder.decode(cmix?.IsReady(CMIX_NETWORK_READINESS_THRESHOLD)))
             );
-
             onIsReadyInfoChange(isReadyInfo);
             if (isReadyInfo.isReady) {
               clearInterval(intervalId);
               setTimeout(() => {
+                console.log('Network ready, creating channel manager...');
                 createChannelManager(selectedPrivateIdentity);
                 setIsAuthenticated(true);
                 resolve();
@@ -1073,6 +1100,13 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
       }
     }
   }, [utils]);
+
+  useEffect(() => {
+    if (channelManager) {
+      console.log('Channel manager loaded, fetching initial data');
+      fetchInitialData();
+    }
+  }, [channelManager, fetchInitialData]);
 
   const ctx: NetworkContext = {
     decryptMessageContent: cipher?.decrypt,

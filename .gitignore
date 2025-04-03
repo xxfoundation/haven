@@ -39,3 +39,14 @@ next-env.d.ts
 
 # Ignore Jetbrains IDE folder
 .idea/*
+
+# Ignore emacs temporary files
+*~
+*#
+
+# Vite files
+dist/
+
+# Bun
+bun.lockb
+

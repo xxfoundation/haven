@@ -1,4 +1,4 @@
-import { WithChildren } from '@types';
+import { WithChildren } from 'src/types';
 
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useUtils } from 'src/contexts/utils-context';

@@ -20,7 +20,7 @@ const AuthenticationUI: FC = () => {
     setIsAuthenticated
   } = useAuthentication();
   const { utils } = useUtils();
-  const { checkRegistrationReadiness, cmix } = useNetworkClient();
+  const { checkRegistrationReadiness, cmix, createChannelManager } = useNetworkClient();
   const [loading, setLoading] = useState(false);
   const [readyProgress, setReadyProgress] = useState<number>(0);
 
@@ -42,6 +42,7 @@ const AuthenticationUI: FC = () => {
       checkRegistrationReadiness(importedIdentity, (isReadyInfo) => {
         setReadyProgress(Math.ceil((isReadyInfo?.howClose || 0) * 100));
         if (isReadyInfo.isReady) {
+          createChannelManager(importedIdentity);
           setLoading(false);
           setReadyProgress(0);
           setIsAuthenticated(true);

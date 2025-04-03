@@ -1,9 +1,9 @@
 import React, { FC, SVGProps, useCallback, useMemo, useState } from 'react';
 import cn from 'classnames';
 
-import Checkmark from '@components/icons/Checkmark';
-import X from '@components/icons/X';
-import Warning from '@components/icons/Warning';
+import Checkmark from '../../icons/Checkmark';
+import X from '../../icons/X';
+import Warning from '../../icons/Warning';
 
 export type AlertType = {
   type: 'success' | 'error' | 'warning';

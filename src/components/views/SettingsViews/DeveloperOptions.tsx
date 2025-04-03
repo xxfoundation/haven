@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { faRadiation } from '@fortawesome/free-solid-svg-icons';
+import { Radiation } from 'lucide-react';
 
 import { Button, Spinner } from '@components/common';
 import { Download } from '@components/icons';
 import SoundSelector from '@components/common/NotificationSoundSelector';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useRemoteStore } from '@contexts/remote-kv-context';
 import useAccountSync from 'src/hooks/useAccountSync';
 import { decoder } from '@utils/index';
@@ -94,9 +93,9 @@ const DeveloperOptionsView = () => {
                 className='flex items-center justify-center space-x-4'
                 onClick={nukeRemoteStore}
               >
-                <FontAwesomeIcon className='w-5 h-5' icon={faRadiation} />
+                <Radiation className='w-5 h-5' />
                 <span>{t('Nuke')}</span>
-                <FontAwesomeIcon className='w-5 h-5' icon={faRadiation} />
+                <Radiation className='w-5 h-5' />
               </Button>
             ) : (
               t('Not synced')
