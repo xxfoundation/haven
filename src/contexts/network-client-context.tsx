@@ -978,22 +978,72 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
       onIsReadyInfoChange: (readinessInfo: IsReadyInfoJSON) => void
     ) => {
       console.log('Checking registration readiness...');
+      let lastProgress = 0;
+      let stallCount = 0;
+      const MAX_STALL_COUNT = 3; // Number of checks before considering it stalled
+      const STALL_THRESHOLD_MS = 20000; // 10 seconds without progress
+
       return new Promise<void>((resolve) => {
+        let lastProgressTime = Date.now();
+        
         const intervalId = setInterval(() => {
-          if (cmix) {
-            const isReadyInfo = isReadyInfoDecoder(
-              JSON.parse(decoder.decode(cmix?.IsReady(CMIX_NETWORK_READINESS_THRESHOLD)))
-            );
-            onIsReadyInfoChange(isReadyInfo);
-            if (isReadyInfo.isReady) {
-              clearInterval(intervalId);
-              setTimeout(() => {
-                console.log('Network ready, creating channel manager...');
-                createChannelManager(selectedPrivateIdentity);
-                setIsAuthenticated(true);
-                resolve();
-              }, 3000);
+          if (!cmix) return;
+
+          const isReadyInfo = isReadyInfoDecoder(
+            JSON.parse(decoder.decode(cmix?.IsReady(CMIX_NETWORK_READINESS_THRESHOLD)))
+          );
+          
+          const currentProgress = Math.ceil((isReadyInfo?.howClose || 0) * 100);
+          console.log('Registration progress:', currentProgress);
+
+          // Check for progress
+          if (currentProgress > lastProgress) {
+            lastProgress = currentProgress;
+            lastProgressTime = Date.now();
+            stallCount = 0;
+          } else {
+            const timeSinceProgress = Date.now() - lastProgressTime;
+            
+            if (timeSinceProgress > STALL_THRESHOLD_MS) {
+              stallCount++;
+              console.log(`Registration appears stalled (${stallCount}/${MAX_STALL_COUNT})`);
+              
+              if (stallCount >= MAX_STALL_COUNT) {
+                console.log('Registration stalled, attempting gateway switch...');
+                
+                // Attempt to switch gateways
+                try {
+                  cmix.SetTrackNetworkPeriod(1000); // Increase network check frequency
+                  cmix.StopNetworkFollower();
+                  
+                  // Small delay before restarting
+                  setTimeout(() => {
+                    try {
+                      cmix.StartNetworkFollower(60000); // 1 minute timeout
+                      lastProgressTime = Date.now(); // Reset stall timer
+                      stallCount = 0;
+                      console.log('Switched to new gateways');
+                    } catch (error) {
+                      console.error('Failed to restart network follower:', error);
+                    }
+                  }, 2000);
+                } catch (error) {
+                  console.error('Failed to switch gateways:', error);
+                }
+              }
             }
+          }
+
+          onIsReadyInfoChange(isReadyInfo);
+
+          if (isReadyInfo.isReady) {
+            clearInterval(intervalId);
+            setTimeout(() => {
+              console.log('Network ready, creating channel manager...');
+              createChannelManager(selectedPrivateIdentity);
+              setIsAuthenticated(true);
+              resolve();
+            }, 3000);
           }
         }, 1000);
       });

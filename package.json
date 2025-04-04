@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "netlify dev",
     "dev:ts": "yarn dev & yarn ts:watch",
     "ts": "tsc --noEmit --incremental",
     "ts:watch": "yarn ts --watch",
@@ -102,6 +102,7 @@
     "eslint-plugin-react-hooks": "^latest",
     "eslint-plugin-simple-import-sort": "^8.0.0",
     "eslint-plugin-sort-destructure-keys": "^1.4.0",
+    "netlify-cli": "^19.1.5",
     "nyc": "^15.1.0",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",

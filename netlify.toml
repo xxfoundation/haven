@@ -1,6 +1,12 @@
 [build]
-  command = "bun run build"
+  command = "npm run build"
   publish = "dist"
+
+[dev]
+  command = "vite"
+  port = 3001
+  targetPort = 3000
+  framework = "vite"
 
 # Handle React Router
 [[redirects]]
@@ -16,7 +22,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; worker-src 'self' blob:; child-src 'self' blob:;"
 
 # Cache control for static assets
 [[headers]]
