@@ -50,6 +50,3 @@ dist/
 # Bun
 bun.lockb
 
-
-# Local Netlify folder
-.netlify
