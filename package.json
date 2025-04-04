@@ -102,6 +102,7 @@
     "eslint-plugin-react-hooks": "^latest",
     "eslint-plugin-simple-import-sort": "^8.0.0",
     "eslint-plugin-sort-destructure-keys": "^1.4.0",
+    "netlify-cli": "^19.1.5",
     "nyc": "^15.1.0",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",

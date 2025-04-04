@@ -19,10 +19,10 @@ const Input: FC<Props> = ({ size = 'md', ...props }) => (
       w-full block
       rounded-[1.5rem]
       px-4
-      bg-transparent
-      border border-[var(--charcoal-1)]
-      focus:outline-none focus:border-[var(--primary)]
-      placeholder:text-sm placeholder:text-[var(--charcoal-1)]
+      bg-charcoal-4
+      border border-charcoal-1
+      focus:outline-none focus:border-primary
+      placeholder:text-sm placeholder:text-charcoal-1
       ${sizeMap[size]}
       ${props.className || ''}
     `}
