@@ -1108,6 +1108,22 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
     }
   }, [channelManager, fetchInitialData]);
 
+  useEffect(() => {
+    if (!utils) return;
+
+    const interval = setInterval(() => {
+      try {
+        // Try to call a simple WASM function to check if it's still responsive
+        utils.GetWasmSemanticVersion();
+      } catch (error) {
+        console.error('WASM appears to be non-responsive, refreshing page...', error);
+        window.location.reload();
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [utils]);
+
   const ctx: NetworkContext = {
     decryptMessageContent: cipher?.decrypt,
     channelManager,
