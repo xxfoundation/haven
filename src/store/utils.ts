@@ -1,9 +1,9 @@
-import { Message, MessageId } from '@types';
+import { Message, MessageId } from '../types';
 import type { EmojiReactions, ReactionInfo } from 'src/store/types';
 
 import { omit, uniqBy } from 'lodash';
 
-import { MessageType } from '@types';
+import { MessageType } from '../types';
 
 export const byTimestamp = <T extends { timestamp: string }>(a: T, b: T) =>
   new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();

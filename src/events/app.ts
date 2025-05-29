@@ -6,11 +6,11 @@ import {
   MessageUnPinEvent,
   RemoteStore,
   TypedEventEmitter
-} from '@types';
-import { makeEventAwaiter, makeEventHook, makeListenerHook } from '@utils/index';
+} from 'src/types';
+import { makeEventAwaiter, makeEventHook, makeListenerHook } from 'src/utils/index';
 import { AccountSyncService } from 'src/hooks/useAccountSync';
 import EventEmitter from 'events';
-import { ChannelManager } from '@contexts/network-client-context';
+import { ChannelManager } from 'src/contexts/network-client-context';
 
 export enum AppEvents {
   MESSAGE_PINNED = 'pinned',

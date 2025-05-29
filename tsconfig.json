@@ -17,16 +17,12 @@
     "incremental": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "@assets/*": ["src/assets/*"],
-      "@utils/*": ["src/utils/*"],
-      "@layouts": ["src/layouts"],
-      "@layouts/*": ["src/layouts/*"],
-      "@components/*": ["src/components/*"],
+      "@/*": ["src/*"],
+      "src/*": ["src/*"],
       "@contexts/*": ["src/contexts/*"],
-      "@types": ["src/types"],
-      "@utils": ["src/utils/index"],
-      "@utils/hooks/*": ["src/utils/hooks/*"],
-      "@sdk/*": ["sdk-utils/*"]
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"],
+      "@utils/*": ["src/utils/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/quill/constants.js"],

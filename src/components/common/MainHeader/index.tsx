@@ -1,14 +1,10 @@
-import React, { FC } from 'react';
-import cn from 'classnames';
-
+import { FC } from 'react';
 import { useAppSelector } from 'src/store/hooks';
-import ChannelHeader from '../ChannelHeader';
 import * as channels from 'src/store/channels';
 import * as dms from 'src/store/dms';
-import Identity from '../Identity';
-
-import s from './styles.module.scss';
 import { useUI } from '@contexts/ui-context';
+import ChannelHeader from '../ChannelHeader';
+import Identity from '../Identity';
 
 type Props = {
   className?: string;
@@ -20,7 +16,13 @@ const MainHeader: FC<Props> = ({ className }) => {
   const { leftSidebarView: sidebarView } = useUI();
 
   return (
-    <div className={cn(className, s.root)}>
+    <div
+      className={`
+      rounded-tr-[var(--border-radius)]
+      bg-[var(--charcoal-4)]
+      ${className || ''}
+    `}
+    >
       {currentChannel && sidebarView === 'spaces' && <ChannelHeader {...currentChannel} />}
       {currentConversation && sidebarView === 'dms' && (
         <ChannelHeader

@@ -8,10 +8,7 @@ import React, {
   MouseEventHandler
 } from 'react';
 
-import cn from 'classnames';
-
-import s from './scrolldiv.module.scss';
-import { useElementSize } from 'usehooks-ts';
+import { useResizeObserver } from 'usehooks-ts';
 
 const THUMB_MIN_HEIGHT = 20;
 
@@ -38,7 +35,10 @@ const ScrollDiv: FC<Props> = ({
   const [lastScrollThumbPosition, setScrollThumbPosition] = useState(0);
   const [isDragging, setDragging] = useState(false);
   const scrollHostRef = useRef<HTMLDivElement>(null);
-  const [itemsRef, { height }] = useElementSize();
+  const { width, height } = useResizeObserver<HTMLDivElement>({
+    ref: scrollHostRef,
+    box: 'border-box'
+  });
   const scrollThumb = useRef<HTMLDivElement>(null);
 
   const handleScrollThumbMouseDown = useCallback<MouseEventHandler<HTMLDivElement>>((e) => {
@@ -187,19 +187,37 @@ const ScrollDiv: FC<Props> = ({
   }, [handleDocumentMouseMove, handleDocumentMouseUp]);
 
   return (
-    <div className={cn(s['scrollhost-container'], className)}>
-      <div ref={scrollHostRef} className={cn(s.scrollhost)} {...rest}>
-        <div className='mt-auto' ref={itemsRef}>
+    <div
+      className={`
+      relative h-full pr-2
+      group
+      ${className || ''}
+    `}
+    >
+      <div
+        ref={scrollHostRef}
+        className={`
+          overflow-auto h-full relative
+          flex max-w-full flex-col flex-nowrap
+          scrollbar-none
+        `}
+        {...rest}
+      >
+        <div className='mt-auto' ref={scrollHostRef}>
           {children}
         </div>
       </div>
       <div
-        className={s['scroll-bar']}
-        style={{ opacity: 1, visibility: isDragging ? 'visible' : undefined }}
+        className={`
+          invisible group-hover:visible
+          w-2.5 h-full right-0 top-0 absolute
+          rounded-lg bottom-0 bg-black/35
+          ${isDragging ? '!visible' : ''}
+        `}
       >
         <div
           ref={scrollThumb}
-          className={s['scroll-thumb']}
+          className='w-2 ml-0.5 absolute rounded-lg opacity-100 bg-charcoal-3'
           style={{ height: thumbHeight, top: scrollThumbTop }}
           onMouseDown={handleScrollThumbMouseDown}
         />

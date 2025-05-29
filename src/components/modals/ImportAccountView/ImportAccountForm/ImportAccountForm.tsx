@@ -1,11 +1,7 @@
 import React, { FC, useState, useRef, useCallback } from 'react';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-
 import { Upload } from 'src/components/icons';
 import { Button } from 'src/components/common';
-
-import s from './ImportAccountForm.module.scss';
 
 type Props = {
   onSubmit: (value: { password: string; identity: string }) => Promise<void>;
@@ -48,25 +44,33 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
   }, []);
 
   return (
-    <form onSubmit={handleSubmission} className={cn('w-full flex flex-col items-center', s.root)}>
+    <form className='w-full flex flex-col items-center min-h-[476px]' onSubmit={handleSubmission}>
       <h2 className='mt-9 mb-4'>{t('Import your account')}</h2>
-      <p className='mb-8'>
+      <p className='mb-8 font-medium text-xs leading-tight text-cyan max-w-[520px] text-left w-full'>
         {t(`Note that importing your account will only restore your codename. You
         need to rejoin manually any previously joined channel`)}
       </p>
-      {error && (
-        <div className={'text text--xs mt-2'} style={{ color: 'var(--red)' }}>
-          {error}
-        </div>
-      )}
+      {error && <div className='text-xs mt-2 text-red'>{error}</div>}
       <input
         required
         id='identityFile'
         type='file'
         placeholder={t('Choose a file')}
         onChange={onFileChange}
+        className='hidden'
       />
-      <label htmlFor='identityFile' className='flex justify-between'>
+      <label
+        htmlFor='identityFile'
+        className='
+          flex justify-between
+          border-none outline-none
+          bg-dark-5 px-2.5 py-[18px]
+          text-text-primary text-sm
+          w-full max-w-[520px] h-[55px]
+          rounded mb-[26px]
+          cursor-pointer
+        '
+      >
         <span ref={fileInputLabelRef}>{t('Choose a file')}</span>
         <Upload />
       </label>
@@ -78,8 +82,15 @@ const ImportAccountForm: FC<Props> = ({ onSubmit }) => {
         onChange={(e) => {
           setPassword(e.target.value);
         }}
+        className='
+          border-none outline-none
+          bg-dark-5 px-2.5 py-[18px]
+          text-text-primary text-sm
+          w-full max-w-[520px] h-[55px]
+          rounded mb-[26px]
+        '
       />
-      <Button type='submit' className={cn('mt-5', s.button)}>
+      <Button type='submit' className='mt-5 text-black mb-30'>
         {t('Import')}
       </Button>
     </form>

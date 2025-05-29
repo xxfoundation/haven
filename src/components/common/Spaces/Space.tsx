@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 
-import s from './Space.module.scss';
 import React from 'react';
 import { Star } from 'lucide-react';
 
@@ -29,9 +28,18 @@ const Space: FC<Props> = ({
   const { t } = useTranslation();
 
   return (
-    <div {...props} className={cn(props.className, s.root, { [s.active]: active })}>
+    <div
+      {...props}
+      className={cn(
+        props.className,
+        'px-3.5 py-3 hover:bg-charcoal-4 hover:cursor-pointer hover:rounded-[var(--border-radius)]',
+        {
+          'bg-charcoal-4 rounded-[var(--border-radius)]': active
+        }
+      )}
+    >
       <div className='flex justify-between w-full items-center space-x-2'>
-        <h5 className={cn(s.name, 'flex items-center space-x-1')}>
+        <h5 className='text-sm font-bold leading-5 overflow-hidden text-ellipsis flex items-center space-x-1'>
           {name}
           {favorite && (
             <Star width='12' height='20' className='text-primary ml-1' fill='currentColor' />
@@ -39,7 +47,9 @@ const Space: FC<Props> = ({
         </h5>
         <div className='flex space-x-1'>
           {date ? (
-            <span className={s.date}>{dayjs(date).format('YYYY/MM/DD')}</span>
+            <span className='text-[0.6875rem] font-normal text-charcoal-2 tracking-[0.0275rem]'>
+              {dayjs(date).format('YYYY/MM/DD')}
+            </span>
           ) : (
             <span className='text-primary text-xs'>{t('New!')}</span>
           )}
@@ -47,9 +57,13 @@ const Space: FC<Props> = ({
       </div>
       {message && (
         <div className='flex justify-between w-full'>
-          <p className={cn('whitespace-nowrap', s['message-preview'])}>{message}</p>
+          <p className='whitespace-nowrap overflow-hidden text-ellipsis text-[0.8125rem] leading-[1.1875rem] text-charcoal-1'>
+            {message}
+          </p>
           {missedMessagesCount > 0 && (
-            <span className={cn(s.badge, 'ml-1')}>{missedMessagesCount}</span>
+            <span className='ml-1 text-[0.6875rem] tracking-[0.0275rem] py-1 px-1.5 rounded-2xl bg-charcoal-2'>
+              {missedMessagesCount}
+            </span>
           )}
         </div>
       )}

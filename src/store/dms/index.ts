@@ -4,7 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Message } from '../messages/types';
 
 import { reactionsReducer } from '../utils';
-import { DMNotificationLevel, MessageType } from '@types';
+import { DMNotificationLevel, MessageType } from 'src/types';
 import { uniq } from 'lodash';
 
 const initialState: DMState = {

@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState, FC, useContext } from 'react';
+import { Buffer } from 'buffer';
 
 import { KV_VERSION, OperationType, RemoteKV, RemoteStore } from 'src/types/collective';
 import { encoder } from 'src/utils/index';

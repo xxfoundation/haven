@@ -1,10 +1,8 @@
 import { SVGProps } from 'react';
 
-import s from './Mute.module.scss';
-
 const Pin = (props: SVGProps<SVGSVGElement>) => (
   <svg
-    className={s.root}
+    className='fill-[var(--red)] hover:scale-110 cursor-pointer transition-transform'
     {...props}
     width='21'
     height='20'

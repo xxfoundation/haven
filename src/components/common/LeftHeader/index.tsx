@@ -1,7 +1,5 @@
 import React, { FC } from 'react';
-import cn from 'classnames';
 
-import s from './LeftHeader.module.scss';
 import User from './User';
 import SidebarControls from './SidebarControls';
 
@@ -11,7 +9,16 @@ type Props = {
 
 const Header: FC<Props> = ({ className }) => {
   return (
-    <div className={cn(className, s.root)}>
+    <div
+      className={`
+      flex w-full justify-between
+      bg-[var(--charcoal-4)] 
+      px-3 py-4
+      border-r border-r-[var(--our-black)]
+      rounded-tl-[var(--border-radius)]
+      ${className || ''}
+    `}
+    >
       <User />
       <SidebarControls />
     </div>

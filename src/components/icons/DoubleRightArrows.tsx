@@ -7,9 +7,7 @@ const DoubleRightyArrows = (props: SVGProps<SVGSVGElement>) => (
     viewBox='0 0 19 17'
     fill='none'
     xmlns='http://www.w3.org/2000/svg'
-    style={{
-      transform: 'scale(-1,1)'
-    }}
+    className='scale-x-[-1]'
     {...props}
   >
     <path

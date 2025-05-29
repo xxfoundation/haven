@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./src/**/*.{js,ts,jsx,tsx}'],
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
   theme: {
     colors: {
       primary: 'var(--primary)',
@@ -35,6 +37,18 @@ module.exports = {
         lg: '1280px',
         xl: '1280px',
         '2xl': '1560px'
+      },
+      keyframes: {
+        draw: {
+          '0%, 66%, 100%': {
+            fill: 'rgb(96, 165, 250)', // blue-400 lighter
+            transform: 'translate(0, 0)'
+          },
+          '33%': {
+            fill: 'rgb(59, 130, 246)', // blue-500 darker
+            transform: 'translate(-1px, -1px)'
+          }
+        }
       }
     }
   },

@@ -1,18 +1,6 @@
 import icon from 'src/assets/images/logo.svg';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import { useSessionStorage } from 'usehooks-ts';
-import useSound from 'use-sound';
-
-import {
-  ChannelId,
-  DBMessage,
-  Message,
-  MessageStatus,
-  MessageType,
-  ChannelNotificationLevel,
-  NotificationStatus,
-  DMNotificationLevel
-} from '@types';
 import { useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
 import { useUtils } from '@contexts/utils-context';
@@ -24,6 +12,17 @@ import { EasterEggs, useUI } from '@contexts/ui-context';
 import { useNetworkClient } from '@contexts/network-client-context';
 import useLocalStorage from './useLocalStorage';
 import { useRemotelySynchedString } from './useRemotelySynchedValue';
+import { DMNotificationLevel } from 'src/types/events';
+import {
+  Message,
+  ChannelId,
+  ChannelNotificationLevel,
+  NotificationStatus,
+  MessageStatus,
+  MessageType,
+  DBMessage
+} from 'src/types';
+import { useSound } from 'src/contexts/sound-context';
 
 const useNotification = () => {
   const { getCodeNameAndColor } = useUtils();
@@ -34,7 +33,7 @@ const useNotification = () => {
     'notification-sound',
     '/sounds/notification.mp3'
   );
-  const [playNotification] = useSound(notificationSound ?? '');
+  const { playNotification } = useSound();
   const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>(
     'notification-permission',
     Notification?.permission === 'granted'
@@ -54,7 +53,9 @@ const useNotification = () => {
           setNickname('Masochist');
         }
         notification.current = new Notification(title, options);
-        playNotification();
+        if (playNotification) {
+          playNotification();
+        }
       }
     },
     [isPermissionGranted, notificationSound, playNotification, setNickname, triggerEasterEgg]

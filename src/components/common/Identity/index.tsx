@@ -1,11 +1,7 @@
 import { FC, useCallback } from 'react';
-
 import React, { useMemo } from 'react';
-import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-
 import { Elixxir } from 'src/components/icons';
-import classes from './Identity.module.scss';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
 import { useUtils } from '@contexts/utils-context';
@@ -61,7 +57,12 @@ const Identity: FC<Props> = ({
     <span
       onClick={onClick}
       title={`${nickname ? `${nickname} – ` : ''}${codename}`}
-      className={cn(className, classes.root, { [classes.clickable]: clickable })}
+      className={`
+        font-bold
+        ${clickable ? 'cursor-pointer' : ''}
+        ${isMuted ? 'line-through' : ''}
+        ${className || ''}
+      `}
     >
       {nickname && (
         <>
@@ -71,8 +72,8 @@ const Identity: FC<Props> = ({
           &nbsp;
         </>
       )}
-      <span style={{ whiteSpace: 'nowrap' }}>
-        <Elixxir style={{ fill: codenameColor }} />
+      <span className='whitespace-nowrap'>
+        <Elixxir className='w-3 inline mb-0.5' style={{ fill: codenameColor }} />
         <span className='codename' style={{ color: codenameColor }}>
           {codename}
         </span>
@@ -80,13 +81,13 @@ const Identity: FC<Props> = ({
       {isMuted && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)' }}>[{t('muted')}]</span>
+          <span className='text-red'>[{t('muted')}]</span>
         </>
       )}
       {isBlocked && (
         <>
           &nbsp;
-          <span style={{ color: 'var(--red)' }}>[{t('blocked')}]</span>
+          <span className='text-red'>[{t('blocked')}]</span>
         </>
       )}
     </span>

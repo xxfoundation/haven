@@ -1,26 +1,18 @@
-import type { Message } from '@types';
-import { FC, HTMLAttributes } from 'react';
-
-import React, { useMemo } from 'react';
+import { Message } from 'src/types';
+import { FC, useMemo } from 'react';
 import dayjs from 'dayjs';
-import _ from 'lodash';
-import cn from 'classnames';
-
 import MessageContainer from '../MessageContainer';
-import { byEntryTimestamp } from 'src/utils/index';
+import { formatDate } from 'src/utils/date';
+import _ from 'lodash';
 
-import s from './MessagesContainer.module.scss';
-
-type Props = HTMLAttributes<HTMLDivElement> & {
-  readonly?: boolean;
+type Props = {
   messages: Message[];
+  readonly?: boolean;
+  children?: React.ReactNode;
 };
 
-const formatDate = (date: string, datetime?: string) => {
-  const d = dayjs(date);
-
-  return d.isToday() ? `Today ${dayjs(datetime).format('h A')}` : d.format('YYYY/MM/DD');
-};
+const byEntryTimestamp = ([a]: [string, Message[]], [b]: [string, Message[]]) =>
+  dayjs(a).isAfter(dayjs(b)) ? 1 : -1;
 
 const MessagesContainer: FC<Props> = ({ messages, readonly = false, ...props }) => {
   const sortedGroupedMessagesPerDay = useMemo(() => {
@@ -34,7 +26,7 @@ const MessagesContainer: FC<Props> = ({ messages, readonly = false, ...props }) 
   return (
     <div data-testid='messages-container'>
       {sortedGroupedMessagesPerDay.map(([key, msgs]) => (
-        <div className={cn(s.dayMessagesWrapper)} key={key}>
+        <div className='mb-4' key={key}>
           <div className='flex items-center my-1'>
             <hr className='border-charcoal-4 w-full' />
             <span className='flex-grow mx-4 whitespace-nowrap text-charcoal-1 text-xs'>

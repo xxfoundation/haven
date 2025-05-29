@@ -6,7 +6,7 @@ import cn from 'classnames';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUI } from 'src/contexts/ui-context';
 import useInput from 'src/hooks/useInput';
-import { PrivacyLevel } from '@types';
+import { PrivacyLevel } from '../../../types';
 import CheckboxToggle from '@components/common/CheckboxToggle';
 import Input from '@components/common/Input';
 import ModalTitle from '../ModalTitle';
@@ -55,17 +55,44 @@ const CreateChannelView: FC = () => {
 
   const onCreate = useCallback(async () => {
     if (error) {
+      console.error('Validation error:', error);
       return;
     }
 
+    const trimmedName = channelName.trim();
+  
+    // Log the actual values for debugging
+    console.log('Attempting to create channel with:', {
+      name: trimmedName,
+      nameLength: trimmedName.length,
+      description: channelDesc,
+      privacyLevel,
+      dmsEnabled
+    });
+
     try {
-      createChannel(channelName, channelDesc, privacyLevel, dmsEnabled);
+      if (!trimmedName) {
+        alert({
+          type: 'error',
+          content: t('Channel name is required')
+        });
+        return;
+      }
+
+      if (!regex.test(trimmedName)) {
+        alert({
+          type: 'error',
+          content: t('Invalid channel name format')
+        });
+        return;
+      }
+
+      await createChannel(trimmedName, channelDesc, privacyLevel, dmsEnabled);
       setChannelName('');
       setChannelDesc('');
       closeModal();
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      console.error((e as any).message);
+      console.error('Failed to create channel:', e);
       alert({
         type: 'error',
         content: t('Something wrong happened, please check your details.')
@@ -90,7 +117,17 @@ const CreateChannelView: FC = () => {
       <ModalTitle>{t('Create New Space')}</ModalTitle>
       <div className='space-y-4 w-full'>
         <Input
-          className={cn({ 'border-red text-red placeholder:text-red': !!nameError })}
+          autoFocus
+          className={cn(`
+            focus:border-primary
+            focus-visible:outline-none w-full
+            rounded-2xl bg-charcoal-4 border border-charcoal-1 px-4 py-2
+            placeholder-charcoal-1 placeholder:text-sm
+            transition-all`,
+            {
+              'border-red text-red': !!nameError
+            }
+          )}
           data-testid='channel-name-input'
           type='text'
           placeholder={t('Name')}
@@ -104,8 +141,7 @@ const CreateChannelView: FC = () => {
           onChange={onChannelNameChange}
         />
         <textarea
-          className={cn(
-            `
+          className={cn(`
             focus:border-primary
             focus-visible:outline-none resize-none h-10 active:outline-0 w-full
             rounded-2xl bg-charcoal-4 border border-charcoal-1 px-4 py-2

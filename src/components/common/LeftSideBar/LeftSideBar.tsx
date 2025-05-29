@@ -1,12 +1,12 @@
 import type { FC } from 'react';
 import cn from 'classnames';
 
-import { WithChildren } from '@types';
+import { WithChildren } from 'src/types';
 import { LeftSidebarView } from 'src/types/ui';
 import DMs from '../DMs';
 import Spaces from '../Spaces';
 import SettingsMenu from '../SettingsMenu';
-import { useUI } from '@contexts/ui-context';
+import { useUI } from 'src/contexts/ui-context';
 
 const views: Record<LeftSidebarView, FC> = {
   dms: DMs,

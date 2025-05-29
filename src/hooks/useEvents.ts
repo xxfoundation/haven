@@ -9,8 +9,10 @@ import {
   MessageStatus,
   NicknameUpdatedEvent,
   NotificationUpdateEvent,
-  UserMutedEvent
-} from '@types';
+  UserMutedEvent,
+  ChannelNotificationLevel,
+  NotificationStatus
+} from 'src/types';
 import { useCallback } from 'react';
 
 import * as channels from 'src/store/channels';
@@ -70,8 +72,18 @@ const useEvents = () => {
   const onNotificationUpdate = useCallback(
     (evt: NotificationUpdateEvent) => {
       evt.changedNotificationStates?.forEach((state) => {
-        dispatch(channels.actions.updateNotificationLevel(state));
-        dispatch(channels.actions.updateNotificationStatus(state));
+        dispatch(
+          channels.actions.updateNotificationLevel({
+            channelId: state.channelId,
+            level: state.level as unknown as ChannelNotificationLevel
+          })
+        );
+        dispatch(
+          channels.actions.updateNotificationStatus({
+            channelId: state.channelId,
+            status: state.status as unknown as NotificationStatus
+          })
+        );
       });
 
       evt.deletedNotificationStates?.forEach((channelId) => {

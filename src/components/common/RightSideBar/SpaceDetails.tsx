@@ -27,7 +27,7 @@ const SpaceDetails = () => {
     }
 
     const fn = dmsEnabled ? 'DisableDirectMessages' : 'EnableDirectMessages';
-    channelManager?.[fn](Buffer.from(currentChannel.id, 'base64'));
+    channelManager?.[fn](new Uint8Array(Buffer.from(currentChannel.id, 'base64')));
   }, [channelManager, currentChannel, dmsEnabled]);
 
   return currentChannel && identity ? (

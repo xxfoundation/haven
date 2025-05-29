@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { fullIdentity } from 'src/store/selectors';
 import * as channels from 'src/store/channels';
 import RightSideTitle from './RightSideTitle';
-import { ChannelNotificationLevel, NotificationStatus } from '@types';
-import { useUtils } from '@contexts/utils-context';
-import { useNetworkClient } from '@contexts/network-client-context';
-import { notificationLevelDecoder, notificationStatusDecoder } from '@utils/decoders';
+import { ChannelNotificationLevel, NotificationStatus } from 'src/types';
+import { useUtils } from 'src/contexts/utils-context';
+import { useNetworkClient } from 'src/contexts/network-client-context';
+import { notificationLevelDecoder, notificationStatusDecoder } from 'src/utils/decoders';
 
 const ChannelNotifications = () => {
   const { utils } = useUtils();
@@ -88,7 +88,7 @@ const ChannelNotifications = () => {
     (evt) => {
       const level = notificationLevelDecoder.decode(parseInt(evt.target.value, 10));
       if (level.isOk()) {
-        changeNotificationLevel(level.value);
+        changeNotificationLevel(level.value as unknown as ChannelNotificationLevel);
       } else {
         throw new Error(`Unknown notification level ${level.error}`);
       }
@@ -117,7 +117,7 @@ const ChannelNotifications = () => {
     (evt) => {
       const status = notificationStatusDecoder.decode(parseInt(evt.target.value, 10));
       if (status.isOk()) {
-        changeNotificationStatus(status.value);
+        changeNotificationStatus(status.value as unknown as NotificationStatus);
       } else {
         throw new Error(`Unknown notification status: ${status.error}`);
       }
@@ -140,7 +140,7 @@ const ChannelNotifications = () => {
           id='notification-levels'
         >
           <option value={NotificationStatus.WhenOpen}>When Open</option>
-          <option value={NotificationStatus.Push}>Push</option>
+          <option value={NotificationStatus.All}>All</option>
           <option value={NotificationStatus.Mute}>Mute</option>
         </select>
       </div>

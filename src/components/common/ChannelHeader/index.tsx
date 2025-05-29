@@ -16,7 +16,7 @@ import * as channels from 'src/store/channels';
 import * as app from 'src/store/app';
 
 import useChannelFavorites from 'src/hooks/useChannelFavorites';
-import { ChannelNotificationLevel, DMNotificationLevel, NotificationStatus } from '@types';
+import { ChannelNotificationLevel, DMNotificationLevel, NotificationStatus } from 'src/types';
 import Dropdown, { DropdownItem } from '../Dropdown';
 import Notice from '@components/icons/Notice';
 import Share from '@components/icons/Share';
@@ -27,8 +27,6 @@ import Block from '@components/icons/Block';
 import useDmClient from 'src/hooks/useDmClient';
 import NotificationsIcon from '@components/icons/Notifications';
 import { Pin } from '@components/icons';
-
-import s from './styles.module.scss';
 import ChannelBadges from '../ChannelBadges';
 import Contributors from '@components/icons/Contributors';
 import Keys from '@components/icons/Keys';
@@ -42,25 +40,36 @@ type Props = Omit<Channel, 'name' | 'description' | 'currentPage'> & {
   name: React.ReactNode;
 };
 
-const HeaderMenuItem: FC<
-  HTMLAttributes<HTMLButtonElement> & { notification?: boolean; active?: boolean }
-> = (props) => (
+type HeaderMenuItemProps = Omit<HTMLAttributes<HTMLButtonElement>, 'active'> & {
+  notification?: boolean;
+  active?: boolean;
+  onClick?: () => void;
+  title?: string;
+};
+
+const HeaderMenuItem: FC<HeaderMenuItemProps> = ({
+  notification,
+  active,
+  children,
+  className,
+  onClick,
+  title,
+  ...otherProps // exclude any other props we don't want to pass to button
+}) => (
   <li className='list-none'>
     <button
-      {...props}
-      className={cn(
-        'cursor-pointer relative w-8 h-8 p-1 hover:text-primary hover:bg-charcoal-3-20 rounded-full',
-        props.className,
-        {
-          'text-primary': props.active,
-          'text-charcoal-1': !props.active
-        }
-      )}
+      onClick={onClick}
+      title={title}
+      type='button'
+      className={`
+        cursor-pointer relative w-8 h-8 p-1 
+        hover:text-primary hover:bg-charcoal-3-20 rounded-full
+        ${active ? 'text-primary' : 'text-charcoal-1'}
+        ${className || ''}
+      `}
     >
-      {props.children}
-      {props.notification && (
-        <div className='rounded-full w-2 h-2 absolute bottom-1 right-1 bg-red' />
-      )}
+      {children}
+      {notification && <div className='rounded-full w-2 h-2 absolute bottom-1 right-1 bg-red' />}
     </button>
   </li>
 );
@@ -94,7 +103,9 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
   }, [currentChannel, openModal, setModalView]);
 
   const toggleDMNotifications = useCallback(() => {
-    assert(conversationId, 'Conversation ID required to set notification level');
+    if (!conversationId) {
+      throw new Error('Conversation ID required to set notification level');
+    }
     toggleDmNotificationLevel(conversationId);
   }, [toggleDmNotificationLevel, conversationId]);
 
@@ -118,23 +129,23 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
   }, [channelManager, channelNotificationLevel, currentChannel?.id, utils]);
 
   return (
-    <div data-testid='channel-header' className={cn('flex w-full', s.root)}>
+    <div data-testid='channel-header' className='flex w-full px-4 py-2'>
       <label
         htmlFor='mobileToggle'
-        className={
-          'flex-none flex items-center text-xl cursor-pointer transition-colors ease-in duration-300 mr-4 hover:text-text-secondary md:hidden'
-        }
+        className='flex-none flex items-center text-xl cursor-pointer transition-colors ease-in duration-300 mr-4 hover:text-text-secondary md:hidden'
       >
         ←
       </label>
       <div className='flex-1 min-w-0'>
-        <div data-testid='channel-name' className={cn(s.channelName, 'truncate')}>
+        <div data-testid='channel-name' className='text-text-primary font-medium text-lg truncate'>
           {name}
         </div>
         <div className='flex'>
-          <div className={cn(s.channelId, 'flex space-x-2 truncate')}>
+          <div className='flex space-x-2 truncate'>
             <ChannelBadges privacyLevel={privacyLevel} isAdmin={isAdmin} />
-            <span className={cn(s.channelId, 'truncate')}>ID: {id}</span>
+            <span className='text-charcoal-1 mt-0.5 text-[0.6875rem] font-normal tracking-[0.0275rem] whitespace-nowrap truncate'>
+              ID: {id}
+            </span>
           </div>
         </div>
       </div>

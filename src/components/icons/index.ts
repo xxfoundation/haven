@@ -26,3 +26,4 @@ export { default as Haven } from './Haven';
 export { default as Tree } from './Tree';
 export { default as Unpin } from './Unpin';
 export { default as Upload } from './Upload';
+export { default as X } from './X';

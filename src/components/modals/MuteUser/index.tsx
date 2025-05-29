@@ -1,58 +1,42 @@
-import { FC, useCallback, useState } from 'react';
-import cn from 'classnames';
+import { FC, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import { Button } from 'src/components/common';
-import Modal from 'src/components/modals';
-
-import s from './MuteUser.module.scss';
-
-export type MuteUserAction = 'mute' | 'mute+delete';
+import Modal from 'src/components/modals/Modal';
+import { MuteUserAction } from 'src/types';
+import ModalTitle from '../ModalTitle';
 
 type Props = {
-  onConfirm: (action: 'mute' | 'mute+delete') => Promise<void>;
+  onConfirm: (action: MuteUserAction) => Promise<void>;
   onCancel: () => void;
 };
 
 const MuteUserModal: FC<Props> = ({ onCancel, onConfirm }) => {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
 
-  const handleConfirmation = useCallback(
-    (action: MuteUserAction) => async () => {
-      setLoading(true);
-      await onConfirm(action).finally(() => {
-        setLoading(false);
-      });
-    },
-    [onConfirm]
-  );
+  const handleMute = useCallback(async () => {
+    await onConfirm('mute');
+  }, [onConfirm]);
+
+  const handleMuteAndDelete = useCallback(async () => {
+    await onConfirm('mute+delete');
+  }, [onConfirm]);
 
   return (
-    <Modal loading={loading} onClose={onCancel}>
-      <div className={cn('w-full flex flex-col justify-center items-center')}>
-        <h2 className={cn('mt-9 mb-4')}>{t('Warning')}</h2>
-        <p className='mb-4'>
-          {t(`
-            Muting a user will revoke their ability to send messages.
-            They will, however, still be able to view messages.
-          `)}
-        </p>
-        <p className='mb-4' style={{ color: 'var(--red)', textTransform: 'uppercase' }}>
-          ** {t('Important to note that deleting messages cannot be undone.')} **
-        </p>
-        <div className={cn('mb-6', s.buttonGroup)}>
-          <Button
-            style={{ backgroundColor: 'var(--red)', borderColor: 'var(--red)' }}
-            onClick={handleConfirmation('mute+delete')}
-          >
-            {t('Mute and delete the last message')}
-          </Button>
-          <Button onClick={handleConfirmation('mute')}>{t('Just Mute')}</Button>
-          <Button variant='secondary' onClick={onCancel}>
-            {t('Cancel')}
-          </Button>
-        </div>
+    <Modal onClose={onCancel}>
+      <ModalTitle>{t('Warning')}</ModalTitle>
+      <p className='mb-4 text-red uppercase text-center'>
+        ** {t('Important to note that muting users cannot be undone.')} **
+      </p>
+      <div className='flex flex-wrap justify-center -mx-2'>
+        <Button variant='outlined' className='m-2' onClick={onCancel}>
+          {t('Cancel')}
+        </Button>
+        <Button className='m-2' onClick={handleMute}>
+          {t('Mute')}
+        </Button>
+        <Button className='m-2' onClick={handleMuteAndDelete}>
+          {t('Mute and Delete Messages')}
+        </Button>
       </div>
     </Modal>
   );

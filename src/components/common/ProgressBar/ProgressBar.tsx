@@ -1,41 +1,17 @@
 const ProgressBar = (props: { completed: number }) => {
   const { completed } = props;
-
-  const containerStyles = {
-    height: 40,
-    width: '320px',
-    borderRadius: 50,
-    margin: 50,
-    border: '2px solid var(--secondary)'
-  };
-
-  const fillerStyles = {
-    height: '100%',
-    width: `${completed > 100 ? 100 : completed}%`,
-    backgroundColor: 'var(--secondary)',
-    borderRadius: 'inherit'
-  };
-
-  const labelStyles = {
-    padding: 5,
-    color: 'white',
-    fontWeight: 'bold'
-  };
+  const normalizedCompleted = completed > 100 ? 100 : completed;
 
   return (
-    <div className='relative' style={containerStyles}>
-      <div className='text-center' style={fillerStyles}>
-        <span style={labelStyles} />
-        <span
-          style={{
-            position: 'absolute',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            top: '50%',
-            fontWeight: '700',
-            fontSize: '14px'
-          }}
-        >{`${completed > 100 ? 100 : completed}%`}</span>
+    <div className='relative h-10 w-[320px] rounded-[50px] my-[50px] mx-auto border-2 border-[var(--secondary)]'>
+      <div
+        className='h-full rounded-[inherit] bg-[var(--secondary)] text-center'
+        style={{ width: `${normalizedCompleted}%` }}
+      >
+        <span className='p-[5px] text-white font-bold' />
+        <span className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-sm'>
+          {`${normalizedCompleted}%`}
+        </span>
       </div>
     </div>
   );

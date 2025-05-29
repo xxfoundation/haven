@@ -3,7 +3,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { channelsSearch } from '../app/selectors';
 import { sortBy } from 'lodash';
 import { ChannelId } from './types';
-import { NotificationStatus } from '@types';
+import { NotificationStatus } from 'src/types';
 
 export const channels = (state: RootState) => state.channels.sortedChannels;
 

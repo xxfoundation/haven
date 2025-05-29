@@ -1,15 +1,11 @@
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import cn from 'classnames';
-
 import Input, { Props } from 'src/components/common/Input';
-
-import s from './SearchInput.module.scss';
 
 const SearchInput: FC<Props> = ({ className, ...props }) => {
   const { t } = useTranslation();
   return (
-    <div className={cn(className, s.search)}>
+    <div className={`relative mb-2 ${className || ''}`}>
       <Input {...props} placeholder={props.placeholder || t('Search...')} />
       <div className='absolute inset-y-0 right-2 flex items-center pl-3 pointer-events-none'>
         <svg

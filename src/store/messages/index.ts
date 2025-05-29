@@ -2,7 +2,7 @@ import type { Contributor, Message, MessagesState } from './types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { pick, omit, uniq } from 'lodash';
 import { byTimestamp, deleteReactionReducer, reactionsReducer } from '../utils';
-import { MessageId, MessageType } from '@types';
+import { MessageId, MessageType } from '../../types';
 
 const initialState: MessagesState = {
   reactions: {},
