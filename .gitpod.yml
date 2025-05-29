@@ -1,8 +1,10 @@
 # example .gitpod.yml from https://github.com/gitpod-io/demo-multi-repo-frontend
 workspaceLocation: haven/main.code-workspace # Relative to /workspace dir
 additionalRepositories:
-    - url: https://github.com/thisisommore/xxdk-wasm.git
+    - url: https://git.xx.network/elixxir/xxdk-wasm.git
       checkoutLocation: xxdk-wasm
+    - url: https://github.com/thisisommore/speakeasy-web.git
+      checkoutLocation: speakeasy-web
 
 image:
   file: gitpod.Dockerfile
@@ -34,6 +36,7 @@ tasks:
       # by default by executed in `/workspaces/demo-multi-repo-frontend`
     - name: haven
       init: |
+          cd ../speakeasy-web
           gp sync-await xxdk-wasm-link
           bun link xxdk-wasm
       command: |
