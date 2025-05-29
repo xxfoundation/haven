@@ -1,15 +1,36 @@
 {
-	// All paths are relative to your main repo
-	// The additional repos are cloned inside /workspace dir
-	"folders": [
-		{
-			"path": "." // Main repo that you will open in Gitpod (e.g. frontend)
-		},
-		{
-			"path": "../xxdk-wasm" // Additional repo
-		},
-		{
-			"path": "../haven" // Additional repo
-		}
-	]
+  // All paths are relative to your main repo
+  // The additional repos are cloned inside /workspace dir
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../xxdk-wasm"
+    },
+    {
+      "path": "../client"
+    },
+    {
+      "path": "../ekv-shg"
+    },
+    // {
+    //   "path": "../wasm-utils"
+    // },
+    {
+      "path": "../wasm-utils-shg"
+    },
+    {
+      "path": "../speakeasy-web"
+    },
+    // {
+    //   "path": "../comms"
+    // },
+    // {
+    //   "path": "../primitives"
+    // },
+    // {
+    //   "path": "../xx_network_comms"
+    // }
+  ]
 }
