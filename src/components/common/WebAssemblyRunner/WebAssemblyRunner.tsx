@@ -6,6 +6,8 @@ import { FC, useEffect } from 'react';
 import { InitXXDK, setXXDKBasePath } from 'xxdk-wasm';
 
 import { useUtils } from 'src/contexts/utils-context';
+import { HavenStorage, havenStorageMemory } from './msCallback';
+import { havenStorageExt } from './extSCallback';
 
 type Logger = {
   StopLogging: () => void;
@@ -28,70 +30,6 @@ declare global {
   }
 }
 
-function generateRequestId(): string {
-  return Math.random().toString(36).slice(2, 11);
-}
-
-function sendMessage<T>(action: string, key?: string, value?: any): Promise<T> {
-  const requestId = generateRequestId();
-  return new Promise((resolve) => {
-    const handler = (event: MessageEvent) => {
-      if (event.data?.requestId === requestId && event.data.api === 'LocalStorage:Response') {
-        window.removeEventListener('message', handler);
-        console.log('event.data response', event.data);
-
-        resolve(event.data.result);
-      }
-    };
-    window.addEventListener('message', handler);
-
-    window.postMessage({
-      api: 'LocalStorage',
-      action,
-      key,
-      value,
-      requestId
-    });
-  });
-}
-
-type HavenStorage = {
-  getItem: (key: string) => Promise<string | null>;
-  setItem: (key: string, value: any) => Promise<void>;
-  delete: (key: string) => Promise<void>;
-  clear: () => Promise<void>;
-  keys: () => Promise<string[]>;
-  key: (index: number) => Promise<string | null>;
-};
-
-// eslint-disable-next-line no-unused-vars
-const havenStorage: HavenStorage = {
-  getItem: function (key: string): Promise<string | null> {
-    return sendMessage('getItem', key);
-  },
-
-  setItem: function (key: string, value: any): Promise<void> {
-    return sendMessage('setItem', key, value);
-  },
-
-  delete: function (key: string): Promise<void> {
-    return sendMessage('removeItem', key);
-  },
-
-  clear: function (): Promise<void> {
-    return sendMessage('clear');
-  },
-
-  keys: function (): Promise<string[]> {
-    return sendMessage('keys');
-  },
-
-  key: function (index: number): Promise<string | null> {
-    // This string is used in go to compare the error
-    return Promise.reject(new Error('not implemented'));
-  }
-};
-
 const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
   //const location = useLocation();
 
@@ -111,8 +49,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       // window!.xxdkBasePath = window!.location.href + 'xxdk-wasm';
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
       setXXDKBasePath(basePath);
-
-      window.havenStorage = havenStorage;
+      window.havenStorage = havenStorageExt;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       // window.localStoragePromise = windowStorage;
       // eslint-disable-next-line no-console
@@ -124,6 +61,14 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       });
     }
   }, [basePath, setUtils, setUtilsLoaded, utilsLoaded]);
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     console.log('tick');
+  //   }, 100);
+  //   return () => clearInterval(interval);
+  // }, []);
+
   return <>{children}</>;
 };
 

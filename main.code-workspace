@@ -12,13 +12,10 @@
       "path": "../client"
     },
     {
-      "path": "../ekv-shg"
+      "path": "../ekv"
     },
-    // {
-    //   "path": "../wasm-utils"
-    // },
     {
-      "path": "../wasm-utils-shg"
+      "path": "../wasm-utils"
     },
     {
       "path": "../speakeasy-web"

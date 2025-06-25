@@ -39,6 +39,7 @@ const ndf = GetDefaultNDF();
 const useCmix = () => {
   const [initState, setInitState] = useState<InitState>(InitState.UNINITIALIZED);
   const { cmixPreviouslyInitialized, rawPassword } = useAuthentication();
+  const [isInitialized, setIsInitialized] = useState(false);
   const [status, setStatus] = useState<NetworkStatus>(NetworkStatus.UNINITIALIZED);
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
   const [cmix, setCmix] = useState<CMix | undefined>();
@@ -196,13 +197,17 @@ const useCmix = () => {
 
   // Cmix initialization and loading
   const initializeCmix = async (password: Uint8Array) => {
-    if (!cmixPreviouslyInitialized) {
+    if (!cmixPreviouslyInitialized && !isInitialized) {
+      console.log('calling new cmix', password);
+      setIsInitialized(true);
       await utils.NewCmix(ndf, STATE_PATH, password, '');
     }
   };
   const loadCmix = async (password: Uint8Array) => {
-    const loadedCmix = await utils.LoadCmix(STATE_PATH, password, encodedCmixParams);
-    setCmix(loadedCmix);
+    setTimeout(async () => {
+      const loadedCmix = await utils.LoadCmix(STATE_PATH, password, encodedCmixParams);
+      setCmix(loadedCmix);
+    }, 10000);
   };
   useEffect(() => {
     if (decryptedPass) {
@@ -214,7 +219,10 @@ const useCmix = () => {
 
   const onPasswordDecryption = useCallback(
     async (password: Uint8Array) => {
-      setDecryptedPass(password);
+      console.log('password decrypted', password);
+      if (password != decryptedPass) {
+        setDecryptedPass(password);
+      }
     },
     [accountSync.status]
   );

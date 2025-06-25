@@ -13,8 +13,6 @@ export default defineConfig({
       exclude: ['node_modules/**', 'dist/**'],
       failOnError: false,
       failOnWarning: false,
-      cache: true,
-      lintOnStart: true,
       overrideConfigFile: 'eslint.config.js'
     })
   ],
@@ -82,7 +80,22 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    open: true
+    fs: {
+      // Allow serving files from one level up from the package root
+      allow: ['..'],
+      strict: false
+    },
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp'
+    },
+    allowedHosts: [
+      '3000-thisisommore-haven-teqe8xrq0zp.ws-eu118.gitpod.io',
+      '3001-debug-thisisommore-haven-teqe8xrq0zp.ws-us118.gitpod.io',
+      '3000-thisisommore-haven-teqe8xrq0zp.ws-us118.gitpod.io',
+      '3000-thisisommore-haven-lgb7hujlja6.ws-us120.gitpod.io',
+      '3000-thisisommore-haven-lgb7hujlja6.ws-eu120.gitpod.io'
+    ]
   },
   resolve: {
     alias: {

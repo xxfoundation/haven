@@ -1,13 +1,16 @@
 import { JsonDecoder } from 'ts.data.json';
 import useRemotelySynchedValue from './useRemotelySynchedValue';
 import { makeDecoder } from '@utils/decoders';
+import { useState } from 'react';
 
 const KEY = 'channels-storage-tag';
 
 const useStorageTag = () => {
-  const result = useRemotelySynchedValue(KEY, makeDecoder(JsonDecoder.string));
-  console.log('Ready storage tag value:', result.value);
-  return result;
+  return {
+    value: undefined,
+    set: (a: string) => {},
+    loading: false
+  };
 };
 
 export default useStorageTag;

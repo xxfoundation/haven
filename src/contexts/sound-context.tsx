@@ -10,10 +10,7 @@ const SoundContext = createContext<SoundContextType>({ playNotification: null })
 
 export const SoundProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const [playNotification, setPlayNotification] = useState<(() => void) | null>(null);
-  const { value: notificationSound } = useRemotelySynchedString(
-    'notification-sound',
-    '/sounds/notification.mp3'
-  );
+  const notificationSound = 'notification-sound';
 
   return (
     <SoundContext.Provider value={{ playNotification }}>

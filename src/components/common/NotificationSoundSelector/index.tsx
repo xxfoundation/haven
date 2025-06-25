@@ -14,10 +14,7 @@ const NotificationSoundSelector: FC = () => {
   const [touched, setTouched] = useState(false);
   const [play, setPlay] = useState<(() => void) | null>(null);
   const [stop, setStop] = useState<(() => void) | null>(null);
-  const { set: setNotificationSound, value: notificationSound } = useRemotelySynchedString(
-    'notification-sound',
-    '/sounds/notification.mp3'
-  );
+  const notificationSound = 'notification-sound';
 
   useEffect(() => {
     let mounted = true;
@@ -97,7 +94,7 @@ const NotificationSoundSelector: FC = () => {
         onChange={(o) => {
           if (o && !Array.isArray(o) && o !== null) {
             setTouched(true);
-            setNotificationSound(o.value);
+            // setNotificationSound(o.value);
           }
         }}
       />
