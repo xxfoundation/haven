@@ -49,7 +49,7 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       // window!.xxdkBasePath = window!.location.href + 'xxdk-wasm';
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
       setXXDKBasePath(basePath);
-      window.havenStorage = havenStorageExt;
+      window.havenStorage = havenStorageMemory;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       // window.localStoragePromise = windowStorage;
       // eslint-disable-next-line no-console

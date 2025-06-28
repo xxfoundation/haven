@@ -22,11 +22,8 @@ function setupPort() {
 
   // incoming responses on that port
   port.onMessage.addListener((msg: any) => {
-    console.log('some port message', msg.requestId);
-
     if (msg?.requestId && msg.api === 'LocalStorage:Response') {
       const cb = handlers[msg.requestId];
-      console.log('received for callback:%s %s', !!cb, msg.requestId);
       if (cb) cb(msg.result);
     }
   });
@@ -49,8 +46,6 @@ function sendViaPort<T>(
 ): void {
   const requestId = generateRequestId();
   if (callback) handlers[requestId] = callback;
-
-  console.log('sending for callback:%s %s', !!callback, requestId);
 
   try {
     port.postMessage({ api: 'LocalStorage', action, key, value, requestId });
