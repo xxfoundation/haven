@@ -33,7 +33,6 @@ const useNotification = () => {
     'notification-sound',
     '/sounds/notification.mp3'
   );
-
   const { playNotification } = useSound();
   const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>(
     'notification-permission',
