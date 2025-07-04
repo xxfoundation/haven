@@ -29,7 +29,10 @@ const useNotification = () => {
   const { triggerEasterEgg } = useUI();
   const { setNickname } = useNetworkClient();
   const db = useDb('channels');
-  const notificationSound = 'notification-sound';
+  const { value: notificationSound } = useRemotelySynchedString(
+    'notification-sound',
+    '/sounds/notification.mp3'
+  );
 
   const { playNotification } = useSound();
   const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>(

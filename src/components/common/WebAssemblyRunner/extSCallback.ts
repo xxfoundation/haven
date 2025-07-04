@@ -39,7 +39,7 @@ function setupPort() {
 setupPort();
 
 function sendViaPort<T>(
-  action: string,
+  action: 'getItem' | 'setItem' | 'removeItem' | 'clear' | 'keys',
   callback?: (result: T) => void,
   key?: string,
   value?: any

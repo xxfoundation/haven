@@ -6,8 +6,11 @@ import useRemotelySynchedValue from './useRemotelySynchedValue';
 const KEY = 'channel-favorites';
 
 const useChannelFavorites = () => {
-  const loading = false;
-  const [favorites, set] = useState<string[]>([]);
+  const {
+    loading,
+    set,
+    value: favorites = []
+  } = useRemotelySynchedValue(KEY, channelFavoritesDecoder);
   const toggleFavorite = useCallback(
     (channelId: string) => {
       if (!loading) {

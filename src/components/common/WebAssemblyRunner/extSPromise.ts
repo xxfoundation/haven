@@ -11,58 +11,84 @@ function generateRequestId(): string {
   return Math.random().toString(36).slice(2, 11);
 }
 
-function sendMessage<T>(action: string, key?: string, value?: any): Promise<T> {
-  const requestId = generateRequestId();
-  return new Promise((resolve) => {
-    const handler = (event: MessageEvent) => {
-      if (event.data?.requestId === requestId && event.data.api === 'LocalStorage:Response') {
-        window.removeEventListener('message', handler);
+const promiseHandlers: Record<
+  string,
+  { resolve: (result: any) => void; reject: (error: any) => void }
+> = {};
 
-        resolve(event.data.result);
+// 1️⃣ establish a long-lived Port to your extension and auto-reconnect on disconnect
+const EXT_ID = 'knjemccepbogcmlhnhffagneinknidic';
+let port: chrome.runtime.Port;
+
+function setupPort() {
+  port = chrome.runtime.connect(EXT_ID, { name: 'LocalStorageChannel' });
+
+  // incoming responses on that port
+  port.onMessage.addListener((msg: any) => {
+    if (msg?.requestId && msg.api === 'LocalStorage:Response') {
+      const handler = promiseHandlers[msg.requestId];
+
+      if (handler) {
+        handler.resolve(msg.result);
+        delete promiseHandlers[msg.requestId];
       }
-    };
-    window.addEventListener('message', handler);
+    }
+  });
 
-    window.postMessage({
-      api: 'LocalStorage',
-      action,
-      key,
-      value,
-      requestId
-    });
+  // reconnect on disconnect
+  port.onDisconnect.addListener(() => {
+    console.warn('Port disconnected, reconnecting…');
+    setTimeout(setupPort, 1000);
   });
 }
-const prefix = 'havenStorage:Ext';
-// eslint-disable-next-line no-unused-vars
+
+// initialize the port
+setupPort();
+
+function sendViaPort<T>(
+  action: 'getItem' | 'setItem' | 'removeItem' | 'clear' | 'keys',
+  key?: string,
+  value?: any
+): Promise<T> {
+  const requestId = generateRequestId();
+
+  return new Promise<T>((resolve, reject) => {
+    promiseHandlers[requestId] = { resolve, reject };
+
+    try {
+      port.postMessage({ api: 'LocalStorage', action, key, value, requestId });
+    } catch (err) {
+      console.error('postMessage failed, reconnecting port', err);
+      setupPort();
+      // retry once after reconnect
+      try {
+        port.postMessage({ api: 'LocalStorage', action, key, value, requestId });
+      } catch (retryErr) {
+        delete promiseHandlers[requestId];
+        reject(retryErr);
+      }
+    }
+  });
+}
+
 export const havenStorageExt: HavenStorage = {
-  getItem: function (key: string): Promise<string | null> {
-    console.log(`${prefix}:getItem:key`, key);
-    return sendMessage('getItem', key);
+  getItem(key) {
+    return sendViaPort<string | null>('getItem', key);
   },
-
-  setItem: function (key: string, value: any): Promise<void> {
-    console.log(`${prefix}:setItem:key`, key);
-    return sendMessage('setItem', key, value);
+  setItem(key, value) {
+    return sendViaPort<void>('setItem', key, value);
   },
-
-  delete: function (key: string): Promise<void> {
-    console.log(`${prefix}:delete:key`, key);
-    return sendMessage('removeItem', key);
+  delete(key) {
+    return sendViaPort<void>('removeItem', key);
   },
-
-  clear: function (): Promise<void> {
-    console.log(`${prefix}:clear`);
-    return sendMessage('clear');
+  clear() {
+    return sendViaPort<void>('clear');
   },
-
-  keys: function (): Promise<string[]> {
-    console.log(`${prefix}:keys`);
-    return sendMessage('keys');
+  keys() {
+    return sendViaPort<string[]>('keys');
   },
-
-  key: function (index: number): Promise<string | null> {
-    console.log(`${prefix}:key`, index);
-    // This string is used in go to compare the error
-    return Promise.reject(new Error('not implemented'));
+  key(_idx) {
+    // not implemented on SW side
+    return Promise.reject('not implemented');
   }
 };

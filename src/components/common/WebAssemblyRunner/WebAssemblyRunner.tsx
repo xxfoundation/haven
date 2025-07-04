@@ -7,7 +7,7 @@ import { InitXXDK, setXXDKBasePath } from 'xxdk-wasm';
 
 import { useUtils } from 'src/contexts/utils-context';
 import { HavenStorage, havenStorageMemory } from './msCallback';
-import { havenStorageExt } from './extSCallback';
+import { havenStorageExt } from './extSPromise';
 
 type Logger = {
   StopLogging: () => void;
@@ -48,8 +48,8 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       setXXDKBasePath(window!.location.href + 'xxdk-wasm');
       // window!.xxdkBasePath = window!.location.href + 'xxdk-wasm';
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
-      setXXDKBasePath(basePath);
-      window.havenStorage = havenStorageMemory;
+      // setXXDKBasePath(basePath);
+      window.havenStorage = havenStorageExt;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       // window.localStoragePromise = windowStorage;
       // eslint-disable-next-line no-console

@@ -117,7 +117,7 @@ export type ChannelManager = {
     cmixParams: Uint8Array,
     tags: Uint8Array
   ) => Promise<Uint8Array>;
-  IsChannelAdmin: (channelId: Uint8Array) => boolean;
+  IsChannelAdmin: (channelId: Uint8Array) => Promise<boolean>;
   GetNotificationLevel: (channelId: Uint8Array) => ChannelNotificationLevel;
   GetNotificationStatus: (channelId: Uint8Array) => NotificationStatus;
   SetMobileNotificationsLevel: (
@@ -184,7 +184,7 @@ export type NetworkContext = {
   createChannelManager: (privateIdentity: Uint8Array) => Promise<void>;
   loadChannelManager: (storageTag: string, cmix?: CMix) => Promise<void>;
   handleInitialLoadData: () => Promise<void>;
-  getNickName: () => string;
+  getNickName: () => Promise<string>;
   setNickname: (nickname: string) => boolean;
   sendReply: (reply: string, replyToMessageId: string, tags?: string[]) => Promise<void>;
   sendReaction: (reaction: string, reactToMessageId: string) => Promise<void>;
@@ -324,7 +324,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   );
 
   const getPrivacyLevel = useCallback(
-    (channelId: string) => getShareUrlType(getShareURL(channelId)?.url),
+    async (channelId: string) => getShareUrlType((await getShareURL(channelId))?.url),
     [getShareURL, getShareUrlType]
   );
 
@@ -350,9 +350,9 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
         const channel: Channel = {
           id: chanInfo.receptionId || chanInfo.channelId,
           name: chanInfo.name,
-          privacyLevel: getPrivacyLevel(chanInfo.receptionId || chanInfo.channelId),
+          privacyLevel: await getPrivacyLevel(chanInfo.receptionId || chanInfo.channelId),
           description: chanInfo.description,
-          isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
+          isAdmin: await channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
         };
 
         if (appendToCurrent) {
@@ -456,11 +456,13 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
 
     console.log('fetchedChannels', JSON.stringify(fetchedChannels));
 
-    const channelList = fetchedChannels.map((ch: DBChannel) => ({
+    const channelListPromises = fetchedChannels.map(async (ch: DBChannel) => ({
       ...ch,
-      privacyLevel: getPrivacyLevel(ch.id),
-      isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(ch.id))
+      privacyLevel: await getPrivacyLevel(ch.id),
+      isAdmin: await channelManager.IsChannelAdmin(utils.Base64ToUint8Array(ch.id))
     }));
+
+    const channelList = await Promise.all(channelListPromises);
 
     channelList.forEach((channel) => dispatch(channels.actions.upsert(channel)));
   }, [channelManager, db, dispatch, getPrivacyLevel, utils]);
@@ -506,7 +508,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
     async (tag: string) => {
       console.log('Loading channel manager with tag:', tag);
       if (cmixId !== undefined && cipher && utils) {
-        const notifications = utils.LoadNotificationsDummy(cmixId);
+        const notifications = await utils.LoadNotificationsDummy(cmixId);
         const loadedChannelsManager = await utils.LoadChannelsManagerWithIndexedDb(
           cmixId,
           (await channelsIndexedDbWorkerPath()).toString(),
@@ -548,7 +550,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
       console.log('Creating channel manager...');
       if (cmixId !== undefined && cipher && utils && utils.NewChannelsManagerWithIndexedDb) {
         const workerPath = (await channelsIndexedDbWorkerPath()).toString();
-        const notifications = utils.LoadNotificationsDummy(cmixId);
+        const notifications = await utils.LoadNotificationsDummy(cmixId);
         const createdChannelManager = await utils.NewChannelsManagerWithIndexedDb(
           cmixId,
           workerPath,
@@ -667,7 +669,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   }, [currentChannel?.id, currentMessages?.length, hasMore, loadMoreChannelData, pagination.end]);
 
   const joinChannelFromURL = useCallback(
-    (url: string, password = '') => {
+    async (url: string, password = '') => {
       if (channelManager && channelManager.JoinChannelFromURL) {
         try {
           const chanInfo = channelDecoder(
@@ -680,8 +682,10 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
                 id: chanInfo?.channelId,
                 name: chanInfo?.name,
                 description: chanInfo?.description,
-                privacyLevel: getPrivacyLevel(chanInfo?.channelId),
-                isAdmin: channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
+                privacyLevel: await getPrivacyLevel(chanInfo?.channelId),
+                isAdmin: await channelManager.IsChannelAdmin(
+                  utils.Base64ToUint8Array(chanInfo.channelId)
+                )
               })
             );
             dispatch(app.actions.selectChannelOrConversation(chanInfo.channelId));
@@ -889,7 +893,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
     [setDmNickname, channelManager, currentChannel?.id, currentConversation, utils]
   );
 
-  const getNickName = useCallback(() => {
+  const getNickName = useCallback(async () => {
     let nickName = '';
     if (channelManager?.GetNickname && currentChannel) {
       try {
@@ -900,27 +904,29 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
     }
 
     if (currentConversation) {
-      nickName = getDmNickname();
+      nickName = await getDmNickname();
     }
     return nickName;
   }, [channelManager, currentChannel, currentConversation, getDmNickname, utils]);
 
   useEffect(() => {
-    if (currentChannel) {
-      dispatch(
-        channels.actions.updateNickname({
-          channelId: currentChannel.id,
-          nickname: getNickName()
-        })
-      );
-    } else if (currentConversation) {
-      dispatch(dms.actions.setUserNickname(getNickName()));
-    }
+    getNickName().then((nickname) => {
+      if (currentChannel) {
+        dispatch(
+          channels.actions.updateNickname({
+            channelId: currentChannel.id,
+            nickname: nickname
+          })
+        );
+      } else if (currentConversation) {
+        dispatch(dms.actions.setUserNickname(nickname));
+      }
+    });
   }, [currentChannel, currentConversation, dispatch, getNickName]);
 
   const generateIdentities = useCallback(
     (amountOfIdentities: number) => {
-      const identitiesObjects: ReturnType<NetworkContext['generateIdentities']> = [];
+      const identitiesObjects: Awaited<ReturnType<NetworkContext['generateIdentities']>> = [];
       if (utils && utils.GenerateChannelIdentity && cmix) {
         for (let i = 0; i < amountOfIdentities; i++) {
           const createdPrivateIdentity = utils.GenerateChannelIdentity(cmix?.GetID());
@@ -979,17 +985,17 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
     ) => {
       console.log('Checking registration readiness...');
       return new Promise<void>((resolve) => {
-        const intervalId = setInterval(() => {
+        const intervalId = setInterval(async () => {
           if (cmix) {
             const isReadyInfo = isReadyInfoDecoder(
-              JSON.parse(decoder.decode(cmix?.IsReady(CMIX_NETWORK_READINESS_THRESHOLD)))
+              JSON.parse(decoder.decode(await cmix?.IsReady(CMIX_NETWORK_READINESS_THRESHOLD)))
             );
             onIsReadyInfoChange(isReadyInfo);
             if (isReadyInfo.isReady) {
               clearInterval(intervalId);
-              setTimeout(() => {
+              setTimeout(async () => {
                 console.log('Network ready, creating channel manager...');
-                createChannelManager(selectedPrivateIdentity);
+                await createChannelManager(selectedPrivateIdentity);
                 setIsAuthenticated(true);
                 resolve();
               }, 3000);
