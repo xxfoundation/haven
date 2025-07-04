@@ -7,6 +7,43 @@ export type HavenStorage = {
   key: (index: number) => Promise<string | null>;
 };
 
+// type from Extension
+type Message<T extends string> = {
+  api: T;
+  requestId: string;
+};
+
+type BaseLocalStorageRequest = Message<'LocalStorage:Request'>;
+
+export type TRequest =
+  | (BaseLocalStorageRequest & {
+      action: 'clear' | 'keys';
+    })
+  | (BaseLocalStorageRequest & {
+      action: 'getItem' | 'removeItem';
+      key: string;
+    })
+  | (BaseLocalStorageRequest & {
+      action: 'setItem';
+      key: string;
+      value: string;
+    });
+
+type BaseLocalStorageResponse = Message<'LocalStorage:Response'>;
+
+export type TResponse =
+  | (BaseLocalStorageResponse & {
+      action: 'getItem';
+      result: unknown;
+    })
+  | (BaseLocalStorageResponse & {
+      action: 'keys';
+      result: string[];
+    })
+  | (BaseLocalStorageResponse & {
+      action: 'removeItem' | 'clear' | 'setItem';
+    });
+
 function generateRequestId(): string {
   return Math.random().toString(36).slice(2, 11);
 }
@@ -20,6 +57,10 @@ const promiseHandlers: Record<
 const EXT_ID = 'knjemccepbogcmlhnhffagneinknidic';
 let port: chrome.runtime.Port;
 
+function isValidResponse(msg: any): msg is TResponse {
+  return msg?.requestId && msg.api === 'LocalStorage:Response';
+}
+
 function setupPort() {
   port = chrome.runtime.connect(EXT_ID, { name: 'LocalStorageChannel' });
 
@@ -28,8 +69,8 @@ function setupPort() {
     if (msg?.requestId && msg.api === 'LocalStorage:Response') {
       const handler = promiseHandlers[msg.requestId];
 
-      if (handler) {
-        handler.resolve(msg.result);
+      if (handler && isValidResponse(msg)) {
+        handler.resolve('result' in msg ? msg.result : undefined);
         delete promiseHandlers[msg.requestId];
       }
     }
@@ -45,6 +86,9 @@ function setupPort() {
 // initialize the port
 setupPort();
 
+function sendViaPort<T>(action: 'clear' | 'keys'): Promise<T>;
+function sendViaPort<T>(action: 'getItem' | 'removeItem', key: string): Promise<T>;
+function sendViaPort<T>(action: 'setItem', key: string, value: any): Promise<T>;
 function sendViaPort<T>(
   action: 'getItem' | 'setItem' | 'removeItem' | 'clear' | 'keys',
   key?: string,
@@ -54,15 +98,28 @@ function sendViaPort<T>(
 
   return new Promise<T>((resolve, reject) => {
     promiseHandlers[requestId] = { resolve, reject };
+    let request: TRequest;
 
+    if (action === 'clear' || action === 'keys') {
+      // no key/value
+      request = { api: 'LocalStorage:Request', action, requestId };
+    } else if (action === 'getItem' || action === 'removeItem') {
+      // key is required here
+      request = { api: 'LocalStorage:Request', action, key: key!, requestId };
+    } else if (action === 'setItem') {
+      // setItem: both key and value are required
+      request = { api: 'LocalStorage:Request', action, key: key!, value: value!, requestId };
+    } else {
+      throw new Error(`Unknown action: ${action}`);
+    }
     try {
-      port.postMessage({ api: 'LocalStorage', action, key, value, requestId });
+      port.postMessage(request);
     } catch (err) {
       console.error('postMessage failed, reconnecting port', err);
       setupPort();
       // retry once after reconnect
       try {
-        port.postMessage({ api: 'LocalStorage', action, key, value, requestId });
+        port.postMessage({ api: 'LocalStorage:Request', action, key, value, requestId });
       } catch (retryErr) {
         delete promiseHandlers[requestId];
         reject(retryErr);
