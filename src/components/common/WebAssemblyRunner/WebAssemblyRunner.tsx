@@ -60,14 +60,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       });
     }
   }, [basePath, setUtils, setUtilsLoaded, utilsLoaded]);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     console.log('tick');
-  //   }, 100);
-  //   return () => clearInterval(interval);
-  // }, []);
-
   return <>{children}</>;
 };
 
