@@ -39,7 +39,6 @@ const ndf = GetDefaultNDF();
 const useCmix = () => {
   const [initState, setInitState] = useState<InitState>(InitState.UNINITIALIZED);
   const { cmixPreviouslyInitialized, rawPassword } = useAuthentication();
-  const [isInitialized, setIsInitialized] = useState(false);
   const [status, setStatus] = useState<NetworkStatus>(NetworkStatus.UNINITIALIZED);
   const [dummyTraffic, setDummyTrafficManager] = useState<DummyTraffic>();
   const [cmix, setCmix] = useState<CMix | undefined>();
@@ -197,9 +196,7 @@ const useCmix = () => {
 
   // Cmix initialization and loading
   const initializeCmix = async (password: Uint8Array) => {
-    if (!cmixPreviouslyInitialized && !isInitialized) {
-      console.log('calling new cmix', password);
-      setIsInitialized(true);
+    if (!cmixPreviouslyInitialized) {
       await utils.NewCmix(ndf, STATE_PATH, password, '');
     }
   };
