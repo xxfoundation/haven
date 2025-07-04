@@ -204,10 +204,8 @@ const useCmix = () => {
     }
   };
   const loadCmix = async (password: Uint8Array) => {
-    setTimeout(async () => {
-      const loadedCmix = await utils.LoadCmix(STATE_PATH, password, encodedCmixParams);
-      setCmix(loadedCmix);
-    }, 10000);
+    const loadedCmix = await utils.LoadCmix(STATE_PATH, password, encodedCmixParams);
+    setCmix(loadedCmix);
   };
   useEffect(() => {
     if (decryptedPass) {
@@ -219,10 +217,7 @@ const useCmix = () => {
 
   const onPasswordDecryption = useCallback(
     async (password: Uint8Array) => {
-      console.log('password decrypted', password);
-      if (password != decryptedPass) {
-        setDecryptedPass(password);
-      }
+      setDecryptedPass(password);
     },
     [accountSync.status]
   );
