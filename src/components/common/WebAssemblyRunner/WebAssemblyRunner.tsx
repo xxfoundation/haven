@@ -47,10 +47,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
       // setXXDKBasePath(basePath);
       window.havenStorage = havenStorageExt;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // window.localStoragePromise = windowStorage;
-      // eslint-disable-next-line no-console
-      console.log('useEffect wxxdkToStr', window!.xxdkBasePath.toString());
 
       InitXXDK().then(async (result: any) => {
         setUtils(result);
