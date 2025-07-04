@@ -25,7 +25,6 @@ declare global {
     logger?: Logger;
     getCrashedLogFile: () => Promise<string>;
     havenStorage: HavenStorage;
-    xxdkBasePath: URL;
   }
 }
 
@@ -45,7 +44,6 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       //   cd public && ln -s ../node_modules/xxdk-wasm xxdk-wasm && cd ..
       // Then override with this function here:
       setXXDKBasePath(window!.location.href + 'xxdk-wasm');
-      // window!.xxdkBasePath = window!.location.href + 'xxdk-wasm';
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
       // setXXDKBasePath(basePath);
       window.havenStorage = havenStorageExt;
