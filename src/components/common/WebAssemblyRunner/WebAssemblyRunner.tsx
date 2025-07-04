@@ -6,7 +6,7 @@ import { FC, useEffect } from 'react';
 import { InitXXDK, setXXDKBasePath } from 'xxdk-wasm';
 
 import { useUtils } from 'src/contexts/utils-context';
-import { havenStorageExt, HavenStorage } from './extSPromise';
+import { havenStorageExt, HavenStorage } from './haven-storage';
 
 type Logger = {
   StopLogging: () => void;
