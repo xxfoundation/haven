@@ -324,7 +324,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   );
 
   const getPrivacyLevel = useCallback(
-    async (channelId: string) => getShareUrlType((await getShareURL(channelId))?.url),
+    (channelId: string) => getShareUrlType(getShareURL(channelId)?.url),
     [getShareURL, getShareUrlType]
   );
 
@@ -350,7 +350,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
         const channel: Channel = {
           id: chanInfo.receptionId || chanInfo.channelId,
           name: chanInfo.name,
-          privacyLevel: await getPrivacyLevel(chanInfo.receptionId || chanInfo.channelId),
+          privacyLevel: getPrivacyLevel(chanInfo.receptionId || chanInfo.channelId),
           description: chanInfo.description,
           isAdmin: await channelManager.IsChannelAdmin(utils.Base64ToUint8Array(chanInfo.channelId))
         };
@@ -458,7 +458,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
 
     const channelListPromises = fetchedChannels.map(async (ch: DBChannel) => ({
       ...ch,
-      privacyLevel: await getPrivacyLevel(ch.id),
+      privacyLevel: getPrivacyLevel(ch.id),
       isAdmin: await channelManager.IsChannelAdmin(utils.Base64ToUint8Array(ch.id))
     }));
 
@@ -682,7 +682,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
                 id: chanInfo?.channelId,
                 name: chanInfo?.name,
                 description: chanInfo?.description,
-                privacyLevel: await getPrivacyLevel(chanInfo?.channelId),
+                privacyLevel: getPrivacyLevel(chanInfo?.channelId),
                 isAdmin: await channelManager.IsChannelAdmin(
                   utils.Base64ToUint8Array(chanInfo.channelId)
                 )
