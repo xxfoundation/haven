@@ -13,9 +13,6 @@ tasks:
       before: |
           cat global.gitconfig >> /home/gitpod/.gitconfig
           cd ../xxdk-wasm
-          go install github.com/agnivade/wasmbrowsertest@v0.10.0
-          go install github.com/agnivade/wasmbrowsertest/cmd/cleanenv@v0.10.0
-          mv $GOPATH/bin/wasmbrowsertest $GOPATH/bin/go_js_wasm_exec
           
           wget https://dl-ssl.google.com/linux/linux_signing_key.pub -O /tmp/google.pub
           sudo gpg --no-default-keyring --keyring /etc/apt/keyrings/google-chrome.gpg --import /tmp/google.pub
@@ -36,7 +33,7 @@ tasks:
           bun link xxdk-wasm
       command: |
           npm run dev
-          
+
     - name: xxdk-wasm
       init: |
           cd /workspace
