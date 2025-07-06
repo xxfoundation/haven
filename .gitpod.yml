@@ -1,28 +1,22 @@
 # example .gitpod.yml from https://github.com/gitpod-io/demo-multi-repo-frontend
 workspaceLocation: haven/main.code-workspace # Relative to /workspace dir
-additionalRepositories:
-    - url: https://github.com/thisisommore/xxdk-wasm.git
-      checkoutLocation: xxdk-wasm
 
 image:
   file: gitpod.Dockerfile
 tasks:
-    - name: xxdk-wasm
-      # change working directory as per configured in `checkoutLocation`
-      # which is configured above as `/workspaces/backend`
+    - name: setup-chrome-and-git
       before: |
           cat global.gitconfig >> /home/gitpod/.gitconfig
-          cd ../xxdk-wasm
-          
           wget https://dl-ssl.google.com/linux/linux_signing_key.pub -O /tmp/google.pub
           sudo gpg --no-default-keyring --keyring /etc/apt/keyrings/google-chrome.gpg --import /tmp/google.pub
           echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main' | sudo tee /etc/apt/sources.list.d/google-chrome.list
           sudo apt-get update 
           sudo apt-get install -y google-chrome-stable
-
-
-          # cleanenv -remove-prefix GITPOD_ -- go test -cover ./...
+    
+    - name: xxdk-wasm
       init: |
+          git clone https://git.xx.network/elixxir/xxdk-wasm.git
+          cd xxdk-wasm
           npm i && npm run build && bun link && gp sync-done xxdk-wasm-link
 
       # changing of working directory is not required as these tasks will

@@ -29,6 +29,9 @@ RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="$PATH:$GOPATH/bin"
 ENV GOOS=js GOARCH=wasm
 
+COPY global.gitconfig /home/gitpod/tmp.gitconfig
+RUN cat /home/gitpod/tmp.gitconfig >> /home/gitpod/.gitconfig
+RUN rm -rf /home/gitpod/tmp.gitconfig
 
 # git config --global --add safe.directory '*'
 # Set default command to display versions
