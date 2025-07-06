@@ -12,30 +12,36 @@ tasks:
           echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main' | sudo tee /etc/apt/sources.list.d/google-chrome.list
           sudo apt-get update 
           sudo apt-get install -y google-chrome-stable
-    
-    - name: xxdk-wasm
-      init: |
-          git clone https://git.xx.network/elixxir/xxdk-wasm.git
-          cd xxdk-wasm
-          npm i && npm run build && bun link && gp sync-done xxdk-wasm-link
 
-      # changing of working directory is not required as these tasks will
-      # by default by executed in `/workspaces/demo-multi-repo-frontend`
     - name: haven
       init: |
           gp sync-await xxdk-wasm-link
           bun link xxdk-wasm
       command: |
           npm run dev
+    
+    - name: xxdk-wasm
+      init: |
+          cd /workspace
+          git clone https://git.xx.network/elixxir/xxdk-wasm.git
+          cd xxdk-wasm
+          npm i && npm run build && bun link && gp sync-done xxdk-wasm-link
+      command: |
+          cd /workspace/xxdk-wasm
+
 
     - name: client
       init: |
           cd /workspace
           git clone https://git.xx.network/elixxir/client.git
           cd client
+      command: |
+          cd /workspace/client
 
     - name: ekv
       init: |
           cd /workspace
           git clone https://git.xx.network/elixxir/ekv.git
           cd ekv
+      command: |
+          cd /workspace/ekv
