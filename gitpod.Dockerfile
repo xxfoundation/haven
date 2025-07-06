@@ -20,6 +20,7 @@ RUN go install github.com/agnivade/wasmbrowsertest@v0.10.0
 RUN go install github.com/agnivade/wasmbrowsertest/cmd/cleanenv@v0.10.0
 RUN mv $GOPATH/bin/wasmbrowsertest $GOPATH/bin/go_js_wasm_exec
 RUN useradd -l -u 33333 -G sudo -md /home/gitpod -s /bin/bash -p gitpod gitpod
+RUN chown -R gitpod:gitpod /go/pkg/mod
 
 USER gitpod
 RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
