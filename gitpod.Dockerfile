@@ -20,7 +20,7 @@ RUN go install github.com/agnivade/wasmbrowsertest@v0.10.0
 RUN go install github.com/agnivade/wasmbrowsertest/cmd/cleanenv@v0.10.0
 RUN mv $GOPATH/bin/wasmbrowsertest $GOPATH/bin/go_js_wasm_exec
 RUN useradd -l -u 33333 -G sudo -md /home/gitpod -s /bin/bash -p gitpod gitpod
-RUN chown -R gitpod:gitpod /go/pkg/mod
+RUN chown -R gitpod:gitpod /go
 
 USER gitpod
 RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
@@ -34,6 +34,7 @@ RUN cat /home/gitpod/tmp.gitconfig >> /home/gitpod/.gitconfig
 RUN rm -rf /home/gitpod/tmp.gitconfig
 
 ENV GOPRIVATE=gitlab.com/elixxir/*,gitlab.com/xx_network/*,git.xx.network/elixxir/*,git.xx.network/xx_network/*
+# cleanenv -remove-prefix GITPOD_ -- go test -cover ./...
 
 # git config --global --add safe.directory '*'
 # Set default command to display versions
