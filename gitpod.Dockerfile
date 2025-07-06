@@ -33,5 +33,7 @@ COPY global.gitconfig /home/gitpod/tmp.gitconfig
 RUN cat /home/gitpod/tmp.gitconfig >> /home/gitpod/.gitconfig
 RUN rm -rf /home/gitpod/tmp.gitconfig
 
+ENV GOPRIVATE=gitlab.com/elixxir/*,gitlab.com/xx_network/*,git.xx.network/elixxir/*,git.xx.network/xx_network/*
+
 # git config --global --add safe.directory '*'
 # Set default command to display versions
