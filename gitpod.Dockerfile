@@ -21,5 +21,8 @@ RUN useradd -l -u 33333 -G sudo -md /home/gitpod -s /bin/bash -p gitpod gitpod
 USER gitpod
 RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
 RUN curl -fsSL https://bun.sh/install | bash
+
+ENV PATH="$PATH:$GOPATH/bin"
+ENV GOOS=js GOARCH=wasm
 # git config --global --add safe.directory '*'
 # Set default command to display versions
