@@ -4,6 +4,8 @@ workspaceLocation: haven/main.code-workspace # Relative to /workspace dir
 image:
   file: gitpod.Dockerfile
 tasks:
+    - before: |
+        printf 'export PATH="%s:$PATH"\n' "/usr/local/go/bin" >> $HOME/.bashrc && exit
     - name: setup-chrome-and-git
       before: |
           cat global.gitconfig >> /home/gitpod/.gitconfig
