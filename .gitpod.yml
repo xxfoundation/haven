@@ -34,12 +34,6 @@ tasks:
       command: |
           npm run dev
 
-    - name: xxdk-wasm
-      init: |
-          cd /workspace
-          git clone https://git.xx.network/elixxir/xxdk-wasm.git
-          cd xxdk-wasm
-
     - name: client
       init: |
           cd /workspace
