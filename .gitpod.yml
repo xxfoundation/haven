@@ -36,3 +36,21 @@ tasks:
           bun link xxdk-wasm
       command: |
           npm run dev
+          
+    - name: xxdk-wasm
+      init: |
+          cd /workspace
+          git clone https://git.xx.network/elixxir/xxdk-wasm.git
+          cd xxdk-wasm
+
+    - name: client
+      init: |
+          cd /workspace
+          git clone https://git.xx.network/elixxir/client.git
+          cd client
+
+    - name: ekv
+      init: |
+          cd /workspace
+          git clone https://git.xx.network/elixxir/ekv.git
+          cd ekv
