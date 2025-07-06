@@ -24,5 +24,10 @@ RUN curl -fsSL https://bun.sh/install | bash
 
 ENV PATH="$PATH:$GOPATH/bin"
 ENV GOOS=js GOARCH=wasm
+
+RUN go install github.com/agnivade/wasmbrowsertest@v0.10.0
+RUN go install github.com/agnivade/wasmbrowsertest/cmd/cleanenv@v0.10.0
+RUN mv $GOPATH/bin/wasmbrowsertest $GOPATH/bin/go_js_wasm_exec
+
 # git config --global --add safe.directory '*'
 # Set default command to display versions
