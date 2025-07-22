@@ -14,9 +14,9 @@ xx_network/
  - ekv
  - xxdk-wasm
  - haven (fix-stuck branch)
- - extension
+ - extension (use-service-worker branch)
 Clone all above repos,
-and move to following branches on all except haven and extension which uses the `fix-stuck` branch ⟶
+and move to following branches on all except haven and extension which uses different branch ⟶
 ```bash
 git checkout 11-22-implement-kv-interface-defined-in-collectiveversionedkvgo
 ```
