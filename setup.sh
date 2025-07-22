@@ -1,3 +1,11 @@
+# 0. verify update files (inline, no function)
+for f in dm.ts webpack.config.js tsconfig.json; do
+  if [ ! -f "$f" ]; then
+    echo "Error: '$f' not found in $(pwd). Please add it here and re-run."
+    return 1
+  fi
+done
+
 # 1. workspace & clone
 mkdir -p xx_network && cd xx_network
 git clone https://git.xx.network/elixxir/client.git    client
@@ -25,12 +33,12 @@ echo "replace gitlab.com/elixxir/ekv => ../ekv"           >> xxdk-wasm/go.mod
 echo "replace gitlab.com/elixxir/ekv => ../ekv"           >> client/go.mod
 
 # 5. add git URL rewrites
-printf '\n[url "https://git.xx.network/elixxir"]\n'
-'    insteadOf = https://gitlab.com/elixxir\n'
-'    insteadOf = https://git.xx.network/elixxir\n'
-'[url "https://git.xx.network/xx_network"]\n'
-'    insteadOf = https://gitlab.com/xx_network\n'
-'    insteadOf = https://git.xx.network/xx_network\n' 
+printf '\n[url "https://git.xx.network/elixxir"]\n'\
+'    insteadOf = https://gitlab.com/elixxir\n'\
+'    insteadOf = https://git.xx.network/elixxir\n'\
+'[url "https://git.xx.network/xx_network"]\n'\
+'    insteadOf = https://gitlab.com/xx_network\n'\
+'    insteadOf = https://git.xx.network/xx_network\n' \
 >> ~/.gitconfig
 
 # 6. copy your updates
