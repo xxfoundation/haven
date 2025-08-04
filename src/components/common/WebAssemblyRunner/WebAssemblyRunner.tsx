@@ -6,7 +6,9 @@ import { FC, useEffect } from 'react';
 import { InitXXDK, setXXDKBasePath } from 'xxdk-wasm';
 
 import { useUtils } from 'src/contexts/utils-context';
-import { havenStorageExt, HavenStorage } from './haven-storage';
+import { havenStorageExtension } from './haven-storage-extension';
+import { havenStorageLocal } from './local-storage';
+import { HavenStorage } from './type';
 
 type Logger = {
   StopLogging: () => void;
@@ -46,12 +48,28 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       setXXDKBasePath(window!.location.href + 'xxdk-wasm');
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
       // setXXDKBasePath(basePath);
-      window.havenStorage = havenStorageExt;
 
-      InitXXDK().then(async (result: any) => {
-        setUtils(result);
+      const initXXdk = async () => {
+        if (localStorage.getItem('🞮🞮speakeasyapp') === null) {
+          const isAvailable = await havenStorageExtension.init();
+          if (isAvailable) {
+            console.log('[HavenStorage] Using extension storage since extension is available');
+            window.havenStorage = havenStorageExtension;
+          } else {
+            console.log('[HavenStorage] Using localStorage since extension is not available');
+            window.havenStorage = havenStorageLocal;
+          }
+        } else {
+          console.log('[HavenStorage] Using localStorage due to existing keys');
+          window.havenStorage = havenStorageLocal;
+        }
+
+        const xxdkUtils = await InitXXDK();
+        setUtils(xxdkUtils);
         setUtilsLoaded(true);
-      });
+      };
+
+      initXXdk();
     }
   }, [basePath, setUtils, setUtilsLoaded, utilsLoaded]);
   return <>{children}</>;
