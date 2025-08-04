@@ -449,7 +449,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   useChannelsListener(ChannelEvents.MESSAGE_RECEIVED, handleMessageEvent);
 
   const fetchChannels = useCallback(async () => {
-    console.log('fetchedChannels db: %s, channelManager: %s', !!db, !!channelManager);
+    console.log('fetchedChannels');
     if (!db || !channelManager) throw new Error('DB and channel manager required');
 
     const fetchedChannels = await db.table<DBChannel>('channels').toArray();
