@@ -92,6 +92,8 @@ function setupPort(): Promise<boolean> {
         }
       }
     });
+
+    // send message to check if extension is responding to request
     port.postMessage({
       api: 'LocalStorage:Request',
       action: 'getItem',
