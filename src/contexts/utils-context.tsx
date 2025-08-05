@@ -55,7 +55,7 @@ export type XXDKUtils = {
     cmixParams: Uint8Array
   ) => Promise<CMix>;
   LoadNotifications: (cmixId: number) => Notifications;
-  LoadNotificationsDummy: (cmixId: number) => Notifications;
+  LoadNotificationsDummy: (cmixId: number) => Promise<Notifications>;
   GetDefaultCMixParams: () => Uint8Array;
   GetChannelInfo: (prettyPrint: string) => Uint8Array;
   Base64ToUint8Array: (base64: string) => Uint8Array;
@@ -81,7 +81,7 @@ export type XXDKUtils = {
     cmixId: number,
     storagePassword: Uint8Array,
     payloadMaximumSize: number
-  ) => RawCipher;
+  ) => Promise<RawCipher>;
   LoadChannelsManagerWithIndexedDb: (
     cmixId: number,
     wasmJsPath: string,

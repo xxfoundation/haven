@@ -23,6 +23,7 @@
     "@juggle/resize-observer": "^3.4.0",
     "@react-spring/web": "^9.5.5",
     "@reduxjs/toolkit": "^1.9.1",
+    "@types/chrome": "^0.0.326",
     "@vitejs/plugin-react": "^4.3.4",
     "@windmillcode/quill-emoji": "^2.0.3000",
     "body-scroll-lock": "^4.0.0-beta.0",
