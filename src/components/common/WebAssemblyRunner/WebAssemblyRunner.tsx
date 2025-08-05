@@ -45,9 +45,10 @@ const WebAssemblyRunner: FC<WithChildren> = ({ children }) => {
       // symlinking your public directory:
       //   cd public && ln -s ../node_modules/xxdk-wasm xxdk-wasm && cd ..
       // Then override with this function here:
-      setXXDKBasePath(window!.location.href + 'xxdk-wasm');
+      // setXXDKBasePath(window!.location.href + 'xxdk-wasm');
+
       // NOTE: NextJS hackery, since they can't seem to provide a helper to get a proper origin...
-      // setXXDKBasePath(basePath);
+      setXXDKBasePath(basePath);
 
       const initXXdk = async () => {
         if (localStorage.getItem('🞮🞮speakeasyapp') === null) {
