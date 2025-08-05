@@ -47,7 +47,7 @@ const promiseHandlers: Record<
 > = {};
 
 // establish a long-lived Port to extension
-const EXT_ID = 'knjemccepbogcmlhnhffagneinknidic';
+const EXT_ID = 'ihilcflljgogpbkopcmkoaoildehaehc';
 let port: chrome.runtime.Port;
 
 function isValidResponse(msg: any): msg is TResponse {
