@@ -797,7 +797,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
         throw e; // Propagate error to caller
       }
     },
-    [channelManager, currentChannel, utils]
+    [channelManager, currentChannel, currentConversation, sendDirectMessage, utils]
   );
 
   const sendReply = useCallback(
@@ -819,7 +819,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
         sendDMReply(reply, replyToMessageId);
       }
     },
-    [channelManager, currentChannel, currentConversation, utils, sendDMReply]
+    [channelManager, currentChannel, currentConversation, sendDMReply, utils]
   );
 
   const deleteMessage = useCallback(
