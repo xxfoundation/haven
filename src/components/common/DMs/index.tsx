@@ -43,10 +43,10 @@ const DMs = () => {
   );
 
   useEffect(() => {
-    if (!currentConversation && filteredConversations.length > 0 && !favsLoading) {
+    if (selectedChannelId === null && filteredConversations.length > 0 && !favsLoading) {
       dispatch(app.actions.selectChannelOrConversation(filteredConversations[0]?.pubkey));
     }
-  }, [filteredConversations, currentConversation, dispatch, favsLoading]);
+  }, [selectedChannelId, filteredConversations.length, favsLoading, dispatch]);
 
   return (
     <div className='bg-our-black p-4 pb-8 h-full'>
