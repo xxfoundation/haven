@@ -68,7 +68,7 @@ const useDmClient = () => {
           currentConversation.token,
           reply,
           utils.Base64ToUint8Array(replyToMessageId),
-          30000,
+          MESSAGE_LEASE,
           new Uint8Array()
         );
       } catch (error) {
@@ -175,7 +175,6 @@ const useDmClient = () => {
         utils.Base64ToUint8Array(currentConversation.pubkey),
         currentConversation.token,
         utils.Base64ToUint8Array(messageId),
-        undefined,
         new Uint8Array()
       );
     },
