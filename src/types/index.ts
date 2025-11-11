@@ -54,7 +54,6 @@ export type DMClient = {
     pubkey: Uint8Array,
     dmToken: number,
     messageId: Uint8Array,
-    noop: undefined,
     cmixParams: Uint8Array
   ) => void;
 };

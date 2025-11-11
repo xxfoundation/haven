@@ -186,7 +186,7 @@ export const userMutedEventDecoder = makeDecoder(
   )
 );
 
-const messageIdDecoder = uint8ArrayDecoder.map((s) => Buffer.from(s).toString('base64'));
+const messageIdDecoder = JsonDecoder.string;
 
 export const messageDeletedEventDecoder = makeDecoder(
   JsonDecoder.object<MessageDeletedEvent>(
@@ -195,7 +195,7 @@ export const messageDeletedEventDecoder = makeDecoder(
     },
     'MessageDeletedDecoder',
     {
-      messageId: 'MessageId'
+      messageId: 'messageID'
     }
   )
 );
