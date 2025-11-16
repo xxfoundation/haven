@@ -56,8 +56,8 @@ const useCmix = () => {
   }, [utils]);
 
   const createDatabaseCipher = useCallback(
-    (id: number, password: Uint8Array) => {
-      const cipher = utils.NewDatabaseCipher(id, password, MAXIMUM_PAYLOAD_BLOCK_SIZE);
+    async (id: number, password: Uint8Array) => {
+      const cipher = await utils.NewDatabaseCipher(id, password, MAXIMUM_PAYLOAD_BLOCK_SIZE);
 
       setDatabaseCipher({
         id: cipher.GetID(),
@@ -107,7 +107,7 @@ const useCmix = () => {
 
     setStatus(NetworkStatus.CONNECTING);
     try {
-      cmix.StartNetworkFollower(FOLLOWER_TIMEOUT_PERIOD);
+      await cmix.StartNetworkFollower(FOLLOWER_TIMEOUT_PERIOD);
     } catch (error) {
       console.error('Error while StartNetworkFollower:', error);
       setStatus(NetworkStatus.FAILED);

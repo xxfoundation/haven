@@ -135,7 +135,9 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
   useEffect(() => {
     if (client) {
       try {
-        dispatch(dms.actions.setUserNickname(client.GetNickname()));
+        client.GetNickname().then((nickname) => {
+          dispatch(dms.actions.setUserNickname(nickname));
+        });
       } catch (e) {
         // no nickname found
       }
@@ -149,8 +151,8 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
   }, [client, dmsDatabaseName, setDmsDatabaseName]);
 
   const createDatabaseCipher = useCallback(
-    (cmix: CMix, decryptedPassword: Uint8Array) => {
-      const cipher = utils.NewDatabaseCipher(
+    async (cmix: CMix, decryptedPassword: Uint8Array) => {
+      const cipher = await utils.NewDatabaseCipher(
         cmix.GetID(),
         decryptedPassword,
         MAXIMUM_PAYLOAD_BLOCK_SIZE
@@ -177,7 +179,7 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
       try {
         const workerPath = (await dmIndexedDbWorkerPath()).toString();
         //console.log('DMWORKERPATH: ' + workerPath);
-        const notifications = utils.LoadNotificationsDummy(cmix.GetID());
+        const notifications = await utils.LoadNotificationsDummy(cmix.GetID());
         NewDMClientWithIndexedDb(
           cmix.GetID(),
           notifications.GetID(),
@@ -206,8 +208,9 @@ export const DMContextProvider: FC<WithChildren> = ({ children }) => {
         rawPassword as string,
         channelManager.ExportPrivateIdentity(rawPassword as string)
       );
-      const cipher = createDatabaseCipher(cmix as CMix, decryptedPassword as Uint8Array);
-      createDMClient(cmix as CMix, cipher, privateIdentity);
+      createDatabaseCipher(cmix as CMix, decryptedPassword as Uint8Array).then((cipher) => {
+        createDMClient(cmix as CMix, cipher, privateIdentity);
+      });
     }
   }, [
     channelManager,

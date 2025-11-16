@@ -143,10 +143,10 @@ const useDmClient = () => {
     [client, dispatch]
   );
 
-  const getDmNickname = useCallback(() => {
+  const getDmNickname = useCallback(async () => {
     let nickname: string;
     try {
-      nickname = client?.GetNickname() ?? '';
+      nickname = (await client?.GetNickname()) ?? '';
     } catch (error) {
       nickname = '';
     }

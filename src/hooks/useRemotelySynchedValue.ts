@@ -15,12 +15,17 @@ const useRemotelySynchedValue = <T>(key: string, decoder: Decoder<T>, defaultVal
 
   useEffect(() => {
     if (kv) {
-      const id = kv.listenOn(key, (v) => {
+      let listenOnId: number | undefined = undefined;
+      kv.listenOn(key, (v) => {
         setValue(v !== undefined ? decoder(v) : v);
+      }).then((_listenOnId) => {
+        listenOnId = _listenOnId;
       });
 
       return () => {
-        kv.unregisterListener(key, id);
+        if (listenOnId) {
+          kv.unregisterListener(key, listenOnId);
+        }
       };
     }
   }, [decoder, key, kv]);
