@@ -25,6 +25,8 @@ import SettingsView from '@components/views/SettingsViews';
 import Notices from '@components/common/Notices';
 import { RightSideBar } from '@components/common';
 import PinnedMessage from '@components/common/ChannelChat/PinnedMessage';
+import { useAppSelector } from 'src/store/hooks';
+import * as channels from 'src/store/channels';
 
 const DefaultLayout: FC<WithChildren> = ({ children }) => {
   useEvents();
@@ -33,6 +35,8 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
   const { isAuthenticated } = useAuthentication();
   const { cmix, getShareUrlType, networkStatus } = useNetworkClient();
   const { leftSidebarView: sidebarView, openModal, setChannelInviteLink, setModalView } = useUI();
+  const allChannels = useAppSelector(channels.selectors.channels);
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
 
   useEffect(() => {
     const privacyLevel = getShareUrlType(window.location.href);
@@ -69,6 +73,17 @@ const DefaultLayout: FC<WithChildren> = ({ children }) => {
       openModal();
     }
   }, [accountSync.status, isAuthenticated, networkStatus, openModal, setModalView]);
+
+  // Ensure mobile view defaults to left panel when no spaces/channels exist
+  useEffect(() => {
+    const mobileToggle = document.getElementById('mobileToggle') as HTMLInputElement;
+    if (mobileToggle && window.innerWidth < 768) {
+      // If no channels and no current channel selected, show left panel (where Create/Join buttons are)
+      if (allChannels.length === 0 || !currentChannel) {
+        mobileToggle.checked = false;
+      }
+    }
+  }, [allChannels.length, currentChannel]);
 
   return (
     <>
