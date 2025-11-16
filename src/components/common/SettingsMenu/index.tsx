@@ -37,6 +37,15 @@ const SettingsMenu = () => {
   const { setSettingsView, settingsView } = useUI();
   const isDev = useIsDev();
 
+  const handleSettingsClick = (view: string) => {
+    setSettingsView(view as any);
+    // Trigger mobile toggle to show the content panel
+    const mobileToggle = document.getElementById('mobileToggle') as HTMLInputElement;
+    if (mobileToggle && window.innerWidth < 768) {
+      mobileToggle.checked = true;
+    }
+  };
+
   return (
     <div className='pt-4 px-4 space-y-1'>
       {/*       <SettingsOption
@@ -50,21 +59,21 @@ const SettingsMenu = () => {
       <SettingsOption
         active={settingsView === 'notifications'}
         icon={NotificationsIcon}
-        onClick={() => setSettingsView('notifications')}
+        onClick={() => handleSettingsClick('notifications')}
       >
         {t('Notifications')}
       </SettingsOption>
       <SettingsOption
         active={settingsView === 'export-codename'}
         icon={ExportCodename}
-        onClick={() => setSettingsView('export-codename')}
+        onClick={() => handleSettingsClick('export-codename')}
       >
         {t('Export Codename')}
       </SettingsOption>
       <SettingsOption
         active={settingsView === 'logout'}
         icon={LogOut}
-        onClick={() => setSettingsView('logout')}
+        onClick={() => handleSettingsClick('logout')}
       >
         {t('Log Out')}
       </SettingsOption>
@@ -72,7 +81,7 @@ const SettingsMenu = () => {
         <SettingsOption
           active={settingsView === 'dev'}
           icon={Dev}
-          onClick={() => setSettingsView('dev')}
+          onClick={() => handleSettingsClick('dev')}
         >
           {t('Developer Options')}
         </SettingsOption>
