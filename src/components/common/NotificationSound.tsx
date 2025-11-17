@@ -15,7 +15,7 @@ const SoundPlayer = lazy(async () => {
       default: function Sound({ soundUrl, onInit }: Props) {
         const [play] = useSound(soundUrl, {
           html5: true,
-          preload: true,
+          preload: false,
           volume: 1.0
         });
 
