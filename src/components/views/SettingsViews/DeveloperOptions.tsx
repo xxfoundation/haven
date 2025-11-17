@@ -73,20 +73,20 @@ const DeveloperOptionsView = () => {
       <hr className='w-full my-10 border-charcoal-3' />
       <div className='space-y-12'>
         <div className='flex justify-between items-center'>
-          <h3 className='headline--sm'>{t('Logs')}</h3>
+          <h3 className='headline--sm whitespace-nowrap'>{t('Logs')}</h3>
           <Button className='text-center space-x-2' onClick={exportLogs}>
             <span>{t('Download')}</span>
             <Download className='inline w-5 h-5' />
           </Button>
         </div>
         <div className='flex justify-between items-center'>
-          <h3 className='headline--sm'>{t('Notification Sound')}</h3>
-          <div>
+          <h3 className='headline--sm whitespace-nowrap'>{t('Notification Sound')}</h3>
+          <div className='relative'>
             <SoundSelector />
           </div>
         </div>
         <div className='flex justify-between items-center'>
-          <h3 className='headline--sm'>{t('Remote Store')}</h3>
+          <h3 className='headline--sm whitespace-nowrap'>{t('Remote Store')}</h3>
           <div>
             {isSynced ? (
               <Button

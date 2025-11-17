@@ -80,7 +80,7 @@ const NotificationSoundSelector: FC = () => {
   );
 
   return (
-    <div className='p-16 h-[32rem]'>
+    <div className='relative'>
       <Select
         classNames={{
           menu: 'bg-charcoal-4 py-4 rounded-xl mt-1 absolute w-full',
