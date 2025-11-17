@@ -31,14 +31,16 @@ const MainHeader: FC<Props> = ({ className }) => {
       ${className || ''}
     `}
     >
-      {/* Mobile menu button - always visible on mobile */}
-      <button
-        onClick={handleMenuClick}
-        className='md:hidden absolute left-4 top-4 z-10 p-2 hover:opacity-80 transition-opacity'
-        aria-label='Open navigation menu'
-      >
-        <Menu className='w-6 h-6 text-primary' />
-      </button>
+      {/* Mobile menu button - show only when no channel/conversation is selected */}
+      {!(currentChannel && sidebarView === 'spaces') && !(currentConversation && sidebarView === 'dms') && (
+        <button
+          onClick={handleMenuClick}
+          className='md:hidden absolute left-4 top-4 z-10 p-2 hover:opacity-80 transition-opacity'
+          aria-label='Open navigation menu'
+        >
+          <Menu className='w-6 h-6 text-primary' />
+        </button>
+      )}
 
       {currentChannel && sidebarView === 'spaces' && <ChannelHeader {...currentChannel} />}
       {currentConversation && sidebarView === 'dms' && (
