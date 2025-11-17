@@ -9,9 +9,6 @@ import { useUI } from '@contexts/ui-context';
 const SidebarControls: FC = () => {
   const { t } = useTranslation();
   const { leftSidebarView, setLeftSidebarView: setSidebarView } = useUI();
-  const allChannels = useAppSelector(channels.selectors.channels);
-  const dmsDisabled = allChannels.length === 0;
-
   return (
     <div className='flex items-center space-x-1'>
       <button title={t('Spaces')} onClick={() => setSidebarView('spaces')}>
@@ -21,12 +18,7 @@ const SidebarControls: FC = () => {
           }
         />
       </button>
-      <button
-        className='disabled:cursor-not-allowed disabled:opacity-25'
-        title={dmsDisabled ? t('Join or create a channel first.') : t('Direct Messages')}
-        disabled={dmsDisabled}
-        onClick={() => setSidebarView('dms')}
-      >
+      <button title={t('Direct Messages')} onClick={() => setSidebarView('dms')}>
         <Dms
           className={
             leftSidebarView === 'dms' ? 'fill-[var(--primary)]' : 'fill-[var(--charcoal-1)]'

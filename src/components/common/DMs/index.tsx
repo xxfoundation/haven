@@ -13,6 +13,8 @@ import { useUI } from '@contexts/ui-context';
 import Button from '../Button';
 import Identity from '../Identity';
 
+import havenLogo from 'src/assets/images/haven-logo.svg';
+
 const DMs = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -103,24 +105,40 @@ const DMs = () => {
       </div>
       {allConversations.length === 0 && (
         <div className='px-8 py-12 space-y-8'>
-          <h3>{t('Direct Messages')}</h3>
+          <img src={havenLogo} alt='Haven Logo' />
           <p className='text-primary text-xl leading-relaxed font-thin'>
             <Trans>
               This is the beginning of your{' '}
-              <strong className='text-white font-semibold'>completely private</strong> messaging
+              <strong className='text-white font-semibold'>completely private</strong> direct messaging
               experience.
             </Trans>
           </p>
           <div className='space-y-4'>
-            <Button
-              onClick={() => {
-                setModalView('NEW_DM');
-                openModal();
-              }}
-              className='w-full'
-            >
-              {t('Send a Direct Message')}
-            </Button>
+            <div className='space-y-2'>
+              <Button
+                onClick={() => {
+                  setModalView('JOIN_CHANNEL');
+                  openModal();
+                }}
+                variant='outlined'
+                className='w-full'
+              >
+                {t('Join a Space')}
+              </Button>
+              <p className='text-primary text-sm text-center'>... to meet new people.</p>
+            </div>
+            <div className='space-y-2'>
+              <Button
+                onClick={() => {
+                  setModalView('CREATE_CHANNEL');
+                  openModal();
+                }}
+                className='w-full'
+              >
+                {t('Create a Space')}
+              </Button>
+              <p className='text-primary text-sm text-center'>... and invite friends.</p>
+            </div>
           </div>
         </div>
       )}
