@@ -11,43 +11,27 @@ const options = [
 ];
 
 const NotificationSoundSelector: FC = () => {
-  const [touched, setTouched] = useState(false);
-  const [play, setPlay] = useState<(() => void) | null>(null);
-  const [stop, setStop] = useState<(() => void) | null>(null);
+  const [audioInitialized, setAudioInitialized] = useState(false);
+  const [playPreview, setPlayPreview] = useState<((url: string) => void) | null>(null);
   const { set: setNotificationSound, value: notificationSound } = useRemotelySynchedString(
     'notification-sound',
     '/sounds/notification.mp3'
   );
 
   useEffect(() => {
-    let mounted = true;
-
-    const initSound = async () => {
-      try {
-        const [{ default: useSound }] = await Promise.all([import('use-sound')]);
-
-        // Create and resume audio context
-        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        const tempContext = new AudioContext();
-        await tempContext.resume();
-
-        if (!mounted) return;
-
-        const [playFn, { stop: stopFn }] = useSound(notificationSound ?? '');
-        if (mounted) {
-          setPlay(() => playFn);
-          setStop(() => stopFn);
-        }
-
-        // Clean up temp context
-        await tempContext.close();
-      } catch (error) {
-        console.error('Failed to initialize audio:', error);
-      }
+    const initAudio = () => {
+      setAudioInitialized(true);
+      setPlayPreview(() => (url: string) => {
+        const audio = new Audio(url);
+        audio.volume = 1.0;
+        audio.play().catch((error) => {
+          console.error('Failed to play preview sound:', error);
+        });
+      });
     };
 
     const handleInteraction = () => {
-      initSound().catch(console.error);
+      initAudio();
       window.removeEventListener('click', handleInteraction, true);
       window.removeEventListener('touchstart', handleInteraction, true);
       window.removeEventListener('keydown', handleInteraction, true);
@@ -58,21 +42,11 @@ const NotificationSoundSelector: FC = () => {
     window.addEventListener('keydown', handleInteraction, true);
 
     return () => {
-      mounted = false;
       window.removeEventListener('click', handleInteraction, true);
       window.removeEventListener('touchstart', handleInteraction, true);
       window.removeEventListener('keydown', handleInteraction, true);
     };
-  }, [notificationSound]);
-
-  useEffect(() => {
-    if (touched && play) {
-      play();
-    }
-    return () => {
-      if (stop) stop();
-    };
-  }, [play, stop, touched]);
+  }, []);
 
   const selectedOption = useMemo(
     () => options.find((o) => o.value === notificationSound) ?? null,
@@ -96,8 +70,11 @@ const NotificationSoundSelector: FC = () => {
         value={selectedOption}
         onChange={(o) => {
           if (o && !Array.isArray(o) && o !== null) {
-            setTouched(true);
             setNotificationSound(o.value);
+            // Play preview immediately on selection
+            if (playPreview && audioInitialized) {
+              playPreview(o.value);
+            }
           }
         }}
       />
