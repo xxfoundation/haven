@@ -1,4 +1,5 @@
 import CheckboxToggle from '@components/common/CheckboxToggle';
+import NotificationSoundSelector from '@components/common/NotificationSoundSelector';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useNotification from 'src/hooks/useNotification';
@@ -48,6 +49,12 @@ const NotificationsView = () => {
           <h3 className='headline--sm'>{t('Enable Notification Sounds')}</h3>
           <CheckboxToggle checked={enableSounds} onChange={(e) => setEnableSounds(e.target.checked)} />
         </div>
+        {enableSounds && (
+          <div className='flex justify-between items-center'>
+            <h3 className='headline--sm'>{t('Notification Sound')}</h3>
+            <NotificationSoundSelector />
+          </div>
+        )}
       </div>
     </>
   );
