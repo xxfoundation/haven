@@ -34,6 +34,10 @@ const useNotification = () => {
     '/sounds/notification.mp3'
   );
   const { value: enableSounds, set: setEnableSounds } = useRemotelySynchedString('enable-notification-sounds', 'true');
+  const { value: notifyOnDMs, set: setNotifyOnDMs } = useRemotelySynchedString('notify-on-dms', 'true');
+  const { value: notifyOnMentions, set: setNotifyOnMentions } = useRemotelySynchedString('notify-on-mentions', 'true');
+  const { value: notifyOnReplies, set: setNotifyOnReplies } = useRemotelySynchedString('notify-on-replies', 'true');
+  const { value: notifyOnPins, set: setNotifyOnPins } = useRemotelySynchedString('notify-on-pins', 'true');
   const { playNotification } = useSound();
   const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>(
     'notifications-enabled',
@@ -124,11 +128,11 @@ const useNotification = () => {
 
   const onDmProcessed = useCallback(
     (msg: Message) => {
-      if (dmNotificationLevels[msg.pubkey] === DMNotificationLevel.NotifyAll) {
+      if (notifyOnDMs === 'true' && dmNotificationLevels[msg.pubkey] === DMNotificationLevel.NotifyAll) {
         dmReceived(msg.nickname || msg.codename, msg.plaintext ?? '');
       }
     },
-    [dmNotificationLevels, dmReceived]
+    [notifyOnDMs, dmNotificationLevels, dmReceived]
   );
 
   useAppEventListener(AppEvents.DM_PROCESSED, onDmProcessed);
@@ -144,6 +148,8 @@ const useNotification = () => {
 
   const notifyMentions = useCallback(
     (message: Message) => {
+      if (notifyOnMentions !== 'true') return;
+      
       const canNotify = isUserPingableOnThisChannel(message.channelId);
 
       if (message.status === MessageStatus.Delivered && canNotify) {
@@ -163,11 +169,13 @@ const useNotification = () => {
         }
       }
     },
-    [getCodeNameAndColor, isUserPingableOnThisChannel, notifyMentioned, userIdentity?.pubkey]
+    [notifyOnMentions, getCodeNameAndColor, isUserPingableOnThisChannel, notifyMentioned, userIdentity?.pubkey]
   );
 
   const notifyReplies = useCallback(
     async (message: Message) => {
+      if (notifyOnReplies !== 'true') return;
+      
       if (
         db &&
         message.type !== MessageType.Reaction && // Remove emoji reactions, Ben thinks theyre annoying
@@ -188,19 +196,24 @@ const useNotification = () => {
         }
       }
     },
-    [db, getCodeNameAndColor, isUserPingableOnThisChannel, messageReplied, userIdentity?.pubkey]
+    [notifyOnReplies, db, getCodeNameAndColor, isUserPingableOnThisChannel, messageReplied, userIdentity?.pubkey]
   );
 
   const notifyPinned = useCallback(
     (message: Message) => {
+      if (notifyOnPins !== 'true') return;
+      
       const channel = allChannels.find((c) => c.id === message.channelId);
-      const canNotify = isUserPingableOnThisChannel(message.channelId);
+      // For pinned messages, only check if the channel is not completely muted
+      // Pinned messages are important admin announcements and should bypass the notification level setting
+      const status = notificationStatuses[message.channelId] ?? NotificationStatus.WhenOpen;
+      const canNotify = status !== NotificationStatus.Mute;
 
       if (channel && canNotify) {
         messagePinned(message.plaintext ?? '', channel.name);
       }
     },
-    [allChannels, isUserPingableOnThisChannel, messagePinned]
+    [notifyOnPins, allChannels, notificationStatuses, messagePinned]
   );
 
   return {
@@ -214,7 +227,15 @@ const useNotification = () => {
     notifyReplies,
     notifyMentions,
     enableSounds: enableSounds === 'true',
-    setEnableSounds: (val: boolean) => setEnableSounds(val ? 'true' : 'false')
+    setEnableSounds: (val: boolean) => setEnableSounds(val ? 'true' : 'false'),
+    notifyOnDMs: notifyOnDMs === 'true',
+    setNotifyOnDMs: (val: boolean) => setNotifyOnDMs(val ? 'true' : 'false'),
+    notifyOnMentions: notifyOnMentions === 'true',
+    setNotifyOnMentions: (val: boolean) => setNotifyOnMentions(val ? 'true' : 'false'),
+    notifyOnReplies: notifyOnReplies === 'true',
+    setNotifyOnReplies: (val: boolean) => setNotifyOnReplies(val ? 'true' : 'false'),
+    notifyOnPins: notifyOnPins === 'true',
+    setNotifyOnPins: (val: boolean) => setNotifyOnPins(val ? 'true' : 'false')
   };
 };
 
