@@ -10,7 +10,7 @@ import Identity from '../Identity';
 import Button from '../Button';
 import { fullIdentity } from 'src/store/selectors';
 import * as channels from 'src/store/channels';
-import { Contributors } from './Contributors';
+
 import CheckboxToggle from '../CheckboxToggle';
 import { useNetworkClient } from '@contexts/network-client-context';
 import Spinner from '../Spinner/Spinner';
@@ -47,37 +47,11 @@ const CopyButton: FC<{ copied?: boolean; onClick: () => void }> = ({ copied, onC
   );
 };
 
-const MutedUser: FC<{ pubkey: string; codename: string; color: string; codeset: number }> = (user) => {
-  const { muteUser } = useNetworkClient();
 
-  const unmute = useCallback(() => muteUser(user.pubkey, true), [user.pubkey, muteUser]);
-  const [isUnmuting, setIsUnmuting] = useState(false);
-
-  const handleUnmute = async () => {
-    setIsUnmuting(true);
-    await unmute();
-    setIsUnmuting(false);
-  };
-
-  return (
-    <div className='relative w-full group py-1.5 hover:bg-charcoal-3-20 flex items-center justify-between'>
-      <Identity clickable className='block text-charcoal-1 truncate' pubkey={user.pubkey} codeset={user.codeset} />
-      <button disabled={isUnmuting} onClick={handleUnmute}>
-        {isUnmuting ? (
-          <Spinner size='xs' />
-        ) : (
-          <span className='text-xs text-charcoal-1 invisible group-hover:visible cursor-pointer hover:text-primary'>
-            Unmute
-          </span>
-        )}
-      </button>
-    </div>
-  );
-};
 
 const SpaceSettings = () => {
   const { t } = useTranslation();
-  const { channelManager, getShareURL, mutedUsers } = useNetworkClient();
+  const { channelManager, getShareURL } = useNetworkClient();
   const { utils } = useUtils();
   const { isPermissionGranted } = useNotification();
   const { openModal, setModalView, setRightSidebarView } = useUI();
@@ -147,13 +121,7 @@ const SpaceSettings = () => {
     }
   }, [currentChannel, getShareURL]);
 
-  // Filter muted users for current channel
-  const channelMutedUsers = mutedUsers?.filter((user) => {
-    const mutedInChannel = channels.selectors.mutedUsers(
-      useAppSelector((state) => state)
-    )[currentChannel?.id ?? '']?.includes(user.pubkey);
-    return mutedInChannel;
-  }) || [];
+
 
   return currentChannel && identity ? (
     <div className='p-6 overflow-y-auto h-full'>
@@ -372,32 +340,7 @@ const SpaceSettings = () => {
         </div>
       </Collapse>
 
-      {/* SECTION C: OTHER USERS' INFO */}
-      <Collapse title={t('Members & Moderation')} defaultActive={true} className='mb-6'>
-        <div className='space-y-5'>
-          <div>
-            <h6 className='uppercase text-xs text-charcoal-2 mb-2'>{t('Recent contributors')}</h6>
-            <div className='space-y-1'>
-              <Contributors />
-            </div>
-          </div>
 
-          <div>
-            <h6 className='uppercase text-xs text-charcoal-2 mb-2'>
-              {t('Muted Users')} ({channelMutedUsers.length})
-            </h6>
-            {channelMutedUsers.length > 0 ? (
-              <div className='space-y-1'>
-                {channelMutedUsers.map((user) => (
-                  <MutedUser key={user.pubkey} {...user} />
-                ))}
-              </div>
-            ) : (
-              <p className='text-charcoal-1 text-sm italic'>{t('No muted users')}</p>
-            )}
-          </div>
-        </div>
-      </Collapse>
     </div>
   ) : null;
 };
