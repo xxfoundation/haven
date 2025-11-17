@@ -31,8 +31,9 @@ import ChannelBadges from '../ChannelBadges';
 import Contributors from '@components/icons/Contributors';
 import Keys from '@components/icons/Keys';
 import LockOpen from '@components/icons/LockOpen';
-import { useNetworkClient } from '@contexts/network-client-context';
+import { useNetworkClient } from 'src/contexts/network-client-context';
 import { useUtils } from '@contexts/utils-context';
+import useNotification from 'src/hooks/useNotification';
 import classNames from 'classnames';
 import { Star } from 'lucide-react';
 
@@ -78,6 +79,7 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
   const { t } = useTranslation();
   const { utils } = useUtils();
   const { channelManager } = useNetworkClient();
+  const { isPermissionGranted } = useNotification();
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
   const conversationId = useAppSelector(dms.selectors.currentConversation)?.pubkey;
   const channelId = useAppSelector(app.selectors.currentChannelOrConversationId);
@@ -192,8 +194,30 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
               <DropdownItem onClick={() => toggleBlocked(conversationId)} icon={Block}>
                 {isBlocked ? t('Unblock') : t('Block')}
               </DropdownItem>
-              <DropdownItem onClick={toggleDMNotifications} icon={NotificationsIcon}>
-                {dmNotificationLevel === DMNotificationLevel.NotifyNone
+              <DropdownItem
+                onClick={isPermissionGranted ? toggleDMNotifications : undefined}
+                icon={(props: SVGProps<SVGSVGElement>) => (
+                  <div className="relative">
+                    <NotificationsIcon
+                      {...props}
+                      className={classNames(props.className, {
+                        'text-primary': dmNotificationLevel === DMNotificationLevel.NotifyAll && isPermissionGranted,
+                        'text-charcoal-2': dmNotificationLevel === DMNotificationLevel.NotifyNone || !isPermissionGranted
+                      })}
+                    />
+                    {!isPermissionGranted && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute">
+                          <line x1="6" y1="30" x2="30" y2="6" stroke="#ea580c" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                )}
+              >
+                {!isPermissionGranted
+                  ? t('Enable Browser Notifications First')
+                  : dmNotificationLevel === DMNotificationLevel.NotifyNone
                   ? t('Enable Notifications')
                   : t('Disable Notifications')}
               </DropdownItem>
@@ -248,18 +272,29 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
                 </>
               )}
               <DropdownItem
-                onClick={toggleChannelNotifications}
+                onClick={isPermissionGranted ? toggleChannelNotifications : undefined}
                 icon={(props: SVGProps<SVGSVGElement>) => (
-                  <NotificationsIcon
-                    {...props}
-                    className={classNames(props.className, {
-                      'text-primary': channelNotificationsEnabled,
-                      'text-charcoal-1': !channelNotificationsEnabled
-                    })}
-                  />
+                  <div className="relative">
+                    <NotificationsIcon
+                      {...props}
+                      className={classNames(props.className, {
+                        'text-primary': channelNotificationsEnabled && isPermissionGranted,
+                        'text-charcoal-2': !channelNotificationsEnabled || !isPermissionGranted
+                      })}
+                    />
+                    {!isPermissionGranted && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute">
+                          <line x1="6" y1="30" x2="30" y2="6" stroke="#ea580c" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
                 )}
               >
-                {channelNotificationsEnabled
+                {!isPermissionGranted
+                  ? t('Enable Browser Notifications First')
+                  : channelNotificationsEnabled
                   ? t('Disable Notifications')
                   : t('Enable Notifications')}
               </DropdownItem>

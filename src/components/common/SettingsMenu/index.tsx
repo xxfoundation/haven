@@ -8,13 +8,15 @@ import ExportCodename from '@components/icons/ExportCodename';
 import LogOut from '@components/icons/Logout';
 import useIsDev from 'src/hooks/useIsDev';
 import Dev from '@components/icons/Dev';
+import useNotification from 'src/hooks/useNotification';
 
 type SettingsOptionProps = HTMLAttributes<HTMLButtonElement> & {
   icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;
   active?: boolean;
+  disabled?: boolean;
 };
 
-const SettingsOption: FC<SettingsOptionProps> = ({ active, children, icon: Icon, ...props }) => (
+const SettingsOption: FC<SettingsOptionProps> = ({ active, children, icon: Icon, disabled, ...props }) => (
   <button
     className={cn(
       'group p-4 flex items-center space-x-2 rounded-xl hover:bg-charcoal-4 w-full',
@@ -22,12 +24,21 @@ const SettingsOption: FC<SettingsOptionProps> = ({ active, children, icon: Icon,
     )}
     {...props}
   >
-    <Icon
-      className={cn(
-        'w-8 h-8 group-hover:text-primary',
-        active ? 'text-primary' : 'text-charcoal-1 '
+    <div className="relative">
+      <Icon
+        className={cn(
+          'w-8 h-8 group-hover:text-primary',
+          active ? 'text-primary' : 'text-charcoal-1 '
+        )}
+      />
+      {disabled && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute">
+              <line x1="6" y1="26" x2="26" y2="6" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
       )}
-    />
+    </div>
     <span className='font-medium'>{children}</span>
   </button>
 );
@@ -36,6 +47,7 @@ const SettingsMenu = () => {
   const { t } = useTranslation();
   const { setSettingsView, settingsView } = useUI();
   const isDev = useIsDev();
+  const { isPermissionGranted } = useNotification();
 
   const handleSettingsClick = (view: string) => {
     setSettingsView(view as any);

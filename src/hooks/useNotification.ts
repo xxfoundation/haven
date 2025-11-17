@@ -33,11 +33,21 @@ const useNotification = () => {
     'notification-sound',
     '/sounds/notification.mp3'
   );
+  const { value: enableSounds, set: setEnableSounds } = useRemotelySynchedString('enable-notification-sounds', 'true');
   const { playNotification } = useSound();
   const [isPermissionGranted, setIsPermissionGranted] = useLocalStorage<boolean>(
-    'notification-permission',
+    'notifications-enabled',
     Notification?.permission === 'granted'
   );
+
+  // Sync permission on mount if browser state has changed
+  useEffect(() => {
+    if (Notification && Notification.permission === 'granted' && !isPermissionGranted) {
+      setIsPermissionGranted(true);
+    } else if (Notification && Notification.permission === 'denied' && isPermissionGranted) {
+      setIsPermissionGranted(false);
+    }
+  }, []); // Run once on mount
   const notification = useRef<Notification | null>(null);
   const [permissionIgnored, setPermissionIgnored] = useSessionStorage(
     'notifications_ignored',
@@ -47,18 +57,20 @@ const useNotification = () => {
 
   const notify = useCallback(
     (title: string, options?: NotificationOptions) => {
+      if (enableSounds === 'true') {
+        if (playNotification) {
+          playNotification();
+        }
+      }
       if (isPermissionGranted) {
         if (notificationSound?.includes('augh')) {
           triggerEasterEgg(EasterEggs.Masochist);
           setNickname('Masochist');
         }
         notification.current = new Notification(title, options);
-        if (playNotification) {
-          playNotification();
-        }
       }
     },
-    [isPermissionGranted, notificationSound, playNotification, setNickname, triggerEasterEgg]
+    [isPermissionGranted, notificationSound, playNotification, setNickname, triggerEasterEgg, enableSounds]
   );
 
   const allChannels = useAppSelector(channels.selectors.channels);
@@ -200,7 +212,9 @@ const useNotification = () => {
     request,
     notifyPinned,
     notifyReplies,
-    notifyMentions
+    notifyMentions,
+    enableSounds: enableSounds === 'true',
+    setEnableSounds: (val: boolean) => setEnableSounds(val ? 'true' : 'false')
   };
 };
 
