@@ -18,8 +18,7 @@ export const envIsDev = () => {
   return isDev;
 };
 
-export const exportDataToFile = (data: Uint8Array) => {
-  const filename = 'HavenIdentity.json';
+export const exportDataToFile = (data: Uint8Array, filename: string = 'HavenIdentity.json') => {
 
   const file = new Blob([data.buffer as ArrayBuffer], { type: 'text/plain' });
   const a = document.createElement('a');

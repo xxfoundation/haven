@@ -40,7 +40,8 @@ import useCmix, { NetworkStatus } from 'src/hooks/useCmix';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as app from 'src/store/app';
 import * as channels from 'src/store/channels';
-import * as identity from 'src/store/identity';
+import * as identityStore from 'src/store/identity';
+import { selectors as identitySelectors } from 'src/store/identity';
 import * as messages from 'src/store/messages';
 import * as dms from 'src/store/dms';
 import { Channel } from 'src/store/channels/types';
@@ -268,7 +269,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
         const parsed = identityDecoder(JSON.parse(json));
 
         dispatch(
-          identity.actions.set({
+          identityStore.actions.set({
             codename: parsed.codename,
             pubkey: parsed.pubkey,
             codeset: parsed.codeset,
@@ -952,6 +953,8 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
     } else return null;
   }, [utils]);
 
+  const identity = useAppSelector(identitySelectors.identity);
+
   const exportPrivateIdentity = useCallback(
     async (password: string) => {
       if (utils && utils.GetOrInitPassword) {
@@ -960,7 +963,8 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
 
           if (statePassEncoded && channelManager && channelManager.ExportPrivateIdentity) {
             const data = channelManager.ExportPrivateIdentity(password);
-            exportDataToFile(data);
+            const filename = identity?.codename ? `${identity.codename}.json` : 'HavenIdentity.json';
+            exportDataToFile(data, filename);
             return statePassEncoded;
           }
         } catch (error) {
@@ -969,7 +973,7 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
       }
       return false;
     },
-    [channelManager, utils]
+    [channelManager, utils, identity]
   );
 
   const checkRegistrationReadiness = useCallback(
