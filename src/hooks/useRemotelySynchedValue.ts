@@ -16,28 +16,28 @@ const useRemotelySynchedValue = <T>(key: string, decoder: Decoder<T>, defaultVal
   useEffect(() => {
     if (kv) {
       const id = kv.listenOn(key, (v) => {
-        setValue(v !== undefined ? decoder(v) : v);
+        setValue(v !== undefined ? decoder(v) : defaultValue);
       });
 
       return () => {
         kv.unregisterListener(key, id);
       };
     }
-  }, [decoder, key, kv]);
+  }, [decoder, key, kv, defaultValue]);
 
   useEffect(() => {
     if (kv) {
       setLoading(true);
       kv.get(key)
         .then((v) => {
-          setValue(v !== undefined ? decoder(v) : v);
+          setValue(v !== undefined ? decoder(v) : defaultValue);
         })
         .finally(() => {
           setLoading(false);
         });
     }
     // decoders never change
-  }, [key, kv]);
+  }, [key, kv, defaultValue]);
 
   // Adding this workaround because of the bug where setting the first time
   // is bugged and doesnt trigger onChange

@@ -44,6 +44,20 @@ const useNotification = () => {
     Notification?.permission === 'granted'
   );
 
+  // DEBUG: Log notification settings
+  useEffect(() => {
+    console.log('[DEBUG] Notification Settings:', {
+      enableSounds,
+      notifyOnPins,
+      notifyOnMentions,
+      notifyOnReplies,
+      notifyOnDMs,
+      notificationSound,
+      playNotification: playNotification ? 'function exists' : 'null',
+      isPermissionGranted
+    });
+  }, [enableSounds, notifyOnPins, notifyOnMentions, notifyOnReplies, notifyOnDMs, notificationSound, playNotification, isPermissionGranted]);
+
   // Sync permission on mount if browser state has changed
   useEffect(() => {
     if (Notification && Notification.permission === 'granted' && !isPermissionGranted) {
@@ -61,11 +75,26 @@ const useNotification = () => {
 
   const notify = useCallback(
     (title: string, options?: NotificationOptions) => {
+      console.log('[DEBUG] notify() called:', { 
+        title, 
+        enableSounds, 
+        enableSoundsType: typeof enableSounds,
+        playNotification: playNotification ? 'function exists' : 'null',
+        isPermissionGranted 
+      });
+      
       if (enableSounds === 'true') {
+        console.log('[DEBUG] enableSounds is true, checking playNotification...');
         if (playNotification) {
+          console.log('[DEBUG] Playing notification sound!');
           playNotification();
+        } else {
+          console.log('[DEBUG] playNotification is null, sound not played');
         }
+      } else {
+        console.log('[DEBUG] enableSounds is NOT true:', enableSounds);
       }
+      
       if (isPermissionGranted) {
         if (notificationSound?.includes('augh')) {
           triggerEasterEgg(EasterEggs.Masochist);
@@ -201,16 +230,32 @@ const useNotification = () => {
 
   const notifyPinned = useCallback(
     (message: Message) => {
-      if (notifyOnPins !== 'true') return;
+      console.log('[DEBUG] notifyPinned() called:', { 
+        notifyOnPins, 
+        notifyOnPinsType: typeof notifyOnPins,
+        messageId: message.id,
+        channelId: message.channelId 
+      });
+      
+      if (notifyOnPins !== 'true') {
+        console.log('[DEBUG] notifyOnPins is NOT true, returning early:', notifyOnPins);
+        return;
+      }
       
       const channel = allChannels.find((c) => c.id === message.channelId);
+      console.log('[DEBUG] Channel found:', channel ? channel.name : 'null');
+      
       // For pinned messages, only check if the channel is not completely muted
       // Pinned messages are important admin announcements and should bypass the notification level setting
       const status = notificationStatuses[message.channelId] ?? NotificationStatus.WhenOpen;
       const canNotify = status !== NotificationStatus.Mute;
+      console.log('[DEBUG] Can notify?', { status, canNotify });
 
       if (channel && canNotify) {
+        console.log('[DEBUG] Calling messagePinned()');
         messagePinned(message.plaintext ?? '', channel.name);
+      } else {
+        console.log('[DEBUG] NOT calling messagePinned - channel or canNotify failed');
       }
     },
     [notifyOnPins, allChannels, notificationStatuses, messagePinned]

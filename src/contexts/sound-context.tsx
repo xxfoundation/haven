@@ -15,9 +15,13 @@ export const SoundProvider: FC<{ children: React.ReactNode }> = ({ children }) =
     '/sounds/notification.mp3'
   );
 
+  const handleSetPlayNotification = useCallback((play: () => void) => {
+    setPlayNotification(() => play);
+  }, []);
+
   return (
     <SoundContext.Provider value={{ playNotification }}>
-      <NotificationSound soundUrl={notificationSound ?? ''} onInit={setPlayNotification} />
+      <NotificationSound soundUrl={notificationSound ?? '/sounds/notification.mp3'} onInit={handleSetPlayNotification} />
       {children}
     </SoundContext.Provider>
   );
