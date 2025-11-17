@@ -3,6 +3,7 @@ import { FC, useEffect } from 'react';
 import { RightSidebarView } from 'src/types/ui';
 import UserDetails from './UserDetails';
 import SpaceDetails from './SpaceDetails';
+import SpaceSettings from './SpaceSettings';
 import { useAppSelector } from 'src/store/hooks';
 import PinnedMessages from './PinnedMessages';
 import MutedUsers from './MutedUsers';
@@ -12,6 +13,7 @@ import cn from 'classnames';
 
 const views: Record<RightSidebarView, FC> = {
   'space-details': SpaceDetails,
+  'space-settings': SpaceSettings,
   'user-details': UserDetails,
   'pinned-messages': PinnedMessages,
   'muted-users': MutedUsers,

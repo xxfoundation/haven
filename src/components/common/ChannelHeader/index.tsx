@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import assert from 'assert';
 
 import Ellipsis from '@components/icons/Ellipsis';
+import Settings from '@components/icons/Settings';
 import { useUI } from '@contexts/ui-context';
 import { useAppSelector } from 'src/store/hooks';
 
@@ -177,6 +178,13 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
               className='hidden xs:list-item'
             >
               <Contributors />
+            </HeaderMenuItem>
+            <HeaderMenuItem
+              onClick={() => setRightSidebarView('space-settings')}
+              className='hidden xs:list-item'
+              title='Space Settings'
+            >
+              <Settings className='w-full h-full' />
             </HeaderMenuItem>
           </>
         )}

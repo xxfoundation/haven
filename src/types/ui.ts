@@ -1,6 +1,7 @@
 export type LeftSidebarView = 'spaces' | 'dms' | 'settings';
 export type RightSidebarView =
   | 'space-details'
+  | 'space-settings'
   | 'user-details'
   | 'pinned-messages'
   | 'muted-users'
