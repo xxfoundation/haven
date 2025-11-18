@@ -1,5 +1,4 @@
-import { contrastColor as getContrastColor } from 'contrast-color';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import cn from 'classnames';
 
 import useSelectedUserInfo from 'src/hooks/useSelectedUserInfo';
@@ -18,12 +17,6 @@ import useAsync from 'src/hooks/useAsync';
 import Spinner from '../Spinner/Spinner';
 import useDmClient from 'src/hooks/useDmClient';
 import { useNetworkClient } from '@contexts/network-client-context';
-
-const calculateContrastColor = (color?: string) =>
-  getContrastColor({
-    bgColor: color ?? '#000',
-    fgLightColor: 'var(--text-primary)'
-  });
 
 const UserDetails = () => {
   const { setRightSidebarView } = useUI();
@@ -55,7 +48,8 @@ const UserDetails = () => {
     setRightSidebarView(null);
   }, [dispatch, setRightSidebarView]);
 
-  const contrastColor = useMemo(() => calculateContrastColor(userInfo?.color), [userInfo?.color]);
+  // Use white color for text/icons on the colored header background
+  const contrastColor = '#FFFFFF';
 
   const selectChannel = useCallback(
     (id: string) => {
