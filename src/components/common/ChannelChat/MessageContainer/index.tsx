@@ -12,6 +12,7 @@ import PinMessageModal from 'src/components/modals/PinMessageModal';
 import MuteUserModal from 'src/components/modals/MuteUser';
 import DeleteMessageModal from 'src/components/modals/DeleteMessage';
 import * as channels from 'src/store/channels';
+import * as messages from 'src/store/messages';
 import * as app from 'src/store/app';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import * as identity from 'src/store/identity';
@@ -43,7 +44,7 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { deleteMessage, muteUser, pinMessage, sendReaction } = useNetworkClient();
+  const { deleteMessage, muteUser, pinMessage, sendReaction, sendMessage, sendReply } = useNetworkClient();
   const { setLeftSidebarView } = useUI();
 
   const [muteUserModalOpen, muteUserModalToggle] = useToggle();
@@ -58,9 +59,37 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   }, [dispatch, message.id]);
 
   const handleDeleteMessage = useCallback(async () => {
-    await deleteMessage(message);
-    hideDeleteMessageModal();
-  }, [deleteMessage, hideDeleteMessageModal, message]);
+    if (message.status === MessageStatus.Failed) {
+      // For failed messages, just remove from local store
+      dispatch(messages.actions.delete(message.id));
+      hideDeleteMessageModal();
+    } else {
+      // For delivered messages, use network deletion
+      await deleteMessage(message);
+      hideDeleteMessageModal();
+    }
+  }, [deleteMessage, dispatch, hideDeleteMessageModal, message]);
+
+  const handleRetryMessage = useCallback(async () => {
+    try {
+      if (!message.body) {
+        console.error('Cannot retry message without body content');
+        return;
+      }
+
+      // First remove the failed message from the store
+      dispatch(messages.actions.delete(message.id));
+
+      // Then retry sending based on whether it's a reply or regular message
+      if (message.repliedTo) {
+        await sendReply(message.body, message.repliedTo);
+      } else {
+        await sendMessage(message.body);
+      }
+    } catch (error) {
+      console.error('Failed to retry message:', error);
+    }
+  }, [dispatch, message, sendMessage, sendReply]);
 
   const handleMuteUser = useCallback(
     async (action: MuteUserAction) => {
@@ -182,7 +211,8 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
         onMouseLeave={() => setIsHovered(false)}
       >
         <ChatMessage className={className} clamped={clamped} message={message} />
-        {!readonly && message.status === MessageStatus.Delivered && (
+        {!readonly && 
+          (message.status === MessageStatus.Delivered || message.status === MessageStatus.Failed) && (
           <div ref={menuRef} className='absolute top-2 right-4'>
             <button
               onClick={() => setShowActionsMenu(!showActionsMenu)}
@@ -208,7 +238,9 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
                 onReplyClicked={onReplyMessage}
                 isAdmin={currentChannel?.isAdmin ?? false}
                 isOwn={pubkey === message.pubkey}
+                isFailed={message.status === MessageStatus.Failed}
                 onDeleteMessage={showDeleteMessageModal}
+                onRetry={handleRetryMessage}
                 onClose={() => setShowActionsMenu(false)}
               />
             )}
