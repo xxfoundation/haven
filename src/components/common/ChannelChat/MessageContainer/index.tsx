@@ -1,10 +1,10 @@
 import { Message, MessageStatus, MuteUserAction } from 'src/types';
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useRef } from 'react';
 
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import MessageActions from '../MessageActions';
+import MessageActionsMenu from '../MessageActions';
 import ChatMessage from '../ChatMessage/ChatMessage';
 import { useNetworkClient } from 'src/contexts/network-client-context';
 import useToggle from 'src/hooks/useToggle';
@@ -20,7 +20,8 @@ import { AppEvents, awaitAppEvent } from 'src/events';
 import useAsync from 'src/hooks/useAsync';
 import { useUI } from '@contexts/ui-context';
 import useDmClient from 'src/hooks/useDmClient';
-import assert from 'assert';
+import Ellipsis from 'src/components/icons/Ellipsis';
+import { useOnClickOutside } from 'usehooks-ts';
 
 type Props = {
   message: Message;
@@ -39,7 +40,9 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
   const mutedUsers = useAppSelector(channels.selectors.mutedUsers);
   const { pubkey } = useAppSelector(identity.selectors.identity) ?? {};
   const currentChannel = useAppSelector(channels.selectors.currentChannel);
-  const [showActionsWrapper, setShowActionsWrapper] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const { deleteMessage, muteUser, pinMessage, sendReaction } = useNetworkClient();
   const { setLeftSidebarView } = useUI();
 
@@ -149,6 +152,9 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
     setLeftSidebarView
   ]);
 
+  // Close menu when clicking outside
+  useOnClickOutside(menuRef, () => setShowActionsMenu(false));
+
   return (
     <>
       {isNewMessage && (
@@ -168,16 +174,30 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
           {pinMessageModalOpen && (
             <PinMessageModal onConfirm={pinSelectedMessage} onCancel={hidePinModal} />
           )}
-          {message.status === MessageStatus.Delivered && (
-            <div className='relative'>
-              <MessageActions
+        </>
+      )}
+      <div
+        className='relative'
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <ChatMessage className={className} clamped={clamped} message={message} />
+        {!readonly && message.status === MessageStatus.Delivered && (
+          <div ref={menuRef} className='absolute top-2 right-4'>
+            <button
+              onClick={() => setShowActionsMenu(!showActionsMenu)}
+              className={`p-1.5 rounded-lg transition-all ${
+                isHovered || showActionsMenu
+                  ? 'opacity-100 bg-charcoal-4 hover:bg-charcoal-3 text-charcoal-1 hover:text-primary'
+                  : 'opacity-0 md:opacity-0'
+              }`}
+              aria-label='Message actions'
+            >
+              <Ellipsis className='w-5 h-5' />
+            </button>
+            {showActionsMenu && (
+              <MessageActionsMenu
                 pubkey={message.pubkey}
-                onMouseEnter={() => setShowActionsWrapper(true)}
-                onMouseLeave={() => setShowActionsWrapper(false)}
-                className={`
-                  absolute right-4 -top-12 opacity-0 transition-opacity duration-200
-                  ${showActionsWrapper ? 'opacity-100' : ''}
-                `}
                 onDmClicked={dmUser}
                 dmsEnabled={message.dmToken !== undefined}
                 isPinned={message.pinned}
@@ -189,19 +209,12 @@ const MessageContainer: FC<Props> = ({ clamped = false, className, message, read
                 isAdmin={currentChannel?.isAdmin ?? false}
                 isOwn={pubkey === message.pubkey}
                 onDeleteMessage={showDeleteMessageModal}
+                onClose={() => setShowActionsMenu(false)}
               />
-            </div>
-          )}
-        </>
-      )}
-      <ChatMessage
-        className={className}
-        clamped={clamped}
-        onMouseEnter={() => setShowActionsWrapper(true)}
-        onMouseLeave={() => setShowActionsWrapper(false)}
-        onTouchEnd={() => setShowActionsWrapper(true)}
-        message={message}
-      />
+            )}
+          </div>
+        )}
+      </div>
     </>
   );
 };

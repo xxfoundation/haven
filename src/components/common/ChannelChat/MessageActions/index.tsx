@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState, HTMLAttributes } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { Delete, Reply } from 'src/components/icons';
 import { Mute, Pin } from 'src/components/icons';
 import { useUI } from 'src/contexts/ui-context';
@@ -11,8 +11,9 @@ import { WithChildren } from 'src/types';
 import useDmClient from 'src/hooks/useDmClient';
 import { EmojiPicker } from 'src/components/common/EmojiPortal';
 import Block from 'src/components/icons/Block';
+import EmojisPicker from 'src/components/icons/EmojisPicker';
 
-type Props = HTMLAttributes<HTMLDivElement> & {
+type Props = {
   isMuted: boolean;
   isAdmin: boolean;
   isOwn: boolean;
@@ -25,23 +26,29 @@ type Props = HTMLAttributes<HTMLDivElement> & {
   onDeleteMessage: () => void;
   onMuteUser: (unmute: boolean) => void;
   onPinMessage: (unpin?: boolean) => Promise<void>;
+  onClose: () => void;
 };
 
-const MessageAction: FC<WithChildren & HTMLAttributes<HTMLButtonElement>> = ({
-  children,
-  ...props
-}) => {
+const MenuItem: FC<
+  WithChildren & {
+    onClick: () => void;
+    className?: string;
+    icon: React.ReactNode;
+    label: string;
+  }
+> = ({ icon, label, onClick, className = '' }) => {
   return (
     <button
-      {...props}
-      className={`text-charcoal-1 hover:text-primary w-5 ${props.className || ''}`}
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-charcoal-1 hover:bg-charcoal-4 hover:text-primary transition-colors ${className}`}
     >
-      {children}
+      <span className='w-5 h-5 flex items-center justify-center'>{icon}</span>
+      <span>{label}</span>
     </button>
   );
 };
 
-const MessageActions: FC<Props> = ({
+const MessageActionsMenu: FC<Props> = ({
   dmsEnabled,
   isAdmin,
   isMuted,
@@ -53,8 +60,8 @@ const MessageActions: FC<Props> = ({
   onPinMessage,
   onReactToMessage,
   onReplyClicked,
-  pubkey,
-  ...props
+  onClose,
+  pubkey
 }) => {
   const { toggleBlocked } = useDmClient();
   const isDms = !!useAppSelector(dms.selectors.currentConversation);
@@ -72,7 +79,8 @@ const MessageActions: FC<Props> = ({
       throw e;
     }
     setLoading(false);
-  }, [onPinMessage]);
+    onClose();
+  }, [onPinMessage, onClose]);
 
   useEffect(() => {
     if (loading) {
@@ -84,56 +92,70 @@ const MessageActions: FC<Props> = ({
     }
   }, [closeModal, loading, openModal, setModalView]);
 
+  const handleAction = (action: () => void) => {
+    action();
+    onClose();
+  };
+
   return (
-    <div
-      {...props}
-      className={`${props.className || ''} bg-near-black-80 p-3 backdrop-blur-md space-x-4 rounded-lg z-10`}
-    >
-      <>
+    <div className='absolute right-0 top-0 mt-1 min-w-[200px] bg-charcoal-4 rounded-lg shadow-lg border border-charcoal-3 z-50 overflow-hidden'>
+      <div className='py-1'>
+        <MenuItem
+          icon={<Reply />}
+          label='Reply'
+          onClick={() => handleAction(onReplyClicked)}
+        />
+        <div className='px-4 py-2.5 flex items-center gap-3 text-sm text-charcoal-1 hover:bg-charcoal-4 hover:text-primary transition-colors'>
+          <span className='w-5 h-5 flex items-center justify-center'>
+            <EmojisPicker />
+          </span>
+          <EmojiPicker onSelect={(emoji) => handleAction(() => onReactToMessage(emoji))} />
+        </div>
         {dmsEnabled && (
-          <MessageAction onClick={onDmClicked}>
-            <Envelope />
-          </MessageAction>
+          <MenuItem
+            icon={<Envelope />}
+            label='Send DM'
+            onClick={() => handleAction(onDmClicked)}
+          />
         )}
         {isAdmin && !isOwn && (
-          <MessageAction onClick={() => onMuteUser(isMuted)}>
-            <Mute className={isMuted ? 'text-primary' : ''} />
-          </MessageAction>
+          <MenuItem
+            icon={<Mute className={isMuted ? 'text-primary' : ''} />}
+            label={isMuted ? 'Unmute User' : 'Mute User'}
+            onClick={() => handleAction(() => onMuteUser(isMuted))}
+            className={isMuted ? 'text-primary' : ''}
+          />
         )}
-        {isBlocked && !isOwn && (
-          <MessageAction onClick={() => toggleBlocked(pubkey)}>
-            <Block className='text-primary' />
-          </MessageAction>
+        {!isOwn && (
+          <MenuItem
+            icon={<Block className={isBlocked ? 'text-primary' : ''} />}
+            label={isBlocked ? 'Unblock User' : 'Block User'}
+            onClick={() => handleAction(() => toggleBlocked(pubkey))}
+            className={isBlocked ? 'text-primary' : ''}
+          />
         )}
-        {!isBlocked && !isOwn && (
-          <MessageAction onClick={() => toggleBlocked(pubkey)}>
-            <Block />
-          </MessageAction>
-        )}
-        {isAdmin && !isPinned && !isDms && (
-          <MessageAction onClick={() => onPinMessage()}>
-            <Pin />
-          </MessageAction>
-        )}
-        {isAdmin && isPinned && (
-          <MessageAction onClick={onUnpin}>
-            <Pin className='text-primary' />
-          </MessageAction>
+        {isAdmin && !isDms && (
+          <MenuItem
+            icon={<Pin className={isPinned ? 'text-primary' : ''} />}
+            label={isPinned ? 'Unpin Message' : 'Pin Message'}
+            onClick={() => (isPinned ? onUnpin() : handleAction(() => onPinMessage()))}
+            className={isPinned ? 'text-primary' : ''}
+          />
         )}
         {(isOwn || isAdmin) && !isPinned && !userIsMuted && (
-          <MessageAction onClick={onDeleteMessage}>
-            <Delete />
-          </MessageAction>
+          <>
+            <div className='h-px bg-charcoal-3 my-1' />
+            <MenuItem
+              icon={<Delete />}
+              label='Delete Message'
+              onClick={() => handleAction(onDeleteMessage)}
+              className='text-red hover:text-red'
+            />
+          </>
         )}
-        <MessageAction>
-          <EmojiPicker onSelect={onReactToMessage} />
-        </MessageAction>
-        <MessageAction onClick={onReplyClicked}>
-          <Reply />
-        </MessageAction>
-      </>
+      </div>
     </div>
   );
 };
 
-export default React.memo(MessageActions);
+export default React.memo(MessageActionsMenu);
