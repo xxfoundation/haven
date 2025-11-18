@@ -1,9 +1,8 @@
 import { FC, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import assert from 'assert';
 
-import { useNetworkClient } from '@contexts/network-client-context';
+import { useNetworkClient, User } from '@contexts/network-client-context';
 import useDmClient from 'src/hooks/useDmClient';
 import { useAppSelector } from 'src/store/hooks';
 import { Contributor } from 'src/types';
@@ -88,19 +87,114 @@ export const Contributors = () => {
   );
 };
 
+const MutedUserComponent: FC<User & { isAdmin: boolean }> = ({ isAdmin, ...user }) => {
+  const { t } = useTranslation();
+  const { muteUser } = useNetworkClient();
+
+  const handleUnmute = useCallback(async () => {
+    await muteUser(user.pubkey, true); // true means unmute
+  }, [user.pubkey, muteUser]);
+
+  const unmuteAsync = useAsync(handleUnmute);
+
+  return (
+    <div className='relative w-[calc(100%_+_3rem)] group -mx-6 py-1.5 pl-6 pr-4 hover:bg-charcoal-3-20 flex items-center justify-between'>
+      <Identity clickable className='block text-muted truncate' {...user} />
+      {isAdmin && (
+        <button
+          onClick={unmuteAsync.execute}
+          disabled={unmuteAsync.status === 'pending'}
+          className='px-3 py-1 text-xs text-primary hover:bg-charcoal-3-20 rounded invisible group-hover:visible'
+        >
+          {unmuteAsync.status === 'pending' ? <Spinner size='xs' /> : t('Unmute')}
+        </button>
+      )}
+    </div>
+  );
+};
+
 const ContributorsView = () => {
   const { t } = useTranslation();
   const { setRightSidebarView } = useUI();
+  const { mutedUsers } = useNetworkClient();
+  const currentChannel = useAppSelector(channels.selectors.currentChannel);
+  const recentContributors = useAppSelector(messages.selectors.currentChannelContributors);
+  
+  const [showAllContributors, setShowAllContributors] = useState(false);
+  const [showAllMuted, setShowAllMuted] = useState(false);
+
+  const CONTRIBUTOR_LIMIT = 5;
+  const MUTED_LIMIT = 3;
+
+  // Get list of muted user pubkeys for the current channel
+  const mutedUserPubkeys = useAppSelector(channels.selectors.mutedUsers)[currentChannel?.id ?? ''] || [];
+  
+  // Filter out muted users from recent contributors
+  const unmutedContributors = recentContributors.filter(
+    (contributor) => !mutedUserPubkeys.includes(contributor.pubkey)
+  );
+
+  const displayedContributors = showAllContributors
+    ? unmutedContributors
+    : unmutedContributors.slice(0, CONTRIBUTOR_LIMIT);
+
+  const displayedMuted = showAllMuted
+    ? mutedUsers
+    : mutedUsers?.slice(0, MUTED_LIMIT);
 
   return (
     <div className='p-6'>
       <div className='flex justify-between items-center mb-6'>
-        <RightSideTitle>{t('Recent Contributors')}</RightSideTitle>
+        <RightSideTitle>{t('Contributors & Muted Users')}</RightSideTitle>
         <CloseButton className='w-8 h-8' onClick={() => setRightSidebarView(null)} />
       </div>
+
+      {/* Contributors Section */}
       <div className='mt-6'>
-        <Contributors />
+        <h3 className='text-sm font-semibold mb-2 text-charcoal-1'>
+          {t('Recent Contributors')} ({unmutedContributors.length})
+        </h3>
+        {displayedContributors.map((contributor) => (
+          <ContributorComponent key={contributor.pubkey} {...contributor} />
+        ))}
+        {unmutedContributors.length > CONTRIBUTOR_LIMIT && (
+          <button
+            onClick={() => setShowAllContributors(!showAllContributors)}
+            className='text-primary text-sm mt-2 hover:underline'
+          >
+            {showAllContributors
+              ? `${t('Show Less')} ▲`
+              : `${t('Show All')} ${unmutedContributors.length} ▼`}
+          </button>
+        )}
       </div>
+
+      {/* Divider */}
+      {mutedUsers && mutedUsers.length > 0 && (
+        <hr className='my-6 border-charcoal-3' />
+      )}
+
+      {/* Muted Users Section */}
+      {mutedUsers && mutedUsers.length > 0 && (
+        <div>
+          <h3 className='text-sm font-semibold mb-2 text-charcoal-2'>
+            {t('Muted Users')} ({mutedUsers.length})
+          </h3>
+          {displayedMuted?.map((user) => (
+            <MutedUserComponent key={user.pubkey} {...user} isAdmin={currentChannel?.isAdmin ?? false} />
+          ))}
+          {mutedUsers.length > MUTED_LIMIT && (
+            <button
+              onClick={() => setShowAllMuted(!showAllMuted)}
+              className='text-primary text-sm mt-2 hover:underline'
+            >
+              {showAllMuted
+                ? `${t('Show Less')} ▲`
+                : `${t('Show All')} ${mutedUsers.length} ▼`}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

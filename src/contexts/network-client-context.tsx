@@ -1041,8 +1041,27 @@ export const NetworkProvider: FC<WithChildren> = (props) => {
   );
 
   useEffect(() => {
-    getMutedUsers();
+    const fetchMutedUsers = async () => {
+      try {
+        const users = await getMutedUsers();
+        setMutedUsers(users);
+      } catch (error) {
+        console.error('Failed to fetch muted users:', error);
+      }
+    };
+    fetchMutedUsers();
   }, [currentChannel, getMutedUsers]);
+
+  const handleUserMutedEvent = useCallback(async () => {
+    try {
+      const users = await getMutedUsers();
+      setMutedUsers(users);
+    } catch (error) {
+      console.error('Failed to refresh muted users after mute event:', error);
+    }
+  }, [getMutedUsers]);
+
+  useChannelsListener(ChannelEvents.USER_MUTED, handleUserMutedEvent);
 
   const pinMessage = useCallback(
     async (id: MessageId, unpin = false) => {

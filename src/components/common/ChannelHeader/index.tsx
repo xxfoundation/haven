@@ -21,7 +21,6 @@ import { ChannelNotificationLevel, DMNotificationLevel, NotificationStatus } fro
 import Dropdown, { DropdownItem } from '../Dropdown';
 import Notice from '@components/icons/Notice';
 import Share from '@components/icons/Share';
-import BannedUser from '@components/icons/BannedUser';
 import ViewPinned from '@components/icons/ViewPinned';
 import Leave from '@components/icons/Leave';
 import Block from '@components/icons/Block';
@@ -316,14 +315,6 @@ const ChannelHeader: FC<Props> = ({ id, isAdmin, name, privacyLevel }) => {
               </DropdownItem>
               <DropdownItem onClick={openShareModal} icon={Share}>
                 {t('Share Space')}
-              </DropdownItem>
-              <DropdownItem
-                icon={BannedUser}
-                onClick={() => {
-                  setRightSidebarView('muted-users');
-                }}
-              >
-                {t('View Muted Users')}
               </DropdownItem>
               <DropdownItem
                 onClick={() => {
