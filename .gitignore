@@ -49,7 +49,7 @@ dist/
 
 # Bun
 bun.lockb
-
+bun.lock
 
 # Local Netlify folder
 .netlify
